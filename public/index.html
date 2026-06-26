@@ -25,6 +25,15 @@
   .panel-body th{text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:2px 3px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)}
   .panel-body td{padding:2px 3px;border-bottom:1px solid var(--border);font-size:9px}
   .panel-body tr:hover td{background:var(--surface2)}
+  button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:9px}
+  button:hover{background:var(--accent);color:var(--bg)}
+  .report{display:none;position:fixed;top:8px;left:8px;right:8px;bottom:8px;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;z-index:100;padding:16px;overflow-y:auto}
+  .report.show{display:block}
+  .report pre{font-size:10px;color:var(--text);white-space:pre-wrap}
+  .report .close{float:right}
+  .r-tab{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin-bottom:8px}
+  .r-tab div{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:9px}
+  .r-tab div b{display:block;font-size:10px}
   .ward-list{display:flex;flex-direction:column;gap:3px}
   .ward-row{display:flex;align-items:center;gap:4px}
   .ward-name{width:80px;font-size:9px;flex-shrink:0}
@@ -45,7 +54,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button></div>
   </div>
 
   <div class=stats id=stats></div>
@@ -138,7 +147,32 @@ feed.sort((a,b)=>b.time.localeCompare(a.time));
 document.getElementById('feed').innerHTML=feed.slice(0,10).map(f=>`<div class=feed-item><span class=id>${f.id.replace(/^([A-Z]+-?\d+).*/,'$1')}</span><span class=event>${f.t}</span><span class=time>${f.time}</span></div>`).join('')||'<div style=color:var(--muted)>—</div>';
 }catch(e){}
 }
+
+let lastReport=null;
+async function showReport(){
+if(!lastReport)try{lastReport=await fetch('/api/report').then(r=>r.json())}catch(e){return}
+const r=lastReport;
+document.getElementById('reportPre').textContent=JSON.stringify(r,null,2);
+document.getElementById('rCensus').innerHTML=
+  `<b>${r.census.totalPatients}</b>Patients <b>${r.census.activeEncounters}</b>Active <b>${r.census.dischargedEncounters}</b>D/C `+
+  `<b>${r.census.occupancyRate}%</b>Occ <b>${r.census.waitingRoom}</b>Waiting`;
+document.getElementById('rClinical').innerHTML=
+  `<b>${r.clinical.lab.total}</b>Lab <b>${r.clinical.lab.resulted}</b>Res <b>${r.clinical.radiology.total}</b>Rad `+
+  `<b>${r.clinical.surgery.total}</b>OR <b>${r.clinical.pharmacy.total}</b>Rx`;
+document.getElementById('rFinance').innerHTML=
+  `<b>Rp ${(r.finance.totalChargeAmount/1e6).toFixed(0)}M</b>Charges <b>${r.finance.totalClaims}</b>Claims `+
+  `<b>Rp ${(r.finance.totalPaymentAmount/1e6).toFixed(1)}M</b>Collected`;
+document.getElementById('rReport').classList.add('show');
+}
+function closeReport(){document.getElementById('rReport').classList.remove('show')}
 refresh();setInterval(refresh,1000);
 </script>
+
+<div id=rReport class=report>
+  <button class=close onclick=closeReport()>✕</button>
+  <h3 style=margin-bottom:8px>📊 Hospital Statistics Report</h3>
+  <div class=r-tab><div id=rCensus></div><div id=rClinical></div><div id=rFinance></div></div>
+  <pre id=reportPre></pre>
+</div>
 </body>
 </html>

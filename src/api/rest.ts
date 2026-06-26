@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
+import { generateReport } from "../engine/report.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -63,6 +64,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/payments") { json(res, toArr(w.state.payments)); return true; }
   if (p === "/api/inventory") { json(res, toArr(w.state.inventory)); return true; }
   if (p === "/api/inventory/low") { json(res, Array.from(w.state.inventory.values()).filter(i => i.stock < i.minStock)); return true; }
+  if (p === "/api/report") { json(res, generateReport(w)); return true; }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {
