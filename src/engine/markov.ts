@@ -1,8 +1,20 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import { generatePatient } from "../patient/generator.js";
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
+
+function getLastDischargeTick(state: HospitalState, patientId: string): number {
+  let last = 0;
+  for (const e of state.encounters.values()) {
+    if (e.patientId === patientId && e.endTime !== null) {
+      const tick = Math.floor(e.endTime / 60000);
+      if (tick > last) last = tick;
+    }
+  }
+  return last;
+}
 
 export function admissionHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
   const availableBeds = Array.from(state.beds.values()).filter(b => b.patientId === null);
@@ -10,13 +22,19 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     return { ...state, waitingRoom: state.waitingRoom + 1 };
   }
 
-  const unencounteredPatients = Array.from(state.patients.values()).filter(
-    p => !Array.from(state.encounters.values()).some(e => e.patientId === p.id)
+  const activePatientIds = new Set(
+    Array.from(state.encounters.values())
+      .filter(e => e.status === "active")
+      .map(e => e.patientId)
   );
 
-  if (unencounteredPatients.length === 0) return state;
+  const admitablePatients = Array.from(state.patients.values())
+    .filter(p => !activePatientIds.has(p.id))
+    .sort((a, b) => getLastDischargeTick(state, a.id) - getLastDischargeTick(state, b.id));
 
-  const patient = unencounteredPatients[0]!;
+  if (admitablePatients.length === 0) return state;
+
+  const patient = admitablePatients[0]!;
   const bed = availableBeds[0]!;
 
   const newBeds = new Map(state.beds);
@@ -62,6 +80,20 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
   }
 
   return { ...state, beds: newBeds, encounters: newEncounters };
+}
+
+let newPatientCounter = 0;
+
+export function newPatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  if (clock.tick > 0 && clock.tick % 50 === 0) {
+    newPatientCounter++;
+    const fresh = generatePatient();
+    fresh.id = `PAT-NEW-${String(newPatientCounter).padStart(3, "0")}`;
+    const newPatients = new Map(state.patients);
+    newPatients.set(fresh.id, fresh);
+    return { ...state, patients: newPatients };
+  }
+  return state;
 }
 
 export function vitalsUpdateHandler(state: HospitalState, _clock: Clock, _queue: EventQueue): HospitalState {

@@ -1,7 +1,7 @@
 import { createClock, tick, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
-import { admissionHandler, dischargeHandler, vitalsUpdateHandler } from "./markov.js";
+import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { generatePatientPool } from "../patient/generator.js";
 
 export interface World {
@@ -19,6 +19,7 @@ export function createWorld(patientCount: number = 50): World {
     queue: new EventQueue(),
     handlers: [
       admissionHandler,
+      newPatientHandler,
       vitalsUpdateHandler,
     ],
   };
