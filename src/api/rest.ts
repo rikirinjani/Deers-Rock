@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
+import { journalQuery, journalStats } from "../engine/journal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -65,6 +66,14 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/inventory") { json(res, toArr(w.state.inventory)); return true; }
   if (p === "/api/inventory/low") { json(res, Array.from(w.state.inventory.values()).filter(i => i.stock < i.minStock)); return true; }
   if (p === "/api/report") { json(res, generateReport(w)); return true; }
+  if (p === "/api/journal") {
+    const limit = parseInt(url.searchParams.get("limit") ?? "100");
+    const offset = parseInt(url.searchParams.get("offset") ?? "0");
+    const eventType = url.searchParams.get("type") ?? undefined;
+    const entityType = url.searchParams.get("entity") ?? undefined;
+    json(res, { events: journalQuery({ limit, offset, eventType, entityType }), stats: journalStats() }); return true;
+  }
+  if (p === "/api/journal/stats") { json(res, journalStats()); return true; }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {

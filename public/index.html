@@ -54,7 +54,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showJournal()>📋 Journal</button></div>
   </div>
 
   <div class=stats id=stats></div>
@@ -165,6 +165,26 @@ document.getElementById('rFinance').innerHTML=
 document.getElementById('rReport').classList.add('show');
 }
 function closeReport(){document.getElementById('rReport').classList.remove('show')}
+
+let journalFilter='';
+async function showJournal(){
+const j=await fetch('/api/journal?limit=200').then(r=>r.json());
+const stats=j.stats;
+const html='<div style=margin-bottom:6px>Total: <b>'+stats.total+'</b> events | Types: '+
+  Object.entries(stats.byType).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([t,c])=>
+    '<span class=badge style=background:rgba(56,189,248,0.15);color:var(--accent);cursor:pointer;margin:1px;padding:2px 5px;font-size:8px;border-radius:3px;display:inline-block onclick="filterJournal(\''+t+'\')">'+t+' <b>'+c+'</b></span>'
+  ).join('')+'</div>'+
+  '<div style=margin-bottom:6px><input id=jFilter style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;width:200px;font-family:inherit;font-size:10px" placeholder="Filter type..." '+(journalFilter?'value='+journalFilter:'')+'> <button onclick=filterJournal(document.getElementById("jFilter").value)>Filter</button> <button onclick=filterJournal("")>Clear</button></div>'+
+  '<table style=font-size:9px><thead><tr><th>#</th><th>Tick</th><th>Type</th><th>Entity</th><th>Payload</th></tr></thead><tbody>'+
+  j.events.slice(0,200).map(e=>'<tr><td style=color:var(--muted);font-size:8px>'+e.id+'</td><td>'+e.tick+'</td><td><span class=badge style=background:rgba(56,189,248,0.05);color:var(--accent);font-size:8px>'+e.event_type+'</span></td><td style=font-size:8px>'+(e.entity_id||'-')+'</td><td style=font-size:8px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>'+e.payload+'</td></tr>').join('')+
+  '</tbody></table>';
+document.getElementById('jBody').innerHTML=html;
+document.getElementById('jStats').innerHTML=
+  '<b>'+stats.total+'</b> total | Ticks <b>'+stats.firstTick+'</b>–<b>'+stats.lastTick+'</b>';
+document.getElementById('jReport').classList.add('show');
+}
+function filterJournal(t){journalFilter=t;showJournal()}
+function closeJournal(){document.getElementById('jReport').classList.remove('show')}
 refresh();setInterval(refresh,1000);
 </script>
 
@@ -173,6 +193,12 @@ refresh();setInterval(refresh,1000);
   <h3 style=margin-bottom:8px>📊 Hospital Statistics Report</h3>
   <div class=r-tab><div id=rCensus></div><div id=rClinical></div><div id=rFinance></div></div>
   <pre id=reportPre></pre>
+</div>
+
+<div id=jReport class=report>
+  <button class=close onclick=closeJournal()>✕</button>
+  <h3 style=margin-bottom:8px>📋 World Journey <span id=jStats style=font-size:10px;color:var(--muted)></span></h3>
+  <div id=jBody></div>
 </div>
 </body>
 </html>

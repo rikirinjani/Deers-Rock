@@ -27,7 +27,7 @@ async function cmdUp() {
   animateBoot();
 
   const port = parseInt(process.argv[3] ?? "3000", 10);
-  let world = createWorld(50);
+  let world = createWorld(50, "world-journal.db");
 
   const server = createRestServer(() => world);
   server.listen(port);

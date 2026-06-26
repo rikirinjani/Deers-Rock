@@ -8,6 +8,7 @@ describe("World", () => {
     expect(w.state.patients.size).toBe(10);
     expect(w.state.beds.size).toBeGreaterThan(0);
     expect(w.clock.tick).toBe(0);
+    expect(w.journalPath).toBeNull();
   });
 
   it("advances on step", () => {
