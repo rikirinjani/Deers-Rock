@@ -3,6 +3,10 @@ import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { generatePatientPool } from "../patient/generator.js";
+import { labHandler, labResultHandler } from "./lab.js";
+import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
+import { nursingHandler } from "./nursing.js";
+import { physicianHandler, orderCompleteHandler } from "./physician.js";
 
 export interface World {
   clock: Clock;
@@ -20,6 +24,10 @@ export function createWorld(patientCount: number = 100): World {
     handlers: [
       admissionHandler,
       newPatientHandler,
+      labHandler,
+      pharmacyHandler,
+      nursingHandler,
+      physicianHandler,
       vitalsUpdateHandler,
     ],
   };
@@ -33,12 +41,17 @@ export function step(world: World): World {
   for (const evt of dueEvents) {
     if (evt.type === "discharge") {
       state = dischargeHandler(state, newClock, world.queue);
+    } else if (evt.type === "lab_result") {
+      state = labResultHandler(state, newClock, world.queue);
     }
   }
 
   for (const handler of world.handlers) {
     state = handler(state, newClock, world.queue);
   }
+
+  state = medAdminHandler(state, newClock, world.queue);
+  state = orderCompleteHandler(state, newClock, world.queue);
 
   if (newClock.tick % 5 === 0) {
     world.queue.schedule("admission", newClock.tick + 3, {});

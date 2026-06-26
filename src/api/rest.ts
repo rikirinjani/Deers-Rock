@@ -17,84 +17,112 @@ const MIME: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
   ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
 };
+
+function json(res: http.ServerResponse, data: unknown) {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.end(JSON.stringify(data));
+}
+
+function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World, url: URL): boolean {
+  const pathname = url.pathname;
+
+  if (pathname === "/api/status") {
+    const activeEncounters = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
+    const availableBeds = Array.from(w.state.beds.values()).filter(b => b.patientId === null);
+    json(res, {
+      time: formatHospitalTime(w.clock),
+      tick: w.clock.tick,
+      patients: w.state.patients.size,
+      activeEncounters: activeEncounters.length,
+      availableBeds: availableBeds.length,
+      waitingRoom: w.state.waitingRoom,
+      totalBeds: w.state.beds.size,
+      labOrders: w.state.labOrders.size,
+      medicationOrders: w.state.medicationOrders.size,
+      nurseNotes: w.state.nurseNotes.size,
+      physicianOrders: w.state.physicianOrders.size,
+    });
+    return true;
+  }
+
+  if (pathname === "/api/patients") {
+    json(res, Array.from(w.state.patients.values()));
+    return true;
+  }
+
+  if (pathname.startsWith("/api/patients/") && pathname.split("/").length === 4) {
+    const id = pathname.split("/")[3];
+    const patient = w.state.patients.get(id ?? "");
+    if (patient) json(res, patient);
+    else { res.statusCode = 404; json(res, { error: "Patient not found" }); }
+    return true;
+  }
+
+  if (pathname === "/api/encounters") {
+    json(res, Array.from(w.state.encounters.values()));
+    return true;
+  }
+
+  if (pathname === "/api/beds") {
+    const beds = Array.from(w.state.beds.values());
+    const byWard: Record<string, { total: number; occupied: number }> = {};
+    for (const b of beds) {
+      if (!byWard[b.ward]) byWard[b.ward] = { total: 0, occupied: 0 };
+      byWard[b.ward]!.total++;
+      if (b.patientId) byWard[b.ward]!.occupied++;
+    }
+    json(res, { beds, byWard });
+    return true;
+  }
+
+  if (pathname === "/api/labs") {
+    json(res, Array.from(w.state.labOrders.values()).reverse());
+    return true;
+  }
+
+  if (pathname === "/api/medications") {
+    json(res, Array.from(w.state.medicationOrders.values()).reverse());
+    return true;
+  }
+
+  if (pathname === "/api/nursing") {
+    json(res, Array.from(w.state.nurseNotes.values()).reverse());
+    return true;
+  }
+
+  if (pathname === "/api/orders") {
+    json(res, Array.from(w.state.physicianOrders.values()).reverse());
+    return true;
+  }
+
+  if (pathname === "/api/summary") {
+    const activeEncounters = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
+    const pendingLabs = Array.from(w.state.labOrders.values()).filter(o => o.status === "ordered").length;
+    const pendingMeds = Array.from(w.state.medicationOrders.values()).filter(o => o.status === "ordered").length;
+    const activeOrders = Array.from(w.state.physicianOrders.values()).filter(o => o.status === "active").length;
+    json(res, {
+      time: formatHospitalTime(w.clock),
+      tick: w.clock.tick,
+      census: { patients: w.state.patients.size, activeEncounters: activeEncounters.length, bedsAvailable: Array.from(w.state.beds.values()).filter(b => b.patientId === null).length, waiting: w.state.waitingRoom },
+      labs: { total: w.state.labOrders.size, pending: pendingLabs, resulted: w.state.labOrders.size - pendingLabs },
+      pharmacy: { total: w.state.medicationOrders.size, pending: pendingMeds, administered: Array.from(w.state.medicationOrders.values()).filter(o => o.status === "administered").length },
+      nursing: { total: w.state.nurseNotes.size },
+      physicians: { total: w.state.physicianOrders.size, active: activeOrders, completed: Array.from(w.state.physicianOrders.values()).filter(o => o.status === "completed").length },
+    });
+    return true;
+  }
+
+  return false;
+}
 
 export function createRestServer(world: () => World): RestServer {
   const server = http.createServer((req, res) => {
     const w = world();
     const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
 
-    if (url.pathname === "/api/status") {
-      const activeEncounters = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
-      const availableBeds = Array.from(w.state.beds.values()).filter(b => b.patientId === null);
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.end(JSON.stringify({
-        time: formatHospitalTime(w.clock),
-        tick: w.clock.tick,
-        patients: w.state.patients.size,
-        activeEncounters: activeEncounters.length,
-        availableBeds: availableBeds.length,
-        waitingRoom: w.state.waitingRoom,
-        totalBeds: w.state.beds.size,
-      }));
-      return;
-    }
-
-    if (url.pathname === "/api/patients") {
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.end(JSON.stringify(Array.from(w.state.patients.values())));
-      return;
-    }
-
-    if (url.pathname.startsWith("/api/patients/")) {
-      const id = url.pathname.split("/")[3];
-      const patient = w.state.patients.get(id ?? "");
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      if (patient) {
-        res.end(JSON.stringify(patient));
-      } else {
-        res.statusCode = 404;
-        res.end(JSON.stringify({ error: "Patient not found" }));
-      }
-      return;
-    }
-
-    if (url.pathname === "/api/encounters") {
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.end(JSON.stringify(Array.from(w.state.encounters.values())));
-      return;
-    }
-
-    if (url.pathname === "/api/beds") {
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      const beds = Array.from(w.state.beds.values());
-      const byWard: Record<string, { total: number; occupied: number }> = {};
-      for (const b of beds) {
-        if (!byWard[b.ward]) byWard[b.ward] = { total: 0, occupied: 0 };
-        byWard[b.ward]!.total++;
-        if (b.patientId) byWard[b.ward]!.occupied++;
-      }
-      res.end(JSON.stringify({ beds, byWard }));
-      return;
-    }
-
-    if (url.pathname === "/api/feed") {
-      const activeEncounters = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
-      const recentEncounters = Array.from(w.state.encounters.values())
-        .sort((a, b) => b.startTime - a.startTime)
-        .slice(0, 20);
-      res.setHeader("Content-Type", "application/json");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.end(JSON.stringify({ activeEncounters: activeEncounters.length, recentEncounters }));
-      return;
-    }
+    if (apiRoutes(req, res, w, url)) return;
 
     let filePath = path.join(publicDir, url.pathname === "/" ? "index.html" : url.pathname);
     if (!filePath.startsWith(publicDir)) {

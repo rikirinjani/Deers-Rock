@@ -45,3 +45,61 @@ export interface Bed {
   ward: string;
   patientId: string | null;
 }
+
+export interface LabOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  testName: string;
+  testCode: string;
+  status: "ordered" | "collected" | "processing" | "resulted";
+  result: string | null;
+  referenceRange: string;
+  unit: string;
+  orderedAt: number;
+  resultedAt: number | null;
+}
+
+export interface MedicationOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  medication: Medication;
+  status: "ordered" | "dispensed" | "administered" | "discontinued";
+  dose: string;
+  route: string;
+  frequency: string;
+  orderedAt: number;
+  administeredAt: number | null;
+}
+
+export interface NurseNote {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  noteType: "assessment" | "round" | "procedure" | "observation";
+  content: string;
+  timestamp: number;
+}
+
+export interface PhysicianOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  orderType: "medication" | "lab" | "imaging" | "consult" | "discharge";
+  description: string;
+  status: "active" | "completed" | "cancelled";
+  orderedAt: number;
+  completedAt: number | null;
+}
+
+export interface RadiologyOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  studyType: string;
+  status: "ordered" | "scheduled" | "completed" | "resulted";
+  finding: string | null;
+  orderedAt: number;
+  resultedAt: number | null;
+}
