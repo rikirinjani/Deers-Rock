@@ -9,8 +9,8 @@
 
 ## Medium Priority
 
+- [x] **SQLite persistent event journal** — append-only `world_journal` table, 25+ event types logged by state diff, `/api/journal` with filters, dashboard viewer
 - [ ] **FHIR resources** — add `/fhir/Patient`, `/fhir/Encounter`, `/fhir/Condition`, `/fhir/Observation`, `/fhir/Claim` endpoints
-- [ ] **Add remaining source files to report** — report.ts doesn't import some modules; verify all 14 departments are included
 - [ ] **Unit tests for legacy departments** — lab, pharmacy, nursing, physician, radiology, surgery, respiratory, dietary, social-work, emergency, markov all lack tests
 - [ ] **Integration test** — `runWorld(createWorld(20), 30)` and assert every department created ≥1 record
 - [ ] **CI/CD pipeline** — GitHub Actions to lint, typecheck, test on push before Railway deploy
