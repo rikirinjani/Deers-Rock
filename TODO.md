@@ -1,61 +1,35 @@
-# Deer's Rock — TODO
+# Deer's Rock HOE — TODO
 
-## v0.1 — MVP: `deers-rock up`
+## High Priority
 
-Goal: CLI that boots a fake hospital with realistic API traffic in ~30s. No AI agents.
+- [ ] **Polish report presentation** — replace JSON dump with styled HTML tables, charts (ECharts or Chart.js), export to CSV/PDF
+- [ ] **Patient discharge & throughput balance** — all 95 beds are 100% occupied; need to tune admission/discharge rates so the hospital doesn't saturate
+- [ ] **Prune stale data** — 21K+ nurse notes, 16K charges will grow unbounded; add TTL or rolling window per department
+- [ ] **Dashboard UI overhaul** — department panels feel cramped at 1600+ items; add pagination, search, filtering, date-range pickers
 
-### Project Setup
-- [x] Init Node.js project (package.json, ts config)
-- [x] Set up CLI entry point (`bin/deers-rock`)
-- [x] Pick + configure test framework (vitest)
-- [x] Set up lint (`tsc --noEmit`)
+## Medium Priority
 
-### Patient Engine
-- [x] Define synthetic patient schema (name, age, gender, vitals, diagnoses, medications)
-- [x] Build generator: realistic Indonesian names, age distribution, common diagnoses
-- [x] Generate patient pool on boot (configurable size, default 50)
+- [ ] **FHIR resources** — add `/fhir/Patient`, `/fhir/Encounter`, `/fhir/Condition`, `/fhir/Observation`, `/fhir/Claim` endpoints
+- [ ] **Add remaining source files to report** — report.ts doesn't import some modules; verify all 14 departments are included
+- [ ] **Unit tests for legacy departments** — lab, pharmacy, nursing, physician, radiology, surgery, respiratory, dietary, social-work, emergency, markov all lack tests
+- [ ] **Integration test** — `runWorld(createWorld(20), 30)` and assert every department created ≥1 record
+- [ ] **CI/CD pipeline** — GitHub Actions to lint, typecheck, test on push before Railway deploy
 
-### World Engine
-- [x] Clock module: tick-based time progression (1 tick = 1 min hospital time)
-- [x] Event queue: schedule + dispatch events (admissions, discharges)
-- [x] State store: in-memory for patients, beds, encounters
-- [x] Markov-chain event handlers (admission, discharge, vitals drift)
-- [x] Seed initial state: populate beds
+## Low Priority / Polish
 
-### Interface Layer
-- [x] REST API: /api/status, /api/patients, /api/encounters, /api/beds, /api/feed
-- [x] FHIR API surface (read-only /Patient, /Observation)
-- [x] Live data that evolves each tick (vitals drift every step)
-- [x] Static file serving for dashboard
+- [ ] **Patient search by name/ID** in dashboard
+- [ ] **Real-time WebSocket updates** instead of 1s polling
+- [ ] **Dockerfile** for local containerized dev
+- [ ] **.env config** for port, tick interval, patient pool size
+- [ ] **Admin controls** — pause/resume simulation, adjust tick speed
+- [ ] **Export patient census as CSV** per ward
+- [ ] **Add more Indonesian names** to patient generator pool
+- [ ] **Add medical supply consumption tracking** — show which department uses which supplies
+- [ ] **Dark/light theme toggle**
 
-### CLI
-- [x] `deers-rock up [port]` — boot server + start world engine
-- [x] `deers-rock status` — show hospital stats
-- [x] `deers-rock down` — graceful shutdown
-- [x] Startup output: animated boot sequence (spinner + status lines)
+## Known Issues
 
-### Dashboard
-- [x] Real-time hospital overview (stats cards, tick, time)
-- [x] Bed occupancy chart by ward with color-coded bars
-- [x] Active encounters table with type badges
-- [x] Patient directory with live search (name/ID)
-- [x] Recent activity feed (admissions/discharges)
-- [x] Auto-refresh every second
-
-## v0.2 — Locale Packs
-- [ ] Locale pack interface/contract
-- [ ] Indonesia pack: BPJS/INA-CBG, SATUSEHAT, PCare, Javanese language mix
-- [ ] Documentation: how to write a locale pack
-
-## v0.3 — AI Agent Layer
-- [ ] Agent interface: subscribe to events, emit actions
-- [ ] Staff agents (doctors, nurses, admin) with abandonment behavior
-- [ ] Agent slot: Event Queue + State Store pattern
-
-## v0.4 — RL Gym
-- [ ] Gym API surface
-- [ ] Reward signal from hospital outcomes
-
-## v0.5 — Certification
-- [ ] Reward function licensing model
-- [ ] Certification harness for health software
+- Nursing notes grow fastest (21K+); needs pruning most urgently
+- All wards at 100% occupancy = no buffer for new admissions
+- Report modal shows raw JSON — needs proper visualization
+- Dashboard panels scroll a long list at scale; virtual scrolling or limits needed
