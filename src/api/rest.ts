@@ -42,10 +42,20 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
       stockTxns: w.state.stockTransactions.size,
     }); return true;
   }
-  if (p === "/api/patients") { json(res, toArr(w.state.patients)); return true; }
+  if (p === "/api/patients") {
+    const q = url.searchParams.get("q")?.toLowerCase();
+    if (q) { json(res, Array.from(w.state.patients.values()).filter(pt => pt.name.toLowerCase().includes(q) || pt.id.toLowerCase().includes(q)).slice(0, 20)); return true; }
+    json(res, toArr(w.state.patients)); return true;
+  }
   if (p.startsWith("/api/patients/") && p.split("/").length === 4) {
     const id = p.split("/")[3]; const pt = w.state.patients.get(id ?? "");
     if (pt) json(res, pt); else { res.statusCode = 404; json(res, { error: "Not found" }); } return true;
+  }
+  if (p.startsWith("/api/patients/by-mrn/")) {
+    const num = parseInt(p.split("/")[4] ?? "0");
+    const target = `PAT-${String(num).padStart(4, "0")}`;
+    const pt = w.state.patients.get(target);
+    if (pt) json(res, pt); else { res.statusCode = 404; json(res, { error: "Patient not found", mrn: num }); } return true;
   }
   if (p === "/api/encounters") { json(res, toArr(w.state.encounters)); return true; }
   if (p === "/api/beds") { const b = Array.from(w.state.beds.values()); const bw: Record<string, {total:number;occupied:number}> = {}; for (const x of b) { if (!bw[x.ward]) bw[x.ward] = {total:0,occupied:0}; bw[x.ward]!.total++; if (x.patientId) bw[x.ward]!.occupied++; } json(res, {beds:b, byWard:bw}); return true; }
