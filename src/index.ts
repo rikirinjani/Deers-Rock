@@ -1,4 +1,4 @@
-export type { Patient, Gender, Vitals, Diagnosis, Medication, Encounter, Bed, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage } from "./patient/schema.js";
+export type { Patient, Gender, Vitals, Diagnosis, Medication, Encounter, Bed, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart, Charge, InsuranceClaim, Payment, InventoryItem, StockTransaction } from "./patient/schema.js";
 export { generatePatient, generatePatientPool } from "./patient/generator.js";
 export { createClock, tick, formatHospitalTime } from "./engine/clock.js";
 export { EventQueue } from "./engine/event-queue.js";

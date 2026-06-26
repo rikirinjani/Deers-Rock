@@ -2,6 +2,13 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
+import { dispenseItem, getStock } from "./central-supply.js";
+
+const MED_MAP: Record<string, string> = {
+  "ACE": "MED-ACE", "MET": "MED-MET", "ATR": "MED-ATR", "OMP": "MED-OMP",
+  "LVF": "MED-LVF", "PRC": "MED-PRC", "HEP": "MED-HEP", "SAL": "MED-SAL",
+  "FUR": "MED-FUR", "DIA": "MED-DIA",
+};
 
 const MEDS = [
   { code: "ACE", name: "Enalapril 5mg", dose: "5 mg", route: "PO" },
@@ -20,9 +27,7 @@ const FREQUENCIES = ["QD", "BID", "TID", "QID", "PRN", "STAT"];
 
 export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
-  if (activeEncounters.length === 0) return state;
-
-  if (clock.tick % 5 !== 0) return state;
+  if (activeEncounters.length === 0 || clock.tick % 5 !== 0) return state;
 
   const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
   const med = MEDS[Math.floor(Math.random() * MEDS.length)]!;
@@ -42,6 +47,12 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
 
   const newOrders = new Map(state.medicationOrders);
   newOrders.set(order.id, order);
+
+  // Dispense from central pharmacy stock
+  const supplyCode = MED_MAP[med.code];
+  if (supplyCode && getStock(state, supplyCode) > 0) {
+    state = dispenseItem(state, supplyCode, 1, clock, order.id);
+  }
 
   return { ...state, medicationOrders: newOrders };
 }

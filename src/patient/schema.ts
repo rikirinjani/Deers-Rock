@@ -163,3 +163,75 @@ export interface EdTriage {
   triagedAt: number;
   dischargedAt: number | null;
 }
+
+// ─── Medical Records / HIM ───
+export interface MedicalChart {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  status: "open" | "incomplete" | "completed" | "coded";
+  createdAt: number;
+  completedAt: number | null;
+  diagnoses: { code: string; name: string; type: "primary" | "secondary" }[];
+  procedures: { code: string; name: string; date: number }[];
+  coder: string | null;
+}
+
+// ─── Finance / Billing ───
+export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply";
+
+export interface Charge {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  category: ChargeCategory;
+  description: string;
+  amount: number;
+  billedAt: number;
+  paid: boolean;
+}
+
+export interface InsuranceClaim {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  payer: string;
+  totalCharges: number;
+  coveredAmount: number;
+  patientResponsibility: number;
+  status: "submitted" | "adjudicated" | "paid" | "denied";
+  submittedAt: number;
+  resolvedAt: number | null;
+}
+
+export interface Payment {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  type: "cash" | "card" | "insurance" | "transfer";
+  amount: number;
+  paidAt: number;
+  note: string;
+}
+
+// ─── Central Supply / Inventory ───
+export interface InventoryItem {
+  itemCode: string;
+  itemName: string;
+  category: "medication" | "lab-reagent" | "contrast" | "surgical" | "consumable" | "oxygen";
+  unit: string;
+  stock: number;
+  minStock: number;
+  maxStock: number;
+  departmentId: string;
+}
+
+export interface StockTransaction {
+  id: string;
+  itemCode: string;
+  type: "restock" | "dispense" | "transfer" | "waste";
+  quantity: number;
+  timestamp: number;
+  departmentId: string;
+  referenceId: string | null;
+}

@@ -13,6 +13,9 @@ import { surgeryHandler, surgeryResultHandler } from "./surgery.js";
 import { respiratoryHandler } from "./respiratory.js";
 import { dietaryHandler } from "./dietary.js";
 import { socialWorkHandler } from "./social-work.js";
+import { centralSupplyHandler } from "./central-supply.js";
+import { medicalRecordsHandler } from "./medical-records.js";
+import { billingHandler, cashierHandler } from "./finance.js";
 
 export interface World {
   clock: Clock;
@@ -40,6 +43,10 @@ export function createWorld(patientCount: number = 100): World {
       respiratoryHandler,
       dietaryHandler,
       socialWorkHandler,
+      centralSupplyHandler,
+      medicalRecordsHandler,
+      billingHandler,
+      cashierHandler,
       vitalsUpdateHandler,
     ],
   };
@@ -47,9 +54,9 @@ export function createWorld(patientCount: number = 100): World {
 
 export function step(world: World): World {
   const newClock = tick(world.clock);
-
   const dueEvents = world.queue.dueEvents(newClock.tick);
   let state = world.state;
+
   for (const evt of dueEvents) {
     switch (evt.type) {
       case "discharge": state = dischargeHandler(state, newClock, world.queue); break;
@@ -71,17 +78,11 @@ export function step(world: World): World {
     world.queue.schedule("admission", newClock.tick + 3, {});
   }
 
-  return {
-    ...world,
-    clock: newClock,
-    state,
-  };
+  return { ...world, clock: newClock, state };
 }
 
 export function runWorld(world: World, steps: number): World {
   let w = world;
-  for (let i = 0; i < steps; i++) {
-    w = step(w);
-  }
+  for (let i = 0; i < steps; i++) w = step(w);
   return w;
 }
