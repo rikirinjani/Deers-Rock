@@ -1,0 +1,55 @@
+# Deer's Rock HOE — Memory File
+
+## [2026-06-27 05:18] Project state at session end
+Deer's Rock Hospital Operating Environment simulation. Fully deployed on Railway at https://deers-rock-production.up.railway.app/. 40 tests across 9 files, all passing.
+
+### Done
+- 14 departments: Emergency, Lab, Radiology, Pharmacy, Surgery, Nursing, Physicians, Respiratory, Dietary, Social Work, Medical Records, Finance/Billing, Central Supply/Inventory, Medical Records/HIM
+- Real-time dashboard with stats, ward occupancy, ED tracker, department panels, activity feed
+- SQLite event journal (better-sqlite3, WAL mode): append-only world_journal table, 25+ event types logged by state diff per tick
+- Simulation snapshots: full HospitalState serialized every 20 ticks in world_snapshots table
+- Report generator: census, emergency, clinical, operations, finance, supply chain sections
+- Patient pool: 50 initial, cyclic admissions, Indonesian names
+- Supply chain: Central Supply holds 18 items, Pharmacy dispenses MED-*, Lab consumes LAB-*
+- Finance: room charges per tick, insurance claims (BPJS/Private/Self-pay), payment processing
+
+### Key Files
+- src/engine/world.ts — 17 handlers + event loop, snapshot/journal integration
+- src/engine/journal.ts — initJournal, journalAppend, journalQuery, journalStats, saveSnapshot, loadNearestSnapshot, listSnapshots
+- src/engine/report.ts — generateReport with full hospital stats
+- src/engine/central-supply.ts — 18-item catalog, auto-restock, dispense
+- src/engine/finance.ts — billingHandler, cashierHandler
+- src/engine/medical-records.ts — chart creation, ICD-10 coding cycle
+- src/engine/state-store.ts — all 17 collections, centralSupplyInit
+- src/patient/generator.ts — sequential PAT-{4digit} IDs
+- src/patient/schema.ts — all types (Patient, Encounter, Charge, etc.)
+- src/api/rest.ts — 20+ API endpoints including /api/journal, /api/snapshots, /api/report, /api/patients/by-mrn/1, /api/patients?q=
+- src/cli/index.ts — CLI with up/down/status, journal path passed as "world-journal.db"
+
+### API Endpoints
+- /api/status — real-time snapshot
+- /api/summary — grouped counts
+- /api/report — full hospital stats
+- /api/journal — 25+ event types, filterable
+- /api/journal/stats — event type counts
+- /api/snapshots — list snapshot ticks
+- /api/snapshot/:tick — full state at nearest snapshot
+- /api/patients — all patients (supports ?q=name search)
+- /api/patients/by-mrn/:num — lookup by MRN
+- /api/patients/:id — direct ID lookup
+- /api/beds, /api/encounters, /api/labs, /api/radiology, /api/medications, /api/surgery, /api/nursing, /api/orders, /api/emergency, /api/respiratory, /api/diet, /api/social, /api/charts, /api/charges, /api/claims, /api/payments, /api/inventory, /api/inventory/low
+
+### Known Issues
+- Nursing notes grow fastest (~21K+); needs pruning with TTL
+- All 95 wards at 100% occupancy — admission/discharge rate needs tuning
+- Dashboard panels scroll long lists; needs pagination
+- Report modal shows raw JSON; needs charts/tables
+
+### Next Steps (from TODO.md)
+- Polish report presentation (charts, tables, export)
+- Balance patient throughput (100% occupancy)
+- Prune stale data (nursing notes TTL)
+- Dashboard UI overhaul (pagination, search, filtering)
+- FHIR resources (/fhir/Patient, /fhir/Encounter, etc.)
+- Unit tests for legacy departments (lab, pharmacy, nursing, etc.)
+- CI/CD pipeline (GitHub Actions)
