@@ -16,6 +16,8 @@ export interface Vitals {
   bloodPressureDiastolic: number;
   temperature: number;
   oxygenSaturation: number;
+  respiratoryRate: number;
+  painLevel: number;
 }
 
 export interface Diagnosis {
@@ -86,7 +88,7 @@ export interface PhysicianOrder {
   id: string;
   encounterId: string;
   patientId: string;
-  orderType: "medication" | "lab" | "imaging" | "consult" | "discharge";
+  orderType: "medication" | "lab" | "imaging" | "consult" | "discharge" | "surgery" | "respiratory" | "diet" | "social";
   description: string;
   status: "active" | "completed" | "cancelled";
   orderedAt: number;
@@ -98,8 +100,66 @@ export interface RadiologyOrder {
   encounterId: string;
   patientId: string;
   studyType: string;
+  modality: "X-ray" | "CT" | "MRI" | "Ultrasound" | "Mammography" | "Fluoroscopy";
   status: "ordered" | "scheduled" | "completed" | "resulted";
   finding: string | null;
+  impression: string | null;
   orderedAt: number;
   resultedAt: number | null;
+}
+
+export interface SurgeryOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  procedureName: string;
+  procedureCode: string;
+  status: "scheduled" | "in-progress" | "completed" | "cancelled";
+  surgeon: string;
+  scheduledAt: number;
+  completedAt: number | null;
+  notes: string | null;
+}
+
+export interface RespiratoryOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  therapyType: "ventilator" | "oxygen" | "nebulizer" | "chest-PT" | "PFT" | "CPAP";
+  status: "ordered" | "active" | "discontinued";
+  settings: string;
+  orderedAt: number;
+  notes: string | null;
+}
+
+export interface DietOrder {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  dietType: "regular" | "soft" | "liquid" | "NPO" | "diabetic" | "cardiac" | "renal" | "high-protein";
+  status: "active" | "discontinued";
+  orderedAt: number;
+  notes: string | null;
+}
+
+export interface SocialWorkNote {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  noteType: "assessment" | "discharge-planning" | "counseling" | "resource-coordination";
+  content: string;
+  timestamp: number;
+  disposition: "home" | "rehab" | "SNF" | "hospice" | "psychiatric" | null;
+}
+
+export interface EdTriage {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  acuity: 1 | 2 | 3 | 4 | 5;
+  chiefComplaint: string;
+  arrivalMode: "walk-in" | "ambulance" | "transfer";
+  disposition: "admitted" | "discharged" | "transferred" | null;
+  triagedAt: number;
+  dischargedAt: number | null;
 }

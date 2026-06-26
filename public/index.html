@@ -6,115 +6,75 @@
 <title>Deer's Rock — Hospital Dashboard</title>
 <style>
   :root {
-    --bg: #0b0e14;
-    --surface: #141a24;
-    --surface2: #1c2432;
-    --border: #2a3444;
-    --text: #e2e8f0;
-    --muted: #8896a6;
-    --accent: #38bdf8;
-    --green: #4ade80;
-    --yellow: #facc15;
-    --red: #ef4444;
-    --orange: #fb923c;
-    --purple: #a78bfa;
-    --pink: #f472b6;
+    --bg: #0b0e14; --surface: #141a24; --surface2: #1c2432; --border: #2a3444;
+    --text: #e2e8f0; --muted: #8896a6; --accent: #38bdf8; --green: #4ade80;
+    --yellow: #facc15; --red: #ef4444; --orange: #fb923c; --purple: #a78bfa; --pink: #f472b6;
+    --teal: #2dd4bf; --rose: #fb7185;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-    background: var(--bg);
-    color: var(--text);
-    padding: 12px;
-    font-size: 12px;
-    line-height: 1.5;
+    background: var(--bg); color: var(--text); padding: 10px; font-size: 11px; line-height: 1.5;
   }
   .container { max-width: 1600px; margin: 0 auto; }
 
   .header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; margin-bottom: 12px;
+    padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 10px;
   }
-  .header h1 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .header h1 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .header h1 span { color: var(--accent); }
-  .header .meta { display: flex; gap: 16px; font-size: 12px; }
+  .header .meta { display: flex; gap: 12px; font-size: 11px; }
   .header .meta span { color: var(--muted); }
   .header .meta .val { color: var(--yellow); }
 
-  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 12px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-    padding: 10px; text-align: center;
-  }
-  .card .value { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
-  .card .label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
-  .card.accent .value { color: var(--accent); }
-  .card.green .value { color: var(--green); }
-  .card.yellow .value { color: var(--yellow); }
-  .card.orange .value { color: var(--orange); }
-  .card.red .value { color: var(--red); }
-  .card.purple .value { color: var(--purple); }
-  .card.pink .value { color: var(--pink); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; }
+  .card .value { font-size: 18px; font-weight: 700; margin-bottom: 1px; }
+  .card .label { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; margin-bottom: 8px; }
   .full { grid-column: 1 / -1; }
+  .half { grid-column: span 2; }
 
-  .panel {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
-  }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
   .panel-header {
-    padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border);
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    padding: 6px 10px; background: var(--surface2); border-bottom: 1px solid var(--border);
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
     display: flex; justify-content: space-between; align-items: center;
   }
-  .panel-body { padding: 8px 12px; max-height: 280px; overflow-y: auto; }
+  .panel-body { padding: 6px 10px; max-height: 240px; overflow-y: auto; }
   .panel-body table { width: 100%; border-collapse: collapse; }
   .panel-body th {
-    text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--border);
+    text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); padding: 3px 4px; border-bottom: 1px solid var(--border);
     position: sticky; top: 0; background: var(--surface);
   }
-  .panel-body td { padding: 4px 6px; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .panel-body td { padding: 3px 4px; border-bottom: 1px solid var(--border); font-size: 10px; }
   .panel-body tr:hover td { background: var(--surface2); }
 
-  .ward-list { display: flex; flex-direction: column; gap: 6px; }
-  .ward-row { display: flex; align-items: center; gap: 8px; }
-  .ward-name { width: 110px; font-size: 11px; flex-shrink: 0; }
-  .ward-bar-bg { flex: 1; height: 16px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .ward-list { display: flex; flex-direction: column; gap: 4px; }
+  .ward-row { display: flex; align-items: center; gap: 6px; }
+  .ward-name { width: 90px; font-size: 10px; flex-shrink: 0; }
+  .ward-bar-bg { flex: 1; height: 14px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
   .ward-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-  .ward-label { font-size: 10px; color: var(--muted); width: 50px; text-align: right; flex-shrink: 0; }
+  .ward-label { font-size: 9px; color: var(--muted); width: 40px; text-align: right; flex-shrink: 0; }
 
-  .feed { display: flex; flex-direction: column; gap: 3px; }
-  .feed-item { font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
-  .feed-item .id { color: var(--muted); width: 80px; flex-shrink: 0; }
+  .feed { display: flex; flex-direction: column; gap: 2px; }
+  .feed-item { font-size: 10px; padding: 2px 0; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
+  .feed-item .id { color: var(--muted); width: 60px; flex-shrink: 0; font-size: 9px; }
   .feed-item .event { flex: 1; }
-  .feed-item .time { color: var(--muted); width: 70px; text-align: right; flex-shrink: 0; }
+  .feed-item .time { color: var(--muted); width: 60px; text-align: right; flex-shrink: 0; font-size: 9px; }
 
-  .badge {
-    display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 600;
-  }
+  .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 600; }
   .badge.active { background: rgba(74,222,128,0.15); color: var(--green); }
-  .badge.discharged { background: rgba(251,146,60,0.15); color: var(--orange); }
   .badge.emergency { background: rgba(239,68,68,0.15); color: var(--red); }
   .badge.admission { background: rgba(56,189,248,0.15); color: var(--accent); }
-  .badge.ordered { background: rgba(251,191,36,0.15); color: var(--yellow); }
-  .badge.resulted { background: rgba(74,222,128,0.15); color: var(--green); }
-  .badge.administered { background: rgba(74,222,128,0.15); color: var(--green); }
-  .badge.completed { background: rgba(74,222,128,0.15); color: var(--green); }
 
-  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: var(--surface); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  @media (max-width: 900px) {
-    .stats { grid-template-columns: repeat(3, 1fr); }
-    .grid { grid-template-columns: 1fr; }
-    .grid-3 { grid-template-columns: 1fr; }
-    .grid-4 { grid-template-columns: 1fr 1fr; }
-  }
 </style>
 </head>
 <body>
@@ -122,173 +82,180 @@
   <div class="header">
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
     <div class="meta">
-      <span>Time: <span class="val" id="hospitalTime">--:--</span></span>
-      <span>Tick: <span class="val" id="tick">0</span></span>
+      <span>Time: <span class="val" id="hTime">--:--</span></span>
+      <span>Tick: <span class="val" id="hTick">0</span></span>
     </div>
   </div>
 
   <div class="stats" id="stats">
-    <div class="card accent"><div class="value" id="sPatients">0</div><div class="label">Patients</div></div>
-    <div class="card green"><div class="value" id="sEncounters">0</div><div class="label">Encounters</div></div>
-    <div class="card yellow"><div class="value" id="sBeds">0</div><div class="label">Beds Free</div></div>
-    <div class="card orange"><div class="value" id="sWaiting">0</div><div class="label">Waiting</div></div>
-    <div class="card purple"><div class="value" id="sLabs">0</div><div class="label">Lab Orders</div></div>
-    <div class="card pink"><div class="value" id="sMeds">0</div><div class="label">Med Orders</div></div>
+    <div class="card"><div style="color:var(--accent)" class="value" id="sPats">0</div><div class="label">Patients</div></div>
+    <div class="card"><div style="color:var(--green)" class="value" id="sEnc">0</div><div class="label">Encounters</div></div>
+    <div class="card"><div style="color:var(--yellow)" class="value" id="sBeds">0</div><div class="label">Beds Free</div></div>
+    <div class="card"><div style="color:var(--orange)" class="value" id="sWait">0</div><div class="label">Waiting</div></div>
+    <div class="card"><div style="color:var(--red)" class="value" id="sEd">0</div><div class="label">ED Active</div></div>
+    <div class="card"><div style="color:var(--purple)" class="value" id="sLabs">0</div><div class="label">Lab</div></div>
+    <div class="card"><div style="color:var(--pink)" class="value" id="sRad">0</div><div class="label">Radiology</div></div>
+    <div class="card"><div style="color:var(--teal)" class="value" id="sMeds">0</div><div class="label">Pharmacy</div></div>
+    <div class="card"><div style="color:var(--rose)" class="value" id="sSurge">0</div><div class="label">Surgery</div></div>
+    <div class="card"><div style="color:var(--accent)" class="value" id="sNurse">0</div><div class="label">Nursing</div></div>
+    <div class="card"><div style="color:var(--green)" class="value" id="sDoc">0</div><div class="label">Orders</div></div>
+    <div class="card"><div style="color:var(--yellow)" class="value" id="sDiet">0</div><div class="label">Dietary</div></div>
+    <div class="card"><div style="color:var(--orange)" class="value" id="sSocial">0</div><div class="label">Social</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px">
+    <div class="panel">
+      <div class="panel-header">🛏️ Bed Occupancy</div>
+      <div class="panel-body"><div class="ward-list" id="wardList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">🚑 Emergency Dept <span id="edCount" style="color:var(--red)">0</span></div>
+      <div class="panel-body"><div id="edList"></div></div>
+    </div>
   </div>
 
   <div class="grid">
     <div class="panel">
-      <div class="panel-header">Bed Occupancy</div>
-      <div class="panel-body"><div class="ward-list" id="wardList"></div></div>
+      <div class="panel-header">🧪 Lab <span id="labCount" style="color:var(--purple)">0</span></div>
+      <div class="panel-body"><div id="labList"></div></div>
     </div>
     <div class="panel">
-      <div class="panel-header">
-        <span>Active Encounters</span>
-        <span style="color:var(--green)" id="encounterCount">0</span>
-      </div>
+      <div class="panel-header">📡 Radiology <span id="radCount" style="color:var(--pink)">0</span></div>
+      <div class="panel-body"><div id="radList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">💊 Pharmacy <span id="medCount" style="color:var(--teal)">0</span></div>
+      <div class="panel-body"><div id="medList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">🔪 Surgery <span id="surgCount" style="color:var(--rose)">0</span></div>
+      <div class="panel-body"><div id="surgList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">🩺 Nursing <span id="nurseCount" style="color:var(--accent)">0</span></div>
+      <div class="panel-body"><div id="nurseList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">📋 Physician Orders <span id="docCount" style="color:var(--green)">0</span></div>
+      <div class="panel-body"><div id="docList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">💨 Respiratory <span id="respCount" style="color:var(--yellow)">0</span></div>
+      <div class="panel-body"><div id="respList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">🍽️ Dietary <span id="dietCount" style="color:var(--orange)">0</span></div>
+      <div class="panel-body"><div id="dietList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">🤝 Social Work <span id="socialCount" style="color:var(--muted)">0</span></div>
+      <div class="panel-body"><div id="socialList"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Active Encounters</div>
       <div class="panel-body"><div id="encounterList"></div></div>
     </div>
   </div>
 
-  <div class="grid-4">
-    <div class="panel">
-      <div class="panel-header">🧪 Lab <span id="labCount" style="color:var(--yellow)">0</span></div>
-      <div class="panel-body"><div id="labList"></div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">💊 Pharmacy <span id="medCount" style="color:var(--pink)">0</span></div>
-      <div class="panel-body"><div id="medList"></div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">🩺 Nursing <span id="nurseCount" style="color:var(--purple)">0</span></div>
-      <div class="panel-body"><div id="nurseList"></div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">📋 Physicians <span id="docCount" style="color:var(--accent)">0</span></div>
-      <div class="panel-body"><div id="docList"></div></div>
-    </div>
-  </div>
-
   <div class="panel full">
-    <div class="panel-header">
-      <span>Activity Feed</span>
-      <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">admissions · discharges · lab results · med admin</span>
-    </div>
-    <div class="panel-body" style="max-height:200px"><div class="feed" id="feed"></div></div>
+    <div class="panel-header">📊 Activity Feed</div>
+    <div class="panel-body" style="max-height:160px"><div class="feed" id="feed"></div></div>
   </div>
 </div>
 
 <script>
-let lastEncounterCount = 0;
-let lastFeed = [];
-
-function getWardColor(pct) {
-  if (pct >= 80) return '#ef4444';
-  if (pct >= 60) return '#fb923c';
-  if (pct >= 40) return '#facc15';
-  return '#4ade80';
-}
-
+function getWardColor(pct) { return pct >= 80 ? '#ef4444' : pct >= 60 ? '#fb923c' : pct >= 40 ? '#facc15' : '#4ade80'; }
 function fmtTime(ms) {
-  const m = Math.floor(ms / 60000);
-  const h = Math.floor(m / 60) % 24;
-  const d = Math.floor(m / 1440);
-  const min = m % 60;
-  return d > 0 ? `Day ${d} ${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}` : `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+  const m = Math.floor(ms / 60000); const h = Math.floor(m / 60) % 24; const d = Math.floor(m / 1440);
+  return d > 0 ? `Day ${d} ${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`
+    : `${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
 }
 
 async function refresh() {
   try {
-    const [status, bedsData, encounters, labs, meds, nursing, docs] = await Promise.all([
+    const [s, beds, enc, labs, rad, meds, surg, nursing, docs, ed, resp, diet, social] = await Promise.all([
       fetch('/api/status').then(r=>r.json()),
       fetch('/api/beds').then(r=>r.json()),
       fetch('/api/encounters').then(r=>r.json()),
       fetch('/api/labs').then(r=>r.json()),
+      fetch('/api/radiology').then(r=>r.json()),
       fetch('/api/medications').then(r=>r.json()),
+      fetch('/api/surgery').then(r=>r.json()),
       fetch('/api/nursing').then(r=>r.json()),
       fetch('/api/orders').then(r=>r.json()),
+      fetch('/api/emergency').then(r=>r.json()),
+      fetch('/api/respiratory').then(r=>r.json()),
+      fetch('/api/diet').then(r=>r.json()),
+      fetch('/api/social').then(r=>r.json()),
     ]);
 
-    document.getElementById('hospitalTime').textContent = status.time;
-    document.getElementById('tick').textContent = status.tick;
-    document.getElementById('sPatients').textContent = status.patients;
-    document.getElementById('sEncounters').textContent = status.activeEncounters;
-    document.getElementById('sBeds').textContent = status.availableBeds;
-    document.getElementById('sWaiting').textContent = status.waitingRoom;
-    document.getElementById('sLabs').textContent = status.labOrders;
-    document.getElementById('sMeds').textContent = status.medicationOrders;
+    document.getElementById('hTime').textContent = s.time;
+    document.getElementById('hTick').textContent = s.tick;
+    document.getElementById('sPats').textContent = s.patients;
+    document.getElementById('sEnc').textContent = s.activeEncounters;
+    document.getElementById('sBeds').textContent = s.availableBeds;
+    document.getElementById('sWait').textContent = s.waitingRoom;
+    document.getElementById('sEd').textContent = s.edTriages;
+    document.getElementById('sLabs').textContent = s.labOrders;
+    document.getElementById('sRad').textContent = s.radiologyOrders;
+    document.getElementById('sMeds').textContent = s.medicationOrders;
+    document.getElementById('sSurge').textContent = s.surgeryOrders;
+    document.getElementById('sNurse').textContent = s.nurseNotes;
+    document.getElementById('sDoc').textContent = s.physicianOrders;
+    document.getElementById('sDiet').textContent = s.dietOrders;
+    document.getElementById('sSocial').textContent = s.socialWorkNotes;
 
-    const active = encounters.filter(e => e.status === 'active');
-    document.getElementById('encounterCount').textContent = active.length;
-    if (active.length === 0) {
-      document.getElementById('encounterList').innerHTML = '<div style="color:var(--muted);padding:6px 0">No active encounters</div>';
-    } else {
-      document.getElementById('encounterList').innerHTML =
-        '<table><thead><tr><th>ID</th><th>Patient</th><th>Type</th></tr></thead><tbody>' +
-        active.slice(0, 10).map(e => `<tr>
-          <td style="color:var(--muted)">${e.id.replace('ENC-','')}</td>
-          <td>${e.patientId}</td>
-          <td><span class="badge ${e.type}">${e.type}</span></td>
-        </tr>`).join('') + '</tbody></table>' +
-        (active.length > 10 ? `<div style="color:var(--muted);padding:4px;text-align:center;font-size:10px">+ ${active.length - 10} more</div>` : '');
-    }
-
-    const wardHtml = Object.entries(bedsData.byWard).map(([ward, info]) => {
-      const pct = info.total > 0 ? Math.round((info.occupied / info.total) * 100) : 0;
-      return `<div class="ward-row"><div class="ward-name">${ward}</div><div class="ward-bar-bg"><div class="ward-bar-fill" style="width:${pct}%;background:${getWardColor(pct)}"></div></div><div class="ward-label">${info.occupied}/${info.total}</div></div>`;
+    // Wards
+    const wh = Object.entries(beds.byWard).map(([w, i]) => {
+      const p = i.total > 0 ? Math.round((i.occupied/i.total)*100) : 0;
+      return `<div class="ward-row"><div class="ward-name">${w}</div><div class="ward-bar-bg"><div class="ward-bar-fill" style="width:${p}%;background:${getWardColor(p)}"></div></div><div class="ward-label">${i.occupied}/${i.total}</div></div>`;
     }).join('');
-    document.getElementById('wardList').innerHTML = wardHtml || '<div style="color:var(--muted)">No wards</div>';
+    document.getElementById('wardList').innerHTML = wh || '<div style="color:var(--muted)">—</div>';
 
-    document.getElementById('labCount').textContent = labs.length;
-    document.getElementById('labList').innerHTML = labs.length === 0 ? '<div style="color:var(--muted);padding:6px 0">No lab orders</div>' :
-      '<table><thead><tr><th>Test</th><th>Status</th></tr></thead><tbody>' +
-      labs.slice(0, 6).map(o => `<tr>
-        <td>${o.testName}</td>
-        <td><span class="badge ${o.status === 'resulted' ? 'resulted' : 'ordered'}">${o.status}</span></td>
-      </tr>`).join('') + '</tbody></table>';
+    // ED
+    const activeEd = ed.filter(t => !t.disposition);
+    document.getElementById('edCount').textContent = activeEd.length;
+    document.getElementById('edList').innerHTML = activeEd.length === 0 ? '<div style="color:var(--muted)">No ED patients</div>'
+      : '<table><thead><tr><th>Patient</th><th>Complaint</th><th>Acuity</th></tr></thead><tbody>'
+      + activeEd.slice(0,6).map(t => `<tr><td>${t.patientId}</td><td style="font-size:9px">${t.chiefComplaint}</td><td><span class="badge" style="background:${t.acuity<=2?'rgba(239,68,68,0.15)':'rgba(250,204,21,0.15)'};color:${t.acuity<=2?'var(--red)':'var(--yellow)'}">P${t.acuity}</span></td></tr>`).join('')
+      + '</tbody></table>';
 
-    document.getElementById('medCount').textContent = meds.length;
-    document.getElementById('medList').innerHTML = meds.length === 0 ? '<div style="color:var(--muted);padding:6px 0">No medication orders</div>' :
-      '<table><thead><tr><th>Med</th><th>Status</th></tr></thead><tbody>' +
-      meds.slice(0, 6).map(o => `<tr>
-        <td>${o.medication.name}</td>
-        <td><span class="badge ${o.status === 'administered' ? 'administered' : 'ordered'}">${o.status}</span></td>
-      </tr>`).join('') + '</tbody></table>';
+    // Encounters
+    const active = enc.filter(e => e.status === 'active');
+    document.getElementById('encounterList').innerHTML = active.length === 0 ? '<div style="color:var(--muted)">—</div>'
+      : '<table><thead><tr><th>ID</th><th>Patient</th><th>Type</th></tr></thead><tbody>'
+      + active.slice(0,8).map(e => `<tr><td style="color:var(--muted);font-size:9px">${e.id}</td><td>${e.patientId}</td><td><span class="badge ${e.type}">${e.type}</span></td></tr>`).join('')
+      + '</tbody></table>'
+      + (active.length > 8 ? `<div style="color:var(--muted);text-align:center;font-size:9px;padding:2px">+${active.length-8} more</div>` : '');
 
-    document.getElementById('nurseCount').textContent = nursing.length;
-    document.getElementById('nurseList').innerHTML = nursing.length === 0 ? '<div style="color:var(--muted);padding:6px 0">No nursing notes</div>' :
-      '<table><thead><tr><th>Note</th><th>Patient</th></tr></thead><tbody>' +
-      nursing.slice(0, 5).map(n => `<tr>
-        <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.content}</td>
-        <td>${n.patientId}</td>
-      </tr>`).join('') + '</tbody></table>';
-
-    document.getElementById('docCount').textContent = docs.length;
-    document.getElementById('docList').innerHTML = docs.length === 0 ? '<div style="color:var(--muted);padding:6px 0">No physician orders</div>' :
-      '<table><thead><tr><th>Order</th><th>Status</th></tr></thead><tbody>' +
-      docs.slice(0, 6).map(o => `<tr>
-        <td style="font-size:10px">${o.description}</td>
-        <td><span class="badge ${o.status === 'completed' ? 'completed' : 'active'}">${o.status}</span></td>
-      </tr>`).join('') + '</tbody></table>';
-
-    const feedItems = [];
-    for (const e of encounters.slice(-5)) {
-      feedItems.push({ id: e.id, text: e.status === 'active' ? `🟢 Admitted ${e.patientId}` : `🟠 Discharged ${e.patientId}`, time: fmtTime(e.status === 'active' ? e.startTime : (e.endTime || e.startTime)) });
+    function renderList(id, countId, items, label1, label2, fn, max=5) {
+      const el = document.getElementById(id);
+      const ct = document.getElementById(countId);
+      ct.textContent = items.length;
+      el.innerHTML = items.length === 0 ? '<div style="color:var(--muted)">—</div>'
+        : '<table><thead><tr><th>'+label1+'</th><th>'+label2+'</th></tr></thead><tbody>'
+        + items.slice(0,max).map(fn).join('') + '</tbody></table>';
     }
-    for (const o of labs.slice(-3)) {
-      if (o.status === 'resulted') feedItems.push({ id: o.id, text: `🧪 Lab result: ${o.testName} = ${o.result}`, time: fmtTime(o.resultedAt || o.orderedAt) });
-    }
-    for (const o of meds.slice(-3)) {
-      if (o.status === 'administered') feedItems.push({ id: o.id, text: `💊 Administered ${o.medication.name}`, time: fmtTime(o.administeredAt || o.orderedAt) });
-    }
-    feedItems.sort((a, b) => b.time.localeCompare(a.time));
-    const feedHtml = feedItems.slice(0, 12).map(f =>
-      `<div class="feed-item"><span class="id">${f.id.replace(/^([A-Z]+-?\d+).*/, '$1')}</span><span class="event">${f.text}</span><span class="time">${f.time}</span></div>`
-    ).join('');
-    document.getElementById('feed').innerHTML = feedHtml || '<div style="color:var(--muted)">No activity yet</div>';
-  } catch(e) {
-    // server just starting
-  }
+
+    renderList('labList','labCount',labs,'Test','Status', o => `<tr><td style="font-size:9px">${o.testName}</td><td><span class="badge" style="background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}">${o.status}</span></td></tr>`);
+    renderList('radList','radCount',rad,'Study','Status', o => `<tr><td style="font-size:9px">${o.studyType.replace('Chest X-ray','CXR').replace('Ultrasound','US')}</td><td><span class="badge" style="background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}">${o.status}</span></td></tr>`);
+    renderList('medList','medCount',meds,'Medication','Status', o => `<tr><td style="font-size:9px">${o.medication.name}</td><td><span class="badge" style="background:${o.status==='administered'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='administered'?'var(--green)':'var(--yellow)'}">${o.status}</span></td></tr>`);
+    renderList('surgList','surgCount',surg,'Procedure','Status', o => `<tr><td style="font-size:9px">${o.procedureName.replace('Laparoscopic ','Lap ').replace('Total ','')}</td><td><span class="badge" style="background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}">${o.status}</span></td></tr>`);
+    renderList('nurseList','nurseCount',nursing,'Observation','Patient', n => `<tr><td style="font-size:8px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.content}</td><td>${n.patientId}</td></tr>`, 4);
+    renderList('docList','docCount',docs,'Order','Status', o => `<tr><td style="font-size:9px">${o.description}</td><td><span class="badge" style="background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}">${o.status}</span></td></tr>`);
+    renderList('respList','respCount',resp,'Therapy','Status', o => `<tr><td style="font-size:9px">${o.therapyType}</td><td><span class="badge" style="background:${o.status==='active'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='active'?'var(--green)':'var(--yellow)'}">${o.status}</span></td></tr>`);
+    renderList('dietList','dietCount',diet,'Diet','Status', o => `<tr><td style="font-size:9px">${o.dietType}</td><td><span class="badge" style="background:rgba(74,222,128,0.15);color:var(--green)">${o.status}</span></td></tr>`);
+    renderList('socialList','socialCount',social,'Note','Type', o => `<tr><td style="font-size:8px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.content}</td><td style="font-size:9px">${o.noteType}</td></tr>`, 3);
+
+    // Feed
+    const feed = [];
+    for (const e of enc.slice(-4)) feed.push({id:e.id,t:e.status==='active'?`🚑 Admit ${e.patientId}`:`🟠 D/C ${e.patientId}`,time:fmtTime(e.status==='active'?e.startTime:(e.endTime||e.startTime))});
+    for (const o of rad.slice(-3)) if(o.status==='resulted') feed.push({id:o.id,t:`📡 ${o.studyType.replace('Chest X-ray PA & Lateral','CXR').replace('Ultrasound','US')} done`,time:fmtTime(o.resultedAt||o.orderedAt)});
+    for (const o of surg.slice(-2)) if(o.status==='completed') feed.push({id:o.id,t:`🔪 ${o.procedureName.replace('Laparoscopic ','Lap ')} done`,time:fmtTime(o.completedAt||o.scheduledAt)});
+    for (const o of labs.slice(-3)) if(o.status==='resulted') feed.push({id:o.id,t:`🧪 ${o.testName} → ${o.result}`,time:fmtTime(o.resultedAt||o.orderedAt)});
+    feed.sort((a,b)=>b.time.localeCompare(a.time));
+    document.getElementById('feed').innerHTML = feed.slice(0,12).map(f=>`<div class="feed-item"><span class="id">${f.id.replace(/^([A-Z]+-?\d+).*/,'$1')}</span><span class="event">${f.t}</span><span class="time">${f.time}</span></div>`).join('');
+  } catch(e) { /* starting up */ }
 }
 
 refresh();

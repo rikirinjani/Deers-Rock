@@ -106,6 +106,8 @@ export function vitalsUpdateHandler(state: HospitalState, _clock: Clock, _queue:
         bloodPressureDiastolic: Math.max(60, Math.min(120, patient.vitals.bloodPressureDiastolic + drift())),
         temperature: Math.max(35, Math.min(39.5, +(patient.vitals.temperature + tempDrift).toFixed(1))),
         oxygenSaturation: Math.max(90, Math.min(100, patient.vitals.oxygenSaturation + drift())),
+        respiratoryRate: Math.max(10, Math.min(30, patient.vitals.respiratoryRate + drift())),
+        painLevel: Math.max(0, Math.min(10, patient.vitals.painLevel + (Math.random() > 0.5 ? 1 : -1))),
       },
     });
   }

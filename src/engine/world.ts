@@ -7,6 +7,12 @@ import { labHandler, labResultHandler } from "./lab.js";
 import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
 import { nursingHandler } from "./nursing.js";
 import { physicianHandler, orderCompleteHandler } from "./physician.js";
+import { radiologyHandler, radResultHandler } from "./radiology.js";
+import { emergencyHandler, edDischargeHandler } from "./emergency.js";
+import { surgeryHandler, surgeryResultHandler } from "./surgery.js";
+import { respiratoryHandler } from "./respiratory.js";
+import { dietaryHandler } from "./dietary.js";
+import { socialWorkHandler } from "./social-work.js";
 
 export interface World {
   clock: Clock;
@@ -24,10 +30,16 @@ export function createWorld(patientCount: number = 100): World {
     handlers: [
       admissionHandler,
       newPatientHandler,
+      emergencyHandler,
       labHandler,
       pharmacyHandler,
       nursingHandler,
       physicianHandler,
+      radiologyHandler,
+      surgeryHandler,
+      respiratoryHandler,
+      dietaryHandler,
+      socialWorkHandler,
       vitalsUpdateHandler,
     ],
   };
@@ -39,10 +51,12 @@ export function step(world: World): World {
   const dueEvents = world.queue.dueEvents(newClock.tick);
   let state = world.state;
   for (const evt of dueEvents) {
-    if (evt.type === "discharge") {
-      state = dischargeHandler(state, newClock, world.queue);
-    } else if (evt.type === "lab_result") {
-      state = labResultHandler(state, newClock, world.queue);
+    switch (evt.type) {
+      case "discharge": state = dischargeHandler(state, newClock, world.queue); break;
+      case "lab_result": state = labResultHandler(state, newClock, world.queue); break;
+      case "rad_result": state = radResultHandler(state, newClock, world.queue); break;
+      case "ed_discharge": state = edDischargeHandler(state, newClock, world.queue); break;
+      case "surgery_done": state = surgeryResultHandler(state, newClock, world.queue); break;
     }
   }
 

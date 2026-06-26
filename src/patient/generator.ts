@@ -18,6 +18,11 @@ const diagnoses: Diagnosis[] = [
   { code: "I50", name: "Heart failure", active: true },
   { code: "A09", name: "Acute gastroenteritis", active: true },
   { code: "E78", name: "Hyperlipidemia", active: true },
+  { code: "N18", name: "Chronic kidney disease", active: true },
+  { code: "J44", name: "COPD", active: true },
+  { code: "G40", name: "Epilepsy", active: true },
+  { code: "M17", name: "Osteoarthritis of knee", active: true },
+  { code: "F32", name: "Major depressive disorder", active: true },
 ];
 
 function pickRandom<T>(arr: T[]): T {
@@ -25,14 +30,14 @@ function pickRandom<T>(arr: T[]): T {
 }
 
 function generateVitals(age: number): Vitals {
-  const baseHR = 70 + Math.floor(Math.random() * 20);
-  const baseSYS = 110 + Math.floor(Math.random() * 30);
   return {
-    heartRate: age > 60 ? baseHR + 5 : baseHR,
-    bloodPressureSystolic: age > 50 ? baseSYS + 10 : baseSYS,
-    bloodPressureDiastolic: Math.floor((baseSYS + (age > 50 ? 10 : 0)) * 0.65),
-    temperature: 36.5 + Math.random() * 0.5,
+    heartRate: 60 + Math.floor(Math.random() * 30),
+    bloodPressureSystolic: 110 + Math.floor(Math.random() * 30),
+    bloodPressureDiastolic: 70 + Math.floor(Math.random() * 15),
+    temperature: +(36.5 + Math.random() * 0.8).toFixed(1),
     oxygenSaturation: 96 + Math.floor(Math.random() * 4),
+    respiratoryRate: 14 + Math.floor(Math.random() * 8),
+    painLevel: Math.floor(Math.random() * 5),
   };
 }
 
