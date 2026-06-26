@@ -1,10 +1,14 @@
 import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
+import type { HospitalState } from "./state-store.js";
 
 let db: Database.Database | null = null;
 let insertStmt: Database.Statement | null = null;
 let stmt: ((tick: number, htime: number, type: string, entityType: string, entityId: string, payload: string) => void) | null = null;
+let saveSnapStmt: Database.Statement | null = null;
+let loadSnapStmt: Database.Statement | null = null;
+let listSnapsStmt: Database.Statement | null = null;
 
 export interface JournalRow {
   id: number;
@@ -39,6 +43,12 @@ export function initJournal(dbPath?: string): void {
     CREATE INDEX IF NOT EXISTS idx_journal_tick ON world_journal(tick);
     CREATE INDEX IF NOT EXISTS idx_journal_type ON world_journal(event_type);
     CREATE INDEX IF NOT EXISTS idx_journal_entity ON world_journal(entity_type, entity_id);
+
+    CREATE TABLE IF NOT EXISTS world_snapshots (
+      tick       INTEGER PRIMARY KEY,
+      state      TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   insertStmt = db.prepare(
@@ -47,6 +57,10 @@ export function initJournal(dbPath?: string): void {
   stmt = (tick, htime, type, entityType, entityId, payload) => {
     insertStmt!.run(tick, htime, type, entityType, entityId, payload);
   };
+
+  saveSnapStmt = db.prepare("INSERT OR REPLACE INTO world_snapshots (tick, state) VALUES (?, ?)");
+  loadSnapStmt = db.prepare("SELECT tick, state FROM world_snapshots WHERE tick <= ? ORDER BY tick DESC LIMIT 1");
+  listSnapsStmt = db.prepare("SELECT tick, created_at FROM world_snapshots ORDER BY tick ASC");
 }
 
 export function journalAppend(
@@ -105,6 +119,67 @@ export function journalReplay(tickMax: number, eventTypes?: string[]): JournalRo
   return db.prepare(sql).all(...params) as JournalRow[];
 }
 
+function mapToArr<K extends string, V>(map: Map<K, V>): [string, V][] {
+  return Array.from(map.entries());
+}
+
+function arrToMap<K extends string, V>(arr: [string, V][]): Map<K, V> {
+  return new Map(arr) as Map<K, V>;
+}
+
+export function saveSnapshot(tick: number, state: HospitalState): void {
+  if (!saveSnapStmt) return;
+  const data = {
+    p: mapToArr(state.patients), b: mapToArr(state.beds), e: mapToArr(state.encounters),
+    wc: state.wardCapacity, wr: state.waitingRoom,
+    lo: mapToArr(state.labOrders), mo: mapToArr(state.medicationOrders),
+    nn: mapToArr(state.nurseNotes), po: mapToArr(state.physicianOrders),
+    ro: mapToArr(state.radiologyOrders), so: mapToArr(state.surgeryOrders),
+    rpo: mapToArr(state.respiratoryOrders), d: mapToArr(state.dietOrders),
+    sw: mapToArr(state.socialWorkNotes), et: mapToArr(state.edTriages),
+    mc: mapToArr(state.medicalCharts), ch: mapToArr(state.charges),
+    ic: mapToArr(state.insuranceClaims), py: mapToArr(state.payments),
+    inv: mapToArr(state.inventory), st: mapToArr(state.stockTransactions),
+  };
+  saveSnapStmt.run(tick, JSON.stringify(data));
+}
+
+export interface SnapshotInfo {
+  tick: number;
+  state: HospitalState | null;
+}
+
+export function loadNearestSnapshot(tick: number): SnapshotInfo {
+  if (!loadSnapStmt) return { tick, state: null };
+  const row = loadSnapStmt.get(tick) as { tick: number; state: string } | undefined;
+  if (!row) return { tick, state: null };
+  return { tick: row.tick, state: deserializeState(row.state) };
+}
+
+export function listSnapshots(): { tick: number; createdAt: string }[] {
+  if (!listSnapsStmt) return [];
+  const rows = listSnapsStmt.all() as { tick: number; created_at: string }[];
+  return rows.map(r => ({ tick: r.tick, createdAt: r.created_at }));
+}
+
+export const SNAPSHOT_INTERVAL = 20;
+
+function deserializeState(json: string): HospitalState {
+  const d = JSON.parse(json);
+  return {
+    patients: arrToMap(d.p), beds: arrToMap(d.b), encounters: arrToMap(d.e),
+    wardCapacity: d.wc, waitingRoom: d.wr,
+    labOrders: arrToMap(d.lo), medicationOrders: arrToMap(d.mo),
+    nurseNotes: arrToMap(d.nn), physicianOrders: arrToMap(d.po),
+    radiologyOrders: arrToMap(d.ro), surgeryOrders: arrToMap(d.so),
+    respiratoryOrders: arrToMap(d.rpo), dietOrders: arrToMap(d.d),
+    socialWorkNotes: arrToMap(d.sw), edTriages: arrToMap(d.et),
+    medicalCharts: arrToMap(d.mc), charges: arrToMap(d.ch),
+    insuranceClaims: arrToMap(d.ic), payments: arrToMap(d.py),
+    inventory: arrToMap(d.inv), stockTransactions: arrToMap(d.st),
+  };
+}
+
 export function closeJournal(): void {
-  if (db) { db.close(); db = null; insertStmt = null; stmt = null; }
+  if (db) { db.close(); db = null; insertStmt = null; stmt = null; saveSnapStmt = null; loadSnapStmt = null; listSnapsStmt = null; }
 }

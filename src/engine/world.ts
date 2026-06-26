@@ -16,7 +16,7 @@ import { socialWorkHandler } from "./social-work.js";
 import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { billingHandler, cashierHandler } from "./finance.js";
-import { initJournal, journalAppend } from "./journal.js";
+import { initJournal, journalAppend, saveSnapshot } from "./journal.js";
 
 export interface World {
   clock: Clock;
@@ -232,7 +232,12 @@ export function step(world: World): World {
     world.queue.schedule("admission", newClock.tick + 3, {});
   }
 
-  if (snap && journaling) logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
+  if (snap && journaling) {
+    logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
+    if (newClock.tick > 0 && newClock.tick % 20 === 0) {
+      saveSnapshot(newClock.tick, state);
+    }
+  }
 
   return { ...world, clock: newClock, state };
 }

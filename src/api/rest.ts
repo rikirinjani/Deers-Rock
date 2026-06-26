@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
-import { journalQuery, journalStats } from "../engine/journal.js";
+import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -74,6 +74,19 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     json(res, { events: journalQuery({ limit, offset, eventType, entityType }), stats: journalStats() }); return true;
   }
   if (p === "/api/journal/stats") { json(res, journalStats()); return true; }
+  if (p === "/api/snapshots") { json(res, listSnapshots()); return true; }
+  if (p.startsWith("/api/snapshot/")) {
+    const targetTick = parseInt(p.split("/")[3] ?? "0");
+    const snap = loadNearestSnapshot(targetTick);
+    if (!snap.state) { res.statusCode = 404; json(res, { error: "No snapshot found", tick: targetTick }); return true; }
+    const stateObj: Record<string, unknown> = { snapshotTick: snap.tick, targetTick };
+    for (const [key, map] of Object.entries(snap.state)) {
+      if (map instanceof Map) stateObj[key] = Array.from(map.values()).reverse();
+    }
+    stateObj.wardCapacity = snap.state.wardCapacity;
+    stateObj.waitingRoom = snap.state.waitingRoom;
+    json(res, stateObj); return true;
+  }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {

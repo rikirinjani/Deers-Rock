@@ -54,7 +54,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showJournal()>📋 Journal</button></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button></div>
   </div>
 
   <div class=stats id=stats></div>
@@ -185,6 +185,58 @@ document.getElementById('jReport').classList.add('show');
 }
 function filterJournal(t){journalFilter=t;showJournal()}
 function closeJournal(){document.getElementById('jReport').classList.remove('show')}
+
+let snapList=[];
+async function showSnapshots(){
+snapList=await fetch('/api/snapshots').then(r=>r.json());
+if(!snapList.length){alert('No snapshots yet. Wait for tick 20+');return}
+const curTick=parseInt(document.getElementById('hTick').textContent);
+const snaps=snapList.map(s=>s.tick);
+const nearest=snaps.filter(t=>t<=curTick).pop()||snaps[0];
+document.getElementById('snapSlider').max=snaps.length-1;
+document.getElementById('snapSlider').value=snaps.indexOf(nearest);
+document.getElementById('snapTick').textContent=nearest;
+document.getElementById('snapInfo').innerHTML='Snapshots: <b>'+snapList.length+'</b> at ticks <b>'+snaps.join(', ')+'</b>';
+document.getElementById('sReport').classList.add('show');
+loadSnapshot(nearest);
+}
+function loadSnapshot(tick){
+document.getElementById('snapTick').textContent=tick;
+document.getElementById('snapData').innerHTML='<div style=color:var(--muted)>Loading...</div>';
+fetch('/api/snapshot/'+tick).then(r=>r.json()).then(d=>{
+const enc=d.encounters||[],ch=d.charges||[],cl=d.insuranceClaims||[],p=d.patients||[];
+const ae=enc.filter(e=>e.status==='active').length;
+const html=
+  '<div class=r-tab>'+
+  '<div><b>'+p.length+'</b>Patients <b>'+ae+'</b>Active <b>'+(enc.length-ae)+'</b>D/C</div>'+
+  '<div><b>'+(d.labOrders||[]).length+'</b>Lab <b>'+(d.radiologyOrders||[]).length+'</b>Rad <b>'+(d.medicationOrders||[]).length+'</b>Rx</div>'+
+  '<div><b>'+ch.length+'</b>Charges <b>'+cl.length+'</b>Claims <b>'+(d.payments||[]).length+'</b>Pay</div>'+
+  '</div>'+
+  '<input id=snapSearch style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;width:200px;font-size:10px;margin-bottom:4px" placeholder="Search patient/encounter..." oninput=filterSnapResults()>'+
+  '<div id=snapResults style=max-height:400px;overflow-y:auto></div>';
+document.getElementById('snapData').innerHTML=html;
+filterSnapResults();
+}).catch(()=>document.getElementById('snapData').innerHTML='<div style=color:var(--red)>Error loading snapshot</div>');
+}
+function filterSnapResults(){
+const q=(document.getElementById('snapSearch')?.value||'').toLowerCase();
+const tick=document.getElementById('snapTick').textContent;
+fetch('/api/snapshot/'+tick).then(r=>r.json()).then(d=>{
+const all=[...d.encounters||[],...d.labOrders||[],...d.medicationOrders||[],...d.surgeryOrders||[],...d.charges||[],...d.insuranceClaims||[]];
+const filtered=q?all.filter(x=>JSON.stringify(x).toLowerCase().includes(q)):all.slice(0,100);
+document.getElementById('snapResults').innerHTML=filtered.length?'<table style=font-size:9px><thead><tr><th>Type</th><th>ID</th><th>Details</th></tr></thead><tbody>'+
+filtered.slice(0,200).map(x=>{
+const type=x.testName?'Lab':x.medication?'Rx':x.procedureName?'Surg':x.chargeCategory?'Charge':x.payer?'Claim':x.chiefComplaint?'ED':'Enc';
+return '<tr><td><span class=badge style=background:rgba(56,189,248,0.05);color:var(--accent);font-size:8px>'+type+'</span></td><td style=font-size:8px>'+(x.id||'')+'</td><td style=font-size:8px>'+(x.patientId||x.patient_id||'')+' '+(x.testName||x.description||x.procedureName||x.chiefComplaint||'')+'</td></tr>'
+}).join('')+'</tbody></table>':'<div style=color:var(--muted)>No results</div>';
+});
+}
+function slideSnapshot(v){
+const idx=parseInt(v);
+const tick=snapList[idx].tick;
+loadSnapshot(tick);
+}
+function closeSnapshots(){document.getElementById('sReport').classList.remove('show')}
 refresh();setInterval(refresh,1000);
 </script>
 
@@ -199,6 +251,17 @@ refresh();setInterval(refresh,1000);
   <button class=close onclick=closeJournal()>✕</button>
   <h3 style=margin-bottom:8px>📋 World Journey <span id=jStats style=font-size:10px;color:var(--muted)></span></h3>
   <div id=jBody></div>
+</div>
+
+<div id=sReport class=report>
+  <button class=close onclick=closeSnapshots()>✕</button>
+  <h3 style=margin-bottom:8px>📸 Simulation Snapshot <span id=snapInfo style=font-size:10px;color:var(--muted)></span></h3>
+  <div style=margin-bottom:6px;display:flex;align-items:center;gap:8px>
+    <span style=font-size:10px>Tick:</span>
+    <input type=range id=snapSlider min=0 max=0 value=0 style=flex:1 oninput=slideSnapshot(this.value)>
+    <span id=snapTick style=font-size:14px;font-weight:700;color:var(--accent)>0</span>
+  </div>
+  <div id=snapData></div>
 </div>
 </body>
 </html>
