@@ -11,7 +11,7 @@ export interface World {
   handlers: ((state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState)[];
 }
 
-export function createWorld(patientCount: number = 50): World {
+export function createWorld(patientCount: number = 100): World {
   const patients = generatePatientPool(patientCount);
   return {
     clock: createClock(60),

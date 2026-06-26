@@ -82,13 +82,10 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
   return { ...state, beds: newBeds, encounters: newEncounters };
 }
 
-let newPatientCounter = 0;
-
 export function newPatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  if (clock.tick > 0 && clock.tick % 50 === 0) {
-    newPatientCounter++;
+  if (clock.tick > 0 && clock.tick % 10 === 0) {
     const fresh = generatePatient();
-    fresh.id = `PAT-NEW-${String(newPatientCounter).padStart(3, "0")}`;
+    fresh.id = `PAT-${clock.tick}-${String(Math.floor(Math.random() * 9999)).padStart(4, "0")}`;
     const newPatients = new Map(state.patients);
     newPatients.set(fresh.id, fresh);
     return { ...state, patients: newPatients };
