@@ -36,14 +36,18 @@ async function cmdUp() {
 
   if (fs.existsSync(journalPath) && fs.statSync(journalPath).size > 1024) {
     initJournal(journalPath);
-    const snap = loadNearestSnapshot(Infinity);
+    const snap = loadNearestSnapshot(Number.MAX_SAFE_INTEGER);
     if (snap.state) {
       world = resumeWorld(snap.state, snap.tick, journalPath);
       process.stdout.write("\r♻️ Restored from snapshot at tick " + snap.tick + "...\n");
     } else {
+      process.stdout.write("\r⚠️ DB found but no valid snapshot, starting fresh\n");
       world = createWorld(50, journalPath);
     }
   } else {
+    const dbExists = fs.existsSync(journalPath);
+    const dbSize = dbExists ? fs.statSync(journalPath).size : 0;
+    process.stdout.write(`\r📁 No DB to restore (exists=${dbExists}, size=${dbSize}), starting fresh\n`);
     world = createWorld(50, journalPath);
   }
 
