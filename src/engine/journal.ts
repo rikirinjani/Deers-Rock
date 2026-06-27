@@ -184,6 +184,7 @@ function deserializeState(json: string): HospitalState {
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),
+    _outcomeRecords: [],
   };
 }
 

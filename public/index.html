@@ -94,6 +94,8 @@
     <div class=panel><div class=panel-header>🤝 Social Work <span id=socialCount style=color:var(--muted)>0</span></div><div class=panel-body><div id=socialList></div></div></div>
     <div class=panel><div class=panel-header>📁 Medical Records <span id=chartCount style=color:var(--purple)>0</span></div><div class=panel-body><div id=chartList></div></div></div>
     <div class=panel><div class=panel-header>💰 Finance <span id=finCount style=color:var(--green)>0</span></div><div class=panel-body><div id=finList></div></div></div>
+    <div class=panel><div class=panel-header>📊 Outcomes <span id=outcomeCount style=color:var(--green)>0</span></div><div class=panel-body><div id=outcomeList></div></div></div>
+    <div class=panel><div class=panel-header>📈 AI Performance <span id=perfCount style=color:var(--accent)>0</span></div><div class=panel-body><div id=perfList></div></div></div>
     <div class=panel><div class=panel-header>📦 Inventory <span id=invCount style=color:var(--yellow)>0</span></div><div class=panel-body><div id=invList></div></div></div>
     <div class=panel><div class=panel-header>🏥 Top 10 ICD <span id=icdPeriod style=color:var(--muted);font-size:7px></span></div><div class=panel-body><div id=icdList></div></div></div>
   </div>
@@ -141,7 +143,7 @@ function renderSimple(id, cid, items, fn, mx=5){
 
 async function refresh(){
 try{
-const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse]=await Promise.all([
+const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf]=await Promise.all([
   fetch('/api/status').then(r=>r.json()),fetch('/api/beds').then(r=>r.json()),fetch('/api/encounters').then(r=>r.json()),
   fetch('/api/labs').then(r=>r.json()),fetch('/api/radiology').then(r=>r.json()),fetch('/api/medications').then(r=>r.json()),
   fetch('/api/surgery').then(r=>r.json()),fetch('/api/nursing').then(r=>r.json()),fetch('/api/orders').then(r=>r.json()),
@@ -149,6 +151,7 @@ const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,char
   fetch('/api/social').then(r=>r.json()),fetch('/api/charts').then(r=>r.json()),fetch('/api/charges').then(r=>r.json()),
   fetch('/api/claims').then(r=>r.json()),fetch('/api/payments').then(r=>r.json()),fetch('/api/inventory/low').then(r=>r.json()),
   fetch('/api/doctor-cases').then(r=>r.json()),fetch('/api/nurse-cases').then(r=>r.json()),
+  fetch('/api/outcomes').then(r=>r.json()),fetch('/api/performance').then(r=>r.json()),
 ]);
 
 document.getElementById('hTime').textContent=s.time;document.getElementById('hTick').textContent=s.tick;
@@ -177,6 +180,23 @@ render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-si
 render('chartList','chartCount',byStatus(charts,['open','incomplete','completed','coded']),'Patient','Status',o=>`<tr><td style=font-size:8px>${o.patientId}</td><td><span class=badge style=background:${o.status==='coded'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='coded'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
 render('finList','finCount',charges,'Charge','Amount',o=>`<tr><td style=font-size:8px>${o.description}</td><td style=color:var(--yellow)>Rp ${o.amount.toLocaleString()}</td></tr>`);
 render('invList','invCount',inv,'Item','Stock',o=>`<tr><td style=font-size:8px>${o.itemName}</td><td style=color:var(--red)>${o.stock}/${o.minStock}</td></tr>`);
+
+// Outcomes
+const outRecs=outcomes.records||[];
+document.getElementById('outcomeCount').textContent=outRecs.length;
+const outEl=document.getElementById('outcomeList');
+outEl.innerHTML=outRecs.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
+  :'<table><thead><tr><th>Diagnosis</th><th>Outcome</th><th>LOS</th><th>Orders</th></tr></thead><tbody>'+
+  outRecs.slice(-6).reverse().map(r=>`<tr><td style=font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${r.primaryDiagnosis}</td><td><span class=badge style=background:${r.outcome==='improved'?'rgba(74,222,128,0.15)':'rgba(239,68,68,0.15)'};color:${r.outcome==='improved'?'var(--green)':'var(--red)'}>${r.outcome}</span></td><td style=font-size:8px;color:var(--muted)>${r.losTicks}t</td><td style=font-size:8px;color:var(--muted)>${r.ordersCount}</td></tr>`).join('')+'</tbody></table>'
+  +`<div style=font-size:7px;color:var(--muted);padding:2px 4px;border-top:1px solid var(--border)>${outRecs.filter(r=>r.outcome==='improved').length}/${outRecs.length} improved (${outRecs.length>0?Math.round(outRecs.filter(r=>r.outcome==='improved').length/outRecs.length*100):0}%)</div>`;
+
+// AI Performance
+const diagPerf=perf.diagnoses||[];
+document.getElementById('perfCount').textContent=diagPerf.length;
+const perfEl=document.getElementById('perfList');
+perfEl.innerHTML=diagPerf.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
+  :'<table><thead><tr><th>Diagnosis</th><th>Cases</th><th>↑%</th><th>Avg LOS</th><th>Orders</th></tr></thead><tbody>'+
+  diagPerf.slice(0,6).map(d=>`<tr><td style=font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${d.diagnosisName}</td><td style=font-size:8px>${d.totalCases}</td><td style=font-size:8px;color:${d.improvementRate>=70?'var(--green)':d.improvementRate>=40?'var(--yellow)':'var(--red)'}>${d.improvementRate}%</td><td style=font-size:8px;color:var(--muted)>${d.avgLosTicks}t</td><td style=font-size:8px;color:var(--muted)>${d.totalOrders}</td></tr>`).join('')+'</tbody></table>';
 
 // AI Doctor
 const aiDocCases=aiDoc.cases||[];

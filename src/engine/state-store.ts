@@ -5,6 +5,17 @@ import type { ReferralState } from "../referral/system.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
 import { centralSupplyInit } from "./central-supply.js";
 
+export interface OutcomeRecord {
+  patientId: string;
+  encounterId: string;
+  primaryDiagnosis: string;
+  icdCode: string;
+  outcome: "improved" | "deteriorated";
+  losTicks: number;
+  ordersCount: number;
+  dischargeTick: number;
+}
+
 export interface CaseRecord {
   encounterId: string;
   patientId: string;
@@ -54,6 +65,7 @@ export interface HospitalState {
   _icdTop10: IcdPeriodData | null;
   _doctorCaseMemory: Map<string, CaseRecord>;
   _nurseCaseMemory: Map<string, NurseCaseRecord>;
+  _outcomeRecords: OutcomeRecord[];
 }
 
 export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
@@ -88,5 +100,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),
+    _outcomeRecords: [],
   };
 }
