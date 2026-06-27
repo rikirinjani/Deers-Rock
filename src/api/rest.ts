@@ -43,6 +43,9 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
       specialtyServices: w.state.specialtyOrders.size, referrals: w.state._referralState.letters.size,
     }); return true;
   }
+  if (p === "/api/patients/identity") {
+    json(res, Array.from(w.state.patients.values()).map(p => ({ id: p.id, name: p.name, nik: p.identity?.nik?.value ?? "N/A", phone: p.phone, bloodType: p.bloodType, allergies: p.allergies, provinsi: p.identity?.addressKtp?.provinsi ?? "N/A", agama: p.identity?.religion ?? "N/A", statusKawin: p.identity?.maritalStatus ?? "N/A" }))); return true;
+  }
   if (p === "/api/patients") {
     const q = url.searchParams.get("q")?.toLowerCase();
     if (q) { json(res, Array.from(w.state.patients.values()).filter(pt => pt.name.toLowerCase().includes(q) || pt.id.toLowerCase().includes(q)).slice(0, 20)); return true; }
@@ -104,10 +107,6 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     const byRole: Record<string, number> = {};
     for (const a of agents) byRole[a.role] = (byRole[a.role] ?? 0) + 1;
     json(res, { total: agents.length, available: agents.filter(a => a.status.inShift && a.status.kesehatan !== "sakit_berat").length, byRole, sick: agents.filter(a => a.status.kesehatan !== "sehat").length, pregnant: agents.filter(a => a.status.isHamil).length }); return true;
-  }
-  if (p === "/api/patients/identity") {
-    const patients = Array.from(w.state.patients.values());
-    json(res, patients.map(p => ({ id: p.id, name: p.name, nik: p.identity?.nik?.value ?? "N/A", phone: p.phone, bloodType: p.bloodType, allergies: p.allergies, provinsi: p.identity?.addressKtp?.provinsi ?? "N/A", agama: p.identity?.religion ?? "N/A", statusKawin: p.identity?.maritalStatus ?? "N/A" }))); return true;
   }
   if (p === "/api/referral") { json(res, { letters: toArr(w.state._referralState.letters), stats: { total: w.state._referralState.letters.size, facilities: w.state._referralState.facilities.size } }); return true; }
   if (p === "/api/referral/letters") { json(res, toArr(w.state._referralState.letters)); return true; }
