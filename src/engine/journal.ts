@@ -183,6 +183,7 @@ function deserializeState(json: string): HospitalState {
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
+    _nurseCaseMemory: new Map(),
   };
 }
 

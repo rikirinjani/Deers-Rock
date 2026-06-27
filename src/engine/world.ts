@@ -7,7 +7,7 @@ import { icdTrackerHandler } from "./icd-tracker.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
-import { nursingHandler } from "./nursing.js";
+import { aiNurseHandler } from "./ai-nurse.js";
 import { orderCompleteHandler } from "./physician.js";
 import { aiDoctorHandler } from "./ai-doctor.js";
 import { radiologyHandler, radResultHandler } from "./radiology.js";
@@ -72,7 +72,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       emergencyHandler,
       labHandler,
       pharmacyHandler,
-      nursingHandler,
+      aiNurseHandler,
       aiDoctorHandler,
       radiologyHandler,
       surgeryHandler,

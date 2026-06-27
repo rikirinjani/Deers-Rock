@@ -15,6 +15,17 @@ export interface CaseRecord {
   tickEnded: number | null;
 }
 
+export interface NurseCaseRecord {
+  encounterId: string;
+  patientId: string;
+  assignedNurseId: string | null;
+  assessmentsDone: number;
+  alertsRaised: number;
+  proceduresDone: number;
+  medsAdministered: number;
+  lastNoteTick: number;
+}
+
 export interface HospitalState {
   patients: Map<string, Patient>;
   beds: Map<string, Bed>;
@@ -42,6 +53,7 @@ export interface HospitalState {
   _referralState: ReferralState;
   _icdTop10: IcdPeriodData | null;
   _doctorCaseMemory: Map<string, CaseRecord>;
+  _nurseCaseMemory: Map<string, NurseCaseRecord>;
 }
 
 export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
@@ -75,5 +87,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
+    _nurseCaseMemory: new Map(),
   };
 }
