@@ -4,7 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { LabOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 
-const LAB_TESTS = [
+export const LAB_TESTS = [
   { code: "CBC", name: "Complete Blood Count", range: "4.5-11.0 x10^3/uL", unit: "x10^3/uL", supplyCode: "LAB-CBC" },
   { code: "BMP", name: "Basic Metabolic Panel", range: "Na 136-145, K 3.5-5.1 mEq/L", unit: "mEq/L", supplyCode: "LAB-CHEM" },
   { code: "TROP", name: "Troponin I", range: "<0.04 ng/mL", unit: "ng/mL", supplyCode: "LAB-CHEM" },

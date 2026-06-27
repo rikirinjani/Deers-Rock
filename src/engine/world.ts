@@ -8,7 +8,8 @@ import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
 import { nursingHandler } from "./nursing.js";
-import { physicianHandler, orderCompleteHandler } from "./physician.js";
+import { orderCompleteHandler } from "./physician.js";
+import { aiDoctorHandler } from "./ai-doctor.js";
 import { radiologyHandler, radResultHandler } from "./radiology.js";
 import { emergencyHandler, edDischargeHandler } from "./emergency.js";
 import { surgeryHandler, surgeryResultHandler } from "./surgery.js";
@@ -72,7 +73,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       labHandler,
       pharmacyHandler,
       nursingHandler,
-      physicianHandler,
+      aiDoctorHandler,
       radiologyHandler,
       surgeryHandler,
       respiratoryHandler,

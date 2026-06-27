@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { DietOrder } from "../patient/schema.js";
 
-const DIETS: DietOrder["dietType"][] = ["regular", "soft", "liquid", "NPO", "diabetic", "cardiac", "renal", "high-protein"];
+export const DIET_TYPES: DietOrder["dietType"][] = ["regular", "soft", "liquid", "NPO", "diabetic", "cardiac", "renal", "high-protein"];
 
 const DIET_NOTES: Record<DietOrder["dietType"], string> = {
   regular: "Regular diet as tolerated",
@@ -21,7 +21,7 @@ export function dietaryHandler(state: HospitalState, clock: Clock, _queue: Event
   if (activeEncounters.length === 0 || clock.tick % 7 !== 0) return state;
 
   const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const dietType = DIETS[Math.floor(Math.random() * DIETS.length)]!;
+  const dietType = DIET_TYPES[Math.floor(Math.random() * DIET_TYPES.length)]!;
 
   const order: DietOrder = {
     id: `DIET-${clock.tick}-${encounter.patientId}`,

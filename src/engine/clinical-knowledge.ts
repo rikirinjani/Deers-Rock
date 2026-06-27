@@ -1,0 +1,338 @@
+import type { SpecialtyType } from "./specialty.js";
+import type { Vitals } from "../patient/schema.js";
+
+export interface ClinicalAction {
+  type: "lab" | "imaging" | "medication" | "consult" | "respiratory" | "diet" | "surgery" | "discharge";
+  label: string;
+  priority: number;
+  detail?: string;
+}
+
+export interface IcdProtocol {
+  code: string;
+  name: string;
+  specialty: SpecialtyType;
+  actions: ClinicalAction[];
+}
+
+export interface VitalsRule {
+  param: keyof Vitals;
+  condition: "gt" | "lt" | "gte" | "lte";
+  threshold: number;
+  actions: ClinicalAction[];
+}
+
+export type Gender = "male" | "female";
+
+export const ICD_PROTOCOLS: IcdProtocol[] = [
+  { code: "I10", name: "Essential hypertension", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Enalapril 5mg", priority: 8, detail: "ACE inhibitor for BP control" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 6, detail: "BMP" },
+      { type: "lab", label: "Complete Blood Count", priority: 4, detail: "CBC" },
+      { type: "diet", label: "Cardiac diet", priority: 5, detail: "cardiac" },
+    ] },
+  { code: "E11", name: "Type 2 diabetes mellitus", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Metformin 500mg", priority: 9, detail: "First-line for T2DM" },
+      { type: "lab", label: "Hemoglobin A1C", priority: 8, detail: "HBA1C" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "diet", label: "Diabetic diet", priority: 6, detail: "diabetic" },
+    ] },
+  { code: "J15", name: "Bacterial pneumonia", specialty: "pulmonology",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 9, detail: "Antibiotic for pneumonia" },
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 6, detail: "oxygen" },
+    ] },
+  { code: "J18", name: "Pneumonia unspecified", specialty: "pulmonology",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 9, detail: "Empiric antibiotic" },
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 6, detail: "oxygen" },
+    ] },
+  { code: "N39", name: "Urinary tract infection", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Antibiotic for UTI" },
+      { type: "lab", label: "Urinalysis", priority: 9, detail: "UA" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+    ] },
+  { code: "J45", name: "Asthma", specialty: "pulmonology",
+    actions: [
+      { type: "medication", label: "Salbutamol Inhaler", priority: 9, detail: "Bronchodilator" },
+      { type: "respiratory", label: "Nebulizer therapy", priority: 8, detail: "nebulizer" },
+      { type: "lab", label: "Complete Blood Count", priority: 4, detail: "CBC" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 5, detail: "X-ray" },
+    ] },
+  { code: "K29", name: "Gastritis", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Omeprazole 20mg", priority: 9, detail: "PPI for gastritis" },
+      { type: "diet", label: "Soft diet", priority: 6, detail: "soft" },
+    ] },
+  { code: "M54", name: "Low back pain", specialty: "neurology",
+    actions: [
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+      { type: "imaging", label: "MRI Lumbar Spine without contrast", priority: 6, detail: "MRI" },
+      { type: "consult", label: "Rehabilitasi Medik", priority: 5, detail: "rehab_medik" },
+    ] },
+  { code: "I50", name: "Heart failure", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Furosemide 40mg", priority: 9, detail: "Diuretic for HF" },
+      { type: "medication", label: "Enalapril 5mg", priority: 8, detail: "ACE inhibitor" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 8, detail: "X-ray" },
+      { type: "diet", label: "Cardiac diet", priority: 6, detail: "cardiac" },
+      { type: "consult", label: "Jantung", priority: 5, detail: "cardiology" },
+    ] },
+  { code: "A09", name: "Acute gastroenteritis", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "medication", label: "Omeprazole 20mg", priority: 5, detail: "PPI" },
+      { type: "diet", label: "Liquid diet", priority: 7, detail: "liquid" },
+    ] },
+  { code: "E78", name: "Hyperlipidemia", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Atorvastatin 20mg", priority: 8, detail: "Statin" },
+      { type: "diet", label: "Cardiac diet", priority: 5, detail: "cardiac" },
+    ] },
+  { code: "N18", name: "Chronic kidney disease", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 9, detail: "BMP" },
+      { type: "diet", label: "Renal diet", priority: 7, detail: "renal" },
+      { type: "medication", label: "Enalapril 5mg", priority: 6, detail: "ACE inhibitor renal protection" },
+    ] },
+  { code: "J44", name: "COPD", specialty: "pulmonology",
+    actions: [
+      { type: "respiratory", label: "Oxygen therapy", priority: 9, detail: "oxygen" },
+      { type: "respiratory", label: "Nebulizer therapy", priority: 8, detail: "nebulizer" },
+      { type: "medication", label: "Salbutamol Inhaler", priority: 8, detail: "Bronchodilator" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 6, detail: "X-ray" },
+      { type: "lab", label: "Complete Blood Count", priority: 5, detail: "CBC" },
+    ] },
+  { code: "G40", name: "Epilepsy", specialty: "neurology",
+    actions: [
+      { type: "medication", label: "Diazepam 5mg", priority: 9, detail: "Anticonvulsant" },
+      { type: "consult", label: "Saraf", priority: 7, detail: "neurology" },
+    ] },
+  { code: "M17", name: "Osteoarthritis of knee", specialty: "neurology",
+    actions: [
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+      { type: "imaging", label: "Extremity X-ray Left Ankle", priority: 6, detail: "X-ray" },
+      { type: "consult", label: "Rehabilitasi Medik", priority: 6, detail: "rehab_medik" },
+    ] },
+  { code: "F32", name: "Major depressive disorder", specialty: "psychiatry",
+    actions: [
+      { type: "consult", label: "Jiwa", priority: 9, detail: "psychiatry" },
+      { type: "medication", label: "Diazepam 5mg", priority: 5, detail: "Anxiolytic" },
+    ] },
+  { code: "O80", name: "Single spontaneous delivery", specialty: "obgyn",
+    actions: [
+      { type: "consult", label: "Obstetri Ginekologi", priority: 9, detail: "obgyn" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+    ] },
+  { code: "O20", name: "Threatened abortion", specialty: "obgyn",
+    actions: [
+      { type: "consult", label: "Obstetri Ginekologi", priority: 9, detail: "obgyn" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+    ] },
+  { code: "N20", name: "Renal colic / kidney stone", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Analgesic" },
+      { type: "lab", label: "Urinalysis", priority: 8, detail: "UA" },
+      { type: "imaging", label: "CT Abdomen with contrast", priority: 7, detail: "CT" },
+    ] },
+  { code: "I21", name: "Acute myocardial infarction", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Troponin I", priority: 10, detail: "TROP" },
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "medication", label: "Enoxaparin 40mg", priority: 9, detail: "Anticoagulant" },
+      { type: "medication", label: "Atorvastatin 20mg", priority: 8, detail: "Statin" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 7, detail: "X-ray" },
+      { type: "consult", label: "Jantung", priority: 9, detail: "cardiology" },
+    ] },
+  { code: "S72", name: "Fracture of femur", specialty: "neurology",
+    actions: [
+      { type: "imaging", label: "Extremity X-ray Left Ankle", priority: 9, detail: "X-ray" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Analgesic" },
+      { type: "surgery", label: "Total Hip Arthroplasty", priority: 7, detail: "47562" },
+      { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
+    ] },
+  { code: "P07", name: "Preterm newborn", specialty: "pediatrics",
+    actions: [
+      { type: "consult", label: "Anak", priority: 9, detail: "pediatrics" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 8, detail: "oxygen" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+    ] },
+  { code: "H66", name: "Suppurative otitis media", specialty: "ent",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Antibiotic" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+      { type: "consult", label: "THT", priority: 6, detail: "ent" },
+    ] },
+  { code: "J20", name: "Acute bronchitis", specialty: "pulmonology",
+    actions: [
+      { type: "medication", label: "Salbutamol Inhaler", priority: 7, detail: "Bronchodilator" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 5, detail: "Antipyretic" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 6, detail: "X-ray" },
+    ] },
+  { code: "K35", name: "Acute appendicitis", specialty: "neurology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 9, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 8, detail: "CRP" },
+      { type: "imaging", label: "CT Abdomen with contrast", priority: 9, detail: "CT" },
+      { type: "surgery", label: "Laparoscopic Appendectomy", priority: 9, detail: "44970" },
+      { type: "consult", label: "Bedah Umum", priority: 8, detail: "surgery" },
+    ] },
+  { code: "N40", name: "Benign prostatic hyperplasia", specialty: "neurology",
+    actions: [
+      { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 5, detail: "BMP" },
+    ] },
+  { code: "C50", name: "Malignant neoplasm of breast", specialty: "neurology",
+    actions: [
+      { type: "surgery", label: "Breast Mass Excision", priority: 8, detail: "19120" },
+      { type: "consult", label: "Bedah Umum", priority: 8, detail: "surgery" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 5, detail: "X-ray" },
+    ] },
+  { code: "C61", name: "Malignant neoplasm of prostate", specialty: "neurology",
+    actions: [
+      { type: "consult", label: "Bedah Umum", priority: 8, detail: "surgery" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 6, detail: "BMP" },
+    ] },
+  { code: "D25", name: "Leiomyoma of uterus", specialty: "obgyn",
+    actions: [
+      { type: "consult", label: "Obstetri Ginekologi", priority: 8, detail: "obgyn" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+    ] },
+  { code: "K80", name: "Cholelithiasis", specialty: "neurology",
+    actions: [
+      { type: "surgery", label: "Laparoscopic Cholecystectomy", priority: 8, detail: "47562" },
+      { type: "imaging", label: "Abdominal Ultrasound", priority: 8, detail: "Ultrasound" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+      { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
+    ] },
+  { code: "M81", name: "Osteoporosis without fracture", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Paracetamol 500mg", priority: 4, detail: "Analgesic PRN" },
+      { type: "diet", label: "High protein diet", priority: 6, detail: "high-protein" },
+    ] },
+  { code: "E05", name: "Hyperthyroidism", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "medication", label: "Enalapril 5mg", priority: 5, detail: "BP control" },
+    ] },
+  { code: "I63", name: "Cerebral infarction", specialty: "neurology",
+    actions: [
+      { type: "imaging", label: "CT Head without contrast", priority: 9, detail: "CT" },
+      { type: "medication", label: "Enoxaparin 40mg", priority: 8, detail: "Anticoagulant" },
+      { type: "medication", label: "Atorvastatin 20mg", priority: 7, detail: "Statin" },
+      { type: "consult", label: "Saraf", priority: 9, detail: "neurology" },
+      { type: "consult", label: "Rehabilitasi Medik", priority: 6, detail: "rehab_medik" },
+    ] },
+  { code: "A15", name: "Respiratory tuberculosis", specialty: "pulmonology",
+    actions: [
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+      { type: "consult", label: "Paru", priority: 8, detail: "pulmonology" },
+    ] },
+  { code: "B20", name: "HIV disease", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "consult", label: "Penyakit Dalam", priority: 8, detail: "cardiology" },
+    ] },
+  { code: "L03", name: "Cellulitis", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Antibiotic" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 6, detail: "CRP" },
+    ] },
+  { code: "S06", name: "Intracranial injury", specialty: "neurology",
+    actions: [
+      { type: "imaging", label: "CT Head without contrast", priority: 9, detail: "CT" },
+      { type: "consult", label: "Bedah Saraf", priority: 9, detail: "surgery_neuro" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+    ] },
+  { code: "T14", name: "Open wound", specialty: "neurology",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 7, detail: "Antibiotic prophylaxis" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+      { type: "consult", label: "Bedah Umum", priority: 6, detail: "surgery" },
+    ] },
+  { code: "E86", name: "Volume depletion / dehydration", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+      { type: "diet", label: "Liquid diet", priority: 7, detail: "liquid" },
+    ] },
+  { code: "D64", name: "Anemia unspecified", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 5, detail: "BMP" },
+      { type: "medication", label: "Enalapril 5mg", priority: 3, detail: "If hypertensive" },
+    ] },
+];
+
+export const VITALS_RULES: VitalsRule[] = [
+  { param: "heartRate", condition: "gt", threshold: 100, actions: [
+    { type: "lab", label: "Troponin I", priority: 7, detail: "TROP" },
+    { type: "lab", label: "Complete Blood Count", priority: 5, detail: "CBC" },
+    { type: "consult", label: "Jantung", priority: 6, detail: "cardiology" },
+  ] },
+  { param: "oxygenSaturation", condition: "lt", threshold: 92, actions: [
+    { type: "respiratory", label: "Oxygen therapy", priority: 9, detail: "oxygen" },
+    { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 8, detail: "X-ray" },
+    { type: "lab", label: "Complete Blood Count", priority: 5, detail: "CBC" },
+    { type: "consult", label: "Paru", priority: 6, detail: "pulmonology" },
+  ] },
+  { param: "bloodPressureSystolic", condition: "gt", threshold: 160, actions: [
+    { type: "medication", label: "Enalapril 5mg", priority: 8, detail: "Antihypertensive" },
+    { type: "lab", label: "Basic Metabolic Panel", priority: 5, detail: "BMP" },
+  ] },
+  { param: "bloodPressureSystolic", condition: "lt", threshold: 90, actions: [
+    { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+    { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+  ] },
+  { param: "temperature", condition: "gt", threshold: 38, actions: [
+    { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Antipyretic" },
+    { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+    { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+  ] },
+  { param: "respiratoryRate", condition: "gt", threshold: 24, actions: [
+    { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 7, detail: "X-ray" },
+    { type: "respiratory", label: "Oxygen therapy", priority: 7, detail: "oxygen" },
+    { type: "lab", label: "Complete Blood Count", priority: 5, detail: "CBC" },
+  ] },
+  { param: "painLevel", condition: "gte", threshold: 6, actions: [
+    { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Analgesic" },
+  ] },
+];
+
+export function mapIcdToSpecialty(code: string): SpecialtyType {
+  const p = ICD_PROTOCOLS.find(p => p.code === code);
+  return p?.specialty ?? "cardiology";
+}
+
+export function mapIcdToActions(code: string): ClinicalAction[] {
+  const p = ICD_PROTOCOLS.find(p => p.code === code);
+  return p?.actions ?? [];
+}
+
+export function getVitalsTriggers(vitals: Vitals): ClinicalAction[] {
+  const actions: ClinicalAction[] = [];
+  for (const rule of VITALS_RULES) {
+    const val = vitals[rule.param] as number;
+    let triggered = false;
+    if (rule.condition === "gt" && val > rule.threshold) triggered = true;
+    else if (rule.condition === "lt" && val < rule.threshold) triggered = true;
+    else if (rule.condition === "gte" && val >= rule.threshold) triggered = true;
+    else if (rule.condition === "lte" && val <= rule.threshold) triggered = true;
+    if (triggered) actions.push(...rule.actions);
+  }
+  return actions;
+}

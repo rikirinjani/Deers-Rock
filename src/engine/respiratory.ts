@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { RespiratoryOrder } from "../patient/schema.js";
 
-const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: string[] }[] = [
+export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: string[] }[] = [
   { type: "oxygen", settings: ["2L NC", "3L NC", "4L NC", "Face mask 40%", "NRB 15L"] },
   { type: "nebulizer", settings: ["Albuterol 2.5mg q4h", "Albuterol 2.5mg + Ipratropium 0.5mg q6h", "Budesonide 0.5mg BID"] },
   { type: "ventilator", settings: ["AC/VC 400mL RR12 PEEP5 FiO2 40%", "AC/VC 450mL RR14 PEEP8 FiO2 35%", "SIMV 350mL RR10 PS10 PEEP5"] },

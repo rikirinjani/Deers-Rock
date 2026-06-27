@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { RadiologyOrder } from "../patient/schema.js";
 
-const STUDIES: { modality: RadiologyOrder["modality"]; studyType: string; findings: string[]; impressions: string[] }[] = [
+export const RAD_STUDIES: { modality: RadiologyOrder["modality"]; studyType: string; findings: string[]; impressions: string[] }[] = [
   { modality: "X-ray", studyType: "Chest X-ray PA & Lateral", findings: ["Clear lung fields bilaterally", "Mild interstitial prominence", "Focal opacity right lower lobe", "Cardiomegaly with pulmonary congestion", "Small pleural effusion left base"], impressions: ["No acute cardiopulmonary abnormality", "Community-acquired pneumonia", "Congestive heart failure exacerbation", "Normal study"] },
   { modality: "CT", studyType: "CT Head without contrast", findings: ["No acute intracranial hemorrhage", "Mild cerebral atrophy", "Chronic microvascular ischemic changes", "Acute infarct left MCA territory"], impressions: ["Normal", "Chronic small vessel disease", "Acute ischemic stroke"] },
   { modality: "CT", studyType: "CT Abdomen with contrast", findings: ["Normal appendix visualized", "Diverticulosis without diverticulitis", "Hepatic steatosis", "Left renal calculus 4mm"], impressions: ["Normal", "Mild diverticulosis", "Nephrolithiasis"] },
@@ -17,7 +17,7 @@ export function radiologyHandler(state: HospitalState, clock: Clock, _queue: Eve
   if (activeEncounters.length === 0 || clock.tick % 6 !== 0) return state;
 
   const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const study = STUDIES[Math.floor(Math.random() * STUDIES.length)]!;
+  const study = RAD_STUDIES[Math.floor(Math.random() * RAD_STUDIES.length)]!;
 
   const order: RadiologyOrder = {
     id: `RAD-${clock.tick}-${encounter.patientId}`,
@@ -44,7 +44,7 @@ export function radResultHandler(state: HospitalState, clock: Clock, _queue: Eve
   const newOrders = new Map(state.radiologyOrders);
   for (const [id, order] of newOrders) {
     if (order.status === "ordered") {
-      const study = STUDIES.find(s => s.studyType === order.studyType) ?? STUDIES[0]!;
+      const study = RAD_STUDIES.find(s => s.studyType === order.studyType) ?? RAD_STUDIES[0]!;
       newOrders.set(id, {
         ...order,
         status: "resulted",

@@ -10,7 +10,7 @@ const MED_MAP: Record<string, string> = {
   "FUR": "MED-FUR", "DIA": "MED-DIA",
 };
 
-const MEDS = [
+export const MEDICATIONS = [
   { code: "ACE", name: "Enalapril 5mg", dose: "5 mg", route: "PO" },
   { code: "MET", name: "Metformin 500mg", dose: "500 mg", route: "PO" },
   { code: "ATR", name: "Atorvastatin 20mg", dose: "20 mg", route: "PO" },
@@ -30,7 +30,7 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
   if (activeEncounters.length === 0 || clock.tick % 5 !== 0) return state;
 
   const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const med = MEDS[Math.floor(Math.random() * MEDS.length)]!;
+  const med = MEDICATIONS[Math.floor(Math.random() * MEDICATIONS.length)]!;
 
   const order: MedicationOrder = {
     id: `MED-${clock.tick}-${encounter.patientId}-${med.code}`,

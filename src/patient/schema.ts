@@ -49,6 +49,7 @@ export interface Encounter {
   startTime: number;
   endTime: number | null;
   status: "active" | "discharged" | "transferred";
+  attendingDoctorId?: string;
 }
 
 export interface Bed {
