@@ -2,7 +2,7 @@ import type { HospitalState, CaseRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { HospitalAgent } from "../agent/types.js";
-import type { LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder } from "../patient/schema.js";
+import type { LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, PhysicianOrder } from "../patient/schema.js";
 import type { SpecialtyOrder } from "./specialty.js";
 import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers, assessQsofa, ESCALATION_TRIGGERS, assessMortalityRisk } from "./clinical-knowledge.js";
 import { getActionRanking } from "./agent-learning.js";
@@ -127,6 +127,16 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     for (const ca of topActions) {
       const orderKey = `${ca.action.type}:${ca.action.label}`;
       if (alreadyTaken.has(orderKey)) continue;
+
+      const phyOrder: PhysicianOrder = {
+        id: `${keyPrefix}-ORD-${ca.action.type}`,
+        encounterId: enc.id, patientId: enc.patientId,
+        orderType: ca.action.type as PhysicianOrder["orderType"],
+        description: ca.action.label,
+        status: "active",
+        orderedAt: clock.hospitalTimeMs, completedAt: null,
+      };
+      newPhysOrders.set(phyOrder.id, phyOrder);
 
       switch (ca.action.type) {
         case "lab": {
