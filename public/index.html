@@ -185,7 +185,7 @@ render('medList','medCount',byStatus(meds,['ordered','dispensed','administered',
 render('surgList','surgCount',byStatus(surg,['scheduled','in-progress','completed','cancelled']),'Procedure','Status',o=>`<tr><td style=font-size:8px>${o.procedureName.replace('Laparoscopic ','Lap ').replace('Total ','')}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
 render('nurseList','nurseCount',nursing,'Observation','Patient',n=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${n.content}</td><td>${n.patientId}</td></tr>`);
 // Physician Orders breakdown
-const poCounts:{[k:string]:number}={};const poActive=docs.filter(o=>o.status==='active').length;
+const poCounts={};const poActive=docs.filter(o=>o.status==='active').length;
 docs.forEach(o=>{poCounts[o.orderType]=(poCounts[o.orderType]||0)+1});
 const poTypes=Object.entries(poCounts).sort((a,b)=>b[1]-a[1]);
 document.getElementById('docCount').textContent=docs.length+' ('+poActive+' active)';
