@@ -118,6 +118,22 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/outcomes") { json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length }); return true; }
   if (p === "/api/performance") { json(res, { diagnoses: computePerformanceStats(w.state) }); return true; }
   if (p === "/api/pharmacy-cases") { json(res, { cases: Array.from(w.state._pharmacyCaseMemory.values()).reverse(), total: w.state._pharmacyCaseMemory.size }); return true; }
+  if (p === "/api/outpatient") {
+    const visits = Array.from(w.state._outpatientVisits.values());
+    json(res, { visits, total: visits.length, waiting: visits.filter(v => v.status === "waiting").length, consulting: visits.filter(v => v.status === "in-consultation").length, completed: visits.filter(v => v.status === "completed").length });
+    return true;
+  }
+  if (p === "/api/learning") {
+    const mem = w.state._learningMemory;
+    const summary = Array.from(mem.byDiagnosis.values()).map(dx => ({
+      icdCode: dx.icdCode, diagnosisName: dx.diagnosisName,
+      totalCases: dx.totalCases, improved: dx.improved, deteriorated: dx.deteriorated,
+      rate: dx.totalCases > 0 ? Math.round((dx.improved / dx.totalCases) * 100) : 0,
+      actionsLearned: dx.actions.size,
+    }));
+    json(res, { diagnoses: summary });
+    return true;
+  }
   if (p === "/api/top-icd") {
     if (w.state._icdTop10) { json(res, w.state._icdTop10); return true; }
     json(res, { period: 0, tick: 0, top10: [] }); return true;

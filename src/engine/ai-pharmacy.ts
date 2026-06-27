@@ -4,6 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 import { checkDrugAllergy, checkDiagnosisContraindication, checkDrugInteraction, getDoseRange } from "./pharmacy-knowledge.js";
+import { getDeteriorationRate } from "./agent-learning.js";
 
 const MED_TO_SUPPLY: Record<string, string> = {
   "ACE": "MED-ACE", "MET": "MED-MET", "ATR": "MED-ATR", "OMP": "MED-OMP",
@@ -65,6 +66,12 @@ export function aiPharmacyHandler(state: HospitalState, clock: Clock, _queue: Ev
       if (!isNaN(doseVal) && doseVal > doseInfo.maxMg) {
         warnings.push(`Dose ${doseVal}${doseInfo.unit} exceeds max single dose ${doseInfo.maxMg}${doseInfo.unit}`);
       }
+    }
+
+    const primaryDx = patient.diagnoses.filter(d => d.active)[0];
+    const deteriorationRate = primaryDx && stateMut._learningMemory ? getDeteriorationRate(stateMut._learningMemory, primaryDx.code) : null;
+    if (deteriorationRate !== null && deteriorationRate > 0.5) {
+      warnings.push(`Learning: ${primaryDx!.name} has ${(deteriorationRate * 100).toFixed(0)}% historical deterioration — verify therapy appropriateness`);
     }
 
     const supplyCode = MED_TO_SUPPLY[drugCode];

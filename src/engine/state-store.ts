@@ -67,6 +67,33 @@ export interface HospitalState {
   _nurseCaseMemory: Map<string, NurseCaseRecord>;
   _outcomeRecords: OutcomeRecord[];
   _pharmacyCaseMemory: Map<string, PharmacistCaseRecord>;
+  _learningMemory: LearningMemory;
+  _outpatientVisits: Map<string, OutpatientVisit>;
+}
+
+export interface OutpatientVisit {
+  id: string; encounterId: string; patientId: string;
+  referralId: string | null; poli: string;
+  diagnosis: string; icdCode: string;
+  doctorId: string | null;
+  status: "waiting" | "in-consultation" | "completed";
+  arrivalTime: number; completedAt: number | null;
+  ordersGenerated: number;
+}
+
+export interface ActionLearning {
+  actionLabel: string; actionType: string;
+  successes: number; failures: number; lastUsedTick: number;
+}
+
+export interface DiagnosisLearning {
+  icdCode: string; diagnosisName: string;
+  totalCases: number; improved: number; deteriorated: number;
+  actions: Map<string, ActionLearning>;
+}
+
+export interface LearningMemory {
+  byDiagnosis: Map<string, DiagnosisLearning>;
 }
 
 export interface PharmacistCaseRecord {
@@ -114,5 +141,7 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _nurseCaseMemory: new Map(),
     _outcomeRecords: [],
     _pharmacyCaseMemory: new Map(),
+    _learningMemory: { byDiagnosis: new Map() },
+    _outpatientVisits: new Map(),
   };
 }

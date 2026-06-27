@@ -5,6 +5,7 @@ import type { HospitalAgent } from "../agent/types.js";
 import type { LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder } from "../patient/schema.js";
 import type { SpecialtyOrder } from "./specialty.js";
 import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers } from "./clinical-knowledge.js";
+import { getActionRanking } from "./agent-learning.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { RAD_STUDIES } from "./radiology.js";
@@ -71,6 +72,18 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
       seen.add(key);
       return true;
     });
+
+    const learningMemory = state._learningMemory;
+    const activeDx = patient.diagnoses.filter(d => d.active);
+    const ranked = learningMemory ? getActionRanking(learningMemory, activeDx[0]?.code ?? "", deduped.map(a => ({ actionLabel: `${a.action.type}:${a.action.label}`, actionType: a.action.type }))) : null;
+    if (ranked) {
+      const rankedMap = new Map(ranked.map(r => [r.actionLabel, r.score]));
+      deduped.sort((a, b) => {
+        const sa = rankedMap.get(`${a.action.type}:${a.action.label}`) ?? 0.5;
+        const sb = rankedMap.get(`${b.action.type}:${b.action.label}`) ?? 0.5;
+        return sb - sa;
+      });
+    }
 
     const topActions = deduped.slice(0, 4);
 

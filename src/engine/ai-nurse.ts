@@ -3,6 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { NurseNote, MedicationOrder } from "../patient/schema.js";
 import { generateNurseNote } from "./nursing-knowledge.js";
+import { getDeteriorationRate } from "./agent-learning.js";
 
 const MAX_NOTES_PER_ENCOUNTER = 20;
 const MAX_TOTAL_NOTES = 300;
@@ -31,7 +32,11 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
       newEncounters.set(enc.id, { ...enc, assignedNurseId: nurse.id });
     }
 
-    if (clock.tick % 3 !== 0) continue;
+    const primaryDx = patient.diagnoses.filter(d => d.active)[0];
+    const deteriorationRate = primaryDx && state._learningMemory ? getDeteriorationRate(state._learningMemory, primaryDx.code) : null;
+    const highRisk = deteriorationRate !== null && deteriorationRate > 0.5;
+    const monitoringInterval = highRisk ? 2 : 3;
+    if (clock.tick % monitoringInterval !== 0) continue;
 
     const currentNoteCount = Array.from(newNotes.values()).filter(n => n.encounterId === enc.id).length;
     if (currentNoteCount >= MAX_NOTES_PER_ENCOUNTER) continue;
@@ -54,7 +59,11 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
     let noteType: NurseNote["noteType"];
     let content: string;
 
-    if (isAssessmentTick) {
+    if (highRisk && isObservationTick) {
+      noteType = "observation";
+      content = `🧠 Learning: ${primaryDx?.name ?? "unknown"} has ${(deteriorationRate! * 100).toFixed(0)}% deterioration rate — increased monitoring`;
+      mem.assessmentsDone++;
+    } else if (isAssessmentTick) {
       noteType = "assessment";
       content = generateNurseNote(diagnoses, vitals, "assessment");
       mem.assessmentsDone++;

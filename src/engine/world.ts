@@ -4,6 +4,8 @@ import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { cleanupHandler } from "./cleanup.js";
 import { outcomeHandler } from "./outcome-tracker.js";
+import { learningHandler } from "./agent-learning.js";
+import { outpatientHandler } from "./outpatient.js";
 import { icdTrackerHandler } from "./icd-tracker.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
@@ -68,6 +70,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
     journalPath: jp,
     handlers: [
       admissionHandler,
+      outpatientHandler,
       newPatientHandler,
       agentHandler,
       referralHandler,
@@ -89,6 +92,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       vitalsUpdateHandler,
       icdTrackerHandler,
       outcomeHandler,
+      learningHandler,
       cleanupHandler,
     ],
   };
