@@ -398,6 +398,16 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
       { type: "respiratory", label: "Oxygen therapy", priority: 10, detail: "oxygen" },
       { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "internal_medicine" },
     ] },
+  { code: "A91", name: "Dengue hemorrhagic fever", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 10, detail: "CBC" },
+      { type: "lab", label: "Platelet Count", priority: 10, detail: "PLT" },
+      { type: "lab", label: "Hematocrit", priority: 9, detail: "HCT" },
+      { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Antipyretic" },
+      { type: "medication", label: "Ringer's Lactate IV", priority: 8, detail: "fluid_resuscitation" },
+      { type: "consult", label: "Penyakit Dalam", priority: 9, detail: "internal_medicine" },
+    ] },
 ];
 
 export const VITALS_RULES: VitalsRule[] = [
@@ -494,7 +504,7 @@ export function assessMortalityRisk(age: number, vitals: Vitals, diagnoses: { co
   if (vitals.heartRate > 120 || vitals.heartRate < 50) { score += 1; factors.push("HR abnormal"); }
   if (vitals.temperature > 39) { score += 1; factors.push("Fever > 39°C"); }
   if (vitals.respiratoryRate > 24) { score += 1; factors.push("RR > 24"); }
-  const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84"].some(c => diagnoses.some(d => d.code === c));
+  const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84", "A91"].some(c => diagnoses.some(d => d.code === c));
   if (criticalDx) { score += 2; factors.push("Critical diagnosis"); }
   const multiMorbidity = diagnoses.length >= 3;
   if (multiMorbidity) { score += 1; factors.push("≥ 3 comorbidities"); }

@@ -24,7 +24,7 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "N39", name: "Urinary tract infection", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 7 },
   { code: "J45", name: "Asthma", minAge: 2, maxAge: 60, genders: ["male", "female"], weight: 6 },
   { code: "K29", name: "Gastritis", minAge: 15, maxAge: 80, genders: ["male", "female"], weight: 6 },
-  { code: "M54", name: "Low back pain", minAge: 20, maxAge: 80, genders: ["male", "female"], weight: 7 },
+  { code: "A91", name: "Dengue hemorrhagic fever", minAge: 1, maxAge: 70, genders: ["male", "female"], weight: 7 },
   { code: "I50", name: "Heart failure", minAge: 50, maxAge: 99, genders: ["male", "female"], weight: 5 },
   { code: "A09", name: "Acute gastroenteritis", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 6 },
   { code: "E78", name: "Hyperlipidemia", minAge: 30, maxAge: 80, genders: ["male", "female"], weight: 8 },

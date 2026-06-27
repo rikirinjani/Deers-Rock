@@ -110,6 +110,9 @@ export const NURSING_PROTOCOLS: NursingProtocol[] = [
   { icdCodes: ["J32", "H66"], assessmentFocus: ["ENT assessment", "Pain monitoring", "Fever monitoring", "Hearing assessment"],
     interventions: ["Monitor for ear/sinus pain", "Warm compress PRN", "Monitor temperature q6h", "Hearing conservation education"],
     monitoringFrequency: "q6h" },
+  { icdCodes: ["A91"], assessmentFocus: ["Hemodynamic monitoring", "Bleeding precautions", "Fever q4h", "Hematocrit trends", "Platelet monitoring"],
+    interventions: ["Monitor for signs of bleeding", "Strict I/O monitoring", "Avoid NSAIDs", "Fluid resuscitation monitoring", "Dengue shock warning education"],
+    monitoringFrequency: "q2h" },
 ];
 
 export function getNursingProtocols(diagnoses: Diagnosis[]): NursingProtocol | null {
