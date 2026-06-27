@@ -117,6 +117,22 @@ export function journalStats(): { total: number; byType: Record<string, number>;
   return { total, byType, firstTick: first, lastTick: last };
 }
 
+const JOURNAL_RETENTION_TICKS = 500;
+
+const PURGE_INTERVAL = 500;
+let lastPurgeTick = 0;
+
+export function journalPurge(currentTick: number): void {
+  if (!db) return;
+  if (currentTick - lastPurgeTick < PURGE_INTERVAL) return;
+  lastPurgeTick = currentTick;
+  const cutoff = currentTick - JOURNAL_RETENTION_TICKS;
+  if (cutoff > 0) {
+    db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
+    db.pragma("wal_checkpoint(TRUNCATE)");
+  }
+}
+
 export function journalReplay(tickMax: number, eventTypes?: string[]): JournalRow[] {
   if (!db) return [];
   let sql = "SELECT * FROM world_journal WHERE tick <= ?";
