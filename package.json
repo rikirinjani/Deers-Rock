@@ -7,7 +7,7 @@
     "deers-rock": "./bin/deers-rock.js"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "tsc",
     "dev": "tsx src/cli/index.ts up 3000",
     "start": "node dist/cli/index.js up",
     "test": "vitest run",
@@ -19,9 +19,6 @@
     "url": "git+https://github.com/vierm2606-bangtan/Deers-Rock.git"
   },
   "license": "ISC",
-  "engines": {
-    "node": ">=22"
-  },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.3",

@@ -149,12 +149,24 @@ interface RL5aForm {
   top10: DiagnosisCount[];
 }
 
+interface RL5bForm {
+  period: number;
+  top10: { code: string; name: string; count: number; byPoli: Record<string, number>; genderBreakdown: { male: number; female: number }; ageGroupBreakdown: Record<string, number> }[];
+}
+
 interface RL6aForm {
   totalSurgeries: number;
   completedSurgeries: number;
   cancelledSurgeries: number;
   electiveSurgeries: number;
   emergencySurgeries: number;
+  procedureBreakdown: Record<string, number>;
+}
+
+interface RL6bForm {
+  totalOutpatientSurgeries: number;
+  completedOutpatient: number;
+  cancelledOutpatient: number;
   procedureBreakdown: Record<string, number>;
 }
 
@@ -205,7 +217,9 @@ export interface SirsReportBundle {
   rl4b: RL4bForm;
   rl4c: RL4cForm;
   rl5a: RL5aForm;
+  rl5b: RL5bForm;
   rl6a: RL6aForm;
+  rl6b: RL6bForm;
   rl7: RL7Form;
   rl8: RL8Form;
   rl9: RL9Form;
@@ -466,6 +480,31 @@ export function generateSirsReport(world: World): SirsReportBundle {
     top10,
   };
 
+  // ─── RL 5b: 10 Besar Penyakit Rawat Jalan ───
+  const outpatientDxCounts: Record<string, { name: string; count: number; male: number; female: number; ageGroups: Record<string, number>; byPoli: Record<string, number> }> = {};
+  for (const v of visits) {
+    const code = v.icdCode;
+    if (!outpatientDxCounts[code]) outpatientDxCounts[code] = { name: v.diagnosis, count: 0, male: 0, female: 0, ageGroups: {}, byPoli: {} };
+    outpatientDxCounts[code]!.count++;
+    outpatientDxCounts[code]!.byPoli[v.poli] = (outpatientDxCounts[code]!.byPoli[v.poli] ?? 0) + 1;
+    const pt = s.patients.get(v.patientId);
+    if (pt) {
+      if (pt.gender === "male") outpatientDxCounts[code]!.male++;
+      else outpatientDxCounts[code]!.female++;
+      const grp = getAgeGroup(pt.age);
+      outpatientDxCounts[code]!.ageGroups[grp] = (outpatientDxCounts[code]!.ageGroups[grp] ?? 0) + 1;
+    }
+  }
+  const rl5bTop10 = Object.entries(outpatientDxCounts)
+    .map(([code, v]) => ({ code, name: v.name, count: v.count, byPoli: v.byPoli, genderBreakdown: { male: v.male, female: v.female }, ageGroupBreakdown: v.ageGroups }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const rl5b: RL5bForm = {
+    period: Math.floor(world.clock.tick / 5),
+    top10: rl5bTop10,
+  };
+
   // ─── RL 6a: Tindakan Operasi ───
   const procCounts: Record<string, number> = {};
   for (const s of surgs) {
@@ -478,6 +517,22 @@ export function generateSirsReport(world: World): SirsReportBundle {
     electiveSurgeries: surgs.filter(s => s.status === "scheduled" || s.status === "completed").length,
     emergencySurgeries: surgs.filter(s => s.status === "in-progress").length,
     procedureBreakdown: Object.fromEntries(Object.entries(procCounts).sort((a, b) => b[1] - a[1]).slice(0, 10)),
+  };
+
+  // ─── RL 6b: Tindakan Operasi Rawat Jalan ───
+  const outpatientSurgs = surgs.filter(s => {
+    const enc = s.encounterId ? encounters.find(e => e.id === s.encounterId) : undefined;
+    return enc?.type === "outpatient";
+  });
+  const outProcCounts: Record<string, number> = {};
+  for (const s of outpatientSurgs) {
+    outProcCounts[s.procedureName] = (outProcCounts[s.procedureName] ?? 0) + 1;
+  }
+  const rl6b: RL6bForm = {
+    totalOutpatientSurgeries: outpatientSurgs.length,
+    completedOutpatient: outpatientSurgs.filter(s => s.status === "completed").length,
+    cancelledOutpatient: outpatientSurgs.filter(s => s.status === "cancelled").length,
+    procedureBreakdown: Object.fromEntries(Object.entries(outProcCounts).sort((a, b) => b[1] - a[1]).slice(0, 10)),
   };
 
   // ─── RL 7: Kematian ───
@@ -548,6 +603,6 @@ export function generateSirsReport(world: World): SirsReportBundle {
     generatedAt: new Date().toISOString(),
     hospitalTime: formatHospitalTime(world.clock),
     tick: world.clock.tick,
-    rl1, rl2a, rl2b, rl3, rl4a, rl4b, rl4c, rl5a, rl6a, rl7, rl8, rl9,
+    rl1, rl2a, rl2b, rl3, rl4a, rl4b, rl4c, rl5a, rl5b, rl6a, rl6b, rl7, rl8, rl9,
   };
 }

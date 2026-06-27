@@ -103,7 +103,9 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/sirs/rl4b") { json(res, generateSirsReport(w).rl4b); return true; }
   if (p === "/api/sirs/rl4c") { json(res, generateSirsReport(w).rl4c); return true; }
   if (p === "/api/sirs/rl5a") { json(res, generateSirsReport(w).rl5a); return true; }
+  if (p === "/api/sirs/rl5b") { json(res, generateSirsReport(w).rl5b); return true; }
   if (p === "/api/sirs/rl6a") { json(res, generateSirsReport(w).rl6a); return true; }
+  if (p === "/api/sirs/rl6b") { json(res, generateSirsReport(w).rl6b); return true; }
   if (p === "/api/sirs/rl7") { json(res, generateSirsReport(w).rl7); return true; }
   if (p === "/api/sirs/rl8") { json(res, generateSirsReport(w).rl8); return true; }
   if (p === "/api/sirs/rl9") { json(res, generateSirsReport(w).rl9); return true; }
