@@ -14,6 +14,7 @@ export function learnFromOutcome(
   };
   dx.totalCases++;
   if (outcome.outcome === "improved") dx.improved++;
+  else if (outcome.outcome === "deceased") dx.deteriorated++;
   else dx.deteriorated++;
 
   if (doctorCase) {

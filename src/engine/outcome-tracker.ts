@@ -8,9 +8,11 @@ export interface DiagnosisPerformance {
   totalCases: number;
   improved: number;
   deteriorated: number;
+  deceased: number;
   avgLosTicks: number;
   totalOrders: number;
   improvementRate: number;
+  mortalityRate: number;
 }
 
 function isVitalsNormal(vitals: {
@@ -43,7 +45,8 @@ export function recordOutcome(
   const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
 
   const improved = isVitalsNormal(patient.vitals);
-  const outcome: "improved" | "deteriorated" = improved ? "improved" : "deteriorated";
+  const isDeceased = (state.morgue || []).some(m => m.encounterId === encounterId);
+  let outcome: "improved" | "deteriorated" | "deceased" = isDeceased ? "deceased" : (improved ? "improved" : "deteriorated");
 
   const startTick = Math.floor(encounter.startTime / 60000);
   const losTicks = clock.tick - startTick;
@@ -80,13 +83,15 @@ export function computePerformanceStats(state: HospitalState): DiagnosisPerforma
   for (const [icdCode, entry] of byCode) {
     const total = entry.outcomes.length;
     const improved = entry.outcomes.filter(o => o.outcome === "improved").length;
-    const deteriorated = entry.outcomes.filter(o => o.outcome === "deteriorated").length;
+    const deteriorated = entry.outcomes.filter(o => o.outcome === "deteriorated" || o.outcome === "deceased").length;
+    const deceased = entry.outcomes.filter(o => o.outcome === "deceased").length;
     const avgLos = Math.round(entry.outcomes.reduce((s, o) => s + o.losTicks, 0) / total);
     const totalOrders = entry.outcomes.reduce((s, o) => s + o.ordersCount, 0);
     result.push({
       icdCode, diagnosisName: entry.name, totalCases: total,
-      improved, deteriorated, avgLosTicks: avgLos, totalOrders,
+      improved, deteriorated, deceased, avgLosTicks: avgLos, totalOrders,
       improvementRate: Math.round((improved / total) * 100),
+      mortalityRate: Math.round((deceased / total) * 100),
     });
   }
 

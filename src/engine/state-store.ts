@@ -5,12 +5,24 @@ import type { ReferralState } from "../referral/system.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
 import { centralSupplyInit } from "./central-supply.js";
 
+export interface MorgueRecord {
+  patientId: string;
+  encounterId: string;
+  primaryDiagnosis: string;
+  icdCode: string;
+  age: number;
+  gender: string;
+  causeOfDeath: string;
+  mortalityScore: number;
+  deathTick: number;
+}
+
 export interface OutcomeRecord {
   patientId: string;
   encounterId: string;
   primaryDiagnosis: string;
   icdCode: string;
-  outcome: "improved" | "deteriorated";
+  outcome: "improved" | "deteriorated" | "deceased";
   losTicks: number;
   ordersCount: number;
   dischargeTick: number;
@@ -70,6 +82,8 @@ export interface HospitalState {
   _learningMemory: LearningMemory;
   _outpatientVisits: Map<string, OutpatientVisit>;
   _calendarTicks: number;
+  morgue: MorgueRecord[];
+  morgueCapacity: number;
 }
 
 export interface OutpatientVisit {
@@ -145,5 +159,7 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _learningMemory: { byDiagnosis: new Map() },
     _outpatientVisits: new Map(),
     _calendarTicks: 0,
+    morgue: [],
+    morgueCapacity: 10,
   };
 }

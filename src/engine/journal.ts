@@ -189,6 +189,8 @@ function deserializeState(json: string): HospitalState {
     _learningMemory: { byDiagnosis: new Map() },
     _outpatientVisits: new Map(),
     _calendarTicks: 0,
+    morgue: [],
+    morgueCapacity: 10,
   };
 }
 

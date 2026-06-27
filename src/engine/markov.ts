@@ -1,8 +1,9 @@
-import type { HospitalState } from "./state-store.js";
+import type { HospitalState, MorgueRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
 import { getEventSummary } from "./calendar.js";
+import { assessMortalityRisk } from "./clinical-knowledge.js";
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
 
@@ -72,22 +73,44 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
 
 export function dischargeHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const activeEncounters = Array.from(state.encounters.values())
-    .filter(e => e.status === "active")
-    .sort((a, b) => {
-      const pa = state.patients.get(a.patientId);
-      const pb = state.patients.get(b.patientId);
-      return (pa?.age ?? 0) - (pb?.age ?? 0);
-    });
+    .filter(e => e.status === "active");
 
   if (activeEncounters.length === 0) return state;
 
   const dischargeCount = Math.min(activeEncounters.length, Math.max(1, Math.floor(activeEncounters.length * 0.15)));
   let newEncounters = new Map(state.encounters);
   let newBeds = new Map(state.beds);
+  let newMorgue = [...(state.morgue || [])];
 
   for (let i = 0; i < dischargeCount; i++) {
     const idx = Math.floor(Math.random() * activeEncounters.length);
     const toDischarge = activeEncounters[idx]!;
+    const patient = state.patients.get(toDischarge.patientId);
+
+    const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses) : { score: 0, risk: "low" as const, factors: [] as string[] };
+
+    const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
+    const dies = Math.random() < deathRoll;
+
+    if (dies && patient && newMorgue.length < state.morgueCapacity) {
+      const activeDx = patient.diagnoses.filter(d => d.active);
+      const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
+      const cause = mortality.factors.length > 0
+        ? mortality.factors.join("; ")
+        : `${primaryDx.name} complication`;
+
+      newMorgue.push({
+        patientId: toDischarge.patientId,
+        encounterId: toDischarge.id,
+        primaryDiagnosis: primaryDx.name,
+        icdCode: primaryDx.code,
+        age: patient.age,
+        gender: patient.gender,
+        causeOfDeath: cause,
+        mortalityScore: mortality.score,
+        deathTick: clock.tick,
+      });
+    }
 
     newEncounters.set(toDischarge.id, {
       ...toDischarge,
@@ -110,7 +133,7 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
     wr = Math.max(0, wr - newlyFree);
   }
 
-  return { ...state, beds: newBeds, encounters: newEncounters, waitingRoom: wr };
+  return { ...state, beds: newBeds, encounters: newEncounters, waitingRoom: wr, morgue: newMorgue };
 }
 
 export function newPatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {

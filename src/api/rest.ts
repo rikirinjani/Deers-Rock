@@ -131,6 +131,14 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     if (!bundle) { res.writeHead(404); res.end("Not found"); return true; }
     json(res, bundle); return true;
   }
+  if (p === "/api/morgue") {
+    const morgue = w.state.morgue || [];
+    const totalDeaths = morgue.length;
+    const capacity = w.state.morgueCapacity;
+    const byDiagnosis: Record<string, number> = {};
+    for (const m of morgue) { byDiagnosis[m.primaryDiagnosis] = (byDiagnosis[m.primaryDiagnosis] || 0) + 1; }
+    json(res, { bodies: morgue, totalDeaths, capacity, byDiagnosis }); return true;
+  }
   if (p === "/api/calendar") {
     const ctx = getEventSummary(w.state._calendarTicks);
     json(res, { ...ctx, formatted: formatCalendarDate(ctx.date) }); return true;
