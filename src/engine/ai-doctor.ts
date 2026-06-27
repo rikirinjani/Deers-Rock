@@ -252,10 +252,14 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
       }
     }
 
+    const docSpesialisasi = doctor && doctor.role === "dokter_spesialis" ? (doctor.spesialisasi ?? null) : null;
+
     if (existingCase) {
       caseMemory.set(caseKey, {
         ...existingCase,
         actionsTaken: [...existingCase.actionsTaken, ...taken],
+        attendingDoctorId: doctorId ?? existingCase.attendingDoctorId,
+        attendingSpesialisasi: docSpesialisasi ?? existingCase.attendingSpesialisasi,
       });
     } else {
       caseMemory.set(caseKey, {
@@ -266,6 +270,8 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
         outcome: "active",
         tickStarted: Math.floor(enc.startTime / 60000),
         tickEnded: null,
+        attendingDoctorId: doctorId ?? null,
+        attendingSpesialisasi: docSpesialisasi,
       });
     }
   }
@@ -285,14 +291,25 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
   };
 }
 
+const SPECIALTY_TO_SPESIALIS: Record<string, string> = {
+  cardiology: "Jantung", neurology: "Saraf", ophthalmology: "Mata",
+  ent: "THT", dermatology: "Kulit Kelamin", psychiatry: "Jiwa",
+  pediatrics: "Anak", obgyn: "Obstetri Ginekologi", pulmonology: "Paru",
+  rehab_medik: "Rehabilitasi Medik", anesthesiology: "Anestesi",
+  dentistry: "Gigi Mulut", hemodialysis: "Penyakit Dalam",
+  endoscopy: "Penyakit Dalam", pathology_anatomy: "Patologi Anatomi",
+  forensic: "Forensik",
+};
+
 function assignBestDoctor(agents: HospitalAgent[], diagnoses: string[]): HospitalAgent | undefined {
   if (agents.length === 0) return undefined;
   const primaryCode = diagnoses[0];
   const targetSpecialty = primaryCode ? mapIcdToSpecialty(primaryCode) : undefined;
+  const targetSpesialis = targetSpecialty ? SPECIALTY_TO_SPESIALIS[targetSpecialty] : undefined;
 
   const specialists = agents.filter(a => {
     if (a.role !== "dokter_spesialis") return false;
-    return a.spesialisasi?.toLowerCase().replace(/\s/g, "_") === targetSpecialty;
+    return targetSpesialis ? a.spesialisasi === targetSpesialis : false;
   });
 
   if (specialists.length > 0) return specialists[Math.floor(Math.random() * specialists.length)];

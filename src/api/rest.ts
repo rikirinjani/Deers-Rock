@@ -8,8 +8,17 @@ import { generateReport } from "../engine/report.js";
 import { computePerformanceStats } from "../engine/outcome-tracker.js";
 import { buildFhirBundle } from "../engine/fhir-export.js";
 import { getEventSummary, tickToDate, formatCalendarDate } from "../engine/calendar.js";
-import type { MmConference } from "../engine/mm-conference.js";
+import { getBloodBankSummary } from "../engine/blood-bank.js";
+import { initMicroState } from "../engine/microbiology.js";
+import { initPathoState } from "../engine/pathology.js";
+import { initCssdState } from "../engine/cssd.js";
+import { initBiomedState } from "../engine/biomedical-engineering.js";
+import { initIpcState } from "../engine/ipc.js";
+import { initNutritionState } from "../engine/clinical-nutrition.js";
+import { initRtState } from "../engine/radiotherapy.js";
+import { initDialysisState } from "../engine/dialysis.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
+import { SCENARIO_DEFS } from "../engine/scenario.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -133,7 +142,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     json(res, bundle); return true;
   }
   if (p === "/api/mm-conference") {
-    const conferences = (w.state._mmConferences || []) as MmConference[];
+    const conferences = w.state._mmConferences || [];
     const latest = conferences[conferences.length - 1] ?? null;
     json(res, { latest, total: conferences.length }); return true;
   }
@@ -148,6 +157,77 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/calendar") {
     const ctx = getEventSummary(w.state._calendarTicks);
     json(res, { ...ctx, formatted: formatCalendarDate(ctx.date) }); return true;
+  }
+  if (p === "/api/blood-bank") {
+    const bb = w.state._bloodBank;
+    if (!bb) { json(res, { units: [], transfusionRecords: [], summary: { total: 0, byType: {}, available: 0 } }); return true; }
+    const summary = getBloodBankSummary(bb);
+    json(res, { units: bb.units, transfusionRecords: bb.transfusionRecords.slice(-20).reverse(), summary });
+    return true;
+  }
+  if (p === "/api/microbiology") {
+    const micro = w.state._microbiology ?? initMicroState();
+    json(res, { orders: Array.from(micro.orders.values()).slice(-20).reverse() });
+    return true;
+  }
+  if (p === "/api/pathology") {
+    const patho = w.state._pathology ?? initPathoState();
+    json(res, { orders: Array.from(patho.orders.values()).slice(-20).reverse() });
+    return true;
+  }
+  if (p === "/api/cssd") {
+    const cssd = w.state._cssd ?? initCssdState();
+    json(res, { trays: cssd.trays, cycles: cssd.cycles.slice(-10).reverse() });
+    return true;
+  }
+  if (p === "/api/biomedical") {
+    const biomed = w.state._biomed ?? initBiomedState();
+    const operational = biomed.equipment.filter(e => e.status === "operational").length;
+    const maint = biomed.equipment.filter(e => e.status === "under_maintenance").length;
+    const broken = biomed.equipment.filter(e => e.status === "broken").length;
+    json(res, { equipment: biomed.equipment, maintenance: biomed.maintenance.slice(-10).reverse(), summary: { total: biomed.equipment.length, operational, underMaintenance: maint, broken } });
+    return true;
+  }
+  if (p === "/api/ipc") {
+    const ipc = w.state._ipc ?? initIpcState();
+    json(res, { cases: ipc.cases.slice(-20).reverse(), handHygieneCompliance: ipc.handHygieneCompliance, isolationBedsInUse: ipc.isolationBedsInUse });
+    return true;
+  }
+  if (p === "/api/clinical-nutrition") {
+    const nut = w.state._clinicalNutrition ?? initNutritionState();
+    json(res, { assessments: nut.assessments.slice(-10).reverse(), tubeFeedings: nut.tubeFeedings.filter(t => t.status === "active"), tpnOrders: nut.tpnOrders.slice(-5).reverse() });
+    return true;
+  }
+  if (p === "/api/radiotherapy") {
+    const rt = w.state._radiotherapy ?? initRtState();
+    const active = rt.plans.filter(p => p.status === "in_progress").length;
+    const completed = rt.plans.filter(p => p.status === "completed").length;
+    json(res, { plans: rt.plans.slice(-10).reverse(), fractions: rt.fractions.slice(-20).reverse(), equipment: rt.equipment, summary: { total: rt.plans.length, active, completed } });
+    return true;
+  }
+  if (p === "/api/dialysis") {
+    const d = w.state._dialysis ?? initDialysisState();
+    const activeSessions = d.sessions.filter(s => s.status === "in_progress").length;
+    const availMachines = d.machines.filter(m => m.status === "available").length;
+    json(res, { sessions: d.sessions.slice(-10).reverse(), machines: d.machines, summary: { totalSessions: d.sessions.length, activeSessions, availMachines, totalMachines: d.machines.length } });
+    return true;
+  }
+  if (p === "/api/scenarios") {
+    const sc = w.state._scenario ?? { active: null, history: [], cooldownTicks: 0 };
+    json(res, { active: sc.active, history: sc.history.slice(-10).reverse(), definitions: SCENARIO_DEFS.map(d => ({ type: d.type, name: d.name, description: d.description })), cooldownTicks: sc.cooldownTicks });
+    return true;
+  }
+  if (p === "/api/export/journal") {
+    const all = journalQuery({ limit: 1000000 });
+    res.writeHead(200, { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="journal-${w.clock.tick}.json"` });
+    res.end(JSON.stringify(all));
+    return true;
+  }
+  if (p === "/api/export/state") {
+    const s = { tick: w.clock.tick, time: formatHospitalTime(w.clock), patients: w.state.patients.size, encounters: w.state.encounters.size, morgue: w.state.morgue.length, outcomeRecords: w.state._outcomeRecords?.length ?? 0, bloodBank: w.state._bloodBank?.units?.length ?? 0, microOrders: w.state._microbiology?.orders?.size ?? 0, pathoOrders: w.state._pathology?.orders?.size ?? 0, cssdTrays: w.state._cssd?.trays?.length ?? 0, biomedEquipment: w.state._biomed?.equipment?.length ?? 0, ipcCases: w.state._ipc?.cases?.length ?? 0, nutAssessments: w.state._clinicalNutrition?.assessments?.length ?? 0, rtPlans: w.state._radiotherapy?.plans?.length ?? 0, dialysisSessions: w.state._dialysis?.sessions?.length ?? 0, scenarios: w.state._scenario?.history?.length ?? 0, doctorCases: w.state._doctorCaseMemory?.size ?? 0, nurseCases: w.state._nurseCaseMemory?.size ?? 0, learningEntries: w.state._learningMemory?.byDiagnosis?.size ?? 0 };
+    res.writeHead(200, { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="state-summary-${w.clock.tick}.json"` });
+    res.end(JSON.stringify(s, null, 2));
+    return true;
   }
   if (p === "/api/learning") {
     const mem = w.state._learningMemory;

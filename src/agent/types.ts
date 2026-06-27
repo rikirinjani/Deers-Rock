@@ -6,7 +6,8 @@ export type DepartmentCode =
   | "ANESTESI" | "ORTODONTI" | "JANTUNG" | "SARAF" | "MATA" | "THT"
   | "KULIT_KELAMIN" | "JIWA" | "ANAK" | "OBGYN" | "PARU" | "REHAB_MEDIK"
   | "BEDAH_SARAF" | "PENYAKIT_DALAM" | "GIGI_MULUT" | "FORENSIK"
-  | "GIZI_KLINIK" | "FARMASI_KLINIK" | "KESEHATAN_LINGKUNGAN";
+  | "GIZI_KLINIK" | "FARMASI_KLINIK" | "KESEHATAN_LINGKUNGAN"
+  | "MIKROBIOLOGI" | "PATOLOGI" | "CSSD" | "BIOMEDIK" | "PPI";
 
 export type AgentRole =
   | "dokter_spesialis" | "dokter_umum" | "dokter_gigi"
@@ -17,7 +18,8 @@ export type AgentRole =
   | "pekerja_sosial" | "rekam_medis" | "koder"
   | "kasir" | "staf_keuangan" | "staf_inventaris"
   | "petugas_kebersihan" | "petugas_keamanan" | "admin"
-  | "sopir_ambulans";
+  | "sopir_ambulans"
+  | "ahli_mikrobiologi" | "ahli_patologi" | "teknisi_cssd" | "teknisi_biomedik" | "perawat_ppi";
 
 export type Spesialisasi =
   | "Penyakit Dalam" | "Bedah Umum" | "Bedah Saraf" | "Obstetri Ginekologi"

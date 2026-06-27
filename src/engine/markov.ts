@@ -4,6 +4,17 @@ import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
 import { getEventSummary } from "./calendar.js";
 import { assessMortalityRisk } from "./clinical-knowledge.js";
+import { mapIcdToSpecialty } from "./clinical-knowledge.js";
+import { getScenarioEffects } from "./scenario.js";
+
+const SPECIALTY_TO_WARD: Record<string, string> = {
+  cardiology: "Cardiology", neurology: "Neurology", pulmonology: "Pulmonology",
+  pediatrics: "Pediatrics", obgyn: "OBGYN", psychiatry: "Internal Medicine",
+  rehab_medik: "Internal Medicine", anesthesiology: "ICU", hemodialysis: "Internal Medicine",
+  endoscopy: "Internal Medicine", pathology_anatomy: "Internal Medicine",
+  forensic: "Internal Medicine", ophthalmology: "Internal Medicine",
+  ent: "Internal Medicine", dermatology: "Internal Medicine", dentistry: "Internal Medicine",
+};
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
 
@@ -11,19 +22,16 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   const availableBeds = Array.from(state.beds.values()).filter(b => b.patientId === null);
   const occupancyRate = 1 - (availableBeds.length / state.beds.size);
 
-  if (availableBeds.length === 0) {
-    return { ...state, waitingRoom: state.waitingRoom + 1 };
-  }
-
   const eventCtx = getEventSummary(state._calendarTicks);
-  const surge = eventCtx.totalMultiplier > 1.3;
+  const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
+  const surge = eventCtx.totalMultiplier > 1.3 || scenarioEff.surgeMultiplier > 1.5;
   if (occupancyRate >= 0.85 && !surge && Math.random() > 0.3) {
     return state;
   }
   if (surge) {
-    const extraBeds = Math.floor(availableBeds.length * 0.1);
+    const extraBeds = Math.floor(availableBeds.length * (scenarioEff.surgeMultiplier > 2 ? 0.2 : 0.1));
     if (extraBeds <= 0) {
-      return { ...state, waitingRoom: state.waitingRoom + 2 };
+      return { ...state, waitingRoom: state.waitingRoom + Math.round(scenarioEff.surgeMultiplier) };
     }
   }
 
@@ -49,7 +57,14 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
 
   for (let i = 0; i < toAdmit && i < admitablePatients.length; i++) {
     const patient = admitablePatients[i]!;
-    const freeBed = Array.from(newBeds.values()).find(b => b.patientId === null);
+
+    const primaryDx = patient.diagnoses.find(d => d.active);
+    const targetSpecialty = primaryDx ? mapIcdToSpecialty(primaryDx.code) : undefined;
+    const targetWard = targetSpecialty ? SPECIALTY_TO_WARD[targetSpecialty] : undefined;
+    let freeBed = targetWard
+      ? Array.from(newBeds.values()).find(b => b.patientId === null && b.ward === targetWard)
+      : undefined;
+    if (!freeBed) freeBed = Array.from(newBeds.values()).find(b => b.patientId === null);
     if (!freeBed) break;
 
     newBeds.set(freeBed.id, { ...freeBed, patientId: patient.id });
@@ -89,8 +104,9 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
 
     const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses) : { score: 0, risk: "low" as const, factors: [] as string[] };
 
+    const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
     const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
-    const dies = Math.random() < deathRoll;
+    const dies = Math.random() < (deathRoll + scenarioEff.mortalityBoost);
 
     if (dies && patient && newMorgue.length < state.morgueCapacity) {
       const activeDx = patient.diagnoses.filter(d => d.active);

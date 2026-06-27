@@ -6,6 +6,11 @@ const DOKTER_NAMES_M = ["dr. Agus", "dr. Bambang", "dr. Cahyono", "dr. Dwi", "dr
 const DOKTER_NAMES_F = ["dr. Ani", "dr. Dewi", "dr. Endang", "dr. Fitri", "dr. Gita", "dr. Hesti", "dr. Intan", "dr. Kartika", "dr. Lestari", "dr. Maya", "dr. Nurul", "dr. Putri", "dr. Ratna", "dr. Sari", "dr. Triana", "dr. Aisyah", "dr. Bunga", "dr. Citra", "dr. Fatmawati", "dr. Wulandari"];
 const PERAWAT_NAMES = ["Ns. Ahmad", "Ns. Budi", "Ns. Citra", "Ns. Dewi", "Ns. Eko", "Ns. Fitri", "Ns. Gita", "Ns. Hasan", "Ns. Indah", "Ns. Joko", "Ns. Kartika", "Ns. Lestari", "Ns. Mega", "Ns. Nurul", "Ns. Putri", "Ns. Rahmat", "Ns. Sari", "Ns. Tri", "Ns. Wulan", "Ns. Yuni"];
 const APOTEKER_NAMES = ["apt. Ahmad", "apt. Budi", "apt. Citra", "apt. Dewi", "apt. Eko", "apt. Fitri", "apt. Gita", "apt. Hasan", "apt. Indah", "apt. Joko"];
+const MIKROBIOLOG_NAMES = ["dr. Mikrobiologi Andi", "dr. Mikrobiologi Sari", "dr. Mikrobiologi Budi", "dr. Mikrobiologi Dewi"];
+const PATOLOG_NAMES = ["dr. Patologi Rina", "dr. Patologi Fajar", "dr. Patologi Maya", "dr. Patologi Adi"];
+const CSSD_NAMES = ["Teknisi CSSD Arif", "Teknisi CSSD Dewi", "Teknisi CSSD Rudi", "Teknisi CSSD Sari"];
+const BIOMED_NAMES = ["Teknisi Biomedik Aldi", "Teknisi Biomedik Rani", "Teknisi Biomedik Yoga", "Teknisi Biomedik Fitri"];
+const PPI_NAMES = ["Ns. PPI Wulan", "Ns. PPI Irfan", "Ns. PPI Rina", "Ns. PPI Dani"];
 
 const LAST_NAMES = ["Pratama", "Wijaya", "Kusuma", "Hidayat", "Nugraha", "Santoso", "Wibowo", "Gunawan", "Susanto", "Saputra", "Utami", "Handayani", "Nasution", "Siregar"];
 
@@ -34,6 +39,11 @@ const ROLE_DEPARTMENT: Record<AgentRole, { dept: DepartmentCode; spesialisasi: S
   petugas_keamanan: { dept: "KESEHATAN_LINGKUNGAN", spesialisasi: null },
   admin: { dept: "REKAM_MEDIS", spesialisasi: null },
   sopir_ambulans: { dept: "IGD", spesialisasi: null },
+  ahli_mikrobiologi: { dept: "MIKROBIOLOGI", spesialisasi: "Patologi Klinik" },
+  ahli_patologi: { dept: "PATOLOGI", spesialisasi: "Patologi Anatomi" },
+  teknisi_cssd: { dept: "CSSD", spesialisasi: null },
+  teknisi_biomedik: { dept: "BIOMEDIK", spesialisasi: null },
+  perawat_ppi: { dept: "PPI", spesialisasi: null },
 };
 
 const SPESIALIS_MAP: Record<Spesialisasi, DepartmentCode> = {
@@ -66,7 +76,13 @@ export function generateAgent(role: AgentRole): HospitalAgent {
   const rd = ROLE_DEPARTMENT[role];
   const namePool = role === "dokter_umum" || role === "dokter_spesialis" || role === "dokter_gigi"
     ? (gender === "male" ? DOKTER_NAMES_M : DOKTER_NAMES_F)
-    : (role === "apoteker" || role === "asisten_apoteker" ? APOTEKER_NAMES : PERAWAT_NAMES);
+    : (role === "apoteker" || role === "asisten_apoteker" ? APOTEKER_NAMES
+      : role === "ahli_mikrobiologi" ? MIKROBIOLOG_NAMES
+      : role === "ahli_patologi" ? PATOLOG_NAMES
+      : role === "teknisi_cssd" ? CSSD_NAMES
+      : role === "teknisi_biomedik" ? BIOMED_NAMES
+      : role === "perawat_ppi" ? PPI_NAMES
+      : PERAWAT_NAMES);
 
   const spesialisasi = role === "dokter_spesialis"
     ? pickRandom(Object.keys(SPESIALIS_MAP) as Spesialisasi[])

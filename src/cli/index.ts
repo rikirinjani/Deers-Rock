@@ -1,6 +1,8 @@
-import { createWorld, step } from "../engine/world.js";
+import { createWorld, resumeWorld, step } from "../engine/world.js";
 import { createRestServer } from "../api/rest.js";
-import { formatHospitalTime } from "../engine/clock.js";
+import { createClock, formatHospitalTime } from "../engine/clock.js";
+import { initJournal, loadNearestSnapshot, closeJournal } from "../engine/journal.js";
+import fs from "node:fs";
 
 const command = process.argv[2];
 
@@ -26,8 +28,23 @@ function animateBoot() {
 async function cmdUp() {
   animateBoot();
 
-  const port = parseInt(process.argv[3] ?? "3000", 10);
-  let world = createWorld(50, "world-journal.db");
+  const port = parseInt(process.env.PORT ?? process.argv[3] ?? "3000", 10);
+  const journalPath = "world-journal.db";
+
+  let world: import("../engine/world.js").World;
+
+  if (fs.existsSync(journalPath) && fs.statSync(journalPath).size > 1024) {
+    initJournal(journalPath);
+    const snap = loadNearestSnapshot(Infinity);
+    if (snap.state) {
+      world = resumeWorld(snap.state, snap.tick, journalPath);
+      process.stdout.write("\r♻️ Restored from snapshot at tick " + snap.tick + "...\n");
+    } else {
+      world = createWorld(50, journalPath);
+    }
+  } else {
+    world = createWorld(50, journalPath);
+  }
 
   const server = createRestServer(() => world);
   server.listen(port);

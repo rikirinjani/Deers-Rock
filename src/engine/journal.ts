@@ -1,7 +1,17 @@
 import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
-import type { HospitalState } from "./state-store.js";
+import type { HospitalState, LearningMemory } from "./state-store.js";
+import { initBloodBank } from "./blood-bank.js";
+import { initMicroState } from "./microbiology.js";
+import { initPathoState } from "./pathology.js";
+import { initCssdState } from "./cssd.js";
+import { initBiomedState } from "./biomedical-engineering.js";
+import { initIpcState } from "./ipc.js";
+import { initNutritionState } from "./clinical-nutrition.js";
+import { initRtState } from "./radiotherapy.js";
+import { initDialysisState } from "./dialysis.js";
+import { initScenarioState } from "./scenario.js";
 
 let db: Database.Database | null = null;
 let insertStmt: Database.Statement | null = null;
@@ -127,6 +137,19 @@ function arrToMap<K extends string, V>(arr: [string, V][]): Map<K, V> {
   return new Map(arr) as Map<K, V>;
 }
 
+function serializeLearning(l: LearningMemory): { byDiagnosis: [string, unknown][] } {
+  return {
+    byDiagnosis: Array.from(l.byDiagnosis.entries()).map(([code, dx]) => [code, { ...dx, actions: Array.from(dx.actions.entries()) }]),
+  };
+}
+
+function deserializeLearning(d: { byDiagnosis?: [string, unknown][] } | null): LearningMemory {
+  if (!d) return { byDiagnosis: new Map() };
+  return {
+    byDiagnosis: new Map((d.byDiagnosis ?? []).map(([code, dx]: [string, any]) => [code, { ...dx, actions: new Map(dx.actions ?? []) }])),
+  };
+}
+
 export function saveSnapshot(tick: number, state: HospitalState): void {
   if (!saveSnapStmt) return;
   const data = {
@@ -141,6 +164,26 @@ export function saveSnapshot(tick: number, state: HospitalState): void {
     ic: mapToArr(state.insuranceClaims), py: mapToArr(state.payments),
     inv: mapToArr(state.inventory), st: mapToArr(state.stockTransactions),
     spec: mapToArr(state.specialtyOrders),
+    morgue: state.morgue, morgueCap: state.morgueCapacity,
+    mmConf: state._mmConferences, mmLastTick: state._mmLastConferenceTick,
+    bloodBank: state._bloodBank,
+    micro: state._microbiology,
+    patho: state._pathology,
+    cssd: state._cssd,
+    biomed: state._biomed,
+    ipc: state._ipc,
+    nut: state._clinicalNutrition,
+    rt: state._radiotherapy,
+    dialysis: state._dialysis,
+    scenario: state._scenario,
+    outcomes: state._outcomeRecords,
+    docMem: mapToArr(state._doctorCaseMemory),
+    nurseMem: mapToArr(state._nurseCaseMemory),
+    pharmMem: mapToArr(state._pharmacyCaseMemory),
+    learning: serializeLearning(state._learningMemory),
+    opVisits: mapToArr(state._outpatientVisits),
+    calTicks: state._calendarTicks,
+    icdTop: state._icdTop10,
   };
   saveSnapStmt.run(tick, JSON.stringify(data));
 }
@@ -167,6 +210,7 @@ export const SNAPSHOT_INTERVAL = 20;
 
 function deserializeState(json: string): HospitalState {
   const d = JSON.parse(json);
+
   return {
     patients: arrToMap(d.p), beds: arrToMap(d.b), encounters: arrToMap(d.e),
     wardCapacity: d.wc, waitingRoom: d.wr,
@@ -181,18 +225,28 @@ function deserializeState(json: string): HospitalState {
     specialtyOrders: arrToMap(d.spec ?? []),
     _agentState: { pool: { agents: new Map(), assignments: new Map() } },
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
-    _icdTop10: null,
-    _doctorCaseMemory: new Map(),
-    _nurseCaseMemory: new Map(),
-    _outcomeRecords: [],
-    _pharmacyCaseMemory: new Map(),
-    _learningMemory: { byDiagnosis: new Map() },
-    _outpatientVisits: new Map(),
-    _calendarTicks: 0,
-    morgue: [],
-    morgueCapacity: 10,
-    _mmConferences: [],
-    _mmLastConferenceTick: 0,
+    _icdTop10: d.icdTop ?? null,
+    _doctorCaseMemory: arrToMap(d.docMem ?? []),
+    _nurseCaseMemory: arrToMap(d.nurseMem ?? []),
+    _outcomeRecords: d.outcomes ?? [],
+    _pharmacyCaseMemory: arrToMap(d.pharmMem ?? []),
+    _learningMemory: deserializeLearning(d.learning),
+    _outpatientVisits: arrToMap(d.opVisits ?? []),
+    _calendarTicks: d.calTicks ?? 0,
+    morgue: d.morgue ?? [],
+    morgueCapacity: d.morgueCap ?? 10,
+    _mmConferences: d.mmConf ?? [],
+    _mmLastConferenceTick: d.mmLastTick ?? 0,
+    _bloodBank: d.bloodBank ?? initBloodBank(),
+    _microbiology: d.micro ?? initMicroState(),
+    _pathology: d.patho ?? initPathoState(),
+    _cssd: d.cssd ?? initCssdState(),
+    _biomed: d.biomed ?? initBiomedState(),
+    _ipc: d.ipc ?? initIpcState(),
+    _clinicalNutrition: d.nut ?? initNutritionState(),
+    _radiotherapy: d.rt ?? initRtState(),
+    _dialysis: d.dialysis ?? initDialysisState(),
+    _scenario: d.scenario ?? initScenarioState(),
   };
 }
 

@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli/index.ts up 3000",
-    "start": "node dist/cli/index.js up 3000",
+    "start": "node dist/cli/index.js up",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"

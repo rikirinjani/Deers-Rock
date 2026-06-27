@@ -4,7 +4,7 @@ export default {
     command: "npm install && npm run build",
   },
   deploy: {
-    command: "node dist/cli/index.js",
-    port: 3000,
+    command: "node dist/cli/index.js up",
+    port: 8080,
   },
 };

@@ -4,6 +4,26 @@ import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
 import type { MmConference } from "./mm-conference.js";
+import type { BloodBankState } from "./blood-bank.js";
+import { initBloodBank } from "./blood-bank.js";
+import type { MicroState } from "./microbiology.js";
+import { initMicroState } from "./microbiology.js";
+import type { PathoState } from "./pathology.js";
+import { initPathoState } from "./pathology.js";
+import type { CssdState } from "./cssd.js";
+import { initCssdState } from "./cssd.js";
+import type { BiomedState } from "./biomedical-engineering.js";
+import { initBiomedState } from "./biomedical-engineering.js";
+import type { IpcState } from "./ipc.js";
+import { initIpcState } from "./ipc.js";
+import type { ClinicalNutritionState } from "./clinical-nutrition.js";
+import { initNutritionState } from "./clinical-nutrition.js";
+import type { RadiotherapyState } from "./radiotherapy.js";
+import { initRtState } from "./radiotherapy.js";
+import type { DialysisState } from "./dialysis.js";
+import { initDialysisState } from "./dialysis.js";
+import type { ScenarioState } from "./scenario.js";
+import { initScenarioState } from "./scenario.js";
 import { centralSupplyInit } from "./central-supply.js";
 
 export interface MorgueRecord {
@@ -37,6 +57,8 @@ export interface CaseRecord {
   outcome: "active" | "discharged" | "transferred";
   tickStarted: number;
   tickEnded: number | null;
+  attendingDoctorId: string | null;
+  attendingSpesialisasi: string | null;
 }
 
 export interface NurseCaseRecord {
@@ -87,6 +109,16 @@ export interface HospitalState {
   morgueCapacity: number;
   _mmConferences: MmConference[];
   _mmLastConferenceTick: number;
+  _bloodBank: BloodBankState;
+  _microbiology: MicroState;
+  _pathology: PathoState;
+  _cssd: CssdState;
+  _biomed: BiomedState;
+  _ipc: IpcState;
+  _clinicalNutrition: ClinicalNutritionState;
+  _radiotherapy: RadiotherapyState;
+  _dialysis: DialysisState;
+  _scenario: ScenarioState;
 }
 
 export interface OutpatientVisit {
@@ -166,5 +198,15 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     morgueCapacity: 10,
     _mmConferences: [],
     _mmLastConferenceTick: 0,
+    _bloodBank: initBloodBank(),
+    _microbiology: initMicroState(),
+    _pathology: initPathoState(),
+    _cssd: initCssdState(),
+    _biomed: initBiomedState(),
+    _ipc: initIpcState(),
+    _clinicalNutrition: initNutritionState(),
+    _radiotherapy: initRtState(),
+    _dialysis: initDialysisState(),
+    _scenario: initScenarioState(),
   };
 }

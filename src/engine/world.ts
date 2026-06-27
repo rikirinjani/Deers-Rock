@@ -22,6 +22,16 @@ import { respiratoryHandler } from "./respiratory.js";
 import { dietaryHandler } from "./dietary.js";
 import { socialWorkHandler } from "./social-work.js";
 import { centralSupplyHandler } from "./central-supply.js";
+import { bloodBankHandler } from "./blood-bank.js";
+import { microbiologyHandler } from "./microbiology.js";
+import { pathologyHandler } from "./pathology.js";
+import { cssdHandler } from "./cssd.js";
+import { biomedHandler } from "./biomedical-engineering.js";
+import { ipcHandler } from "./ipc.js";
+import { clinicalNutritionHandler } from "./clinical-nutrition.js";
+import { radiotherapyHandler } from "./radiotherapy.js";
+import { dialysisHandler } from "./dialysis.js";
+import { scenarioHandler } from "./scenario.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { billingHandler, cashierHandler } from "./finance.js";
 import { initJournal, journalAppend, saveSnapshot } from "./journal.js";
@@ -69,33 +79,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
     state,
     queue: new EventQueue(),
     journalPath: jp,
-    handlers: [
-      admissionHandler,
-      outpatientHandler,
-      newPatientHandler,
-      agentHandler,
-      referralHandler,
-      emergencyHandler,
-      labHandler,
-      aiPharmacyHandler,
-      aiNurseHandler,
-      aiDoctorHandler,
-      radiologyHandler,
-      surgeryHandler,
-      respiratoryHandler,
-      dietaryHandler,
-      socialWorkHandler,
-      centralSupplyHandler,
-      medicalRecordsHandler,
-      specialtyHandler,
-      billingHandler,
-      cashierHandler,
-      vitalsUpdateHandler,
-      icdTrackerHandler,
-      outcomeHandler,
-      learningHandler,
-      cleanupHandler,
-    ],
+    handlers: buildHandlers(),
   };
 }
 
@@ -301,4 +285,34 @@ export function runWorld(world: World, steps: number): World {
   let w = world;
   for (let i = 0; i < steps; i++) w = step(w);
   return w;
+}
+
+export function buildHandlers(): ((state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState)[] {
+  return [
+    admissionHandler, outpatientHandler, newPatientHandler, agentHandler, referralHandler, scenarioHandler,
+    emergencyHandler, labHandler, aiPharmacyHandler, aiNurseHandler, aiDoctorHandler,
+    radiologyHandler, surgeryHandler, respiratoryHandler, dietaryHandler, socialWorkHandler,
+    bloodBankHandler, microbiologyHandler, pathologyHandler, cssdHandler, biomedHandler,
+    ipcHandler, clinicalNutritionHandler, radiotherapyHandler, dialysisHandler,
+    centralSupplyHandler, medicalRecordsHandler, specialtyHandler, billingHandler,
+    cashierHandler, vitalsUpdateHandler, icdTrackerHandler, outcomeHandler,
+    learningHandler, cleanupHandler,
+  ];
+}
+
+export function resumeWorld(state: HospitalState, startTick: number, journalPath: string): World {
+  const clock: Clock = {
+    tick: startTick,
+    hospitalTimeMs: startTick * 1000 * 60,
+    tickIntervalMs: 1000,
+    speedMultiplier: 60,
+    running: false,
+  };
+  return {
+    clock,
+    state,
+    queue: new EventQueue(),
+    journalPath,
+    handlers: buildHandlers(),
+  };
 }
