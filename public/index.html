@@ -184,7 +184,15 @@ render('radList','radCount',byStatus(rad,['ordered','scheduled','completed','res
 render('medList','medCount',byStatus(meds,['ordered','dispensed','administered','discontinued']),'Med','Status',o=>`<tr><td style=font-size:8px>${o.medication.name}</td><td><span class=badge style=background:${o.status==='administered'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='administered'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
 render('surgList','surgCount',byStatus(surg,['scheduled','in-progress','completed','cancelled']),'Procedure','Status',o=>`<tr><td style=font-size:8px>${o.procedureName.replace('Laparoscopic ','Lap ').replace('Total ','')}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
 render('nurseList','nurseCount',nursing,'Observation','Patient',n=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${n.content}</td><td>${n.patientId}</td></tr>`);
-render('docList','docCount',byStatus(docs,['active','completed','cancelled']),'Order','Status',o=>`<tr><td style=font-size:8px>${o.description}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
+// Physician Orders breakdown
+const poCounts:{[k:string]:number}={};const poActive=docs.filter(o=>o.status==='active').length;
+docs.forEach(o=>{poCounts[o.orderType]=(poCounts[o.orderType]||0)+1});
+const poTypes=Object.entries(poCounts).sort((a,b)=>b[1]-a[1]);
+document.getElementById('docCount').textContent=docs.length+' ('+poActive+' active)';
+const poEl=document.getElementById('docList');
+poEl.innerHTML=poTypes.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
+  :'<table><thead><tr><th>Type</th><th>Count</th><th>%</th></tr></thead><tbody>'+
+  poTypes.map(([t,c])=>`<tr><td style=font-size:8px;text-transform:capitalize>${t}</td><td style=font-size:8px>${c}</td><td style=font-size:8px;color:var(--muted)>${Math.round(c/docs.length*100)}%</td></tr>`).join('')+'</tbody></table>';
 render('respList','respCount',byStatus(resp,['ordered','active','discontinued']),'Therapy','Status',o=>`<tr><td style=font-size:8px>${o.therapyType}</td><td><span class=badge style=background:rgba(251,191,36,0.15);color:var(--yellow)>${o.status}</span></td></tr>`);
 render('dietList','dietCount',byStatus(diet,['active','discontinued']),'Diet','Status',o=>`<tr><td style=font-size:8px>${o.dietType}</td><td><span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>${o.status}</span></td></tr>`);
 render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${o.content}</td><td style=font-size:8px>${o.noteType}</td></tr>`);
