@@ -25,7 +25,7 @@ function buildPatientResource(patient: Patient): FhirResource {
     birthDate: new Date(Date.now() - patient.age * 365 * 86400000).toISOString().split("T")[0],
     telecom: [{ system: "phone", value: patient.phone }],
     extension: [
-      { url: "http://deers-rock.hospital/patient/bloodType", valueString: patient.bloodType },
+      { url: "http://deers-rock.hospital/patient/bloodType", valueString: `${patient.bloodType}${patient.rhesus ?? "+"}` },
       { url: "http://deers-rock.hospital/patient/allergies", valueString: patient.allergies.join(", ") },
     ],
   };

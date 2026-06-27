@@ -8,6 +8,7 @@ import { generateReport } from "../engine/report.js";
 import { computePerformanceStats } from "../engine/outcome-tracker.js";
 import { buildFhirBundle } from "../engine/fhir-export.js";
 import { getEventSummary, tickToDate, formatCalendarDate } from "../engine/calendar.js";
+import type { MmConference } from "../engine/mm-conference.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -47,7 +48,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     }); return true;
   }
   if (p === "/api/patients/identity") {
-    json(res, Array.from(w.state.patients.values()).map(p => ({ id: p.id, name: p.name, nik: p.identity?.nik?.value ?? "N/A", phone: p.phone, bloodType: p.bloodType, allergies: p.allergies, provinsi: p.identity?.addressKtp?.provinsi ?? "N/A", agama: p.identity?.religion ?? "N/A", statusKawin: p.identity?.maritalStatus ?? "N/A" }))); return true;
+    json(res, Array.from(w.state.patients.values()).map(p => ({ id: p.id, name: p.name, nik: p.identity?.nik?.value ?? "N/A", phone: p.phone, bloodType: `${p.bloodType}${p.rhesus ?? "+"}`, allergies: p.allergies, provinsi: p.identity?.addressKtp?.provinsi ?? "N/A", agama: p.identity?.religion ?? "N/A", statusKawin: p.identity?.maritalStatus ?? "N/A" }))); return true;
   }
   if (p === "/api/patients") {
     const q = url.searchParams.get("q")?.toLowerCase();
@@ -132,7 +133,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     json(res, bundle); return true;
   }
   if (p === "/api/mm-conference") {
-    const conferences = (w.state._mmConferences || []) as any[];
+    const conferences = (w.state._mmConferences || []) as MmConference[];
     const latest = conferences[conferences.length - 1] ?? null;
     json(res, { latest, total: conferences.length }); return true;
   }

@@ -230,7 +230,7 @@ export function generateReport(world: World): HospitalReport {
       religions[pt.identity.religion] = (religions[pt.identity.religion] ?? 0) + 1;
       maritalStatuses[pt.identity.maritalStatus] = (maritalStatuses[pt.identity.maritalStatus] ?? 0) + 1;
     }
-    bloodTypes[`${pt.bloodType}${Math.random() > 0.9 ? "-" : "+"}`] = (bloodTypes[`${pt.bloodType}${Math.random() > 0.9 ? "-" : "+"}`] ?? 0) + 1;
+    bloodTypes[`${pt.bloodType}${pt.rhesus ?? "+"}`] = (bloodTypes[`${pt.bloodType}${pt.rhesus ?? "+"}`] ?? 0) + 1;
   }
 
   const agentArr = Array.from(s._agentState.pool.agents.values());

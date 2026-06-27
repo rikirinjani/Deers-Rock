@@ -128,6 +128,7 @@ export function generatePatient(): Patient {
     identity,
     phone: `08${String(Math.floor(Math.random() * 1000000000)).padStart(10, "0")}`,
     bloodType: bloodType as BloodType,
+    rhesus: rhesus as Rhesus,
     allergies: [pickRandom(ALLERGIES_POOL)].filter(a => a !== "None"),
     vitals: generateVitals(age, gender),
     diagnoses: generateDiagnoses(age, gender),

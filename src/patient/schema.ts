@@ -10,6 +10,7 @@ export interface Patient {
   identity: Identity;
   phone: string;
   bloodType: BloodType;
+  rhesus: Rhesus;
   allergies: string[];
   vitals: Vitals;
   diagnoses: Diagnosis[];

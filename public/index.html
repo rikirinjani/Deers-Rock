@@ -27,6 +27,13 @@
   .panel-body tr:hover td{background:var(--surface2)}
   button{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:9px}
   button:hover{background:var(--accent);color:var(--bg)}
+  .loading-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(11,14,20,0.7);z-index:999;justify-content:center;align-items:center;font-size:12px;color:var(--muted)}
+  .loading-overlay.show{display:flex}
+  .loading-pulse{animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
+  .loading-dots::after{content:'';animation:dots 1.5s steps(4) infinite}
+  @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+  .panel-refresh{opacity:0.7}.panel-refresh .panel-body{animation:pulse 0.8s ease-in-out infinite}
   .report{display:none;position:fixed;top:8px;left:8px;right:8px;bottom:8px;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;z-index:100;padding:16px;overflow-y:auto}
   .report.show{display:block}
   .report pre{font-size:10px;color:var(--text);white-space:pre-wrap;display:none}
@@ -72,6 +79,8 @@
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
     <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button></div>
   </div>
+
+  <div class="loading-overlay" id=loadingOverlay><span class="loading-pulse">⏳ Loading<span class=loading-dots></span></span></div>
 
   <div class=stats id=stats></div>
 
@@ -147,7 +156,11 @@ function renderSimple(id, cid, items, fn, mx=5){
   :'<table><thead><tr><th>Patient</th><th>Complaint</th><th>Acuity</th></tr></thead><tbody>'+items.slice(0,mx).map(fn).join('')+'</tbody></table>';
 }
 
+let refreshCount = 0;
 async function refresh(){
+  refreshCount++;
+  const panels = document.querySelectorAll('.panel');
+  if (refreshCount > 1) panels.forEach(p => p.classList.add('panel-refresh'));
 try{
 const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases,poliData,learnData,cals,morgueData,mmData]=await Promise.all([
   fetch('/api/status').then(r=>r.json()),fetch('/api/beds').then(r=>r.json()),fetch('/api/encounters').then(r=>r.json()),
@@ -333,6 +346,7 @@ for(const o of pays.slice(-2))feed.push({id:o.id,t:`💰 Payment: Rp ${o.amount.
 feed.sort((a,b)=>b.time.localeCompare(a.time));
 document.getElementById('feed').innerHTML=feed.slice(0,10).map(f=>`<div class=feed-item><span class=id>${f.id.replace(/^([A-Z]+-?\d+).*/,'$1')}</span><span class=event>${f.t}</span><span class=time>${f.time}</span></div>`).join('')||'<div style=color:var(--muted)>—</div>';
 }catch(e){}
+  panels.forEach(p => p.classList.remove('panel-refresh'));
 }
 
 let lastReport=null;
