@@ -50,8 +50,8 @@ export function centralSupplyHandler(state: HospitalState, clock: Clock, _queue:
   const newInventory = new Map(state.inventory);
   const newTransactions = new Map(state.stockTransactions);
 
-  // Auto-restock every 20 ticks for items below min
-  if (clock.tick > 0 && clock.tick % 20 === 0) {
+  // Auto-restock every 50 ticks for items below min
+  if (clock.tick > 0 && clock.tick % 50 === 0) {
     for (const [code, item] of newInventory) {
       if (item.stock < item.minStock) {
         const restockQty = item.maxStock - item.stock;

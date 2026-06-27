@@ -47,29 +47,27 @@ describe("Central Supply", () => {
     expect(state.stockTransactions.size).toBe(origTxns);
   });
 
-  it("auto-restocks items below min every 20 ticks", () => {
+  it("auto-restocks items below min every 50 ticks", () => {
     const patients = generatePatientPool(1);
     let state = createState(patients);
-    // Drain an item
-    state = dispenseItem(state, "LAB-CBC", 99999, createClock(60), "ENC-001"); // will be no-op due to insufficient stock
-    // Manually set stock below minimum
+    state = dispenseItem(state, "LAB-CBC", 99999, createClock(60), "ENC-001");
     state.inventory.set("LAB-CBC", { ...state.inventory.get("LAB-CBC")!, stock: 2 });
 
     const clock = createClock(60);
-    clock.tick = 20;
+    clock.tick = 50;
     state = centralSupplyHandler(state, clock, new EventQueue());
     const item = state.inventory.get("LAB-CBC")!;
     expect(item.stock).toBe(item.maxStock);
     expect(Array.from(state.stockTransactions.values()).some(t => t.type === "restock")).toBe(true);
   });
 
-  it("does not restock on non-20 ticks", () => {
+  it("does not restock on non-50 ticks", () => {
     const patients = generatePatientPool(1);
     let state = createState(patients);
     state.inventory.set("MED-PRC", { ...state.inventory.get("MED-PRC")!, stock: 1 });
     const before = state.inventory.get("MED-PRC")!.stock;
     const clock = createClock(60);
-    clock.tick = 5;
+    clock.tick = 51;
     state = centralSupplyHandler(state, clock, new EventQueue());
     expect(state.inventory.get("MED-PRC")!.stock).toBe(before);
   });
