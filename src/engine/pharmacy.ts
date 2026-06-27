@@ -8,6 +8,9 @@ const MED_MAP: Record<string, string> = {
   "ACE": "MED-ACE", "MET": "MED-MET", "ATR": "MED-ATR", "OMP": "MED-OMP",
   "LVF": "MED-LVF", "PRC": "MED-PRC", "HEP": "MED-HEP", "SAL": "MED-SAL",
   "FUR": "MED-FUR", "DIA": "MED-DIA",
+  "AMX": "MED-AMX", "CTR": "MED-CTR", "MTZ": "MED-MTZ", "CIP": "MED-CIP",
+  "AML": "MED-AML", "BIS": "MED-BIS", "ASP": "MED-ASP", "INS": "MED-INS",
+  "OND": "MED-OND", "MOR": "MED-MOR", "KCL": "MED-KCL", "RL": "MED-RL",
 };
 
 export const MEDICATIONS = [
@@ -21,6 +24,18 @@ export const MEDICATIONS = [
   { code: "SAL", name: "Salbutamol Inhaler", dose: "100 mcg", route: "INH" },
   { code: "FUR", name: "Furosemide 40mg", dose: "40 mg", route: "IV" },
   { code: "DIA", name: "Diazepam 5mg", dose: "5 mg", route: "PO" },
+  { code: "AMX", name: "Amoxicillin 500mg", dose: "500 mg", route: "PO" },
+  { code: "CTR", name: "Ceftriaxone 1g", dose: "1 g", route: "IV" },
+  { code: "MTZ", name: "Metronidazole 500mg", dose: "500 mg", route: "IV" },
+  { code: "CIP", name: "Ciprofloxacin 500mg", dose: "500 mg", route: "PO" },
+  { code: "AML", name: "Amlodipine 5mg", dose: "5 mg", route: "PO" },
+  { code: "BIS", name: "Bisoprolol 5mg", dose: "5 mg", route: "PO" },
+  { code: "ASP", name: "Aspirin 80mg", dose: "80 mg", route: "PO" },
+  { code: "INS", name: "Insulin Regular 10U", dose: "10 U", route: "SC" },
+  { code: "OND", name: "Ondansetron 4mg", dose: "4 mg", route: "IV" },
+  { code: "MOR", name: "Morphine 10mg", dose: "10 mg", route: "IV" },
+  { code: "KCL", name: "KCl 20mEq", dose: "20 mEq", route: "IV" },
+  { code: "RL", name: "Ringer's Lactate IV", dose: "1000 mL", route: "IV" },
 ];
 
 const FREQUENCIES = ["QD", "BID", "TID", "QID", "PRN", "STAT"];

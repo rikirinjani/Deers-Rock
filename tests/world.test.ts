@@ -31,4 +31,35 @@ describe("World", () => {
     const time = formatHospitalTime(result.clock);
     expect(time).toContain(":");
   });
+
+  it("runs 1000+ ticks without crash and maintains invariants", { timeout: 120000 }, () => {
+    const w = createWorld(100);
+    const result = runWorld(w, 1000);
+    expect(result.clock.tick).toBe(1000);
+    const s = result.state;
+    expect(s.patients.size).toBeGreaterThan(0);
+    const totalBeds = s.beds.size;
+    const occupiedBeds = Array.from(s.beds.values()).filter(b => b.patientId).length;
+    expect(occupiedBeds).toBeLessThanOrEqual(totalBeds);
+    expect(s.encounters.size).toBeGreaterThan(0);
+    expect(s.waitingRoom).toBeGreaterThanOrEqual(0);
+    const labs = s.labOrders.size;
+    const meds = s.medicationOrders.size;
+    const rads = s.radiologyOrders.size;
+    const charges = s.charges.size;
+    expect(labs + meds + rads + charges).toBeGreaterThan(0);
+    const activeEncs = Array.from(s.encounters.values()).filter(e => e.status === "active").length;
+    expect(activeEncs).toBeLessThanOrEqual(totalBeds);
+    expect(s.morgue.length).toBeLessThanOrEqual(s.morgueCapacity);
+    expect(s._outcomeRecords.length).toBeGreaterThan(0);
+    const outcomes = s._outcomeRecords;
+    const deceased = outcomes.filter(o => o.outcome === "deceased").length;
+    const improved = outcomes.filter(o => o.outcome === "improved").length;
+    const deteriorated = outcomes.filter(o => o.outcome === "deteriorated").length;
+    expect(deceased + improved + deteriorated).toBe(outcomes.length);
+    expect(s._doctorCaseMemory.size).toBeGreaterThan(0);
+    expect(s._nurseCaseMemory.size).toBeGreaterThan(0);
+    expect(s._pharmacyCaseMemory.size).toBeGreaterThan(0);
+    expect(s._mmConferences.length).toBeGreaterThanOrEqual(0);
+  });
 });

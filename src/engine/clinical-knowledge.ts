@@ -41,7 +41,8 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
     ] },
   { code: "J15", name: "Bacterial pneumonia", specialty: "pulmonology",
     actions: [
-      { type: "medication", label: "Levofloxacin 500mg", priority: 9, detail: "Antibiotic for pneumonia" },
+      { type: "medication", label: "Ceftriaxone 1g", priority: 9, detail: "Antibiotic for pneumonia" },
+      { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Alternative antibiotic" },
       { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
       { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
       { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
@@ -58,6 +59,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
   { code: "N39", name: "Urinary tract infection", specialty: "cardiology",
     actions: [
       { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Antibiotic for UTI" },
+      { type: "medication", label: "Ciprofloxacin 500mg", priority: 7, detail: "Alternative antibiotic" },
       { type: "lab", label: "Urinalysis", priority: 9, detail: "UA" },
       { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
     ] },
@@ -92,6 +94,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
     actions: [
       { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
       { type: "medication", label: "Omeprazole 20mg", priority: 5, detail: "PPI" },
+      { type: "medication", label: "Ondansetron 4mg", priority: 6, detail: "Antiemetic" },
       { type: "diet", label: "Liquid diet", priority: 7, detail: "liquid" },
     ] },
   { code: "E78", name: "Hyperlipidemia", specialty: "cardiology",
@@ -149,6 +152,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
     actions: [
       { type: "lab", label: "Troponin I", priority: 10, detail: "TROP" },
       { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "medication", label: "Aspirin 80mg", priority: 10, detail: "Antiplatelet" },
       { type: "medication", label: "Enoxaparin 40mg", priority: 9, detail: "Anticoagulant" },
       { type: "medication", label: "Atorvastatin 20mg", priority: 8, detail: "Statin" },
       { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 7, detail: "X-ray" },
@@ -157,6 +161,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
   { code: "S72", name: "Fracture of femur", specialty: "neurology",
     actions: [
       { type: "imaging", label: "Extremity X-ray Left Ankle", priority: 9, detail: "X-ray" },
+      { type: "medication", label: "Morphine 10mg", priority: 9, detail: "Severe pain" },
       { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Analgesic" },
       { type: "surgery", label: "Total Hip Arthroplasty", priority: 7, detail: "47562" },
       { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
