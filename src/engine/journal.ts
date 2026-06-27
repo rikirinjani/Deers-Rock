@@ -181,6 +181,7 @@ function deserializeState(json: string): HospitalState {
     specialtyOrders: arrToMap(d.spec ?? []),
     _agentState: { pool: { agents: new Map(), assignments: new Map() } },
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
+    _icdTop10: null,
   };
 }
 

@@ -112,6 +112,10 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/referral/letters") { json(res, toArr(w.state._referralState.letters)); return true; }
   if (p === "/api/referral/facilities") { json(res, Array.from(w.state._referralState.facilities.values())); return true; }
   if (p === "/api/specialty") { json(res, toArr(w.state.specialtyOrders)); return true; }
+  if (p === "/api/top-icd") {
+    if (w.state._icdTop10) { json(res, w.state._icdTop10); return true; }
+    json(res, { period: 0, tick: 0, top10: [] }); return true;
+  }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {

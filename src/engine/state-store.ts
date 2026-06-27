@@ -2,6 +2,7 @@ import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, Phy
 import type { SpecialtyOrder } from "./specialty.js";
 import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
+import type { IcdPeriodData } from "./icd-tracker.js";
 import { centralSupplyInit } from "./central-supply.js";
 
 export interface HospitalState {
@@ -29,6 +30,7 @@ export interface HospitalState {
   specialtyOrders: Map<string, SpecialtyOrder>;
   _agentState: AgentState;
   _referralState: ReferralState;
+  _icdTop10: IcdPeriodData | null;
 }
 
 export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
@@ -60,5 +62,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     specialtyOrders: new Map(),
     _agentState: { pool: { agents: new Map(), assignments: new Map() } },
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
+    _icdTop10: null,
   };
 }

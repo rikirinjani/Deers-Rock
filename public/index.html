@@ -93,6 +93,7 @@
     <div class=panel><div class=panel-header>📁 Medical Records <span id=chartCount style=color:var(--purple)>0</span></div><div class=panel-body><div id=chartList></div></div></div>
     <div class=panel><div class=panel-header>💰 Finance <span id=finCount style=color:var(--green)>0</span></div><div class=panel-body><div id=finList></div></div></div>
     <div class=panel><div class=panel-header>📦 Inventory <span id=invCount style=color:var(--yellow)>0</span></div><div class=panel-body><div id=invList></div></div></div>
+    <div class=panel><div class=panel-header>🏥 Top 10 ICD <span id=icdPeriod style=color:var(--muted);font-size:7px></span></div><div class=panel-body><div id=icdList></div></div></div>
   </div>
 
   <div class="panel full"><div class=panel-header>📊 Activity Feed</div><div class=panel-body style=max-height:140px><div class=feed id=feed></div></div></div>
@@ -173,6 +174,14 @@ render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-si
 render('chartList','chartCount',byStatus(charts,['open','incomplete','completed','coded']),'Patient','Status',o=>`<tr><td style=font-size:8px>${o.patientId}</td><td><span class=badge style=background:${o.status==='coded'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='coded'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
 render('finList','finCount',charges,'Charge','Amount',o=>`<tr><td style=font-size:8px>${o.description}</td><td style=color:var(--yellow)>Rp ${o.amount.toLocaleString()}</td></tr>`);
 render('invList','invCount',inv,'Item','Stock',o=>`<tr><td style=font-size:8px>${o.itemName}</td><td style=color:var(--red)>${o.stock}/${o.minStock}</td></tr>`);
+
+// Top 10 ICD
+try{const icd=await fetch('/api/top-icd').then(r=>r.json());
+document.getElementById('icdPeriod').textContent='P'+icd.period+' t'+icd.tick;
+const el=document.getElementById('icdList');
+if(!icd.top10||icd.top10.length===0)el.innerHTML='<div style=color:var(--muted);padding:4px>—</div>';
+else el.innerHTML='<table><thead><tr><th>#</th><th>Code</th><th>Diagnosis</th><th>Count</th></tr></thead><tbody>'+
+icd.top10.map((d,i)=>`<tr><td style=color:var(--muted);font-size:8px>${i+1}</td><td style=color:var(--accent);font-size:9px>${d.code}</td><td style=font-size:8px>${d.name}</td><td style=color:var(--yellow);text-align:right>${d.count}</td></tr>`).join('')+'</tbody></table>';}catch(e){}
 
 // Wards
 const wh=Object.entries(beds.byWard).map(([w,i])=>{const p=i.total>0?Math.round((i.occupied/i.total)*100):0;return`<div class=ward-row><div class=ward-name>${w}</div><div class=ward-bar-bg><div class=ward-bar-fill style="width:${p}%;background:${wc(p)}"></div></div><div class=ward-label>${i.occupied}/${i.total}</div></div>`}).join('');

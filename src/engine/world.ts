@@ -3,6 +3,7 @@ import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { cleanupHandler } from "./cleanup.js";
+import { icdTrackerHandler } from "./icd-tracker.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
@@ -83,6 +84,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       billingHandler,
       cashierHandler,
       vitalsUpdateHandler,
+      icdTrackerHandler,
       cleanupHandler,
     ],
   };
