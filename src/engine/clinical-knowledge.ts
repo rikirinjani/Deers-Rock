@@ -276,6 +276,128 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
       { type: "lab", label: "Basic Metabolic Panel", priority: 5, detail: "BMP" },
       { type: "medication", label: "Enalapril 5mg", priority: 3, detail: "If hypertensive" },
     ] },
+  { code: "I48", name: "Atrial fibrillation", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "medication", label: "Enoxaparin 40mg", priority: 9, detail: "Anticoagulation" },
+      { type: "consult", label: "Jantung", priority: 8, detail: "cardiology" },
+    ] },
+  { code: "J12", name: "Viral pneumonia", specialty: "pulmonology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 7, detail: "oxygen" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 6, detail: "Antipyretic" },
+    ] },
+  { code: "E10", name: "Type 1 diabetes mellitus", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 9, detail: "BMP" },
+      { type: "lab", label: "Hemoglobin A1C", priority: 8, detail: "HBA1C" },
+      { type: "diet", label: "Diabetic diet", priority: 7, detail: "diabetic" },
+    ] },
+  { code: "K25", name: "Gastric ulcer", specialty: "cardiology",
+    actions: [
+      { type: "medication", label: "Omeprazole 20mg", priority: 9, detail: "PPI" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+      { type: "diet", label: "Soft diet", priority: 7, detail: "soft" },
+    ] },
+  { code: "J32", name: "Chronic sinusitis", specialty: "ent",
+    actions: [
+      { type: "medication", label: "Levofloxacin 500mg", priority: 8, detail: "Antibiotic" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 6, detail: "Analgesic" },
+      { type: "consult", label: "THT", priority: 7, detail: "ent" },
+    ] },
+  { code: "L40", name: "Psoriasis", specialty: "dermatology",
+    actions: [
+      { type: "consult", label: "Kulit Kelamin", priority: 8, detail: "dermatology" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 4, detail: "Symptomatic" },
+    ] },
+  { code: "M06", name: "Rheumatoid arthritis", specialty: "neurology",
+    actions: [
+      { type: "medication", label: "Paracetamol 500mg", priority: 8, detail: "Analgesic" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 8, detail: "CRP" },
+      { type: "consult", label: "Penyakit Dalam", priority: 7, detail: "internal_medicine" },
+    ] },
+  { code: "G20", name: "Parkinson disease", specialty: "neurology",
+    actions: [
+      { type: "consult", label: "Saraf", priority: 9, detail: "neurology" },
+      { type: "medication", label: "Diazepam 5mg", priority: 5, detail: "Muscle relaxant" },
+    ] },
+  { code: "F41", name: "Anxiety disorder", specialty: "psychiatry",
+    actions: [
+      { type: "consult", label: "Jiwa", priority: 9, detail: "psychiatry" },
+      { type: "medication", label: "Diazepam 5mg", priority: 6, detail: "Anxiolytic" },
+    ] },
+  { code: "N76", name: "Vulvovaginitis", specialty: "obgyn",
+    actions: [
+      { type: "consult", label: "Obstetri Ginekologi", priority: 8, detail: "obgyn" },
+      { type: "lab", label: "Complete Blood Count", priority: 5, detail: "CBC" },
+    ] },
+  { code: "P59", name: "Neonatal jaundice", specialty: "pediatrics",
+    actions: [
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "consult", label: "Anak", priority: 9, detail: "pediatrics" },
+    ] },
+  { code: "Q21", name: "Congenital heart disease", specialty: "pediatrics",
+    actions: [
+      { type: "consult", label: "Anak", priority: 9, detail: "pediatrics" },
+      { type: "consult", label: "Jantung", priority: 8, detail: "cardiology" },
+    ] },
+  { code: "D50", name: "Iron deficiency anemia", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 9, detail: "CBC" },
+      { type: "diet", label: "High protein diet", priority: 6, detail: "high-protein" },
+    ] },
+  { code: "K56", name: "Paralytic ileus", specialty: "neurology",
+    actions: [
+      { type: "imaging", label: "Abdominal X-ray", priority: 8, detail: "X-ray" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "consult", label: "Bedah Umum", priority: 8, detail: "surgery" },
+      { type: "diet", label: "NPO", priority: 9, detail: "NPO" },
+    ] },
+  { code: "E66", name: "Obesity", specialty: "cardiology",
+    actions: [
+      { type: "diet", label: "Diabetic diet", priority: 6, detail: "diabetic" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 5, detail: "BMP" },
+    ] },
+  { code: "I83", name: "Varicose veins", specialty: "neurology",
+    actions: [
+      { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
+      { type: "medication", label: "Enoxaparin 40mg", priority: 5, detail: "If thrombotic" },
+    ] },
+  { code: "N13", name: "Obstructive uropathy", specialty: "cardiology",
+    actions: [
+      { type: "imaging", label: "Abdominal Ultrasound", priority: 8, detail: "Ultrasound" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "consult", label: "Bedah Umum", priority: 7, detail: "surgery" },
+    ] },
+  { code: "J84", name: "Interstitial lung disease", specialty: "pulmonology",
+    actions: [
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 8, detail: "oxygen" },
+      { type: "consult", label: "Paru", priority: 9, detail: "pulmonology" },
+    ] },
+  { code: "A41", name: "Sepsis unspecified", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 10, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 10, detail: "CRP" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 9, detail: "BMP" },
+      { type: "medication", label: "Levofloxacin 500mg", priority: 10, detail: "Empiric antibiotic" },
+      { type: "medication", label: "Paracetamol 500mg", priority: 7, detail: "Antipyretic" },
+      { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 8, detail: "X-ray" },
+      { type: "consult", label: "Penyakit Dalam", priority: 9, detail: "internal_medicine" },
+    ] },
+  { code: "R57", name: "Septic shock", specialty: "cardiology",
+    actions: [
+      { type: "lab", label: "Complete Blood Count", priority: 10, detail: "CBC" },
+      { type: "lab", label: "C-Reactive Protein", priority: 10, detail: "CRP" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 10, detail: "BMP" },
+      { type: "medication", label: "Levofloxacin 500mg", priority: 10, detail: "Broad spectrum" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 10, detail: "oxygen" },
+      { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "internal_medicine" },
+    ] },
 ];
 
 export const VITALS_RULES: VitalsRule[] = [
@@ -335,4 +457,47 @@ export function getVitalsTriggers(vitals: Vitals): ClinicalAction[] {
     if (triggered) actions.push(...rule.actions);
   }
   return actions;
+}
+
+export function assessQsofa(vitals: Vitals, age: number, diagnoses: { code: string }[]): { score: number; likelySepsis: boolean; details: string[] } {
+  let score = 0;
+  const details: string[] = [];
+  if (vitals.respiratoryRate >= 22) { score++; details.push(`RR ${vitals.respiratoryRate} ≥ 22 (+1)`); }
+  if (vitals.bloodPressureSystolic <= 100) { score++; details.push(`SBP ${vitals.bloodPressureSystolic} ≤ 100 (+1)`); }
+  const neuroDiag = diagnoses.some(d => ["G40", "I63", "S06", "G20", "F32", "F41"].includes(d.code));
+  if (age > 65 || neuroDiag) { score++; details.push(`Altered mentation risk: age > 65 or neuro diagnosis (+1)`); }
+  return { score, likelySepsis: score >= 2, details };
+}
+
+export interface EscalationTrigger {
+  condition: string;
+  reason: string;
+  escalationAction: ClinicalAction;
+}
+
+export const ESCALATION_TRIGGERS: EscalationTrigger[] = [
+  { condition: "qSOFA ≥ 2 + fever", reason: "Suspected sepsis — escalate to senior physician", escalationAction: { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "sepsis_alert" } },
+  { condition: "HR > 120 + SBP < 90", reason: "Hemodynamic instability — ICU review needed", escalationAction: { type: "consult", label: "Jantung", priority: 10, detail: "icu_alert" } },
+  { condition: "SpO2 < 88 on oxygen", reason: "Hypoxic respiratory failure — consider ventilator", escalationAction: { type: "respiratory", label: "Ventilator support", priority: 10, detail: "ventilator" } },
+  { condition: "Temp > 39.5", reason: "Severe hyperpyrexia — aggressive cooling needed", escalationAction: { type: "medication", label: "Paracetamol 500mg", priority: 9, detail: "Antipyretic" } },
+  { condition: "Pain > 8", reason: "Severe uncontrolled pain — opioid protocol", escalationAction: { type: "medication", label: "Diazepam 5mg", priority: 9, detail: "severe_pain" } },
+  { condition: "GCS decline + neuro diagnosis", reason: "Neurological deterioration — urgent imaging", escalationAction: { type: "imaging", label: "CT Head without contrast", priority: 10, detail: "CT" } },
+];
+
+export function assessMortalityRisk(age: number, vitals: Vitals, diagnoses: { code: string }[]): { score: number; risk: "low" | "moderate" | "high"; factors: string[] } {
+  let score = 0;
+  const factors: string[] = [];
+  if (age > 75) { score += 2; factors.push("Age > 75"); }
+  else if (age > 60) { score += 1; factors.push("Age > 60"); }
+  if (vitals.oxygenSaturation < 90) { score += 2; factors.push("SpO2 < 90%"); }
+  if (vitals.bloodPressureSystolic < 90) { score += 2; factors.push("SBP < 90 mmHg"); }
+  if (vitals.heartRate > 120 || vitals.heartRate < 50) { score += 1; factors.push("HR abnormal"); }
+  if (vitals.temperature > 39) { score += 1; factors.push("Fever > 39°C"); }
+  if (vitals.respiratoryRate > 24) { score += 1; factors.push("RR > 24"); }
+  const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84"].some(c => diagnoses.some(d => d.code === c));
+  if (criticalDx) { score += 2; factors.push("Critical diagnosis"); }
+  const multiMorbidity = diagnoses.length >= 3;
+  if (multiMorbidity) { score += 1; factors.push("≥ 3 comorbidities"); }
+  const risk = score >= 5 ? "high" : score >= 3 ? "moderate" : "low";
+  return { score, risk, factors };
 }

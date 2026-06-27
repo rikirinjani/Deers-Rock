@@ -6,6 +6,7 @@ import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
 import { computePerformanceStats } from "../engine/outcome-tracker.js";
+import { buildFhirBundle } from "../engine/fhir-export.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -122,6 +123,12 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     const visits = Array.from(w.state._outpatientVisits.values());
     json(res, { visits, total: visits.length, waiting: visits.filter(v => v.status === "waiting").length, consulting: visits.filter(v => v.status === "in-consultation").length, completed: visits.filter(v => v.status === "completed").length });
     return true;
+  }
+  if (p.startsWith("/api/fhir/encounter/")) {
+    const encId = p.replace("/api/fhir/encounter/", "");
+    const bundle = buildFhirBundle(w.state, encId);
+    if (!bundle) { res.writeHead(404); res.end("Not found"); return true; }
+    json(res, bundle); return true;
   }
   if (p === "/api/learning") {
     const mem = w.state._learningMemory;

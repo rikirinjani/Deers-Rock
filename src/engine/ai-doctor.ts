@@ -4,7 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { HospitalAgent } from "../agent/types.js";
 import type { LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder } from "../patient/schema.js";
 import type { SpecialtyOrder } from "./specialty.js";
-import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers } from "./clinical-knowledge.js";
+import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers, assessQsofa, ESCALATION_TRIGGERS, assessMortalityRisk } from "./clinical-knowledge.js";
 import { getActionRanking } from "./agent-learning.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
@@ -62,6 +62,31 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     const vitalsActions = getVitalsTriggers(patient.vitals);
     for (const a of vitalsActions) {
       clinicalActions.push({ action: { ...a }, reason: "vitals" });
+    }
+
+    const qsofa = assessQsofa(patient.vitals, patient.age, patient.diagnoses);
+    if (qsofa.likelySepsis) {
+      clinicalActions.push({ action: { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "sepsis_alert" }, reason: `qSOFA ${qsofa.score}: ${qsofa.details.join(", ")}` });
+    }
+
+    for (const trigger of ESCALATION_TRIGGERS) {
+      if (patient.vitals.heartRate > 120 && patient.vitals.bloodPressureSystolic < 90 && trigger.condition.includes("HR > 120")) {
+        clinicalActions.push({ action: trigger.escalationAction, reason: trigger.reason });
+      }
+      if (patient.vitals.oxygenSaturation < 88 && trigger.condition.includes("SpO2 < 88")) {
+        clinicalActions.push({ action: trigger.escalationAction, reason: trigger.reason });
+      }
+      if (patient.vitals.temperature > 39.5 && trigger.condition.includes("Temp > 39.5")) {
+        clinicalActions.push({ action: trigger.escalationAction, reason: trigger.reason });
+      }
+      if (patient.vitals.painLevel > 8 && trigger.condition.includes("Pain > 8")) {
+        clinicalActions.push({ action: trigger.escalationAction, reason: trigger.reason });
+      }
+    }
+
+    const mortality = assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses);
+    if (mortality.risk === "high") {
+      clinicalActions.push({ action: { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "high_mortality" }, reason: `Mortality risk ${mortality.score}: ${mortality.factors.join(", ")}` });
     }
 
     clinicalActions.sort((a, b) => b.action.priority - a.action.priority);
