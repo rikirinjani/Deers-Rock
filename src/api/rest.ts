@@ -117,6 +117,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/nurse-cases") { json(res, { cases: Array.from(w.state._nurseCaseMemory.values()).reverse(), total: w.state._nurseCaseMemory.size }); return true; }
   if (p === "/api/outcomes") { json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length }); return true; }
   if (p === "/api/performance") { json(res, { diagnoses: computePerformanceStats(w.state) }); return true; }
+  if (p === "/api/pharmacy-cases") { json(res, { cases: Array.from(w.state._pharmacyCaseMemory.values()).reverse(), total: w.state._pharmacyCaseMemory.size }); return true; }
   if (p === "/api/top-icd") {
     if (w.state._icdTop10) { json(res, w.state._icdTop10); return true; }
     json(res, { period: 0, tick: 0, top10: [] }); return true;

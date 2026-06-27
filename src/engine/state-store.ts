@@ -66,6 +66,18 @@ export interface HospitalState {
   _doctorCaseMemory: Map<string, CaseRecord>;
   _nurseCaseMemory: Map<string, NurseCaseRecord>;
   _outcomeRecords: OutcomeRecord[];
+  _pharmacyCaseMemory: Map<string, PharmacistCaseRecord>;
+}
+
+export interface PharmacistCaseRecord {
+  encounterId: string;
+  patientId: string;
+  pharmacistId: string;
+  ordersReviewed: number;
+  warningsIssued: number;
+  dosesDispensed: number;
+  interventionsCount: number;
+  lastReviewTick: number;
 }
 
 export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
@@ -101,5 +113,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),
     _outcomeRecords: [],
+    _pharmacyCaseMemory: new Map(),
   };
 }

@@ -84,6 +84,7 @@
     <div class=panel><div class=panel-header>🧪 Lab <span id=labCount style=color:var(--purple)>0</span></div><div class=panel-body><div id=labList></div></div></div>
     <div class=panel><div class=panel-header>📡 Radiology <span id=radCount style=color:var(--pink)>0</span></div><div class=panel-body><div id=radList></div></div></div>
     <div class=panel><div class=panel-header>💊 Pharmacy <span id=medCount style=color:var(--teal)>0</span></div><div class=panel-body><div id=medList></div></div></div>
+    <div class=panel><div class=panel-header>⚕️ AI Pharmacy <span id=pharmCaseCount style=color:var(--teal)>0</span></div><div class=panel-body><div id=pharmCaseList></div></div></div>
     <div class=panel><div class=panel-header>🔪 Surgery <span id=surgCount style=color:var(--rose)>0</span></div><div class=panel-body><div id=surgList></div></div></div>
     <div class=panel><div class=panel-header>🤖 AI Doctor <span id=aiDocCount style=color:var(--accent)>0</span></div><div class=panel-body><div id=aiDocList></div></div></div>
     <div class=panel><div class=panel-header>🩺 AI Nurse <span id=aiNurseCount style=color:var(--teal)>0</span></div><div class=panel-body><div id=aiNurseList></div></div></div>
@@ -143,7 +144,7 @@ function renderSimple(id, cid, items, fn, mx=5){
 
 async function refresh(){
 try{
-const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf]=await Promise.all([
+const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases]=await Promise.all([
   fetch('/api/status').then(r=>r.json()),fetch('/api/beds').then(r=>r.json()),fetch('/api/encounters').then(r=>r.json()),
   fetch('/api/labs').then(r=>r.json()),fetch('/api/radiology').then(r=>r.json()),fetch('/api/medications').then(r=>r.json()),
   fetch('/api/surgery').then(r=>r.json()),fetch('/api/nursing').then(r=>r.json()),fetch('/api/orders').then(r=>r.json()),
@@ -152,6 +153,7 @@ const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,char
   fetch('/api/claims').then(r=>r.json()),fetch('/api/payments').then(r=>r.json()),fetch('/api/inventory/low').then(r=>r.json()),
   fetch('/api/doctor-cases').then(r=>r.json()),fetch('/api/nurse-cases').then(r=>r.json()),
   fetch('/api/outcomes').then(r=>r.json()),fetch('/api/performance').then(r=>r.json()),
+  fetch('/api/pharmacy-cases').then(r=>r.json()),
 ]);
 
 document.getElementById('hTime').textContent=s.time;document.getElementById('hTick').textContent=s.tick;
@@ -180,6 +182,14 @@ render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-si
 render('chartList','chartCount',byStatus(charts,['open','incomplete','completed','coded']),'Patient','Status',o=>`<tr><td style=font-size:8px>${o.patientId}</td><td><span class=badge style=background:${o.status==='coded'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='coded'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
 render('finList','finCount',charges,'Charge','Amount',o=>`<tr><td style=font-size:8px>${o.description}</td><td style=color:var(--yellow)>Rp ${o.amount.toLocaleString()}</td></tr>`);
 render('invList','invCount',inv,'Item','Stock',o=>`<tr><td style=font-size:8px>${o.itemName}</td><td style=color:var(--red)>${o.stock}/${o.minStock}</td></tr>`);
+
+// AI Pharmacy
+const pharmCaseList=pharmCases.cases||[];
+document.getElementById('pharmCaseCount').textContent=pharmCaseList.length;
+const pharmEl=document.getElementById('pharmCaseList');
+pharmEl.innerHTML=pharmCaseList.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
+  :'<table><thead><tr><th>Patient</th><th>Reviewed</th><th>Dispensed</th><th>Warn</th></tr></thead><tbody>'+
+  pharmCaseList.slice(0,6).map(c=>`<tr><td style=font-size:8px>${c.patientId}</td><td style=font-size:8px;color:var(--muted)>${c.ordersReviewed}</td><td style=font-size:8px;color:var(--green)>${c.dosesDispensed}</td><td style=font-size:8px;color:${c.warningsIssued>0?'var(--red)':'var(--muted)'}>${c.warningsIssued}</td></tr>`).join('')+'</tbody></table>';
 
 // Outcomes
 const outRecs=outcomes.records||[];
