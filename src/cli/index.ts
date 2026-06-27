@@ -29,7 +29,8 @@ async function cmdUp() {
   animateBoot();
 
   const port = parseInt(process.env.PORT ?? process.argv[3] ?? "3000", 10);
-  const journalPath = "world-journal.db";
+  const dataDir = process.env.DATA_DIR ?? ".";
+  const journalPath = `${dataDir}/world-journal.db`;
 
   let world: import("../engine/world.js").World;
 
