@@ -39,7 +39,8 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
       dietOrders: w.state.dietOrders.size, socialWorkNotes: w.state.socialWorkNotes.size,
       medicalCharts: w.state.medicalCharts.size, charges: w.state.charges.size,
       insuranceClaims: w.state.insuranceClaims.size, payments: w.state.payments.size, inventoryItems: w.state.inventory.size,
-      stockTxns: w.state.stockTransactions.size,
+      stockTxns: w.state.stockTransactions.size, agents: w.state._agentState.pool.agents.size,
+      specialtyServices: w.state.specialtyOrders.size, referrals: w.state._referralState.letters.size,
     }); return true;
   }
   if (p === "/api/patients") {
@@ -97,6 +98,21 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     stateObj.waitingRoom = snap.state.waitingRoom;
     json(res, stateObj); return true;
   }
+  if (p === "/api/agents") { json(res, toArr(w.state._agentState.pool.agents)); return true; }
+  if (p === "/api/agents/summary") {
+    const agents = Array.from(w.state._agentState.pool.agents.values());
+    const byRole: Record<string, number> = {};
+    for (const a of agents) byRole[a.role] = (byRole[a.role] ?? 0) + 1;
+    json(res, { total: agents.length, available: agents.filter(a => a.status.inShift && a.status.kesehatan !== "sakit_berat").length, byRole, sick: agents.filter(a => a.status.kesehatan !== "sehat").length, pregnant: agents.filter(a => a.status.isHamil).length }); return true;
+  }
+  if (p === "/api/patients/identity") {
+    const patients = Array.from(w.state.patients.values());
+    json(res, patients.map(p => ({ id: p.id, name: p.name, nik: p.identity?.nik?.value ?? "N/A", phone: p.phone, bloodType: p.bloodType, allergies: p.allergies, provinsi: p.identity?.addressKtp?.provinsi ?? "N/A", agama: p.identity?.religion ?? "N/A", statusKawin: p.identity?.maritalStatus ?? "N/A" }))); return true;
+  }
+  if (p === "/api/referral") { json(res, { letters: toArr(w.state._referralState.letters), stats: { total: w.state._referralState.letters.size, facilities: w.state._referralState.facilities.size } }); return true; }
+  if (p === "/api/referral/letters") { json(res, toArr(w.state._referralState.letters)); return true; }
+  if (p === "/api/referral/facilities") { json(res, Array.from(w.state._referralState.facilities.values())); return true; }
+  if (p === "/api/specialty") { json(res, toArr(w.state.specialtyOrders)); return true; }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {

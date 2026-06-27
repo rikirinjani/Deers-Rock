@@ -4,12 +4,48 @@ type FhirResource = Record<string, unknown>;
 
 function patientToFhir(patient: import("../patient/schema.js").Patient): FhirResource {
   const nameParts = patient.name.split(" ");
+  const id = patient.identity;
   return {
     resourceType: "Patient",
     id: patient.id,
-    name: [{ given: [nameParts[0]], family: nameParts.slice(1).join(" ") }],
+    identifier: id ? [
+      { system: "http://www.dinkes.go.id/nik", value: id.nik.value },
+      { system: "http://rs-deers-rock.go.id/mrn", value: patient.id },
+    ] : [{ system: "http://rs-deers-rock.go.id/mrn", value: patient.id }],
+    name: [{
+      use: "official",
+      given: [nameParts[0]],
+      family: nameParts.slice(1).join(" "),
+    }],
+    telecom: id ? [{ system: "phone", value: patient.phone }] : [],
     gender: patient.gender,
-    birthDate: `${new Date().getFullYear() - patient.age}-01-01`,
+    birthDate: id ? id.birthDate.split("-").reverse().join("-") : `${new Date().getFullYear() - patient.age}-01-01`,
+    address: id ? [
+      {
+        use: "home",
+        line: [id.addressKtp.street],
+        city: id.addressKtp.kabupatenKota,
+        district: id.addressKtp.kecamatan,
+        state: id.addressKtp.provinsi,
+        postalCode: id.addressKtp.postalCode,
+        country: "ID",
+      },
+      id.addressDomisili && id.addressDomisili.street !== id.addressKtp.street ? {
+        use: "temp",
+        line: [id.addressDomisili.street],
+        city: id.addressDomisili.kabupatenKota,
+        district: id.addressDomisili.kecamatan,
+        state: id.addressDomisili.provinsi,
+        postalCode: id.addressDomisili.postalCode,
+        country: "ID",
+      } : undefined,
+    ].filter(Boolean) : [],
+    maritalStatus: id ? { text: id.maritalStatus } : undefined,
+    extension: [
+      { url: "https://rs-deers-rock.go.id/Extension/nik", valueString: id?.nik.value },
+      { url: "https://rs-deers-rock.go.id/Extension/blood-type", valueString: patient.bloodType },
+      { url: "https://rs-deers-rock.go.id/Extension/religion", valueString: id?.religion },
+    ],
   };
 }
 
@@ -25,6 +61,10 @@ export function createFhirEndpoints(world: () => World) {
         return patients.filter(p => p.name.toLowerCase().includes(name.toLowerCase())).map(patientToFhir);
       }
       return patients.map(patientToFhir);
+    },
+    patientSearchByNIK(nik: string): FhirResource | null {
+      const patient = Array.from(world().state.patients.values()).find(p => p.identity?.nik.value === nik);
+      return patient ? patientToFhir(patient) : null;
     },
     observationList(patientId: string): FhirResource[] {
       const patient = world().state.patients.get(patientId);

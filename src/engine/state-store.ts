@@ -1,4 +1,7 @@
 import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart, Charge, InsuranceClaim, Payment, InventoryItem, StockTransaction } from "../patient/schema.js";
+import type { SpecialtyOrder } from "./specialty.js";
+import type { AgentState } from "../agent/system.js";
+import type { ReferralState } from "../referral/system.js";
 import { centralSupplyInit } from "./central-supply.js";
 
 export interface HospitalState {
@@ -23,13 +26,20 @@ export interface HospitalState {
   payments: Map<string, Payment>;
   inventory: Map<string, InventoryItem>;
   stockTransactions: Map<string, StockTransaction>;
+  specialtyOrders: Map<string, SpecialtyOrder>;
+  _agentState: AgentState;
+  _referralState: ReferralState;
 }
 
 export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
   const patientMap = new Map<string, Patient>();
   for (const p of patients) patientMap.set(p.id, p);
 
-  const defaultCapacity = { "Internal Medicine": 30, "Surgery": 20, "Pediatrics": 10, "OBGYN": 10, "ICU": 10, "Telemetry": 15 };
+  const defaultCapacity = {
+    "Internal Medicine": 30, "Surgery": 20, "Pediatrics": 10, "OBGYN": 10,
+    "ICU": 10, "Telemetry": 15, "Cardiology": 10, "Neurology": 8,
+    "Pulmonology": 8, "NICU": 6, "PICU": 6,
+  };
   const capacity = { ...defaultCapacity, ...wardCapacity };
 
   const beds = new Map<string, Bed>();
@@ -45,7 +55,10 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     labOrders: new Map(), medicationOrders: new Map(), nurseNotes: new Map(),
     physicianOrders: new Map(), radiologyOrders: new Map(), surgeryOrders: new Map(),
     respiratoryOrders: new Map(), dietOrders: new Map(), socialWorkNotes: new Map(),
-    edTriages: new Map(),     medicalCharts: new Map(), charges: new Map(), insuranceClaims: new Map(), payments: new Map(),
-    inventory: centralSupplyInit(), stockTransactions: new Map(),
+    edTriages: new Map(), medicalCharts: new Map(), charges: new Map(), insuranceClaims: new Map(),
+    payments: new Map(), inventory: centralSupplyInit(), stockTransactions: new Map(),
+    specialtyOrders: new Map(),
+    _agentState: { pool: { agents: new Map(), assignments: new Map() } },
+    _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
   };
 }

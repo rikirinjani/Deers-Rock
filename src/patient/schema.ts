@@ -1,3 +1,5 @@
+import type { Identity } from "../identity/types.js";
+
 export type Gender = "male" | "female";
 
 export interface Patient {
@@ -5,10 +7,17 @@ export interface Patient {
   name: string;
   age: number;
   gender: Gender;
+  identity: Identity;
+  phone: string;
+  bloodType: BloodType;
+  allergies: string[];
   vitals: Vitals;
   diagnoses: Diagnosis[];
   medications: Medication[];
 }
+
+export type BloodType = "A" | "B" | "AB" | "O";
+export type Rhesus = "+" | "-";
 
 export interface Vitals {
   heartRate: number;

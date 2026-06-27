@@ -140,6 +140,7 @@ export function saveSnapshot(tick: number, state: HospitalState): void {
     mc: mapToArr(state.medicalCharts), ch: mapToArr(state.charges),
     ic: mapToArr(state.insuranceClaims), py: mapToArr(state.payments),
     inv: mapToArr(state.inventory), st: mapToArr(state.stockTransactions),
+    spec: mapToArr(state.specialtyOrders),
   };
   saveSnapStmt.run(tick, JSON.stringify(data));
 }
@@ -177,6 +178,9 @@ function deserializeState(json: string): HospitalState {
     medicalCharts: arrToMap(d.mc), charges: arrToMap(d.ch),
     insuranceClaims: arrToMap(d.ic), payments: arrToMap(d.py),
     inventory: arrToMap(d.inv), stockTransactions: arrToMap(d.st),
+    specialtyOrders: arrToMap(d.spec ?? []),
+    _agentState: { pool: { agents: new Map(), assignments: new Map() } },
+    _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
   };
 }
 

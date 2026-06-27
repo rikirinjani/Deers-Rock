@@ -1,55 +1,60 @@
 # Deer's Rock HOE — Memory File
 
-## [2026-06-27 05:18] Project state at session end
-Deer's Rock Hospital Operating Environment simulation. Fully deployed on Railway at https://deers-rock-production.up.railway.app/. 40 tests across 9 files, all passing.
+## [2026-06-27 08:20] Major identity & infrastructure overhaul
+### New Modules Built
 
-### Done
-- 14 departments: Emergency, Lab, Radiology, Pharmacy, Surgery, Nursing, Physicians, Respiratory, Dietary, Social Work, Medical Records, Finance/Billing, Central Supply/Inventory, Medical Records/HIM
-- Real-time dashboard with stats, ward occupancy, ED tracker, department panels, activity feed
-- SQLite event journal (better-sqlite3, WAL mode): append-only world_journal table, 25+ event types logged by state diff per tick
-- Simulation snapshots: full HospitalState serialized every 20 ticks in world_snapshots table
-- Report generator: census, emergency, clinical, operations, finance, supply chain sections
-- Patient pool: 50 initial, cyclic admissions, Indonesian names
-- Supply chain: Central Supply holds 18 items, Pharmacy dispenses MED-*, Lab consumes LAB-*
-- Finance: room charges per tick, insurance claims (BPJS/Private/Self-pay), payment processing
+**src/identity/** — Indonesian Identity System
+- NIK generation (16-digit format per Permendagri): province(2) + regency(2) + district(2) + birth date(6) + serial(4)
+- Female birth day +40 per regulation
+- 38 provinces with kabupaten/kota, kecamatan data
+- Realistic street names, RT/RW, kelurahan/desa
+- KTP address + optional domisili (different address)
+- Religion, marital status, occupation based on age
 
-### Key Files
-- src/engine/world.ts — 17 handlers + event loop, snapshot/journal integration
-- src/engine/journal.ts — initJournal, journalAppend, journalQuery, journalStats, saveSnapshot, loadNearestSnapshot, listSnapshots
-- src/engine/report.ts — generateReport with full hospital stats
-- src/engine/central-supply.ts — 18-item catalog, auto-restock, dispense
-- src/engine/finance.ts — billingHandler, cashierHandler
-- src/engine/medical-records.ts — chart creation, ICD-10 coding cycle
-- src/engine/state-store.ts — all 17 collections, centralSupplyInit
-- src/patient/generator.ts — sequential PAT-{4digit} IDs
-- src/patient/schema.ts — all types (Patient, Encounter, Charge, etc.)
-- src/api/rest.ts — 20+ API endpoints including /api/journal, /api/snapshots, /api/report, /api/patients/by-mrn/1, /api/patients?q=
-- src/cli/index.ts — CLI with up/down/status, journal path passed as "world-journal.db"
+**src/patient/generator.ts** — Rewritten with proper ICD-10 mapping
+- 40 ICD-10 codes with age/gender constraints (no male in O80, no adult in pediatrics)
+- Age-appropriate vitals (pediatric vs adult vs geriatric baselines)
+- Blood type, allergies, phone number
+- Weighted diagnosis selection
 
-### API Endpoints
-- /api/status — real-time snapshot
-- /api/summary — grouped counts
-- /api/report — full hospital stats
-- /api/journal — 25+ event types, filterable
-- /api/journal/stats — event type counts
-- /api/snapshots — list snapshot ticks
-- /api/snapshot/:tick — full state at nearest snapshot
-- /api/patients — all patients (supports ?q=name search)
-- /api/patients/by-mrn/:num — lookup by MRN
-- /api/patients/:id — direct ID lookup
-- /api/beds, /api/encounters, /api/labs, /api/radiology, /api/medications, /api/surgery, /api/nursing, /api/orders, /api/emergency, /api/respiratory, /api/diet, /api/social, /api/charts, /api/charges, /api/claims, /api/payments, /api/inventory, /api/inventory/low
+**src/agent/** — Hospital Agent System
+- 60+ agents: dokter spesialis (5), dokter umum (5), perawat (15), bidan (3), apoteker (3), etc.
+- Full identity for each agent (NIK, address, religion)
+- Fatigue tracking per tick, health degradation (sehat → lelah → sakit_ringan → sakit_berat)
+- Shift system (pagi/siang/malam)
+- Female agent physiology: menstruation cycle, pregnancy tracking
+- STR/SIP/SKP license numbers
 
-### Known Issues
-- Nursing notes grow fastest (~21K+); needs pruning with TTL
-- All 95 wards at 100% occupancy — admission/discharge rate needs tuning
-- Dashboard panels scroll long lists; needs pagination
-- Report modal shows raw JSON; needs charts/tables
+**src/referral/** — Referral System (Rujukan Berjenjang)
+- 15 Puskesmas across Eastern Indonesia
+- 5 Klinik
+- 5 RS Tipe D, 10 RS Tipe C
+- Referral letters generated every 15 ticks
+- Referral pipeline: active → received → completed/returned
 
-### Next Steps (from TODO.md)
-- Polish report presentation (charts, tables, export)
-- Balance patient throughput (100% occupancy)
-- Prune stale data (nursing notes TTL)
-- Dashboard UI overhaul (pagination, search, filtering)
-- FHIR resources (/fhir/Patient, /fhir/Encounter, etc.)
-- Unit tests for legacy departments (lab, pharmacy, nursing, etc.)
-- CI/CD pipeline (GitHub Actions)
+**Missing Departments Added (src/engine/specialty.ts)**
+- Cardiology, Neurology, Ophthalmology, ENT, Dermatology, Psychiatry
+- Pediatrics, OBGYN, Pulmonology, Rehab Medik, Anesthesiology
+- Dentistry, Hemodialysis, Endoscopy, Pathology Anatomy, Forensic
+- Each with realistic service names and findings
+
+**State & Data Flow Updates**
+- HospitalState: added specialtyOrders, _agentState, _referralState
+- Journal: serializes/deserializes new collections
+- Report: identity summary (religion, marital, blood types), agent summary (role, sick, pregnant), referral summary
+- API: new endpoints — /api/agents, /api/agents/summary, /api/patients/identity, /api/referral, /api/referral/letters, /api/referral/facilities, /api/specialty
+- FHIR: enriched Patient resource with NIK, address, blood type, religion, marital status
+
+**Tests: 40/40 passing** (9 test files)
+
+### What's missing / proposed next
+1. Dashboard UI overhaul — show new modules (agent cards, referral feed, identity table)
+2. Agent-patient assignment — link specific doctors/nurses to encounters
+3. Agent sick leave system — auto-replace sick agents with backups
+4. Puskesmas → RS Tipe C/D → Deer's Rock referral chain
+5. Outpatient clinic system (Rawat Jalan) with appointment scheduling
+6. Kamar Jenazah & forensik workflow
+7. Patient discharge planning with referral to Puskesmas (rujuk balik)
+8. Medical equipment tracking (alat kesehatan)
+9. Dashboard for agent health status, fatigue alerts
+10. CSV/PDF export of identity data for reporting

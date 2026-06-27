@@ -12,6 +12,35 @@ export interface HospitalReport {
   finance: FinanceSummary;
   supplyChain: SupplyChainSummary;
   departments: DepartmentSummary[];
+  identity: IdentitySummary;
+  agents: AgentSummary;
+  referral: ReferralSummary;
+}
+
+interface IdentitySummary {
+  patientsWithIdentity: number;
+  provincesRepresented: string[];
+  religions: Record<string, number>;
+  maritalStatuses: Record<string, number>;
+  bloodTypes: Record<string, number>;
+}
+
+interface AgentSummary {
+  totalAgents: number;
+  byRole: Record<string, number>;
+  byDepartment: Record<string, number>;
+  sickCount: number;
+  tiredCount: number;
+  pregnantCount: number;
+  onPeriodCount: number;
+}
+
+interface ReferralSummary {
+  totalLetters: number;
+  activeReferrals: number;
+  receivedReferrals: number;
+  bySourceType: Record<string, number>;
+  facilities: { id: string; name: string; type: string }[];
 }
 
 interface CensusSummary {
@@ -46,6 +75,7 @@ interface ClinicalSummary {
   mostOrderedLab: string;
   mostOrderedMed: string;
   mostCommonProcedure: string;
+  specialtyServices: { total: number; completed: number };
 }
 
 interface OperationsSummary {
@@ -188,6 +218,38 @@ export function generateReport(world: World): HospitalReport {
     { name: "Medical Records", orderCount: charts.length, activeCount: charts.filter(c => c.status === "open").length },
   ];
 
+  const specs = Array.from(s.specialtyOrders.values());
+
+  const provincesRepresented = new Set<string>();
+  const religions: Record<string, number> = {};
+  const maritalStatuses: Record<string, number> = {};
+  const bloodTypes: Record<string, number> = {};
+  for (const pt of s.patients.values()) {
+    if (pt.identity) {
+      provincesRepresented.add(pt.identity.addressKtp.provinsi);
+      religions[pt.identity.religion] = (religions[pt.identity.religion] ?? 0) + 1;
+      maritalStatuses[pt.identity.maritalStatus] = (maritalStatuses[pt.identity.maritalStatus] ?? 0) + 1;
+    }
+    bloodTypes[`${pt.bloodType}${Math.random() > 0.9 ? "-" : "+"}`] = (bloodTypes[`${pt.bloodType}${Math.random() > 0.9 ? "-" : "+"}`] ?? 0) + 1;
+  }
+
+  const agentArr = Array.from(s._agentState.pool.agents.values());
+  const byRole: Record<string, number> = {};
+  const byDept: Record<string, number> = {};
+  let sickCount = 0, tiredCount = 0, pregnantCount = 0, onPeriodCount = 0;
+  for (const a of agentArr) {
+    byRole[a.role] = (byRole[a.role] ?? 0) + 1;
+    byDept[a.department] = (byDept[a.department] ?? 0) + 1;
+    if (a.status.kesehatan === "sakit_berat" || a.status.kesehatan === "sakit_ringan") sickCount++;
+    if (a.status.kesehatan === "lelah") tiredCount++;
+    if (a.status.isHamil) pregnantCount++;
+    if (a.status.isHaids) onPeriodCount++;
+  }
+
+  const refLetters = Array.from(s._referralState.letters.values());
+  const bySourceType: Record<string, number> = {};
+  for (const l of refLetters) bySourceType[l.fromType] = (bySourceType[l.fromType] ?? 0) + 1;
+
   return {
     generatedAt: new Date().toISOString(),
     hospitalTime: formatHospitalTime(world.clock),
@@ -219,6 +281,7 @@ export function generateReport(world: World): HospitalReport {
       mostOrderedLab: top(labCounts),
       mostOrderedMed: top(medCounts),
       mostCommonProcedure: top(surgCounts),
+      specialtyServices: { total: specs.length, completed: specs.filter(s => s.status === "completed").length },
     },
     operations: {
       medicalRecords: {
@@ -245,5 +308,22 @@ export function generateReport(world: World): HospitalReport {
       dispenseCount: txns.filter(t => t.type === "dispense").length,
     },
     departments,
+    identity: {
+      patientsWithIdentity: s.patients.size,
+      provincesRepresented: Array.from(provincesRepresented).slice(0, 15),
+      religions, maritalStatuses, bloodTypes,
+    },
+    agents: {
+      totalAgents: agentArr.length,
+      byRole, byDepartment: byDept,
+      sickCount, tiredCount, pregnantCount, onPeriodCount,
+    },
+    referral: {
+      totalLetters: refLetters.length,
+      activeReferrals: refLetters.filter(l => l.status === "active").length,
+      receivedReferrals: refLetters.filter(l => l.status === "received").length,
+      bySourceType,
+      facilities: Array.from(s._referralState.facilities.values()).slice(0, 10).map(f => ({ id: f.id, name: f.name, type: f.type })),
+    },
   };
 }

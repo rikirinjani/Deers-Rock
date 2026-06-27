@@ -17,6 +17,11 @@ import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { billingHandler, cashierHandler } from "./finance.js";
 import { initJournal, journalAppend, saveSnapshot } from "./journal.js";
+import { specialtyHandler } from "./specialty.js";
+import { agentHandler, initAgentState } from "../agent/system.js";
+import { referralHandler, initReferralState } from "../referral/system.js";
+import { generateAgentPool } from "../agent/generator.js";
+import { REFERRAL_FACILITIES } from "../identity/data.js";
 
 export interface World {
   clock: Clock;
@@ -29,19 +34,36 @@ export interface World {
 export function createWorld(patientCount: number = 100, journalPath?: string): World {
   const patients = generatePatientPool(patientCount);
   const jp = journalPath ?? null;
+
+  const initialAgentState = initAgentState();
+  initialAgentState.pool = generateAgentPool();
+  const initialReferralState = initReferralState();
+
+  const state = createState(patients);
+  state._agentState = initialAgentState;
+  state._referralState = initialReferralState;
+
   if (jp) {
     initJournal(jp);
     const clock = createClock(60);
-    journalAppend(0, clock.hospitalTimeMs, "world.start", "world", "sim", { patientCount, journalPath: jp });
+    journalAppend(0, clock.hospitalTimeMs, "world.start", "world", "sim", {
+      patientCount,
+      agentCount: initialAgentState.pool.agents.size,
+      referralFacilities: initialReferralState.facilities.size,
+      journalPath: jp,
+    });
   }
+
   return {
     clock: createClock(60),
-    state: createState(patients),
+    state,
     queue: new EventQueue(),
     journalPath: jp,
     handlers: [
       admissionHandler,
       newPatientHandler,
+      agentHandler,
+      referralHandler,
       emergencyHandler,
       labHandler,
       pharmacyHandler,
@@ -54,6 +76,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       socialWorkHandler,
       centralSupplyHandler,
       medicalRecordsHandler,
+      specialtyHandler,
       billingHandler,
       cashierHandler,
       vitalsUpdateHandler,
@@ -88,6 +111,10 @@ function snapshotState(state: HospitalState) {
     claimStatus: new Map(Array.from(state.insuranceClaims).map(([k, v]) => [k, v.status])),
     paySize: state.payments.size,
     txnSize: state.stockTransactions.size,
+    specIds: new Set(state.specialtyOrders.keys()),
+    specStatus: new Map(Array.from(state.specialtyOrders).map(([k, v]) => [k, v.status])),
+    agentCount: state._agentState.pool.agents.size,
+    referralCount: state._referralState.letters.size,
   };
 }
 
@@ -200,6 +227,18 @@ function logStateDiff(snap: ReturnType<typeof snapshotState>, state: HospitalSta
   if (state.stockTransactions.size > snap.txnSize) {
     const newTxns = Array.from(state.stockTransactions.values()).slice(0, state.stockTransactions.size - snap.txnSize);
     for (const t of newTxns) a("supply." + t.type, "supply", t.id, { itemCode: t.itemCode, qty: t.quantity, ref: t.referenceId });
+  }
+
+  for (const [id, spec] of state.specialtyOrders) {
+    if (!snap.specIds.has(id)) a("specialty.ordered", "specialty", id, { specialty: spec.specialty, service: spec.serviceName, patientId: spec.patientId });
+    else {
+      const os = snap.specStatus.get(id);
+      if (os && os !== spec.status) a("specialty." + spec.status, "specialty", id, { specialty: spec.specialty, findings: spec.findings });
+    }
+  }
+
+  if (state._referralState.letters.size > snap.referralCount) {
+    a("referral.new", "referral", "batch", { total: state._referralState.letters.size });
   }
 }
 
