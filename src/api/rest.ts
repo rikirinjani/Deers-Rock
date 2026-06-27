@@ -7,6 +7,7 @@ import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
 import { computePerformanceStats } from "../engine/outcome-tracker.js";
 import { buildFhirBundle } from "../engine/fhir-export.js";
+import { getEventSummary, tickToDate, formatCalendarDate } from "../engine/calendar.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -129,6 +130,10 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     const bundle = buildFhirBundle(w.state, encId);
     if (!bundle) { res.writeHead(404); res.end("Not found"); return true; }
     json(res, bundle); return true;
+  }
+  if (p === "/api/calendar") {
+    const ctx = getEventSummary(w.state._calendarTicks);
+    json(res, { ...ctx, formatted: formatCalendarDate(ctx.date) }); return true;
   }
   if (p === "/api/learning") {
     const mem = w.state._learningMemory;

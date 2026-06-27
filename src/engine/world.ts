@@ -281,6 +281,8 @@ export function step(world: World): World {
   state = medAdminHandler(state, newClock, world.queue);
   state = orderCompleteHandler(state, newClock, world.queue);
 
+  state = { ...state, _calendarTicks: newClock.tick };
+
   if (snap && journaling) {
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
     if (newClock.tick > 0 && newClock.tick % 20 === 0) {

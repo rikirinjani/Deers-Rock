@@ -2,6 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { EdTriage } from "../patient/schema.js";
+import { getEventSummary } from "./calendar.js";
 
 const COMPLAINTS = [
   "Chest pain", "Abdominal pain", "Shortness of breath", "Headache", "Fever", "Trauma from fall",
@@ -21,7 +22,11 @@ function assignAcuity(complaint: string): EdTriage["acuity"] {
 export function emergencyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   if (clock.tick % 3 !== 0) return state;
 
-  const complaint = COMPLAINTS[Math.floor(Math.random() * COMPLAINTS.length)]!;
+  const eventCtx = getEventSummary(state._calendarTicks);
+  const eventPool = eventCtx.emergencyPool;
+  const complaint = eventPool.length > 0 && Math.random() > 0.5
+    ? eventPool[Math.floor(Math.random() * eventPool.length)]!
+    : COMPLAINTS[Math.floor(Math.random() * COMPLAINTS.length)]!;
   const acuity = assignAcuity(complaint);
   const arrivalMode = ARRIVAL_MODES[Math.floor(Math.random() * ARRIVAL_MODES.length)];
 

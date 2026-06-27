@@ -69,6 +69,7 @@ export interface HospitalState {
   _pharmacyCaseMemory: Map<string, PharmacistCaseRecord>;
   _learningMemory: LearningMemory;
   _outpatientVisits: Map<string, OutpatientVisit>;
+  _calendarTicks: number;
 }
 
 export interface OutpatientVisit {
@@ -143,5 +144,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _pharmacyCaseMemory: new Map(),
     _learningMemory: { byDiagnosis: new Map() },
     _outpatientVisits: new Map(),
+    _calendarTicks: 0,
   };
 }

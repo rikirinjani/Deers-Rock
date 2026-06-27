@@ -2,6 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
+import { getEventSummary } from "./calendar.js";
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
 
@@ -13,8 +14,16 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     return { ...state, waitingRoom: state.waitingRoom + 1 };
   }
 
-  if (occupancyRate >= 0.85 && Math.random() > 0.3) {
+  const eventCtx = getEventSummary(state._calendarTicks);
+  const surge = eventCtx.totalMultiplier > 1.3;
+  if (occupancyRate >= 0.85 && !surge && Math.random() > 0.3) {
     return state;
+  }
+  if (surge) {
+    const extraBeds = Math.floor(availableBeds.length * 0.1);
+    if (extraBeds <= 0) {
+      return { ...state, waitingRoom: state.waitingRoom + 2 };
+    }
   }
 
   const activePatientIds = new Set(
