@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
+import { generateSirsReport } from "../engine/sirs-report.js";
 import { computePerformanceStats } from "../engine/outcome-tracker.js";
 import { buildFhirBundle } from "../engine/fhir-export.js";
 import { getEventSummary, tickToDate, formatCalendarDate } from "../engine/calendar.js";
@@ -93,6 +94,19 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/inventory") { json(res, toArr(w.state.inventory)); return true; }
   if (p === "/api/inventory/low") { json(res, Array.from(w.state.inventory.values()).filter(i => i.stock < i.minStock)); return true; }
   if (p === "/api/report") { json(res, generateReport(w)); return true; }
+  if (p === "/api/sirs") { json(res, generateSirsReport(w)); return true; }
+  if (p === "/api/sirs/rl1") { json(res, generateSirsReport(w).rl1); return true; }
+  if (p === "/api/sirs/rl2a") { json(res, generateSirsReport(w).rl2a); return true; }
+  if (p === "/api/sirs/rl2b") { json(res, generateSirsReport(w).rl2b); return true; }
+  if (p === "/api/sirs/rl3") { json(res, generateSirsReport(w).rl3); return true; }
+  if (p === "/api/sirs/rl4a") { json(res, generateSirsReport(w).rl4a); return true; }
+  if (p === "/api/sirs/rl4b") { json(res, generateSirsReport(w).rl4b); return true; }
+  if (p === "/api/sirs/rl4c") { json(res, generateSirsReport(w).rl4c); return true; }
+  if (p === "/api/sirs/rl5a") { json(res, generateSirsReport(w).rl5a); return true; }
+  if (p === "/api/sirs/rl6a") { json(res, generateSirsReport(w).rl6a); return true; }
+  if (p === "/api/sirs/rl7") { json(res, generateSirsReport(w).rl7); return true; }
+  if (p === "/api/sirs/rl8") { json(res, generateSirsReport(w).rl8); return true; }
+  if (p === "/api/sirs/rl9") { json(res, generateSirsReport(w).rl9); return true; }
   if (p === "/api/journal") {
     const limit = parseInt(url.searchParams.get("limit") ?? "100");
     const offset = parseInt(url.searchParams.get("offset") ?? "0");

@@ -77,7 +77,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button></div>
   </div>
 
   <div class="loading-overlay" id=loadingOverlay><span class="loading-pulse">⏳ Loading<span class=loading-dots></span></span></div>
@@ -628,6 +628,198 @@ const tick=snapList[idx].tick;
 loadSnapshot(tick);
 }
 function closeSnapshots(){document.getElementById('sReport').classList.remove('show')}
+
+let sirsData=null;
+async function showSirs(){
+  try{
+    const resp=await fetch('/api/sirs');
+    sirsData=await resp.json();
+    document.getElementById('rlBody').innerHTML=buildRlForm(1);
+    document.getElementById('rlReport').classList.add('show');
+  }catch(e){alert('Failed to load SIRS data');}
+}
+function closeSirs(){document.getElementById('rlReport').classList.remove('show')}
+function showRlForm(n){
+  if(!sirsData)return;
+  document.getElementById('rlBody').innerHTML=buildRlForm(n);
+}
+function buildRlForm(n){
+  const d=sirsData;
+  if(n===1)return buildRl1(d);
+  if(n===2)return buildRl2a(d);
+  if(n==='2b')return buildRl2b(d);
+  if(n===3)return buildRl3(d);
+  if(n==='4a')return buildRl4a(d);
+  if(n==='4b')return buildRl4b(d);
+  if(n==='4c')return buildRl4c(d);
+  if(n==='5a')return buildRl5a(d);
+  if(n==='6a')return buildRl6a(d);
+  if(n===7)return buildRl7(d);
+  if(n===8)return buildRl8(d);
+  if(n===9)return buildRl9(d);
+  return '<div style=color:var(--muted)>Unknown form</div>';
+}
+function tRow(l,v){return '<tr><td style=color:var(--muted);font-size:9px>'+l+'</td><td style=font-size:10px>'+v+'</td></tr>'}
+function hdr(t){return '<h4 style=font-size:10px;color:var(--accent);margin:8px 0 4px;text-transform:uppercase;letter-spacing:1px>'+t+'</h4>'}
+function buildRl1(d){
+  const r=d.rl1;
+  return hdr('RL 1 — Identitas Rumah Sakit')+
+  '<table>'+tRow('Nama RS',r.hospitalName)+tRow('Tipe / Kelas',r.type+' ('+r.kelas+')')+tRow('Direktur',r.direktur)
+  +tRow('Alamat',r.alamat)+tRow('Kota',r.kota)+tRow('Provinsi',r.provinsi)+tRow('Kode Pos',r.kodePos)
+  +tRow('Telepon',r.telepon)+tRow('Email',r.email)+tRow('Website',r.website)
+  +tRow('Izin Operasional',r.izinOperasional)+tRow('Kepemilikan',r.kepemilikan)
+  +tRow('Akreditasi',r.akreditasi+' ('+r.tglAkreditasi+')')
+  +'</table>'+hdr('Ringkasan')
+  +'<table>'+tRow('Total Tempat Tidur',r.totalBeds)+tRow('Total Pasien',r.totalPatients)
+  +tRow('Total SDM',r.totalStaff)+tRow('Dokter',r.totalDoctors)+tRow('Perawat',r.totalNurses)+'</table>';
+}
+function buildRl2a(d){
+  const r=d.rl2a;
+  const spesRows=Object.entries(r.bySpesialisasi).sort((a,b)=>b[1]-a[1]).map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 2a — Data Ketenagaan SDM Kesehatan')+
+  '<table>'+tRow('Dokter Spesialis',r.totalDokterSpesialis)+tRow('Dokter Umum',r.totalDokterUmum)
+  +tRow('Dokter Gigi',r.totalDokterGigi)+tRow('Perawat',r.totalPerawat)+tRow('Bidan',r.totalBidan)
+  +tRow('Apoteker',r.totalApoteker)+tRow('Asisten Apoteker',r.totalAsistenApoteker)
+  +tRow('Analis Laboratorium',r.totalAnalisLab)+tRow('Radiografer',r.totalRadiografer)
+  +tRow('Nutrisionis',r.totalNutrisionis)+tRow('Fisioterapis',r.totalFisioterapis)
+  +tRow('Pekerja Sosial',r.totalPekerjaSosial)+tRow('Rekam Medis',r.totalRekamMedis)
+  +tRow('Psikolog',r.totalPsikolog)+tRow('Ahli Mikrobiologi',r.totalAhliMikrobiologi)
+  +tRow('Ahli Patologi',r.totalAhliPatologi)+tRow('Teknisi CSSD',r.totalTeknisiCSSD)
+  +tRow('Teknisi Biomedik',r.totalTeknisiBiomedik)+tRow('Perawat PPI',r.totalPerawatPPI)
+  +tRow('<b>Total Tenaga Kesehatan</b>',r.totalTenagaKesehatan)+'</table>'
+  +(spesRows?hdr('Rincian Dokter Spesialis')+'<table>'+spesRows+'</table>':'');
+}
+function buildRl2b(d){
+  const r=d.rl2b;
+  return hdr('RL 2b — Data Ketenagaan Non Kesehatan')+
+  '<table>'+tRow('Staf Keuangan',r.totalStafKeuangan)+tRow('Staf Inventaris',r.totalStafInventaris)
+  +tRow('Kasir',r.totalKasir)+tRow('Admin',r.totalAdmin)+tRow('Petugas Kebersihan',r.totalPetugasKebersihan)
+  +tRow('Petugas Keamanan',r.totalPetugasKeamanan)+tRow('Sopir Ambulans',r.totalSopirAmbulans)
+  +tRow('<b>Total Non Kesehatan</b>',r.totalNonKesehatan)+'</table>';
+}
+function buildRl3(d){
+  const r=d.rl3;
+  const wardRows=r.wardData.map(w=>'<tr><td style=font-size:9px>'+w.ward+'</td><td style=font-size:9px;text-align:center>'+w.total+'</td><td style=font-size:9px;text-align:center>'+w.occupied+'</td><td style=font-size:9px;text-align:center;color:'+wc(w.rate)+'>'+w.rate+'%</td></tr>').join('');
+  return hdr('RL 3 — Tempat Tidur')+
+  '<table>'+tRow('Total Tempat Tidur',r.totalBeds)+tRow('TT Tersedia',r.availableBeds)
+  +tRow('BOR (Bed Occupancy Rate)',r.occupancyRate+'%')+tRow('Rata LOS (hari)',r.averageLosTicks)
+  +tRow('BTO (Bed Turn Over)',r.bedTurnoverRatio)+'</table>'
+  +hdr('Perawarab')+'<table><thead><tr><th>Bangsal</th><th>Total</th><th>Terisi</th><th>BOR</th></tr></thead><tbody>'+wardRows+'</tbody></table>';
+}
+function buildRl4a(d){
+  const r=d.rl4a;
+  const ageRows=Object.entries(r.dischargeByAgeGroup).sort().map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 4a — Pelayanan Rawat Inap')+
+  '<table>'+tRow('Jumlah Pasien Masuk',r.totalInpatientAdmissions)+tRow('Jumlah Pasien Keluar',r.totalInpatientDischarges)
+  +tRow('Jumlah Hari Rawat',r.totalInpatientDays)+tRow('Rata-rata LOS (hari)',r.averageLengthOfStay)
+  +tRow('BOR (%)',r.bedOccupancyRate+'%')+tRow('TOI (Turn Over Interval)',r.bedTurnOverInterval)
+  +tRow('NDR (Net Death Rate)',r.netDeathRate+'%')+tRow('GDR (Gross Death Rate)',r.grossDeathRate+'%')
+  +'</table>'+hdr('Pasien Keluar by Jenis Kelamin')+'<table>'+tRow('Laki-laki',r.dischargeByGender.male)+tRow('Perempuan',r.dischargeByGender.female)+'</table>'
+  +(ageRows?hdr('by Kelompok Umur')+'<table>'+ageRows+'</table>':'');
+}
+function buildRl4b(d){
+  const r=d.rl4b;
+  const poliRows=Object.entries(r.visitsByPoli).sort((a,b)=>b[1]-a[1]).map(([k,v])=>tRow(k,v)).join('');
+  const ageRows=Object.entries(r.visitsByAgeGroup).sort().map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 4b — Pelayanan Rawat Jalan')+
+  '<table>'+tRow('Total Kunjungan',r.totalOutpatientVisits)+tRow('Pasien Baru',r.totalNewPatients)
+  +tRow('Pasien Lama',r.totalReturnPatients)+'</table>'
+  +hdr('by Jenis Kelamin')+'<table>'+tRow('Laki-laki',r.visitsByGender.male)+tRow('Perempuan',r.visitsByGender.female)+'</table>'
+  +(poliRows?hdr('by Poli')+'<table>'+poliRows+'</table>':'')
+  +(ageRows?hdr('by Kelompok Umur')+'<table>'+ageRows+'</table>':'');
+}
+function buildRl4c(d){
+  const r=d.rl4c;
+  const compRows=Object.entries(r.complaintBreakdown).map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 4c — Pelayanan Gawat Darurat')+
+  '<table>'+tRow('Total Kunjungan IGD',r.totalTriages)
+  +tRow('P1 (Resusitasi)',r.acuity1)+tRow('P2 (Emergensi)',r.acuity2)
+  +tRow('P3 (Urgen)',r.acuity3)+tRow('P4 (Non Urgen)',r.acuity4)+tRow('P5 (Non Medis)',r.acuity5)
+  +'</table>'+hdr('Disposisi')+'<table>'+tRow('Rawat Inap',r.admittedCount)
+  +tRow('Pulang',r.dischargedCount)+tRow('Dirujuk',r.transferredCount)+'</table>'
+  +hdr('Cara Kedatangan')+'<table>'+tRow('Jalan Kaki',r.arrivalWalkIn)
+  +tRow('Ambulans',r.arrivalAmbulance)+tRow('Rujukan',r.arrivalTransfer)+'</table>'
+  +tRow('Rata Waktu Tunggu',r.avgWaitTimeMs?Math.round(r.avgWaitTimeMs/60000)+' mnt':'—')
+  +(compRows?hdr('10 Keluhan Utama')+'<table>'+compRows+'</table>':'');
+}
+function buildRl5a(d){
+  const r=d.rl5a;
+  const rows=r.top10.map((dx,i)=>'<tr><td style=color:var(--muted);font-size:9px;text-align:center>'+(i+1)+'</td><td style=font-size:9px;color:var(--accent)>'+dx.code+'</td><td style=font-size:9px>'+dx.name+'</td><td style=font-size:9px;text-align:center;color:var(--yellow)>'+dx.count+'</td><td style=font-size:8px;text-align:center>'+dx.genderBreakdown.male+'/'+dx.genderBreakdown.female+'</td></tr>').join('');
+  return hdr('RL 5a — 10 Besar Penyakit Rawat Inap')+
+  '<div style=font-size:8px;color:var(--muted);margin-bottom:4px>Periode: '+r.period+' | Tick: '+d.tick+'</div>'+
+  '<table><thead><tr><th>#</th><th>ICD</th><th>Diagnosis</th><th>Jumlah</th><th>L/P</th></tr></thead><tbody>'+(rows||'<tr><td colspan=5 style=color:var(--muted)>No data</td></tr>')+'</tbody></table>';
+}
+function buildRl6a(d){
+  const r=d.rl6a;
+  const procRows=Object.entries(r.procedureBreakdown).map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 6a — Tindakan Operasi')+
+  '<table>'+tRow('Total Operasi',r.totalSurgeries)+tRow('Selesai',r.completedSurgeries)
+  +tRow('Dibatalkan',r.cancelledSurgeries)+tRow('Elektif',r.electiveSurgeries)
+  +tRow('Emergensi',r.emergencySurgeries)+'</table>'
+  +(procRows?hdr('by Jenis Tindakan')+'<table>'+procRows+'</table>':'');
+}
+function buildRl7(d){
+  const r=d.rl7;
+  const dxRows=Object.entries(r.deathByDiagnosis).map(([k,v])=>tRow(k,v)).join('');
+  const ageRows=Object.entries(r.deathByAgeGroup).sort().map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 7 — Kematian')+
+  '<table>'+tRow('Total Kematian',r.totalDeaths)+tRow('NDR (Net Death Rate)',r.netDeathRate+'%')
+  +tRow('GDR (Gross Death Rate)',r.grossDeathRate+'%')+tRow('Kematian ≤48 Jam',r.deathUnder48Hours)
+  +tRow('Kematian >48 Jam',r.deathAfter48Hours)+'</table>'
+  +hdr('by Jenis Kelamin')+'<table>'+tRow('Laki-laki',r.deathByGender.male)+tRow('Perempuan',r.deathByGender.female)+'</table>'
+  +(ageRows?hdr('by Kelompok Umur')+'<table>'+ageRows+'</table>':'')
+  +(dxRows?hdr('by Diagnosis')+'<table>'+dxRows+'</table>':'');
+}
+function buildRl8(d){
+  const r=d.rl8;
+  return hdr('RL 8 — Indikator Mutu')+
+  '<table>'+tRow('BOR (Bed Occupancy Rate)',r.bOR+'%')+tRow('ALOS (Average Length of Stay)',r.aLOS+' hari')
+  +tRow('BTO (Bed Turn Over)',r.bTO)+tRow('NDR (Net Death Rate)',r.nDR+'%')
+  +tRow('GDR (Gross Death Rate)',r.gDR+'%')+tRow('Infection Rate (HAI)',r.infectionRate+'%')
+  +tRow('Hand Hygiene Compliance',r.handHygieneCompliance+'%')+tRow('Rata Waktu Tunggu IGD',r.waitingTimeAvgMs?Math.round(r.waitingTimeAvgMs/60000)+' mnt':'—')+'</table>';
+}
+function buildRl9(d){
+  const r=d.rl9;
+  const payerRows=Object.entries(r.payerMix).sort((a,b)=>b[1]-a[1]).map(([k,v])=>tRow(k,v)).join('');
+  const revRows=Object.entries(r.revenueByCategory).sort((a,b)=>b[1]-a[1]).map(([k,v])=>tRow(k,'Rp '+v.toLocaleString())).join('');
+  return hdr('RL 9 — Data Keuangan')+
+  '<table>'+tRow('Total Beban (Charges)',r.totalCharges)+tRow('Total Nominal','Rp '+r.totalChargeAmount.toLocaleString())
+  +tRow('Total Klaim',r.totalClaims)+tRow('Klaim Dibayar',r.paidClaims)+tRow('Klaim Ditolak',r.deniedClaims)
+  +tRow('Total Pembayaran',r.totalPayments)+tRow('Nominal Pembayaran','Rp '+r.totalPaymentAmount.toLocaleString())
+  +tRow('Rata Biaya per Kunjungan','Rp '+r.avgChargePerEncounter.toLocaleString())+'</table>'
+  +(payerRows?hdr('Payer Mix')+'<table>'+payerRows+'</table>':'')
+  +(revRows?hdr('Revenue by Category')+'<table>'+revRows+'</table>':'');
+}
+function exportSirsCSV(){
+  if(!sirsData)return;
+  const r=sirsData;const rows=[['Section','Key','Value']];
+  function add(s,k,v){rows.push([s,k,String(v)])}
+  Object.entries(r.rl1).forEach(([k,v])=>add('RL1',k,v));
+  Object.entries(r.rl2a).forEach(([k,v])=>{
+    if(typeof v!=='object')add('RL2a',k,v);
+    else Object.entries(v).forEach(([k2,v2])=>add('RL2a_'+k,k2,v2));
+  });
+  Object.entries(r.rl3).forEach(([k,v])=>{
+    if(!Array.isArray(v)&&typeof v!=='object')add('RL3',k,v);
+  });
+  Object.entries(r.rl4a).forEach(([k,v])=>{
+    if(typeof v!=='object')add('RL4a',k,v);
+  });
+  Object.entries(r.rl4c).forEach(([k,v])=>{
+    if(typeof v!=='object')add('RL4c',k,v);
+  });
+  r.rl5a.top10.forEach((d,i)=>add('RL5a','Rank'+(i+1)+'_'+d.code,d.name+' ('+d.count+')'));
+  Object.entries(r.rl7).forEach(([k,v])=>{
+    if(typeof v!=='object')add('RL7',k,v);
+  });
+  Object.entries(r.rl8).forEach(([k,v])=>add('RL8',k,v));
+  Object.entries(r.rl9).forEach(([k,v])=>{
+    if(typeof v!=='object')add('RL9',k,v);
+  });
+  const csv=rows.map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='deers-rock-sirs-report.csv';a.click();
+}
 refresh();setInterval(refresh,2000);
 </script>
 
@@ -659,6 +851,31 @@ refresh();setInterval(refresh,2000);
     <span id=snapTick style=font-size:14px;font-weight:700;color:var(--accent)>0</span>
   </div>
   <div id=snapData></div>
+</div>
+
+<div id=rlReport class=report>
+  <button class=close onclick=closeSirs()>✕</button>
+  <div style=display:flex;justify-content:space-between;align-items:center;margin-bottom:8px>
+    <h3>🇮🇩 SIRS — RL Forms <span style=font-size:10px;color:var(--muted)>(Permenkes 1171/2011)</span></h3>
+    <div style=display:flex;gap:4px>
+      <button onclick=exportSirsCSV()>📥 CSV</button>
+    </div>
+  </div>
+  <div style=display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap>
+    <button onclick=showRlForm(1)>RL 1 Identitas</button>
+    <button onclick=showRlForm(2)>RL 2a Tenaga Kes</button>
+    <button onclick=showRlForm('2b')>RL 2b Non-Kes</button>
+    <button onclick=showRlForm(3)>RL 3 TT</button>
+    <button onclick=showRlForm('4a')>RL 4a Rawat Inap</button>
+    <button onclick=showRlForm('4b')>RL 4b Rawat Jalan</button>
+    <button onclick=showRlForm('4c')>RL 4c IGD</button>
+    <button onclick=showRlForm('5a')>RL 5a 10 Penyakit</button>
+    <button onclick=showRlForm('6a')>RL 6a Operasi</button>
+    <button onclick=showRlForm(7)>RL 7 Kematian</button>
+    <button onclick=showRlForm(8)>RL 8 Mutu</button>
+    <button onclick=showRlForm(9)>RL 9 Keuangan</button>
+  </div>
+  <div id=rlBody></div>
 </div>
 </body>
 </html>

@@ -7,7 +7,7 @@
     "deers-rock": "./bin/deers-rock.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "dev": "tsx src/cli/index.ts up 3000",
     "start": "node dist/cli/index.js up",
     "test": "vitest run",
