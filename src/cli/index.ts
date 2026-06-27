@@ -34,20 +34,23 @@ async function cmdUp() {
 
   let world: import("../engine/world.js").World;
 
+  console.log(`[boot] journalPath=${journalPath} DATA_DIR=${process.env.DATA_DIR}`);
   if (fs.existsSync(journalPath) && fs.statSync(journalPath).size > 1024) {
+    console.log(`[boot] DB found at ${journalPath}, size=${fs.statSync(journalPath).size}`);
     initJournal(journalPath);
     const snap = loadNearestSnapshot(Number.MAX_SAFE_INTEGER);
+    console.log(`[boot] loadNearestSnapshot returned tick=${snap.tick}, hasState=${!!snap.state}`);
     if (snap.state) {
       world = resumeWorld(snap.state, snap.tick, journalPath);
-      process.stdout.write("\r♻️ Restored from snapshot at tick " + snap.tick + "...\n");
+      console.log(`[boot] Restored from snapshot at tick ${snap.tick}`);
     } else {
-      process.stdout.write("\r⚠️ DB found but no valid snapshot, starting fresh\n");
+      console.log(`[boot] DB found but no valid snapshot, starting fresh`);
       world = createWorld(50, journalPath);
     }
   } else {
     const dbExists = fs.existsSync(journalPath);
     const dbSize = dbExists ? fs.statSync(journalPath).size : 0;
-    process.stdout.write(`\r📁 No DB to restore (exists=${dbExists}, size=${dbSize}), starting fresh\n`);
+    console.log(`[boot] No DB to restore (exists=${dbExists}, size=${dbSize}), starting fresh`);
     world = createWorld(50, journalPath);
   }
 
