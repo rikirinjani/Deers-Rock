@@ -21,15 +21,27 @@ const OBSERVATIONS = [
   "Urine output adequate",
 ];
 
+const MAX_NOTES_PER_ENCOUNTER = 15;
+const MAX_TOTAL_NOTES = 500;
+
 export function nursingHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0) return state;
 
-  if (clock.tick % 2 !== 0) return state;
+  if (clock.tick % 5 !== 0) return state;
 
   const newNotes = new Map(state.nurseNotes);
   for (const encounter of activeEncounters) {
-    if (Math.random() > 0.4) continue;
+    if (Math.random() > 0.35) continue;
+
+    const existing = Array.from(newNotes.values()).filter(n => n.encounterId === encounter.id);
+    if (existing.length >= MAX_NOTES_PER_ENCOUNTER) {
+      const sorted = existing.sort((a, b) => a.timestamp - b.timestamp);
+      for (let i = 0; i < sorted.length - MAX_NOTES_PER_ENCOUNTER + 1; i++) {
+        newNotes.delete(sorted[i]!.id);
+      }
+    }
+
     const note: NurseNote = {
       id: `NURSE-${clock.tick}-${encounter.patientId}`,
       encounterId: encounter.id,
@@ -39,6 +51,12 @@ export function nursingHandler(state: HospitalState, clock: Clock, _queue: Event
       timestamp: clock.hospitalTimeMs,
     };
     newNotes.set(note.id, note);
+  }
+
+  if (newNotes.size > MAX_TOTAL_NOTES) {
+    const sorted = Array.from(newNotes.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+    const toRemove = sorted.slice(0, newNotes.size - MAX_TOTAL_NOTES);
+    for (const [id] of toRemove) newNotes.delete(id);
   }
 
   return { ...state, nurseNotes: newNotes };

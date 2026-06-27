@@ -29,11 +29,27 @@
   button:hover{background:var(--accent);color:var(--bg)}
   .report{display:none;position:fixed;top:8px;left:8px;right:8px;bottom:8px;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;z-index:100;padding:16px;overflow-y:auto}
   .report.show{display:block}
-  .report pre{font-size:10px;color:var(--text);white-space:pre-wrap}
+  .report pre{font-size:10px;color:var(--text);white-space:pre-wrap;display:none}
+  .report pre.show{display:block}
   .report .close{float:right}
   .r-tab{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;margin-bottom:8px}
   .r-tab div{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:9px}
   .r-tab div b{display:block;font-size:10px}
+  .report section{margin-bottom:12px}
+  .report section h4{font-size:10px;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+  .report section table{width:100%;border-collapse:collapse;font-size:9px;margin-bottom:6px}
+  .report section th{text-align:left;padding:3px 4px;border-bottom:1px solid var(--border);color:var(--muted);font-size:8px;text-transform:uppercase}
+  .report section td{padding:2px 4px;border-bottom:1px solid var(--border)}
+  .report section tr:hover td{background:var(--surface)}
+  .report .section-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .r-meta{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .r-meta-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:9px;text-align:center}
+  .r-meta-item b{display:block;font-size:12px}
+  .page-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:1px 6px;border-radius:2px;cursor:pointer;font-size:8px;font-family:inherit}
+  .page-btn:hover{background:var(--accent);color:var(--bg)}
+  .page-btn:disabled{opacity:0.3;cursor:default}
+  .page-info{color:var(--muted);font-size:8px;margin:0 3px}
+  .panel-search{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:2px;width:80px;font-size:8px;font-family:inherit;margin-left:auto}
   .ward-list{display:flex;flex-direction:column;gap:3px}
   .ward-row{display:flex;align-items:center;gap:4px}
   .ward-name{width:80px;font-size:9px;flex-shrink:0}
@@ -86,6 +102,40 @@
 function fmtTime(ms){const m=Math.floor(ms/60000),h=Math.floor(m/60)%24,d=Math.floor(m/1440);return d>0?`Day ${d} ${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`:`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
 function wc(p){return p>=80?'#ef4444':p>=60?'#fb923c':p>=40?'#facc15':'#4ade80'}
 
+const PAGE_SIZE = 6;
+const page = {};
+function getPage(id){return page[id]||0}
+function setPage(id,v){page[id]=Math.max(0,v)}
+
+function render(id, cid, items, l1, l2, fn){
+  const el=document.getElementById(id);
+  const cnt=document.getElementById(cid);
+  if(!cnt)return;
+  cnt.textContent=items.length;
+  if(items.length===0){el.innerHTML='<div style=color:var(--muted);padding:4px>—</div>';return}
+  const pg=getPage(id);
+  const totalPages=Math.ceil(items.length/PAGE_SIZE)||1;
+  const start=pg*PAGE_SIZE;
+  const slice=items.slice(start,start+PAGE_SIZE);
+  let html='<table><thead><tr><th>'+l1+'</th><th>'+l2+'</th></tr></thead><tbody>'+slice.map(fn).join('')+'</tbody></table>';
+  if(totalPages>1){
+    html+='<div style=display:flex;justify-content:center;align-items:center;gap:4px;padding:3px 0>'
+    +'<button class=page-btn onclick="setPage(\''+id+'\','+(pg-1)+');refresh()" '+(pg===0?'disabled':'')+'>‹</button>'
+    +'<span class=page-info>'+(pg+1)+'/'+totalPages+'</span>'
+    +'<button class=page-btn onclick="setPage(\''+id+'\','+(pg+1)+');refresh()" '+(pg>=totalPages-1?'disabled':'')+'>›</button>'
+    +'</div>';
+  }
+  el.innerHTML=html;
+}
+function renderSimple(id, cid, items, fn, mx=5){
+  const el=document.getElementById(id);
+  const cnt=document.getElementById(cid);
+  if(!cnt)return;
+  cnt.textContent=items.length;
+  el.innerHTML=items.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
+  :'<table><thead><tr><th>Patient</th><th>Complaint</th><th>Acuity</th></tr></thead><tbody>'+items.slice(0,mx).map(fn).join('')+'</tbody></table>';
+}
+
 async function refresh(){
 try{
 const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv]=await Promise.all([
@@ -109,21 +159,19 @@ const statMap=[
 ];
 document.getElementById('stats').innerHTML=statMap.map(([l,v,c])=>`<div class=card><div class=value style=color:var(${c})>${v}</div><div class=label>${l}</div></div>`).join('');
 
-function render(id,cid,items,l1,l2,fn,mx=4){const e=document.getElementById(id);document.getElementById(cid).textContent=items.length;
-e.innerHTML=items.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
-:'<table><thead><tr><th>'+l1+'</th><th>'+l2+'</th></tr></thead><tbody>'+items.slice(0,mx).map(fn).join('')+'</tbody></table>';}
+function byStatus(items, order){return items.sort((a,b)=>{const sa=order.indexOf(a.status),sb=order.indexOf(b.status);return (sa===-1?99:sa)-(sb===-1?99:sb)})}
 
-render('labList','labCount',labs,'Test','Status',o=>`<tr><td style=font-size:8px>${o.testName}</td><td><span class=badge style=background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
-render('radList','radCount',rad,'Study','Status',o=>`<tr><td style=font-size:8px>${o.studyType.replace('Chest X-ray PA & Lateral','CXR').replace('Ultrasound','US')}</td><td><span class=badge style=background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
-render('medList','medCount',meds,'Med','Status',o=>`<tr><td style=font-size:8px>${o.medication.name}</td><td><span class=badge style=background:${o.status==='administered'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='administered'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
-render('surgList','surgCount',surg,'Procedure','Status',o=>`<tr><td style=font-size:8px>${o.procedureName.replace('Laparoscopic ','Lap ').replace('Total ','')}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
-render('nurseList','nurseCount',nursing,'Observation','Patient',n=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${n.content}</td><td>${n.patientId}</td></tr>`,3);
-render('docList','docCount',docs,'Order','Status',o=>`<tr><td style=font-size:8px>${o.description}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
-render('respList','respCount',resp,'Therapy','Status',o=>`<tr><td style=font-size:8px>${o.therapyType}</td><td><span class=badge style=background:rgba(251,191,36,0.15);color:var(--yellow)>${o.status}</span></td></tr>`);
-render('dietList','dietCount',diet,'Diet','Status',o=>`<tr><td style=font-size:8px>${o.dietType}</td><td><span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>${o.status}</span></td></tr>`);
-render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${o.content}</td><td style=font-size:8px>${o.noteType}</td></tr>`,3);
-render('chartList','chartCount',charts,'Patient','Status',o=>`<tr><td style=font-size:8px>${o.patientId}</td><td><span class=badge style=background:${o.status==='coded'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='coded'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
-render('finList','finCount',charges,'Charge','Amount',o=>`<tr><td style=font-size:8px>${o.description}</td><td style=color:var(--yellow)>Rp ${o.amount.toLocaleString()}</td></tr>`,3);
+render('labList','labCount',byStatus(labs,['ordered','collected','processing','resulted']),'Test','Status',o=>`<tr><td style=font-size:8px>${o.testName}</td><td><span class=badge style=background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
+render('radList','radCount',byStatus(rad,['ordered','scheduled','completed','resulted']),'Study','Status',o=>`<tr><td style=font-size:8px>${o.studyType.replace('Chest X-ray PA & Lateral','CXR').replace('Ultrasound','US')}</td><td><span class=badge style=background:${o.status==='resulted'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='resulted'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
+render('medList','medCount',byStatus(meds,['ordered','dispensed','administered','discontinued']),'Med','Status',o=>`<tr><td style=font-size:8px>${o.medication.name}</td><td><span class=badge style=background:${o.status==='administered'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='administered'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
+render('surgList','surgCount',byStatus(surg,['scheduled','in-progress','completed','cancelled']),'Procedure','Status',o=>`<tr><td style=font-size:8px>${o.procedureName.replace('Laparoscopic ','Lap ').replace('Total ','')}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
+render('nurseList','nurseCount',nursing,'Observation','Patient',n=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${n.content}</td><td>${n.patientId}</td></tr>`);
+render('docList','docCount',byStatus(docs,['active','completed','cancelled']),'Order','Status',o=>`<tr><td style=font-size:8px>${o.description}</td><td><span class=badge style=background:${o.status==='completed'?'rgba(74,222,128,0.15)':'rgba(56,189,248,0.15)'};color:${o.status==='completed'?'var(--green)':'var(--accent)'}>${o.status}</span></td></tr>`);
+render('respList','respCount',byStatus(resp,['ordered','active','discontinued']),'Therapy','Status',o=>`<tr><td style=font-size:8px>${o.therapyType}</td><td><span class=badge style=background:rgba(251,191,36,0.15);color:var(--yellow)>${o.status}</span></td></tr>`);
+render('dietList','dietCount',byStatus(diet,['active','discontinued']),'Diet','Status',o=>`<tr><td style=font-size:8px>${o.dietType}</td><td><span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>${o.status}</span></td></tr>`);
+render('socialList','socialCount',social,'Note','Type',o=>`<tr><td style=font-size:7px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${o.content}</td><td style=font-size:8px>${o.noteType}</td></tr>`);
+render('chartList','chartCount',byStatus(charts,['open','incomplete','completed','coded']),'Patient','Status',o=>`<tr><td style=font-size:8px>${o.patientId}</td><td><span class=badge style=background:${o.status==='coded'?'rgba(74,222,128,0.15)':'rgba(251,191,36,0.15)'};color:${o.status==='coded'?'var(--green)':'var(--yellow)'}>${o.status}</span></td></tr>`);
+render('finList','finCount',charges,'Charge','Amount',o=>`<tr><td style=font-size:8px>${o.description}</td><td style=color:var(--yellow)>Rp ${o.amount.toLocaleString()}</td></tr>`);
 render('invList','invCount',inv,'Item','Stock',o=>`<tr><td style=font-size:8px>${o.itemName}</td><td style=color:var(--red)>${o.stock}/${o.minStock}</td></tr>`);
 
 // Wards
@@ -152,19 +200,82 @@ let lastReport=null;
 async function showReport(){
 if(!lastReport)try{lastReport=await fetch('/api/report').then(r=>r.json())}catch(e){return}
 const r=lastReport;
-document.getElementById('reportPre').textContent=JSON.stringify(r,null,2);
-document.getElementById('rCensus').innerHTML=
-  `<b>${r.census.totalPatients}</b>Patients <b>${r.census.activeEncounters}</b>Active <b>${r.census.dischargedEncounters}</b>D/C `+
-  `<b>${r.census.occupancyRate}%</b>Occ <b>${r.census.waitingRoom}</b>Waiting`;
-document.getElementById('rClinical').innerHTML=
-  `<b>${r.clinical.lab.total}</b>Lab <b>${r.clinical.lab.resulted}</b>Res <b>${r.clinical.radiology.total}</b>Rad `+
-  `<b>${r.clinical.surgery.total}</b>OR <b>${r.clinical.pharmacy.total}</b>Rx`;
-document.getElementById('rFinance').innerHTML=
-  `<b>Rp ${(r.finance.totalChargeAmount/1e6).toFixed(0)}M</b>Charges <b>${r.finance.totalClaims}</b>Claims `+
-  `<b>Rp ${(r.finance.totalPaymentAmount/1e6).toFixed(1)}M</b>Collected`;
+const oc=r.census;
+document.getElementById('reportRaw').textContent=JSON.stringify(r,null,2);
+
+function sec(title,html){return '<section><h4>'+title+'</h4>'+html+'</section>'}
+function h(rk, vk, html){return r.clinical?.[rk]?.[vk] !== undefined ? html(r.clinical[rk][vk]) : ''}
+
+const demog=oc.totalPatients>0?`
+<table><tr><th>Gender</th><th>Count</th><th>%</th></tr>
+${Object.entries(oc.demographics?.byGender||{}).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td><td>${(v/oc.totalPatients*100).toFixed(0)}%</td></tr>`).join('')}
+</table>`:'<div style=color:var(--muted)>No patient data</div>';
+
+const diag=oc.totalPatients>0?`
+<table><tr><th>Diagnosis</th><th>Count</th><th>%</th></tr>
+${Object.entries(oc.demographics?.byDiagnosis||{}).sort((a,b)=>b[1]-a[1]).slice(0,15).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td><td>${(v/oc.totalPatients*100).toFixed(0)}%</td></tr>`).join('')}
+</table>`:'';
+
+const reportHtml=
+'<div class=r-meta>'
++'<div class=r-meta-item><b>'+oc.totalPatients+'</b>Patients</div>'
++'<div class=r-meta-item><b>'+oc.activeEncounters+'</b>Active</div>'
++'<div class=r-meta-item><b>'+oc.dischargedEncounters+'</b>D/C</div>'
++'<div class=r-meta-item><b>'+oc.occupancyRate+'%</b>Occupancy</div>'
++'<div class=r-meta-item><b>'+oc.waitingRoom+'</b>Waiting</div>'
++'<div class=r-meta-item><b>'+(r.clinical?.lab?.total||0)+'</b>Lab</div>'
++'<div class=r-meta-item><b>Rp '+(r.finance?(r.finance.totalChargeAmount/1e6).toFixed(0):'0')+'M</b>Charges</div>'
++'<div class=r-meta-item><b>'+(r.finance?.totalClaims||0)+'</b>Claims</div>'
++'<div class=r-meta-item><b>Rp '+(r.finance?(r.finance.totalPaymentAmount/1e6).toFixed(1):'0')+'M</b>Collected</div>'
++'</div>'
++'<div class=section-grid>'
++sec('Demographics',demog)
++sec('Top Diagnoses',diag||'<div style=color:var(--muted)>No data</div>')
++'</div>';
+
+const clinSec=sec('Clinical Operations',`
+<table><tr><th>Service</th><th>Total</th><th>Active</th><th>Completed</th></tr>
+<tr><td>Lab</td><td>${r.clinical?.lab?.total||0}</td><td>${(r.clinical?.lab?.total||0)-(r.clinical?.lab?.resulted||0)}</td><td>${r.clinical?.lab?.resulted||0}</td></tr>
+<tr><td>Radiology</td><td>${r.clinical?.radiology?.total||0}</td><td>${(r.clinical?.radiology?.total||0)-(r.clinical?.radiology?.resulted||0)}</td><td>${r.clinical?.radiology?.resulted||0}</td></tr>
+<tr><td>Surgery</td><td>${r.clinical?.surgery?.total||0}</td><td>${r.clinical?.surgery?.inProgress||0}</td><td>${r.clinical?.surgery?.completed||0}</td></tr>
+<tr><td>Pharmacy</td><td>${r.clinical?.pharmacy?.total||0}</td><td>${(r.clinical?.pharmacy?.total||0)-(r.clinical?.pharmacy?.administered||0)}</td><td>${r.clinical?.pharmacy?.administered||0}</td></tr>
+</table>`);
+
+const finSec=sec('Financial Summary',`
+<table><tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Total Charges</td><td>Rp ${(r.finance?.totalChargeAmount||0).toLocaleString()}</td></tr>
+<tr><td>Total Payments</td><td>Rp ${(r.finance?.totalPaymentAmount||0).toLocaleString()}</td></tr>
+<tr><td>Outstanding</td><td style=color:var(--yellow)>Rp ${((r.finance?.totalChargeAmount||0)-(r.finance?.totalPaymentAmount||0)).toLocaleString()}</td></tr>
+<tr><td>Total Claims</td><td>${r.finance?.totalClaims||0}</td></tr>
+<tr><td>Paid Claims</td><td style=color:var(--green)>${r.finance?.paidClaims||0}</td></tr>
+<tr><td>Denied Claims</td><td style=color:var(--red)>${r.finance?.deniedClaims||0}</td></tr>
+</table>`);
+
+document.getElementById('rBody').innerHTML=reportHtml+clinSec+finSec;
 document.getElementById('rReport').classList.add('show');
 }
 function closeReport(){document.getElementById('rReport').classList.remove('show')}
+function toggleRawReport(){
+  const pre=document.getElementById('reportRaw');
+  pre.classList.toggle('show');
+}
+function exportCSV(){
+if(!lastReport)return;
+const r=lastReport;const rows=[['Section','Key','Value']];
+function add(s,k,v){rows.push([s,k,String(v)])}
+add('Census','Total Patients',r.census.totalPatients);
+add('Census','Active Encounters',r.census.activeEncounters);
+add('Census','Discharged',r.census.dischargedEncounters);
+add('Census','Occupancy Rate',r.census.occupancyRate+'%');
+add('Census','Waiting Room',r.census.waitingRoom);
+if(r.clinical){Object.entries(r.clinical).forEach(([k,v])=>{if(typeof v==='object')Object.entries(v).forEach(([k2,v2])=>add('Clinical-'+k,k2,v2))})}
+if(r.finance){Object.entries(r.finance).forEach(([k,v])=>add('Finance',k,v))}
+add('Tick',r.tick||'');
+add('Time',r.hospitalTime||'');
+const csv=rows.map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+a.href=URL.createObjectURL(b);a.download='deers-rock-report.csv';a.click();
+}
 
 let journalFilter='';
 async function showJournal(){
@@ -242,9 +353,15 @@ refresh();setInterval(refresh,1000);
 
 <div id=rReport class=report>
   <button class=close onclick=closeReport()>✕</button>
-  <h3 style=margin-bottom:8px>📊 Hospital Statistics Report</h3>
-  <div class=r-tab><div id=rCensus></div><div id=rClinical></div><div id=rFinance></div></div>
-  <pre id=reportPre></pre>
+  <div style=display:flex;justify-content:space-between;align-items:center;margin-bottom:8px>
+    <h3>📊 Hospital Statistics Report</h3>
+    <div style=display:flex;gap:4px>
+      <button onclick=toggleRawReport()>📄 Raw JSON</button>
+      <button onclick=exportCSV()>📥 CSV</button>
+    </div>
+  </div>
+  <div id=rBody></div>
+  <pre id=reportRaw></pre>
 </div>
 
 <div id=jReport class=report>

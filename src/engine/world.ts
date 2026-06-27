@@ -2,6 +2,7 @@ import { createClock, tick, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
+import { cleanupHandler } from "./cleanup.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { pharmacyHandler, medAdminHandler } from "./pharmacy.js";
@@ -82,6 +83,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
       billingHandler,
       cashierHandler,
       vitalsUpdateHandler,
+      cleanupHandler,
     ],
   };
 }
@@ -268,10 +270,6 @@ export function step(world: World): World {
 
   state = medAdminHandler(state, newClock, world.queue);
   state = orderCompleteHandler(state, newClock, world.queue);
-
-  if (newClock.tick % 5 === 0) {
-    world.queue.schedule("admission", newClock.tick + 3, {});
-  }
 
   if (snap && journaling) {
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);

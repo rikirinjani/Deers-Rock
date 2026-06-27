@@ -10,11 +10,14 @@ const CHARGE_RATES: Record<ChargeCategory, number> = {
   room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
 };
 
+const MAX_CHARGES = 100;
+const MAX_CLAIMS = 100;
+const MAX_PAYMENTS = 50;
+
 export function billingHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  const newCharges = new Map(state.charges);
+  let newCharges = new Map(state.charges);
   const newClaims = new Map(state.insuranceClaims);
 
-  // Generate room charges for active encounters every 5 ticks
   if (clock.tick % 5 === 0) {
     const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
     for (const enc of activeEncounters) {
@@ -32,7 +35,12 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     }
   }
 
-  // Generate insurance claims on discharge
+  if (newCharges.size > MAX_CHARGES) {
+    const sorted = Array.from(newCharges.entries()).sort((a, b) => a[1].billedAt - b[1].billedAt);
+    const toRemove = sorted.slice(0, newCharges.size - MAX_CHARGES);
+    for (const [id] of toRemove) newCharges.delete(id);
+  }
+
   for (const enc of state.encounters.values()) {
     if (enc.status !== "discharged") continue;
     const claimId = `CLM-${enc.id}`;
@@ -59,7 +67,6 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     newClaims.set(claim.id, claim);
   }
 
-  // Process claims every 15 ticks
   if (clock.tick > 0 && clock.tick % 15 === 0) {
     for (const [id, claim] of newClaims) {
       if (claim.status === "submitted") {
@@ -70,11 +77,17 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     }
   }
 
+  if (newClaims.size > MAX_CLAIMS) {
+    const sorted = Array.from(newClaims.entries()).sort((a, b) => (a[1].submittedAt ?? 0) - (b[1].submittedAt ?? 0));
+    const toRemove = sorted.slice(0, newClaims.size - MAX_CLAIMS);
+    for (const [id] of toRemove) newClaims.delete(id);
+  }
+
   return { ...state, charges: newCharges, insuranceClaims: newClaims };
 }
 
 export function cashierHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  const newPayments = new Map(state.payments);
+  let newPayments = new Map(state.payments);
   const newClaims = new Map(state.insuranceClaims);
 
   if (clock.tick % 10 !== 0) return { ...state, insuranceClaims: newClaims, payments: newPayments };
@@ -93,6 +106,12 @@ export function cashierHandler(state: HospitalState, clock: Clock, _queue: Event
       newPayments.set(payment.id, payment);
       break;
     }
+  }
+
+  if (newPayments.size > MAX_PAYMENTS) {
+    const sorted = Array.from(newPayments.entries()).sort((a, b) => a[1].paidAt - b[1].paidAt);
+    const toRemove = sorted.slice(0, newPayments.size - MAX_PAYMENTS);
+    for (const [id] of toRemove) newPayments.delete(id);
   }
 
   return { ...state, insuranceClaims: newClaims, payments: newPayments };
