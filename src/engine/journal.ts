@@ -134,6 +134,7 @@ function mapToArr<K extends string, V>(map: Map<K, V>): [string, V][] {
 }
 
 function arrToMap<K extends string, V>(arr: [string, V][]): Map<K, V> {
+  if (!Array.isArray(arr)) return new Map();
   return new Map(arr) as Map<K, V>;
 }
 

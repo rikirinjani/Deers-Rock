@@ -653,7 +653,9 @@ function buildRlForm(n){
   if(n==='4b')return buildRl4b(d);
   if(n==='4c')return buildRl4c(d);
   if(n==='5a')return buildRl5a(d);
+  if(n==='5b')return buildRl5b(d);
   if(n==='6a')return buildRl6a(d);
+  if(n==='6b')return buildRl6b(d);
   if(n===7)return buildRl7(d);
   if(n===8)return buildRl8(d);
   if(n===9)return buildRl9(d);
@@ -749,6 +751,16 @@ function buildRl5a(d){
   '<div style=font-size:8px;color:var(--muted);margin-bottom:4px>Periode: '+r.period+' | Tick: '+d.tick+'</div>'+
   '<table><thead><tr><th>#</th><th>ICD</th><th>Diagnosis</th><th>Jumlah</th><th>L/P</th></tr></thead><tbody>'+(rows||'<tr><td colspan=5 style=color:var(--muted)>No data</td></tr>')+'</tbody></table>';
 }
+function buildRl5b(d){
+  const r=d.rl5b;
+  const rows=r.top10.map((dx,i)=>{
+    const poliStr=dx.byPoli?Object.entries(dx.byPoli).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>k+':'+v).join(' '):'';
+    return '<tr><td style=color:var(--muted);font-size:9px;text-align:center>'+(i+1)+'</td><td style=font-size:9px;color:var(--accent)>'+dx.code+'</td><td style=font-size:9px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>'+dx.name+'</td><td style=font-size:9px;text-align:center;color:var(--yellow)>'+dx.count+'</td><td style=font-size:8px;text-align:center>'+dx.genderBreakdown.male+'/'+dx.genderBreakdown.female+'</td><td style=font-size:7px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>'+(poliStr||'—')+'</td></tr>';
+  }).join('');
+  return hdr('RL 5b — 10 Besar Penyakit Rawat Jalan')+
+  '<div style=font-size:8px;color:var(--muted);margin-bottom:4px>Periode: '+r.period+' | Tick: '+d.tick+'</div>'+
+  '<table><thead><tr><th>#</th><th>ICD</th><th>Diagnosis</th><th>Jml</th><th>L/P</th><th>Poli</th></tr></thead><tbody>'+(rows||'<tr><td colspan=6 style=color:var(--muted)>No data</td></tr>')+'</tbody></table>';
+}
 function buildRl6a(d){
   const r=d.rl6a;
   const procRows=Object.entries(r.procedureBreakdown).map(([k,v])=>tRow(k,v)).join('');
@@ -756,6 +768,14 @@ function buildRl6a(d){
   '<table>'+tRow('Total Operasi',r.totalSurgeries)+tRow('Selesai',r.completedSurgeries)
   +tRow('Dibatalkan',r.cancelledSurgeries)+tRow('Elektif',r.electiveSurgeries)
   +tRow('Emergensi',r.emergencySurgeries)+'</table>'
+  +(procRows?hdr('by Jenis Tindakan')+'<table>'+procRows+'</table>':'');
+}
+function buildRl6b(d){
+  const r=d.rl6b;
+  const procRows=Object.entries(r.procedureBreakdown).map(([k,v])=>tRow(k,v)).join('');
+  return hdr('RL 6b — Tindakan Operasi Rawat Jalan')+
+  '<table>'+tRow('Total Operasi RJ',r.totalOutpatientSurgeries)+tRow('Selesai',r.completedOutpatient)
+  +tRow('Dibatalkan',r.cancelledOutpatient)+'</table>'
   +(procRows?hdr('by Jenis Tindakan')+'<table>'+procRows+'</table>':'');
 }
 function buildRl7(d){
@@ -869,8 +889,10 @@ refresh();setInterval(refresh,2000);
     <button onclick=showRlForm('4a')>RL 4a Rawat Inap</button>
     <button onclick=showRlForm('4b')>RL 4b Rawat Jalan</button>
     <button onclick=showRlForm('4c')>RL 4c IGD</button>
-    <button onclick=showRlForm('5a')>RL 5a 10 Penyakit</button>
-    <button onclick=showRlForm('6a')>RL 6a Operasi</button>
+    <button onclick=showRlForm('5a')>RL 5a 10 Penyakit (RI)</button>
+    <button onclick=showRlForm('5b')>RL 5b 10 Penyakit (RJ)</button>
+    <button onclick=showRlForm('6a')>RL 6a Operasi (RI)</button>
+    <button onclick=showRlForm('6b')>RL 6b Operasi (RJ)</button>
     <button onclick=showRlForm(7)>RL 7 Kematian</button>
     <button onclick=showRlForm(8)>RL 8 Mutu</button>
     <button onclick=showRlForm(9)>RL 9 Keuangan</button>
