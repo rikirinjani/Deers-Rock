@@ -26,31 +26,23 @@ function animateBoot() {
 }
 
 async function cmdUp() {
-  animateBoot();
-
   const port = parseInt(process.env.PORT ?? process.argv[3] ?? "3000", 10);
   const dataDir = process.env.DATA_DIR ?? ".";
   const journalPath = `${dataDir}/world-journal.db`;
 
   let world: import("../engine/world.js").World;
 
-  console.log(`[boot] journalPath=${journalPath} DATA_DIR=${process.env.DATA_DIR}`);
   if (fs.existsSync(journalPath) && fs.statSync(journalPath).size > 1024) {
-    console.log(`[boot] DB found at ${journalPath}, size=${fs.statSync(journalPath).size}`);
     initJournal(journalPath);
     const snap = loadNearestSnapshot(Number.MAX_SAFE_INTEGER);
-    console.log(`[boot] loadNearestSnapshot returned tick=${snap.tick}, hasState=${!!snap.state}`);
     if (snap.state) {
       world = resumeWorld(snap.state, snap.tick, journalPath);
-      console.log(`[boot] Restored from snapshot at tick ${snap.tick}`);
     } else {
-      console.log(`[boot] DB found but no valid snapshot, starting fresh`);
+      process.stdout.write("⚠️ DB exists but no valid snapshot found, starting fresh\n");
       world = createWorld(50, journalPath);
     }
   } else {
-    const dbExists = fs.existsSync(journalPath);
-    const dbSize = dbExists ? fs.statSync(journalPath).size : 0;
-    console.log(`[boot] No DB to restore (exists=${dbExists}, size=${dbSize}), starting fresh`);
+    process.stdout.write("📁 No existing database found, starting fresh\n");
     world = createWorld(50, journalPath);
   }
 
@@ -61,10 +53,10 @@ async function cmdUp() {
     world = step(world);
   }, 1000);
 
-  console.log(`\n🦌 Deer's Rock Hospital is running`);
-  console.log(`   Time: ${formatHospitalTime(world.clock)}`);
-  console.log(`   API:  http://localhost:${port}/api/status`);
-  console.log(`   Tick: ${world.clock.tick}`);
+  process.stdout.write(`\n🦌 Deer's Rock Hospital is running\n`);
+  process.stdout.write(`   Time: ${formatHospitalTime(world.clock)}\n`);
+  process.stdout.write(`   API:  http://localhost:${port}/api/status\n`);
+  process.stdout.write(`   Tick: ${world.clock.tick}\n`);
 }
 
 function cmdStatus() {
