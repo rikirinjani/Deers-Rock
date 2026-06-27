@@ -102,6 +102,7 @@
     <div class=panel><div class=panel-header>📦 Inventory <span id=invCount style=color:var(--yellow)>0</span></div><div class=panel-body><div id=invList></div></div></div>
     <div class=panel><div class=panel-header>🏥 Top 10 ICD <span id=icdPeriod style=color:var(--muted);font-size:7px></span></div><div class=panel-body><div id=icdList></div></div></div>
     <div class=panel><div class=panel-header>⚰️ Morgue <span id=morgueCount style=color:var(--red)>0</span></div><div class=panel-body><div id=morgueList></div></div></div>
+    <div class=panel><div class=panel-header>📋 M&M Conference <span id=mmCount style=color:var(--purple)>0</span></div><div class=panel-body><div id=mmList></div></div></div>
     <div class=panel><div class=panel-header>📅 Calendar <span id=calDate style=color:var(--accent);font-size:7px></span></div><div class=panel-body><div id=calList></div></div></div>
   </div>
 
@@ -148,7 +149,7 @@ function renderSimple(id, cid, items, fn, mx=5){
 
 async function refresh(){
 try{
-const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases,poliData,learnData,cals,morgueData]=await Promise.all([
+const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases,poliData,learnData,cals,morgueData,mmData]=await Promise.all([
   fetch('/api/status').then(r=>r.json()),fetch('/api/beds').then(r=>r.json()),fetch('/api/encounters').then(r=>r.json()),
   fetch('/api/labs').then(r=>r.json()),fetch('/api/radiology').then(r=>r.json()),fetch('/api/medications').then(r=>r.json()),
   fetch('/api/surgery').then(r=>r.json()),fetch('/api/nursing').then(r=>r.json()),fetch('/api/orders').then(r=>r.json()),
@@ -161,6 +162,7 @@ const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,char
   fetch('/api/outpatient').then(r=>r.json()),fetch('/api/learning').then(r=>r.json()),
   fetch('/api/calendar').then(r=>r.json()),
   fetch('/api/morgue').then(r=>r.json()),
+  fetch('/api/mm-conference').then(r=>r.json()),
 ]);
 
 document.getElementById('hTime').textContent=s.time;document.getElementById('hTick').textContent=s.tick;
@@ -234,6 +236,29 @@ morgueEl.innerHTML=morgueTotal===0?'<div style=color:var(--muted);padding:4px>�
   :'<table><thead><tr><th>Diagnosis</th><th>Age</th><th>Cause</th></tr></thead><tbody>'+
   morgueBodies.slice(-4).reverse().map(m=>`<tr><td style=font-size:7px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${m.primaryDiagnosis}</td><td style=font-size:8px;color:var(--muted)>${m.age}</td><td style=font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--red)>${m.causeOfDeath}</td></tr>`).join('')+'</tbody></table>'
   +(topCauses.length>0?`<div style=font-size:7px;color:var(--muted);padding:2px 4px;border-top:1px solid var(--border)>Top: ${topCauses.map(([d,c])=>`${d} (${c})`).join(', ')}</div>`:'');
+
+// M&M Conference
+const mmLatest=mmData.latest;
+document.getElementById('mmCount').textContent=mmLatest?'#'+mmLatest.id:'0';
+const mmEl=document.getElementById('mmList');
+if(!mmLatest){mmEl.innerHTML='<div style=color:var(--muted);padding:4px>No conference held yet</div>'}
+else{
+  let mmHtml=`<div style=font-size:7px;color:var(--muted);padding:2px 0>${mmLatest.date} · ${mmLatest.totalDeathsSinceLast} death(s) reviewed</div>`;
+  const top5=mmLatest.topPreventable||[];
+  if(top5.length>0){
+    mmHtml+='<table><thead><tr><th>#</th><th>Diagnosis</th><th>Label</th></tr></thead><tbody>';
+    top5.forEach((c,i)=>{
+      const lbl=c.preventabilityLabel;
+      const color=lbl==='preventable'?'var(--red)':lbl==='potentially_preventable'?'var(--yellow)':'var(--green)';
+      mmHtml+=`<tr><td style=font-size:8px;color:var(--muted)>${i+1}</td><td style=font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${c.primaryDiagnosis}</td><td style=font-size:7px;color:${color}>${lbl.replace('_',' ')}</td></tr>`;
+    });
+    mmHtml+='</tbody></table>';
+  }
+  if(mmLatest.overallRecommendations&&mmLatest.overallRecommendations.length>0){
+    mmHtml+='<div style=font-size:7px;color:var(--accent);padding:2px 4px;border-top:1px solid var(--border)>Recs: '+mmLatest.overallRecommendations.slice(0,3).join('; ')+'</div>';
+  }
+  mmEl.innerHTML=mmHtml;
+}
 
 // Calendar
 document.getElementById('calDate').textContent=cals.formatted||'—';

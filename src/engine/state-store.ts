@@ -3,6 +3,7 @@ import type { SpecialtyOrder } from "./specialty.js";
 import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
+import type { MmConference } from "./mm-conference.js";
 import { centralSupplyInit } from "./central-supply.js";
 
 export interface MorgueRecord {
@@ -84,6 +85,8 @@ export interface HospitalState {
   _calendarTicks: number;
   morgue: MorgueRecord[];
   morgueCapacity: number;
+  _mmConferences: MmConference[];
+  _mmLastConferenceTick: number;
 }
 
 export interface OutpatientVisit {
@@ -161,5 +164,7 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _calendarTicks: 0,
     morgue: [],
     morgueCapacity: 10,
+    _mmConferences: [],
+    _mmLastConferenceTick: 0,
   };
 }

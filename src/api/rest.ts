@@ -131,6 +131,11 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     if (!bundle) { res.writeHead(404); res.end("Not found"); return true; }
     json(res, bundle); return true;
   }
+  if (p === "/api/mm-conference") {
+    const conferences = (w.state._mmConferences || []) as any[];
+    const latest = conferences[conferences.length - 1] ?? null;
+    json(res, { latest, total: conferences.length }); return true;
+  }
   if (p === "/api/morgue") {
     const morgue = w.state.morgue || [];
     const totalDeaths = morgue.length;

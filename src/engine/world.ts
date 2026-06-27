@@ -6,6 +6,7 @@ import { cleanupHandler } from "./cleanup.js";
 import { outcomeHandler } from "./outcome-tracker.js";
 import { learningHandler } from "./agent-learning.js";
 import { outpatientHandler } from "./outpatient.js";
+import { runMmConference } from "./mm-conference.js";
 import { icdTrackerHandler } from "./icd-tracker.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
@@ -280,6 +281,9 @@ export function step(world: World): World {
 
   state = medAdminHandler(state, newClock, world.queue);
   state = orderCompleteHandler(state, newClock, world.queue);
+
+  const mmResult = runMmConference(state, newClock, world.queue);
+  state = mmResult.state;
 
   state = { ...state, _calendarTicks: newClock.tick };
 

@@ -191,6 +191,8 @@ function deserializeState(json: string): HospitalState {
     _calendarTicks: 0,
     morgue: [],
     morgueCapacity: 10,
+    _mmConferences: [],
+    _mmLastConferenceTick: 0,
   };
 }
 
