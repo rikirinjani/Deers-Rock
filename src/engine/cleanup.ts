@@ -38,7 +38,7 @@ export function cleanupHandler(state: HospitalState, _clock: Clock, _queue: Even
     dietOrders: pruneOldest(state.dietOrders, MAX_DIET, o => o.status === "discontinued", o => o.orderedAt),
     edTriages: pruneOldest(state.edTriages, MAX_ED, o => o.disposition !== null, o => o.triagedAt),
     medicalCharts: pruneOldest(state.medicalCharts, MAX_CHART, o => o.status === "completed" || o.status === "coded", o => o.createdAt),
-    specialtyOrders: pruneOldest(state.specialtyOrders, MAX_SPEC, o => o.status === "completed" || o.status === "cancelled", o => o.orderedAt),
+    specialtyOrders: pruneOldest(state.specialtyOrders, MAX_SPEC, o => o.status === "completed", o => o.orderedAt),
     socialWorkNotes: pruneOldest(state.socialWorkNotes, MAX_SOCIAL, () => true, o => o.timestamp),
     stockTransactions: pruneOldest(state.stockTransactions, MAX_STOCK, () => true, o => o.timestamp),
   };
