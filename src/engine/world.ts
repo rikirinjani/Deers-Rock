@@ -35,11 +35,13 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
   const patients = generatePatientPool(patientCount);
   const jp = journalPath ?? null;
 
+  const state = createState(patients);
+  const totalBeds = Object.values(state.wardCapacity).reduce((s, c) => s + c, 0);
+
   const initialAgentState = initAgentState();
-  initialAgentState.pool = generateAgentPool();
+  initialAgentState.pool = generateAgentPool(totalBeds);
   const initialReferralState = initReferralState();
 
-  const state = createState(patients);
   state._agentState = initialAgentState;
   state._referralState = initialReferralState;
 

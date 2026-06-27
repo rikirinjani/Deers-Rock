@@ -107,26 +107,40 @@ export function generateAgent(role: AgentRole): HospitalAgent {
   };
 }
 
-export function generateAgentPool(): AgentPool {
+function repeatRoles(role: AgentRole, count: number): AgentRole[] {
+  return Array.from({ length: count }, () => role);
+}
+
+export function generateAgentPool(totalBeds: number = 133): AgentPool {
   const agents = new Map<string, HospitalAgent>();
 
+  const minStaff = (ratio: number, min: number) => Math.max(min, Math.round(totalBeds / ratio));
+
   const roles: AgentRole[] = [
-    "dokter_spesialis", "dokter_spesialis", "dokter_spesialis", "dokter_spesialis", "dokter_spesialis",
-    "dokter_umum", "dokter_umum", "dokter_umum", "dokter_umum", "dokter_umum",
-    "perawat", "perawat", "perawat", "perawat", "perawat", "perawat", "perawat", "perawat",
-    "perawat", "perawat", "perawat", "perawat", "perawat", "perawat", "perawat",
-    "perawat_anestesi", "perawat_anestesi",
-    "bidan", "bidan", "bidan",
-    "apoteker", "apoteker", "apoteker",
-    "asisten_apoteker", "asisten_apoteker",
-    "radiografer", "radiografer", "analis_lab", "analis_lab", "analis_lab",
-    "nutrisionis", "fisioterapis", "okupasi_terapis", "psikolog",
-    "pekerja_sosial", "pekerja_sosial",
-    "rekam_medis", "rekam_medis", "koder", "koder",
-    "kasir", "staf_keuangan", "staf_inventaris",
-    "petugas_kebersihan", "petugas_kebersihan",
-    "petugas_keamanan", "petugas_keamanan",
-    "admin", "admin", "sopir_ambulans",
+    ...repeatRoles("dokter_spesialis", minStaff(15, 8)),
+    ...repeatRoles("dokter_umum", minStaff(25, 5)),
+    ...repeatRoles("dokter_gigi", minStaff(150, 2)),
+    ...repeatRoles("perawat", minStaff(3, 20)),
+    ...repeatRoles("perawat_anestesi", minStaff(60, 2)),
+    ...repeatRoles("bidan", minStaff(30, 4)),
+    ...repeatRoles("apoteker", minStaff(40, 3)),
+    ...repeatRoles("asisten_apoteker", minStaff(30, 3)),
+    ...repeatRoles("radiografer", minStaff(50, 2)),
+    ...repeatRoles("analis_lab", minStaff(35, 3)),
+    ...repeatRoles("nutrisionis", minStaff(60, 2)),
+    ...repeatRoles("fisioterapis", minStaff(80, 2)),
+    ...repeatRoles("okupasi_terapis", minStaff(120, 1)),
+    ...repeatRoles("psikolog", minStaff(200, 1)),
+    ...repeatRoles("pekerja_sosial", minStaff(80, 2)),
+    ...repeatRoles("rekam_medis", minStaff(40, 3)),
+    ...repeatRoles("koder", minStaff(50, 2)),
+    ...repeatRoles("kasir", minStaff(80, 2)),
+    ...repeatRoles("staf_keuangan", minStaff(60, 2)),
+    ...repeatRoles("staf_inventaris", minStaff(80, 2)),
+    ...repeatRoles("petugas_kebersihan", minStaff(15, 4)),
+    ...repeatRoles("petugas_keamanan", minStaff(30, 3)),
+    ...repeatRoles("admin", minStaff(20, 4)),
+    ...repeatRoles("sopir_ambulans", minStaff(100, 2)),
   ];
 
   for (const role of roles) {
