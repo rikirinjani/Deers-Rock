@@ -208,3 +208,19 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 **Handoff to Platform OC:** Implement optional rng parameter on generators. Patient and agent generators are the priority — identity generator can follow. This closes the full-world reproducibility gap.
 
 **Handoff to Research OC:** Once generators are seeded, full-world reproducibility is complete. E2 (LOS) and E5 (Protocols) can run with identical initial conditions across runs.
+
+## [2026-06-28 12:35] Platform OC — Generator Seeding Complete
+
+### What was done
+- Added optional `rng?: () => number` parameter to all generator functions, defaulting to `Math.random` for backward compatibility:
+  - `generatePatient(rng?)`, `generatePatientPool(count, rng?)` in `patient/generator.ts`
+  - `generateAgent(role, rng?)`, `generateAgentPool(totalBeds, rng?)` in `agent/generator.ts`
+  - `generateIdentity(gender?, rng?)` in `identity/generator.ts`
+  - All internal helpers (`pickRandom`, `pickWeighted`, `generateVitals`, `generateDiagnoses`, etc.) thread `rng` through
+- Added `seed?: number` parameter to `createWorld(patientCount, journalPath?, seed?)` — seeds all generators + clock RNG
+- `createWorld(50, "journal.db", 42)` now produces identical output every run
+
+### Generator seeding closed the full-world reproducibility gap.
+- ADR-008 is now fully implemented end-to-end
+- Milestone 2.6 (multi-run harness) is now feasible
+- All 66 tests passing, build clean
