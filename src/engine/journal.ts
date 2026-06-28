@@ -36,8 +36,10 @@ export function initJournal(dbPath?: string): void {
   const dir = dbPath ? path.dirname(dbPath) : ".";
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   db = new Database(dbPath ?? "world-journal.db", {});
-  db.pragma("journal_mode = WAL");
+  db.pragma("journal_mode = DELETE");
   db.pragma("synchronous = NORMAL");
+  db.pragma("auto_vacuum = INCREMENTAL");
+  db.pragma("page_size = 4096");
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS world_journal (
@@ -129,9 +131,10 @@ export function journalPurge(currentTick: number): void {
   const cutoff = currentTick - JOURNAL_RETENTION_TICKS;
   if (cutoff > 0) {
     try {
-      db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
-      db.pragma("wal_checkpoint(TRUNCATE)");
-      db.exec("VACUUM");
+      const deleted = db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
+      if (deleted.changes > 1000) {
+        db.pragma("incremental_vacuum");
+      }
     } catch { }
   }
 }
@@ -144,7 +147,7 @@ export function journalHardPurge(): void {
     const cutoff = row.t - 100;
     if (cutoff > 0) {
       db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
-      db.pragma("wal_checkpoint(TRUNCATE)");
+      db.pragma("incremental_vacuum");
     }
   } catch { }
 }
