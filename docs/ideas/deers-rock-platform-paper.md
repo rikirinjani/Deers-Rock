@@ -16,6 +16,7 @@ An event-driven Healthcare Operating Environment where healthcare software, AI a
 6. **Determinism before intelligence.** Same seed + same input = same output. Intelligence is layered on top of determinism, not instead of it.
 7. **APIs expose behavior, not storage.** External systems interact through endpoints, not database access.
 8. **Replay is a first-class capability.** Any tick in any simulation can be reconstructed and inspected.
+9. **Simulation as self-critique.** Reports are instruments that expose assumptions. Unexpected behavior is a hypothesis, not a bug.
 
 ---
 
@@ -34,7 +35,7 @@ The hospital is the reference implementation of a Healthcare Operating Environme
 
 ## Title
 
-*Deer's Rock: An Open-Source Persistent Hospital Simulation Environment for Reproducible Healthcare AI Research*
+*Deer's Rock: A Persistent Event-Driven Healthcare Operating Environment for Reproducible AI and Policy Experimentation*
 
 ## Audience
 
@@ -48,10 +49,26 @@ Cross-disciplinary: regulators (reproducibility), ML/AI researchers (agent exper
 4. **Resilient** — stochastic disaster scenario engine with 7 event types (earthquake, tsunami, pandemic, etc.) each with 4-phase lifecycle affecting surge, mortality, supply, infrastructure
 5. **Interoperable** — FHIR R4 is not a feature, it's an adapter. Simulation produces ground truth -> FHIR -> any external HIS can connect to a living hospital.
 
+## Abstract
+
+> **Background:** Healthcare simulation research lacks platforms that combine persistent deterministic replay, agent-native experimentation, cultural contextualization, and health system interoperability in a single open-source framework. Existing simulators trade off reproducibility for breadth, or clinical depth for AI flexibility. More fundamentally, they treat simulation outputs as end products rather than instruments that expose the assumptions of the underlying model.
+>
+> **Objective:** We present Deer's Rock, a reference implementation of the Healthcare Operating Environment (HOE) — an event-driven platform where AI agents, clinical policies, and health information systems can be executed, replayed, and evaluated against a persistent simulated world. The platform is designed not merely to generate outputs, but to reveal its own assumptions through those outputs.
+>
+> **Methods:** The platform centers on a deterministic tick engine, an append-only SQLite event journal, and a modular handler chain that composes independent clinical modules. It models a full Tier A referral hospital in Eastern Indonesia — 9 specialized departments, 30+ agent roles, 40 ICD-10 diagnoses, a 22-drug formulary, and a stochastic scenario engine covering 7 disaster types. Unlike existing simulators, the calendar engine generates culturally-contextualized patient influx: Lebaran burn injuries, Ramadan fasting-related hypoglycemia, and seasonal agricultural poisonings — events that stress-test clinical capacity in ways generic simulators cannot. A FHIR R4 adapter exposes simulation ground truth to external health information systems.
+>
+> **Results:** We demonstrate three properties: (1) reproducibility — identical seeds produce identical outcome trajectories; (2) comprehensiveness — the platform sustains simultaneous operation of all departments, agents, and disaster scenarios within a single deterministic run; (3) interoperability — external HIS consumers can connect to the live simulation via FHIR R4 endpoints and validate against verifiable ground truth.
+>
+> **⚠️ DRAFT NOTE (Paper OC):** The Results paragraph above is a structural placeholder. It must be rewritten with actual experimental data (seed runs, distributions, convergence metrics) before submission. Do not submit in current form.
+>
+> **Conclusions:** Deer's Rock establishes a new category of healthcare simulation platform — one where the architecture, not the algorithm, is the contribution. By treating simulation as self-critique, the platform generates reports that expose their own modeling assumptions, enabling reproducible policy experiments, AI agent benchmarking, and health information system validation that no existing tool supports in combination.
+
 ## Suggested Outline
 
 ### 1. Introduction
 - The reproducibility crisis in healthcare simulation research
+- Existing tools optimize for breadth or depth, but not for **revealing their own assumptions**
+- Simulation as self-critique: unexpected behavior is a hypothesis, not a bug
 - Need for open-source, persistent, agent-ready testbeds
 - Contribution statement
 

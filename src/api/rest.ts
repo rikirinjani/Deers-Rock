@@ -18,7 +18,7 @@ import { initIpcState } from "../engine/ipc.js";
 import { initNutritionState } from "../engine/clinical-nutrition.js";
 import { initRtState } from "../engine/radiotherapy.js";
 import { initDialysisState } from "../engine/dialysis.js";
-import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
+import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots, listExports } from "../engine/journal.js";
 import { SCENARIO_DEFS } from "../engine/scenario.js";
 import { buildBiData } from "./bi.js";
 
@@ -232,6 +232,23 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/scenarios") {
     const sc = w.state._scenario ?? { active: null, history: [], cooldownTicks: 0 };
     json(res, { active: sc.active, history: sc.history.slice(-10).reverse(), definitions: SCENARIO_DEFS.map(d => ({ type: d.type, name: d.name, description: d.description })), cooldownTicks: sc.cooldownTicks });
+    return true;
+  }
+  if (p === "/api/exports") {
+    json(res, listExports());
+    return true;
+  }
+  if (p.startsWith("/api/exports/")) {
+    const filename = p.split("/").slice(3).join("/");
+    const dataDir = process.env.DATA_DIR ?? ".";
+    const filepath = path.join(dataDir, "exports", filename);
+    if (!fs.existsSync(filepath) || !filename.startsWith("journal-") || !filename.endsWith(".json")) {
+      res.statusCode = 404; json(res, { error: "Not found" });
+      return true;
+    }
+    const data = fs.readFileSync(filepath, "utf-8");
+    res.writeHead(200, { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="${filename}"` });
+    res.end(data);
     return true;
   }
   if (p === "/api/export/journal") {

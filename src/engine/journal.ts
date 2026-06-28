@@ -133,6 +133,22 @@ export function setExportDir(dir: string): void {
   exportDir = dir;
 }
 
+export function listExports(): { filename: string; tick: number; sizeBytes: number }[] {
+  const dir = exportDir;
+  if (!fs.existsSync(dir)) return [];
+  try {
+    const files = fs.readdirSync(dir).filter(f => f.startsWith("journal-") && f.endsWith(".json")).sort();
+    return files.map(f => {
+      const tickMatch = f.match(/journal-(\d+)\.json/);
+      const tick = tickMatch ? parseInt(tickMatch[1]!, 10) : 0;
+      try {
+        const stat = fs.statSync(path.join(dir, f));
+        return { filename: f, tick, sizeBytes: stat.size };
+      } catch { return { filename: f, tick, sizeBytes: 0 }; }
+    });
+  } catch { return []; }
+}
+
 export function journalExportAll(currentTick: number): string | null {
   if (!db) return null;
   try {
