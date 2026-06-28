@@ -19,7 +19,7 @@ export type SpecialtyType =
   | "cardiology" | "neurology" | "ophthalmology" | "ent" | "dermatology"
   | "psychiatry" | "pediatrics" | "obgyn" | "pulmonology" | "rehab_medik"
   | "anesthesiology" | "dentistry" | "hemodialysis" | "endoscopy"
-  | "pathology_anatomy" | "forensic";
+  | "pathology_anatomy" | "forensic" | "internal_medicine" | "surgery" | "emergency";
 
 const SERVICE_MAP: Record<SpecialtyType, string[]> = {
   cardiology: ["Echocardiography", "ECG interpretation", "Cardiac stress test", "Holter monitoring"],
@@ -38,6 +38,9 @@ const SERVICE_MAP: Record<SpecialtyType, string[]> = {
   endoscopy: ["Upper GI endoscopy", "Colonoscopy", "Bronchoscopy", "ERCP"],
   pathology_anatomy: ["Histopathology", "Cytology", "Frozen section", "Immunohistochemistry"],
   forensic: ["Medicolegal examination", "Autopsy", "Forensic toxicology", "Sexual assault examination"],
+  internal_medicine: ["Internal medicine consult", "Infectious disease management", "General medical assessment"],
+  surgery: ["Surgical consult", "Wound debridement", "Pre-operative assessment", "Post-operative care"],
+  emergency: ["Emergency assessment", "Resuscitation", "Trauma evaluation", "Acute care"],
 };
 
 export function specialtyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {

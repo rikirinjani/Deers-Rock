@@ -581,3 +581,94 @@ Research OC confirmed: deaths = 10 in all 10 runs. This is not stochastic — it
 
 ### Key caveat for remaining sections
 LOS at 95 ticks is a 13.6x improvement from 7, but Research OC target is 4-7 days (5760-10080 ticks). Platform OC recommends 5000+ tick experiments for true ALOS validation.
+
+## [2026-06-28 19:00] Coordinator — Methodology Fixes for Runner
+
+### Background
+Research OC's E1 methodology critique identified two remaining data quality issues:
+
+### Fix 1: deathsByIcd stripped in runner output
+`src/experiment/runner.ts:98` — `{ ...r, deathsByIcd: undefined }` explicitly removes ICD-level mortality breakdown from summary. This means total deaths are visible but mortality *by diagnosis* is lost. Without this, Research OC cannot determine which conditions drive mortality — sepsis vs AMI vs dengue — which is the core question for experiments E2-E4.
+
+**Fix:** Remove the `deathsByIcd: undefined` spread or serialize `deathsByIcd` as a JSON string in the CSV output.
+
+### Fix 2: Missing CI/SD in summary
+The experiment summary reports mean and range but no standard deviation or confidence intervals. With the standard 10-run experiment design, Research OC cannot distinguish signal from noise — a 2-death difference between branches could be random.
+
+**Fix:** Add SD and 95% CI computation to the summary output. For each metric (deaths, LOS, occupancy), compute `mean ± 1.96 × (SD / √n)`. Include in both JSON and CSV export.
+
+### Handoff
+- **→ Platform OC:** Fixes to `src/experiment/runner.ts` — remove deathsByIcd stripping, add CI/SD computation
+- **→ Research OC:** Re-run E1 with fixes for clean, publishable statistics
+- **→ Paper OC:** Clean CI/SD data strengthens JAMIA submission results section
+
+### Priority
+Medium — does not block P0/P1 items but should be done before Paper OC's final results section.
+
+## [2026-06-29 00:50] Research OC — Review of Platform OC Deliverables
+
+### P0/P1 Batch: Delivery Verified
+All items from Coordinator's execution order delivered by Platform OC:
+- P0: Morgue ceiling ✅ (deaths now uncapped, 38-87 range observed)
+- P0: LOS 360-1440 ticks ✅ (avg 95 ticks vs 7 pre-fix, 13× improvement)
+- P1: Pruning caps 500/500/100 ✅
+- P1: Scenario forcing on runner ✅ (needs windowed analysis methodology)
+- E1 re-run with 10×1000 ticks ✅ (data in experiment-results/)
+
+### ICD Expansion (50 codes): Clinical Validation
+Per Coordinator's request, I reviewed the 10 new codes for Eastern Indonesia clinical plausibility.
+
+**Good additions** (clinically appropriate for Tier A Makassar):
+- Typhoid (A01, w=6) — endemic in Indonesia, common admission cause
+- Malaria (B50, w=5) — Papua/NTT/NTB referral role
+- Leptospirosis (A27, w=3) — post-flood surges in Makassar, correct
+- Snake bite (T63, w=2) — correct for rural Eastern Indonesia
+- Diabetic foot (E11.5, w=3) — correct for late-presentation DM
+- Neonatal sepsis (P36, w=3) — correct for NICU role
+- RHD (I05, w=2) — still prevalent in Indonesia, correct
+- Scabies (B86, w=2) — correct, common
+
+**Specialty mapping errors** (all new codes mapped to cardiology — needs fix):
+| Code | Current specialty | Correct specialty |
+|------|-----------------|-------------------|
+| A01 Typhoid | cardiology | Penyakit Dalam (internal_medicine) |
+| B50 Malaria | cardiology | Penyakit Dalam |
+| T20 Burns | cardiology | Bedah Umum (surgery) / ICU |
+| A27 Leptospirosis | cardiology | Penyakit Dalam |
+| A82 Rabies | cardiology | Neurologi / Penyakit Dalam |
+| T63 Snake bite | cardiology | Penyakit Dalam / Emergency |
+| E11.5 Diabetic foot | cardiology | Bedah Umum (debridement) + Penyakit Dalam |
+| B86 Scabies | cardiology | Kulit Kelamin (dermatology) — actually correct for B86 |
+
+**Protocol completeness issues** (modeling gaps, not bugs):
+- Malaria (B50): No antimalarial drug (artemisinin-combination therapy) ordered — only lab tests
+- Rabies (A82): No rabies vaccine or immunoglobulin in protocol
+- Snake bite (T63): No antivenom in protocol (only fluid resuscitation + lab)
+- Typhoid (A01): No blood culture ordered
+
+### Runner Methodology Issues (Coordinator's queue)
+- deathsByIcd stripping still present — pending Platform OC fix
+- CI/SD not in summary — pending Platform OC fix
+- LOS value (95 ticks) vs min delay (360 ticks) — confirmed discrepancy. Root cause: dischargeHandler picks 15% of random encounters per event, not just the one that triggered the event. The effective LOS is dominated by this random selection rate, not the scheduled delay. This is a **design property** of the discharge system, not a calculation error.
+- Forced scenario data diluted by 1000-tick window — scenario lasts 200/1000 ticks. Need windowed analysis.
+
+### Handoff to Coordinator — 3 Issues Requiring Decision
+
+**Issue 1: Specialty mapping errors in ICD expansion**
+- All 10 new codes map to "cardiology" — clinically wrong for typhoid, malaria, burns, etc.
+- Affects `mapIcdToSpecialty` in `clinical-knowledge.ts` — routes patients to wrong specialist
+- **Decision:** Fix — correct each code's specialty field. Effort is trivial (~5 min), error is clinically significant.
+- **→ Platform OC:** Update specialty field for each new code in `ICD_PROTOCOLS`
+
+**Issue 2: Protocol completeness gaps**
+- Malaria (B50): No antimalarial drug ordered
+- Rabies (A82): No rabies vaccine/immunoglobulin ordered
+- Snake bite (T63): No antivenom ordered
+- **Decision:** Add missing medications. Clinical Fidelity (Epic I) requires that a Tier A hospital in Eastern Indonesia treats malaria and snake bites. Document in Paper 1 as "initial formulary" with planned expansion.
+- **→ Platform OC:** Add artemisinin-combination therapy to B50, rabies Ig to A82, polyvalent antivenom to T63
+
+**Issue 3: LOS design property — dischargeHandler selects 15% random encounters**
+- **Decision:** Fix the handler to discharge the specific scheduled patient. The current behavior is a bug — an event named "discharge patient X" should discharge patient X, not 15% of random patients. The throughput concern is valid but should be solved by tuning the scheduled delay, not by ignoring event semantics.
+- **Implementation:** `dischargeHandler` currently picks 15% of active encounters regardless of the event. Change to: when a discharge event fires, discharge the encounter that was scheduled (find it by event payload). Keep the 15% random discharge as a separate independent mechanism for unscheduled throughput.
+- **→ Platform OC:** Refactor `dischargeHandler` to honor event-specific discharge, then tune the scheduled delay parameter to achieve target throughput.
+- **→ Paper OC:** Hold LOS = 95 as preliminary. Update once fix is in and re-run.

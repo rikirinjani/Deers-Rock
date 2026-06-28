@@ -298,7 +298,8 @@ const SPECIALTY_TO_SPESIALIS: Record<string, string> = {
   rehab_medik: "Rehabilitasi Medik", anesthesiology: "Anestesi",
   dentistry: "Gigi Mulut", hemodialysis: "Penyakit Dalam",
   endoscopy: "Penyakit Dalam", pathology_anatomy: "Patologi Anatomi",
-  forensic: "Forensik",
+  forensic: "Forensik", internal_medicine: "Penyakit Dalam",
+  surgery: "Bedah Umum", emergency: "IGD",
 };
 
 function assignBestDoctor(agents: HospitalAgent[], diagnoses: string[], rng: () => number): HospitalAgent | undefined {
