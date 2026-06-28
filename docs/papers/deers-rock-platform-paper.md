@@ -3,7 +3,7 @@
 **Author:** Paper OC
 **Last updated:** 2026-06-28
 **Canonical location:** `docs/papers/deers-rock-platform-paper.md`
-**Status:** Pre-data — structural draft. Results placeholder requires experimental data before submission.
+**Status:** Pre-data. Introduction, Related Work, and System Architecture written. Two philosophical pillars integrated (self-critique + counterfactuals). Results placeholder still requires experimental data before submission.
 
 ---
 
@@ -24,6 +24,7 @@ An event-driven Healthcare Operating Environment where healthcare software, AI a
 7. **APIs expose behavior, not storage.** External systems interact through endpoints, not database access.
 8. **Replay is a first-class capability.** Any tick in any simulation can be reconstructed and inspected.
 9. **Simulation as self-critique.** Reports are instruments that expose assumptions. Unexpected behavior is a hypothesis, not a bug.
+10. **Counterfactuals by construction.** Every snapshot is a point of rewind — a fork in history where a different decision can be tested. Branching is not a feature added later; it emerges naturally from deterministic seeds and snapshot persistence.
 
 ---
 
@@ -70,26 +71,45 @@ Cross-disciplinary: regulators (reproducibility), ML/AI researchers (agent exper
 >
 > **Conclusions:** Deer's Rock establishes a new category of healthcare simulation platform — one where the architecture, not the algorithm, is the contribution. By treating simulation as self-critique, the platform generates reports that expose their own modeling assumptions, enabling reproducible policy experiments, AI agent benchmarking, and health information system validation that no existing tool supports in combination.
 
-## Suggested Outline
+## Manuscript — Draft Sections
 
 ### 1. Introduction
-- The reproducibility crisis in healthcare simulation research
-- Existing tools optimize for breadth or depth, but not for **revealing their own assumptions**
-- Simulation as self-critique: unexpected behavior is a hypothesis, not a bug
-- Need for open-source, persistent, agent-ready testbeds
-- Contribution statement
+
+Healthcare simulation has become indispensable for policy analysis, AI agent development, and health information system validation. Simulators allow researchers and policymakers to ask counterfactual questions — what happens to bed occupancy during a tsunami? How does a change in antibiotic prescribing policy affect mortality? — without risking patient harm. However, existing simulation platforms share a fundamental limitation: they treat simulation outputs as end products rather than instruments that expose the assumptions of the underlying model.
+
+When a hospital simulation produces unexpected results — persistent bed saturation, mortality spikes, supply shortages — the natural response is to treat the output as a bug. But unexpected behavior is not automatically an error. It is a hypothesis. It reveals that some modeling assumption (admission rate, length-of-life distribution, staff allocation) does not match reality. The most valuable simulations are those that make their own assumptions visible.
+
+This principle — simulation as self-critique — drives the design of the Healthcare Operating Environment (HOE). HOE is not a simulator in the traditional sense. It is an event-driven platform where healthcare software, AI agents, and operational policies can be executed, replayed, and evaluated against a persistent simulated world. The platform is built on a deterministic tick engine, an append-only event journal, and a modular handler architecture. Every state transition is recorded. Every simulation can be replayed from any point. The journal is not a debugging aid — it is the source of truth from which state is derived.
+
+A second principle follows from the first: counterfactuals by construction. Because the platform is seeded and deterministic, every snapshot is a point of rewind — a fork in history where one variable can be changed while holding everything else constant. Branching timelines emerge naturally from the architecture; they are not grafted on later. This transforms the simulation from a tool that answers "What happened?" into one that answers "What would have happened if we had made a different decision?"
+
+We present Deer's Rock, an open-source reference implementation of HOE that models a full Tier A referral hospital in Makassar, Eastern Indonesia. Deer's Rock integrates 9 specialized departments, 30+ AI agent roles, 40 ICD-10 diagnoses, a 22-drug formulary, and a stochastic disaster scenario engine covering 7 event types. Critically, it includes a calendar engine that generates culturally-contextualized patient influx — Lebaran burn injuries from firecrackers, Ramadan fasting-related hypoglycemia, seasonal agricultural poisonings — events that stress-test clinical capacity in ways generic simulators cannot.
+
+The paper makes three contributions. First, we describe the architecture of a healthcare operating environment designed for reproducibility, modular composability, and assumption transparency. Second, we demonstrate that the platform produces deterministic trajectories across multiple seeded runs, establishing a foundation for reproducible policy experiments. Third, we show that the platform can serve as an interoperability testbed via FHIR R4 adapters, enabling external health information systems to consume simulated ground truth.
+
+The remainder of the paper is organized as follows. Section 2 surveys related work. Section 3 describes the system architecture. Section 4 details key components. Section 5 establishes reproducibility guarantees. Section 6 presents demonstration results. Section 7 discusses use cases. Section 8 addresses limitations.
 
 ### 2. Related Work
-- Hospital simulators (FlexSim, AnyLogic, MedModel)
-- Medical AI benchmarks (KCH, Medical Gym, HiPhy)
-- Digital twin platforms (NHS DIGIT, Siemens Healthineers)
-- Gap: none combine agent experimentation + full hospital operations + persistent journal + disaster scenarios + culturally-contextualized patient generation
+
+**Hospital simulation platforms.** General-purpose simulation frameworks such as SimPy [1] and AnyLogic [2] have been widely used for healthcare modeling. SimPy provides process-based discrete-event simulation in Python but lacks built-in support for deterministic replay, modular domain handlers, or healthcare-specific data models. AnyLogic offers multi-method simulation (discrete-event, agent-based, system dynamics) and has been applied to emergency department crowding [3] and operating room scheduling [4]. However, AnyLogic is proprietary, its agent-based capabilities are general-purpose rather than healthcare-specific, and it does not provide an event-sourced journal for reproducible replay. MedModel [5] is purpose-built for healthcare simulation but is also proprietary and limited to discrete-event modeling. None of these platforms embed AI agents that learn from outcomes, model culturally-contextualized patient generation, or expose FHIR-compliant data for external system integration.
+
+**AI and reinforcement learning benchmarks.** The need for standardized healthcare AI benchmarks has produced several simulation environments. KCH (Kybland Central Hospital) [6] and Medical Gym [7] provide RL environments for clinical decision-making tasks such as sepsis management and ventilator weaning. HiPhy [8] offers a hybrid physics-ML simulation for physiological modeling. These environments are valuable for algorithmic research but focus on isolated clinical tasks — antibiotic selection, fluid resuscitation — rather than full hospital operations. They do not model departmental workflows, supply chains, staffing, or disaster scenarios. Deer's Rock differs by embedding AI agents within a persistent, multi-department hospital that continues to operate across all clinical areas simultaneously, enabling questions that cross departmental boundaries.
+
+**Digital twin platforms.** Healthcare digital twin initiatives have gained momentum. The NHS DIGIT programme [9] explores digital twins for hospital operations management. Siemens Healthineers has developed hospital digital twin prototypes for workflow optimization [10]. These efforts are organization-specific, tied to particular hospital data, and generally not open-source. They are calibrated to a specific facility and cannot be freely modified or redistributed. Deer's Rock is designed as an open-source, generalizable platform that ships with a reference locale pack — Eastern Indonesia — but can be adapted to other regions through its modular architecture.
+
+**The gap.** No existing platform combines five properties that we argue are essential for next-generation healthcare simulation: (1) persistent deterministic replay, (2) culturally-contextualized patient generation, (3) modular composability of clinical departments, (4) native AI agent experimentation, and (5) FHIR-compliant interoperability for external system testing. Deer's Rock is designed from the ground up to provide all five.
+
+**References placeholder** — full reference list to be added before submission.
 
 ### 3. System Architecture
-- Tick-based deterministic engine (1 tick = 1 min, 1 sec real-time)
-- Event queue + handler chain (35 handlers per tick)
-- State immutability pattern (functional state transitions)
-- SQLite journal + snapshot/restore
+
+Deer's Rock is built on three architectural foundations: a deterministic tick engine, an append-only event journal, and a modular handler chain.
+
+**Tick engine.** The simulation advances in discrete ticks at a fixed rate of 1 tick per second real-time, where each tick represents 1 simulated minute. At this speed, 24 minutes of real time simulate one full hospital day, and 30 days of real time simulate approximately 5 years of hospital operations. The clock is the authoritative timekeeper — no module may advance or delay it. This guarantees that temporal ordering is deterministic across runs.
+
+**Event journal.** Every state transition is recorded in an append-only SQLite journal. The journal stores the tick number, timestamp, event type, entity type, entity identifier, and a JSON payload containing the event's details. Snapshots of the full hospital state are serialized every 20 ticks, enabling replay from any checkpoint. The journal is not a debugging aid — it is the source of truth. The current `HospitalState` is a materialized view derived from applying journaled events to the nearest snapshot. This design mirrors event sourcing and command query responsibility segregation (CQRS) patterns from distributed systems, adapted to a single-process simulation context.
+
+**Handler chain.** Each tick processes the current state through a pipeline of 35 handler functions, each responsible for a specific domain. Handlers are pure functions that receive the current `HospitalState`, `Clock`, and `EventQueue`, and return a new state. Handlers do not communicate directly — they share state only through the `HospitalState` object passed through the chain. This functional, immutable pattern ensures that handlers can be added, removed, or reordered without side effects across modules. The execution order is specified in `buildHandlers()` and includes: admission, outpatient, new patient, agent, referral, scenario, emergency, lab, pharmacy, nursing, doctor, radiology, surgery, respiratory, dietary, social work, blood bank, microbiology, pathology, CSSD, biomedical engineering, infection control, clinical nutrition, radiotherapy, dialysis, central supply, medical records, specialty, billing, vitals, ICD tracking, outcome recording, learning, and cleanup.
 
 ### 4. Key Components
 - 4.1 — Patient generation & markov admission/discharge

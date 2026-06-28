@@ -79,7 +79,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     };
     newEncounters.set(encounter.id, encounter);
 
-    const dischargeDelay = 4 + Math.floor(clock.rng() * 8);
+    const dischargeDelay = 360 + Math.floor(clock.rng() * 1080);
     queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
   }
 
@@ -108,7 +108,7 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
     const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
 
-    if (dies && patient && newMorgue.length < state.morgueCapacity) {
+    if (dies && patient) {
       const activeDx = patient.diagnoses.filter(d => d.active);
       const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
       const cause = mortality.factors.length > 0

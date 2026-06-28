@@ -3,11 +3,11 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Charge, InsuranceClaim, Payment } from "../patient/schema.js";
 
-const MAX_LAB = 200;
-const MAX_MED = 200;
-const MAX_RAD = 200;
-const MAX_PHYSICIAN = 200;
-const MAX_SURG = 50;
+const MAX_LAB = 500;
+const MAX_MED = 500;
+const MAX_RAD = 500;
+const MAX_PHYSICIAN = 500;
+const MAX_SURG = 100;
 const MAX_RESP = 50;
 const MAX_DIET = 50;
 const MAX_ED = 100;

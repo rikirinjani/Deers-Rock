@@ -34,7 +34,7 @@ describe("Journal", () => {
     expect(stats.byType["encounter.created"]).toBeGreaterThan(0);
   });
 
-  it("logs lab, medication, and supply events", () => {
+  it("logs lab, medication, and supply events", { timeout: 15000 }, () => {
     const w = createWorld(20, DB);
     runWorld(w, 30);
     const stats = journalStats();

@@ -16,7 +16,10 @@ Every AI decision must be logged through at least one of: `physicianOrders`, `_d
 **1.3 — Determinism**
 All AI agents operate as deterministic rules engines. No external LLM, API call, or non-deterministic black box may drive clinical decisions.
 
-**1.4 — Auditability**
+**1.4 — Counterfactual Experimentation**
+The simulation MUST support branching from any snapshot. All branches must share the same RNG seed until the divergence point, ensuring fair comparison. Branch execution MUST produce a machine-readable diff (e.g., JSON) comparing patient outcomes against the original timeline.
+
+**1.5 — Auditability**
 Every tick's state is observable via the `/api/status` endpoint. Snapshots are recorded every 20 ticks for replay.
 
 ---
@@ -196,4 +199,6 @@ At each major release, Research OC shall review all documented model assumptions
 *Amendment 2 (Agent roles refined): 28 June 2026*
 *Amendment 3 (Article III §3.2, §3.3): 28 June 2026 — protocol gap logging, mortality provenance*
 *Amendment 4 (Article VII): 28 June 2026 — model assumptions & calibration framework*
+*Amendment 5 (§1.4 Counterfactual Experimentation): 28 June 2026 — branch mandate + outcome diff*
 *One project. Four perspectives. Shared truth.*
+*Simulation as Self-Critique. Counterfactuals by Construction. Every seed is a history — every snapshot is a choice.*

@@ -39,9 +39,9 @@ The simulation must run without data loss, without unbounded storage growth, and
 
 ---
 
-## Epic II — Clinical Depth
+## Epic II — Clinical Fidelity
 
-Expand clinical accuracy, protocol coverage, and formulary to match a Tier A referral hospital.
+Make the simulation believable enough that experiments are meaningful. The goal is not exhaustive clinical depth but sufficient fidelity for controlled experiments.
 
 ### Milestone 2.1: Protocol Coverage
 - [ ] Add protocols for all 58 ICD codes in the generator (L03, N20, S06, T14, N40, etc.)
@@ -81,11 +81,56 @@ Expand clinical accuracy, protocol coverage, and formulary to match a Tier A ref
 
 ---
 
-## Epic III — Data & Interoperability
+## Epic III — Timeline Engine (Deferred)
+
+Enable controlled counterfactual experiments by treating snapshots as Points of Rewind from which Branch Timelines diverge.
+
+**Status:** Concepts accepted (ADR-009). Implementation deferred until Epic 0 (stability) and Epic I (clinical fidelity) reach sufficient maturity.
+
+### Milestone 3.1: Terminology & Modeling
+- [x] Concepts defined (ADR-009): Universe, Seed, Point of Rewind, Branch, Timeline, Genealogy
+- [x] Slogan: "Counterfactuals by Construction"
+- [ ] Formal Universe ID: `U-YYYY-NNNN` with explicit branch genealogy
+- [ ] Branch metadata: parent universe, rewind tick, intervention description
+
+### Milestone 3.2: Branch Orchestration
+- [ ] CLI command: `deers-rock branch <snapshot-tick> [--inject ...]`
+- [ ] API endpoint: `POST /api/branch` — create branch from snapshot with intervention
+- [ ] Branch isolation: each branch gets its own journal/snapshot namespace
+
+### Milestone 3.3: Intervention System
+- [ ] Intervention catalog: resource injection (beds, staff, supplies), scenario activation, policy param override
+- [ ] Intervention DSL or JSON schema for specifying "what changed"
+- [ ] Rollback: discard branch without affecting parent timeline
+
+### Milestone 3.4: Comparison & Analysis
+- [ ] Branch comparison view: overlay outcome distributions across branches
+- [ ] Baseline vs intervention: statistical delta (mortality, LOS, occupancy)
+- [ ] Export: branch genealogy as DOT/JSON, outcome comparison as CSV
+
+### Milestone 3.5: Standard Scenario Library
+A set of canonical seeds representing archetypal hospital days, frozen in time for integration testing and paper reproducibility.
+
+| Scenario | Seed | Description |
+|----------|------|-------------|
+| `normal_tuesday` | 101 | Baseline patient flow, no disasters |
+| `lebaran_burns` | 202 | Post-holiday surge in burn victims |
+| `tsunami_evac` | 303 | Mass casualty event, supply chain disruption |
+| `pandemic_wave` | 404 | 3x patient influx, ventilator shortage |
+| `drug_shortage` | 505 | Formulary stockout on Day 2 |
+
+Each scenario is available as a standalone import — no need to run the simulation to reach the relevant tick. Canonical FHIR data exports included.
+
+### Domain Independence
+Timeline Engine is intentionally specified as a generic temporal abstraction. Healthcare experiments are the first consumer, but the branching mechanism is not tied to hospitals. No extraction commitment — recognition that the abstraction is broader than its first application.
+
+---
+
+## Epic IV — Data & Interoperability
 
 Make HOE data useful for analytics, reporting, and external system integration.
 
-### Milestone 3.1: FHIR Resources
+### Milestone 4.1: FHIR Resources
 - [ ] Add `/fhir/Patient` search endpoint ✅
 - [ ] Add `/fhir/Observation` search endpoint ✅
 - [ ] Add `/fhir/Condition` endpoint
@@ -93,99 +138,100 @@ Make HOE data useful for analytics, reporting, and external system integration.
 - [ ] Add `/fhir/Encounter` search endpoint
 - [ ] FHIR R4 compliance tests
 
-### Milestone 3.2: Report Presentation
+### Milestone 4.2: Report Presentation
 - [ ] Replace JSON dump with styled HTML tables
 - [ ] Add charts (ECharts or Chart.js) to reports
 - [ ] Export to CSV/PDF
 - [ ] Fix report blood type detection to use `patient.rhesus` (not Math.random())
 - See EVALUATION-REPORT §7
 
-### Milestone 3.3: CI/CD
+### Milestone 4.3: CI/CD
 - [ ] GitHub Actions: lint, typecheck, test on push
 - [ ] Railway auto-deploy from main
 - [ ] Integration test: `runWorld(createWorld(20), 30)` with department-level assertions
 
 ---
 
-## Epic IV — Dashboard & UX
+## Epic V — Dashboard & UX
 
 The single-page dashboard is the primary user interface. It must be usable at scale.
 
-### Milestone 4.1: Dashboard Overhaul
+### Milestone 5.1: Dashboard Overhaul
 - [ ] Department panels feel cramped at 1600+ items
 - [ ] Add pagination, search, filtering, date-range pickers
 - [ ] Loading indicator between 1s refresh cycles
 - [ ] Dark/light theme toggle
 - [ ] Patient search by name/ID
 
-### Milestone 4.2: Admin & Controls
+### Milestone 5.2: Admin & Controls
 - [ ] Pause/resume simulation from dashboard
 - [ ] Adjust tick speed
 - [ ] Real-time WebSocket updates (instead of 1s polling)
 - [ ] `.env` config for port, tick interval, patient pool size
 
-### Milestone 4.3: Export
+### Milestone 5.3: Export
 - [ ] Export patient census as CSV per ward
 - [ ] CSV/PDF export of identity data for reporting
 - [ ] Medical supply consumption tracking
 
 ---
 
-## Epic V — Department Completeness
+## Epic VI — Department Completeness
 
 Add remaining clinical workflows to match a full Tier A hospital.
 
-### Milestone 5.1: Agent-Patient Assignment
+### Milestone 6.1: Agent-Patient Assignment
 - [ ] Link specific doctors/nurses to encounters
 - [ ] Auto-replace sick agents with backups (sick leave system)
 - [ ] Dashboard for agent health status, fatigue alerts
 
-### Milestone 5.2: Patient Flow
+### Milestone 6.2: Patient Flow
 - [ ] Outpatient clinic system (Rawat Jalan) with appointment scheduling
 - [ ] Patient discharge planning with referral to Puskesmas (rujuk balik)
 - [ ] Puskesmas → RS Tipe C/D → Deer's Rock referral chain
 - [ ] Kamar Jenazah & forensik workflow
 
-### Milestone 5.3: Equipment & Supply
+### Milestone 6.3: Equipment & Supply
 - [ ] Medical equipment tracking (alat kesehatan)
 - [ ] Department-level supply consumption tracking
 
 ---
 
-## Epic VI — Polish & Infrastructure
+## Epic VII — Polish & Infrastructure
 
 Quality-of-life improvements for developers and operators.
 
-### Milestone 6.1: Developer Experience
+### Milestone 7.1: Developer Experience
 - [ ] Dockerfile for local containerized dev
 - [ ] Add more Indonesian names to patient generator pool
 
-### Milestone 6.2: Code Quality
+### Milestone 7.2: Code Quality
 - [ ] Fix M&M conference `as any[]` cast in `rest.ts:135`
 - [x] `getDeteriorationRate` already counts deceased as deteriorated (verified — code correct, EVALUATION-REPORT was wrong)
 - [ ] Split `HospitalState` into sub-states for maintainability (long-term)
 
-### Milestone 6.3: Experimental Instrumentation
+### Milestone 7.3: Experimental Instrumentation
 - [ ] Add per-tick outcome snapshot for time-series analysis
 - [ ] Expose action ranking distribution via API for external analysis
 
 ---
 
-## Epic VII — ADRs & Governance
+## Epic VIII — ADRs & Governance
 
 Architectural decisions must be recorded for future agents and humans.
 
-### Milestone 7.1: ADR Backlog
+### Milestone 8.1: ADR Backlog
 - [x] ADR-001: Handler Pipeline Architecture
 - [x] ADR-002: Snapshot and Journal Retention Strategy
 - [x] ADR-003: Agent State Persistence Contract
 - [x] ADR-008: Seeded Random Number Generation
 - [x] ADR-004: Mortality Risk Engine (drafted by Research OC, pending Coordinator approval)
+- [x] ADR-009: Timeline Engine (Vision ADR — accepted, implementation deferred)
 - [ ] ADR-005: Department Addition Pattern
 - [ ] ADR-006: Agent Learning Architecture
 - [ ] ADR-007: Referral System (Rujukan Berjenjang)
 
-### Milestone 7.2: Terminology Standardization
+### Milestone 8.2: Terminology Standardization
 - [ ] Normalize "Tier A" / "Tipe A" / "Type A" across all docs
 - [ ] Standardize department naming conventions
 

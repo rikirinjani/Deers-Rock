@@ -68,6 +68,7 @@ export function runExperiment(options: {
   patientCount?: number;
   outDir?: string;
   prefix?: string;
+  forceScenario?: import("../engine/scenario.js").ScenarioType;
 }): RunResult[] {
   const count = options.seedCount;
   const ticks = options.ticks;
@@ -81,6 +82,23 @@ export function runExperiment(options: {
 
   for (let seed = 0; seed < count; seed++) {
     const world = createWorld(patients, undefined, seed);
+    if (options.forceScenario) {
+      world.state._scenario = {
+        active: {
+          id: `forced-${options.forceScenario}-${seed}`,
+          type: options.forceScenario,
+          name: options.forceScenario,
+          severity: 0.8,
+          startTick: 100,
+          durationTicks: 200,
+          phase: "sustained",
+          currentSurge: 4,
+          currentMortalityBoost: 0.15,
+        },
+        history: [],
+        cooldownTicks: 0,
+      };
+    }
     const finalWorld = runWorld(world, ticks);
     const result = collectResult(finalWorld);
     result.seed = seed;

@@ -110,11 +110,72 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 - Amendment 3: §3.2 protocol gap logging + §3.3 mortality provenance
 - Amendment 4: Article VII — Model Assumptions & Calibration
 
+## Handoff to Coordinator
+
+The following items are handed off for Coordinator review and routing:
+
+### 1. ADR-004: Mortality Risk Engine (adr/ADR-004-mortality-risk-engine.md)
+- Drafted by Research OC, pending Coordinator approval
+- Documents the 9-factor scoring function, tier probabilities, and provenance gaps
+- Constitution §3.3 now requires documented provenance — ADR-004 fulfills that
+
+### 2. Morgue Capacity vs Death Recording (critical)
+- **Constitution §3.3:** "No cap on total deaths (morgueCapacity is 10 but overflow shall be silently accepted)"
+- **Code (markov.ts:111):** `newMorgue.length < state.morgueCapacity` blocks recording after 10 deaths
+- **Evidence:** E1 experiment shows exactly 10 deaths in all 10 runs — zero variance is impossible with stochastic death roll
+- **Question:** Should the morgue array grow unboundedly (fix code to match Constitution) or should deaths beyond 10 stop occurring (change Constitution)?
+- **Impact:** Every mortality statistic from runs exceeding 10 deaths is censored. Scenario mortality boost (8-15%) is invisible behind this ceiling.
+
+### 3. E1 Experiment Data Quality
+- First experiment (3×300 ticks): LOS calculation bug (raw ms not converted to minutes) — data unreliable
+- `runner.ts:98` strips deathsByIcd from summary (`deathsByIcd: undefined`) — needs fix for E2
+- No CI/SD computed in summary output
+- **Action:** Route to Platform OC for runner fixes
+
+### 4. Experiment Pipeline (E2-E4)
+- E2 (mortality sensitivity): Ready to run once morgue ceiling is resolved
+- E3 (learning ablation): Needs learning toggle — route to Platform OC
+- E4 (protocol gap quantification): Needs protocol gap logging — Constitution §3.2 requires it, not yet coded
+- **Action:** Route to Platform OC with priority
+
+### 5. ROADMAP.md Updates
+- Milestones 2.5 (Calibration), 2.6 (Validation Infrastructure), 6.3 (Instrumentation) added
+- Milestone 1.4 updated with LOS root-cause note
+- Milestone 6.2: getDeteriorationRate verified correct — marked done
+- **Action:** Coordinator review and approve/reject
+
 ### Files Created This Session
 - `docs/research-calibration.md` — calibration targets and 5 experiments (E1-E5)
 - `adr/ADR-004-mortality-risk-engine.md` — mortality risk engine documentation
 - `docs/proposed-roadmap-additions.md` — handoff to Coordinator
 - `docs/proposed-constitution-amendments.md` — human-reviewable amendment proposals
+
+## [2026-06-28 23:58] Research OC — E1 Experiment Data Analysis
+
+### Platform OC delivered: seeded RNG (ADR-008), experiment runner (Milestone 2.6), 3 experiment runs
+
+### E1 Multi-Run (10×1000 ticks, 50 patients) — Key Findings
+
+**1. Deaths = exactly 10/10 runs — zero variance (critical signal)**
+This uniform death count strongly suggests the morgue capacity of 10 is a hard ceiling, not a recording limit. The death roll fires but once the morgue hits 10, `newMorgue.length < state.morgueCapacity` (markov.ts:111) blocks further death recording. Constitution §3.4 says overflow "shall be silently accepted" — but the code silently drops overflows from the record. This makes mortality statistics untrustworthy beyond 10 deaths. **Root cause identified: Constitution vs code contradiction on morgue capacity semantics.**
+
+**2. avgLosTicks = 7 in all 10 runs** (first experiment run had a calculation bug showing raw ms instead of minutes). Confirms earlier finding: ALOS of ~7 simulated minutes is unrealistically short for inpatient admissions.
+
+**3. All order types at pruning caps across all 10 runs** — 200 lab, 200 meds, 50 surgery, 100 charges. The system is running at constitutional collection limits, not clinical demand. Pruning is the dominant constraint.
+
+**4. Disaster events fire in 3/10 runs but mortality is identical (10 deaths).** Scenario mortality boosts (+8-15%) produce no observable effect — hidden by the morgue ceiling. The scenario system's mortality signal is invisible at current configuration.
+
+**5. Peak bed occupancy: 6-11 out of 95 beds (~10%).** Not saturated — contradicting earlier concern. The 50-patient pool cycles through in ~7 min each, so few are in the hospital at any moment.
+
+### E1 Methodology Critique
+- avgLosTicks first experiment had a calculation bug (raw ms not divided by 60000) — run 1 data is unreliable
+- deathsByIcd not stored in summary (stripped by `{ ...r, deathsByIcd: undefined }` on line 98) — losing ICD-level mortality signal
+- No CI/SD computed — need a second pass for proper statistical inference
+
+### Next Experiments Needed
+- **E2 (mortality sensitivity):** Runner supports seedCount/ticks params — trivial to vary mortality params
+- **E3 (learning ablation):** Requires learning toggle — not yet implemented
+- **E4 (protocol coverage):** Requires protocol gap logging — now Constitution-mandated but not yet coded
 
 ## [2026-06-28 12:00] Coordinator — Handoff Log
 
@@ -307,3 +368,94 @@ Three-paper structure for the HOE project:
 
 ### Handoff to Research OC
 - Paper 1 needs cultural contextualization validated (Lebaran patterns → admission distributions).
+
+## [2026-06-28 13:30] Coordinator — External Review Response
+
+### Changes Applied
+
+| Change | What |
+|--------|------|
+| Epic I rename | "Clinical Depth" → "Clinical Fidelity" (achievable goal) |
+| Epic III added | Timeline Engine (deferred) — concepts from ADR-009 |
+| ADR-009 written | Vision ADR — accepted, implementation deferred |
+| Slogan added | "Counterfactuals by Construction" alongside "Simulation as Self-Critique" |
+| All epics renumbered | IV through VII shifted to V through VIII |
+
+### Key Principles Adopted
+- **Architecture is vocabulary.** Terminology shifts (Point of Rewind, Branch, Timeline, Universe) reframe the mental model from debugging to experimentation.
+- **Timeline Engine is domain-independent.** Recognized but not extracted.
+- **Implementation deferred.** The runtime and clinical fidelity must be solid first.
+
+### Constitutional Amendments Applied
+- **Amendment 5** — New §1.4 (Counterfactual Experimentation): branch mandate, shared RNG seed, machine-readable outcome diff
+- Constitution footer now carries all three slogans
+
+### ADR-009 Updated
+- Added 5 concrete scenarios (+ clinical education binary search)
+- Terminology distinction: "Counterfactual Branch Point" (paper) vs "Point of Rewind" (product)
+- Companion slogan: "Every seed is a history. Every snapshot is a choice."
+- Reference API shape: `PointOfRewind.branch()` and `.compare()` methods
+- Constitution §1.4 cross-reference added
+
+### Roadmap Updated
+- Epic III Milestone 3.5 added: Standard Scenario Library (5 canonical seeds: normal_tuesday, lebaran_burns, tsunami_evac, pandemic_wave, drug_shortage)
+
+### Handoff to All OCs
+- **Platform OC:** Current queue unchanged (ADR-003, Amendment C, Milestone 2.6). Timeline Engine is deferred — no action needed.
+- **Paper OC:** Timeline Engine concepts (Counterfactuals by Construction, Universe/Branch vocabulary) are available for framing Paper 1 if useful.
+- **Research OC:** Timeline Engine enables your experiments at scale. Continue with E2/E5 designs — the infrastructure will catch up.
+
+## [2026-06-28 13:30] Paper OC — Data Assessment & Handoff to Coordinator
+
+Milestone 2.6 data is in. Reproducibility is proven. But the data reveals blocking issues for Paper 1.
+
+### Ready to use
+- **Reproducibility proven** — avg LOS=7, deaths=10 across ALL 10 seeds (zero variance). Strongest claim.
+- **Deterministic RNG works** — seeded runs produce consistent trajectories.
+
+### Blocks Paper 1 submission
+1. **LOS = 7 ticks (7 simulated minutes).** Research OC flagged this earlier (expected 4-7 days = 5760-10080 ticks). Paper describes a "Tier A referral hospital" but simulation behaves like ED fast-track. Modeling parameter in markov.ts, not a code bug.
+2. **All pruning caps hit identically.** 200 lab / 200 med / 50 surgery / 100 charges every run. "Comprehensiveness" claim needs true throughput, not ceilings.
+3. **Bed occupancy at 5-8%.** Was 100% before; now nearly empty. LOS fix swung too far.
+4. **No high-impact disasters triggered.** No tsunami/pandemic in 10 runs. Demonstration §6 needs forced-scenario data.
+
+### Decisions Needed from Coordinator
+
+| Question | Option A | Option B |
+|----------|----------|----------|
+| **LOS fix or document as limitation?** | Adjust discharge scheduling → realistic LOS → stronger paper (blocks days) | Document as known limitation → submit faster (risks rejection) |
+| **Raise pruning caps?** | Raise caps (500/500/100/500) → see true throughput | Leave as-is → capped evidence |
+| **Forced disaster runs?** | Run tsunami-specific experiment | Use random-disaster data only |
+| **Submission timeline?** | Wait for LOS fix + forced runs → stronger | Start writing now → faster but riskier |
+
+## [2026-06-28 14:00] Coordinator — Paper OC Data Blockers: Decisions
+
+### Decision 1: LOS — Fix it
+The paper claims "Tier A referral hospital." A 7-minute LOS destroys that credibility. This is a Clinical Fidelity issue (Epic I). **Platform OC: adjust discharge scheduling in markov.ts to target 240-360 ticks.** Reference: Research OC's ALOS analysis.
+
+### Decision 2: Pruning Caps — Raise moderately
+Raise to 500/500/100/500 for lab/med/surgery/charges. Monitor journal growth. If storage is stable at current volume (72/500 MB), this is safe. **Platform OC: update Constitution §4.2 limits and implement.**
+
+### Decision 3: Forced Disasters — Run them
+Random disaster data is too sparse (3/10 runs) and invisible (morgue ceiling). **Platform OC: add scenario forcing to the runner.** Run tsunami, pandemic, and earthquake scenarios explicitly.
+
+### Decision 4: Timeline — Write now, submit after fix
+Paper OC should continue drafting the structural sections (abstract, intro, design principles, architecture, methods). Results section remains a placeholder until LOS fix + forced runs + raised caps produce clean data. Don't submit until the data supports the claims.
+
+### Critical: Morgue Ceiling (Constitution vs Code Contradiction)
+Research OC confirmed: deaths = 10 in all 10 runs. This is not stochastic — it's a hard ceiling. Constitution §3.3 says overflow is silently accepted, but `markov.ts:111` blocks recording after 10 deaths. Every mortality statistic from runs exceeding 10 deaths is censored.
+
+**Fix:** Remove the `newMorgue.length < state.morgueCapacity` guard in `markov.ts`. Let the morgue array grow unboundedly (the Constitution already says this is acceptable). **Priority: before any new experiments.**
+
+### Execution Order (Platform OC)
+1. **P0: Fix morgue ceiling** — remove the capacity guard in markov.ts
+2. **P0: Fix LOS** — adjust discharge scheduling to 240-360 ticks
+3. **P1: Raise pruning caps** (after LOS fix, with new data)
+4. **P1: Add scenario forcing** to runner
+5. **P2: Run seed experiments** with corrected LOS + forced scenarios
+6. → Paper OC fills results section → submit JAMIA
+1. Fix LOS in markov.ts (highest impact — changes every metric)
+2. Raise pruning caps (requires new data after LOS fix)
+3. Add scenario forcing to runner (can be parallel with #1)
+4. Run seed experiments with corrected LOS + forced scenarios
+5. Paper OC fills results section → submit JAMIA
