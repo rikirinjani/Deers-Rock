@@ -58,6 +58,16 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "T14", name: "Open wound of unspecified body region", minAge: 5, maxAge: 70, genders: ["male", "female"], weight: 2 },
   { code: "E86", name: "Volume depletion / dehydration", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 3 },
   { code: "D64", name: "Anemia unspecified", minAge: 5, maxAge: 85, genders: ["female", "male"], weight: 4 },
+  { code: "A01", name: "Typhoid fever", minAge: 2, maxAge: 70, genders: ["male", "female"], weight: 6 },
+  { code: "B50", name: "Malaria", minAge: 1, maxAge: 80, genders: ["male", "female"], weight: 5 },
+  { code: "T20", name: "Burns", minAge: 0, maxAge: 85, genders: ["male", "female"], weight: 3 },
+  { code: "A27", name: "Leptospirosis", minAge: 10, maxAge: 70, genders: ["male", "female"], weight: 3 },
+  { code: "A82", name: "Rabies exposure", minAge: 1, maxAge: 80, genders: ["male", "female"], weight: 2 },
+  { code: "T63", name: "Snake bite envenomation", minAge: 5, maxAge: 75, genders: ["male", "female"], weight: 2 },
+  { code: "E11", name: "Diabetic foot / gangrene", minAge: 35, maxAge: 85, genders: ["male", "female"], weight: 3 },
+  { code: "P36", name: "Neonatal sepsis", minAge: 0, maxAge: 0, genders: ["male", "female"], weight: 3 },
+  { code: "I05", name: "Rheumatic heart disease", minAge: 15, maxAge: 60, genders: ["male", "female"], weight: 2 },
+  { code: "B86", name: "Scabies", minAge: 1, maxAge: 80, genders: ["male", "female"], weight: 2 },
 ];
 
 function pickWeighted<T extends { weight: number }>(items: T[], rng?: () => number): T {

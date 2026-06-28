@@ -428,6 +428,54 @@ Milestone 2.6 data is in. Reproducibility is proven. But the data reveals blocki
 | **Forced disaster runs?** | Run tsunami-specific experiment | Use random-disaster data only |
 | **Submission timeline?** | Wait for LOS fix + forced runs → stronger | Start writing now → faster but riskier |
 
+## [2026-06-28 14:30] Coordinator — ICD-10 & AI Agent Gap Analysis
+
+### Research Request: Are 40 ICD codes enough for Tier A Eastern Indonesia?
+**Assessment:** Partially — covers major NCDs and common infections but misses key tropical and trauma diagnoses endemic to Eastern Indonesia.
+
+#### Missing Codes (High Priority)
+| Code | Condition | Rationale |
+|------|-----------|-----------|
+| A01.0 | Typhoid fever | Most common cause of febrile admission in Indonesia |
+| B50-B54 | Malaria | Endemic in Papua, NTT, Maluku |
+| T20-T32 | Burns | Major referral reason to Tier A from rural areas |
+| A27 | Leptospirosis | Common post-flood in Makassar |
+| A82 | Rabies exposure | Endemic in NTT, Flores, Bali |
+| T63.0 | Snake bite envenomation | Eastern Indonesia high venomous snake density |
+| E11.5 | Diabetic foot / gangrene | Frequent DM complication, common amputation cause |
+| P36 | Neonatal sepsis | Major NICU admission diagnosis |
+| I05-I09 | Rheumatic heart disease | Still prevalent in Indonesia |
+| B86 | Scabies | Endemic in some Eastern Indonesian areas |
+
+**Recommendation:** Expand to 50-55 codes. Increase A15 (TB) weight above 2. Add at minimum A01.0, B50, T20-T32, A27, and P36.
+
+#### Handoff
+- **→ Research OC:** Validate clinical plausibility of proposed additions against Indonesian hospital admission data
+- **→ Platform OC:** Add new ICD codes to patient generator + clinical protocols in clinical-knowledge.ts
+- **→ Paper OC:** Expanded ICD coverage strengthens "Tier A referral hospital" claim
+
+### Research Request: What AI Agents Are Missing?
+
+#### High Priority Missing Agents
+| Agent | Current State | Gap |
+|-------|---------------|-----|
+| **AI Triage (ED)** | Emergency handler exists, no AI agent | ESI acuity assignment, disaster routing, waiting room — different role from AI Doctor rounding |
+| **AI Radiologist** | Radiology handler passive | Critical finding flags, study prioritization, order appropriateness |
+| **AI Lab Scientist** | Lab handler passive | Critical value alerts, delta checks, reflex testing triggers |
+| **AI Surgeon** | Surgery is event scheduler only | OR optimization, pre-op checklist, post-op complication monitoring |
+| **AI ICU Agent** | No agent exists | Ventilator management, vasopressor monitoring — beyond AI Nurse scope |
+
+#### Medium Priority Missing Agents
+- **AI Infection Control** — outbreak detection, antibiotic stewardship, isolation enforcement
+- **AI Social Worker** — discharge planning, social screening, referral coordination
+- **AI Coder** — ICD-10 validation, DRG assignment, chart completeness
+- **AI Rehab** — PT/OT/RT therapy coordination and progress tracking
+
+#### Handoff
+- **→ Research OC:** Evaluate which agents add most experimental value (ICU agent enables ventilation experiments, Triage agent enables disaster response experiments)
+- **→ Platform OC:** Queue for Epic I (Clinical Fidelity) — AI Triage and AI Radiologist are highest impact for a Tier A claim
+- **→ Paper OC:** Additional AI agents strengthen the "comprehensive AI healthcare environment" framing for JAMIA
+
 ## [2026-06-28 14:00] Coordinator — Paper OC Data Blockers: Decisions
 
 ### Decision 1: LOS — Fix it
@@ -484,3 +532,27 @@ Research OC confirmed: deaths = 10 in all 10 runs. This is not stochastic — it
 - LOS improved from 7 to ~95 ticks, still below realistic 4-7 day target (5760-10080 ticks)
 - Recommended: run 5000+ tick experiments for true ALOS validation
 - 66 tests passing, build clean
+
+## [2026-06-28 18:00] Paper OC — Manuscript Draft Session
+
+### What was written
+- **Design Principle #10:** "Counterfactuals by construction" added
+- **Introduction:** Expanded with second philosophical pillar (counterfactuals by construction). HOE moves from "What happened?" to "What would have happened?"
+- **Related Work:** Complete prose — SimPy, AnyLogic, MedModel, KCH, Medical Gym, HiPhy, NHS DIGIT, Siemens Healthineers surveyed. Five-property gap identified.
+- **System Architecture (§3):** Tick engine, event journal (CQRS/ES), handler chain (35 handlers)
+- **Key Components (§4):** All 8 subsections written — patient generation, 9 departments, 3 AI agents, learning loop, disaster engine, M&M conference, FHIR adapter, calendar/cultural contextualization
+
+### What was updated with data
+- **Abstract Results:** Now contains real data from 10x1000 tick experiment (LOS=95 avg, deaths=61 avg, 18-43% bed occupancy, ~1300 encounters/run)
+- **Draft note:** Flags LOS below realistic target and missing forced-scenario comparisons
+
+### Remaining to write
+- §5 — Reproducibility Guarantees (can write now with seed data)
+- §6 — Demonstration (needs forced-scenario comparisons and LOS caveat)
+- §7 — Use Cases (system design, no data dependency)
+- §8 — Limitations (can write now)
+- §9 — Conclusion (can write after §6)
+- Full reference list
+
+### Key caveat for remaining sections
+LOS at 95 ticks is a 13.6x improvement from 7, but Research OC target is 4-7 days (5760-10080 ticks). Platform OC recommends 5000+ tick experiments for true ALOS validation.
