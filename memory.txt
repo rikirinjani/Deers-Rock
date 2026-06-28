@@ -745,3 +745,15 @@ Research OC verified: the Issue 3 discharge fix collapsed the event processing s
 
 ### Handoff to Paper OC
 - JAMIA results section still blocked. Previous LOS=95 data is preliminary and may shift after regression fix.
+
+## [2026-06-29 01:15] Coordinator — Runner Methodology Fixed ✅
+
+### Confirmed
+- `deathsByIcd` stripping removed from runner output
+- CI/SD computation added to summary
+- Event switch restored (lab_result, rad_result, ed_discharge, surgery_done)
+
+### Updated Handoffs
+- **→ Research OC:** Runner methodology is clean. Re-run E1 (10×1000) for publishable statistics.
+- **→ Paper OC:** Clean data incoming once Research OC completes E1 re-run. JAMIA results section unblocked.
+- **→ Platform OC:** All methodology fixes confirmed. No further runner work needed.

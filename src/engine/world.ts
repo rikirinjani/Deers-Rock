@@ -257,6 +257,15 @@ export function step(world: World): World {
   const scheduledDischarges = dueEvents.filter(e => e.type === "discharge").map(e => e.data as { patientId?: string; encounterId?: string });
   state = dischargeScheduledPatients(state, newClock, scheduledDischarges);
 
+  for (const evt of dueEvents) {
+    switch (evt.type) {
+      case "lab_result": state = labResultHandler(state, newClock, world.queue); break;
+      case "rad_result": state = radResultHandler(state, newClock, world.queue); break;
+      case "ed_discharge": state = edDischargeHandler(state, newClock, world.queue); break;
+      case "surgery_done": state = surgeryResultHandler(state, newClock, world.queue); break;
+    }
+  }
+
   for (const handler of world.handlers) {
     state = handler(state, newClock, world.queue);
   }
