@@ -117,9 +117,9 @@ export function journalStats(): { total: number; byType: Record<string, number>;
   return { total, byType, firstTick: first, lastTick: last };
 }
 
-const JOURNAL_RETENTION_TICKS = 200;
+const JOURNAL_RETENTION_TICKS = 100;
 
-const PURGE_INTERVAL = 100;
+const PURGE_INTERVAL = 50;
 let lastPurgeTick = 0;
 
 export function journalPurge(currentTick: number): void {
@@ -131,6 +131,7 @@ export function journalPurge(currentTick: number): void {
     try {
       db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
       db.pragma("wal_checkpoint(TRUNCATE)");
+      db.exec("VACUUM");
     } catch { }
   }
 }
