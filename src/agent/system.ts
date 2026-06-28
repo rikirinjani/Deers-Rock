@@ -26,8 +26,8 @@ export function agentHandler(state: HospitalState, clock: Clock, _queue: EventQu
     let kesehatan: KeadaanKesehatan = agent.status.kesehatan;
     if (fatigue > 20 && kesehatan === "sehat") kesehatan = "lelah";
     if (fatigue > 40 && kesehatan === "lelah") kesehatan = "sakit_ringan";
-    if (Math.random() > 0.995 && (kesehatan === "sehat" || kesehatan === "lelah")) kesehatan = "sakit_ringan";
-    if (kesehatan === "sakit_ringan" && Math.random() > 0.998) kesehatan = "sakit_berat";
+    if (clock.rng() > 0.995 && (kesehatan === "sehat" || kesehatan === "lelah")) kesehatan = "sakit_ringan";
+    if (kesehatan === "sakit_ringan" && clock.rng() > 0.998) kesehatan = "sakit_berat";
 
     const consecutiveTicks = inShift ? agent.status.consecutiveTicks + 1 : 0;
 

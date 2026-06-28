@@ -54,7 +54,7 @@ export function pathologyHandler(state: HospitalState, clock: Clock, _queue: Eve
     const staff = Array.from(agentPool.agents.values())
       .filter(a => a.role === "dokter_spesialis" && a.status.inShift &&
         (a.spesialisasi === "Patologi Anatomi" || a.spesialisasi === "Patologi Klinik"));
-    if (staff.length > 0) pathologistId = staff[Math.floor(Math.random() * staff.length)]!.id;
+    if (staff.length > 0) pathologistId = staff[Math.floor(clock.rng() * staff.length)]!.id;
   }
 
   for (const enc of state.encounters.values()) {
@@ -64,7 +64,7 @@ export function pathologyHandler(state: HospitalState, clock: Clock, _queue: Eve
     const needsPatho = patient.diagnoses.some(d => ["C50", "C18", "C22", "C61", "D25", "N60"].includes(d.code));
     const alreadyOrdered = Array.from(newOrders.values()).some(o => o.patientId === enc.patientId && o.status !== "completed");
 
-    if (needsPatho && !alreadyOrdered && Math.random() > 0.6 && clock.tick > 10) {
+    if (needsPatho && !alreadyOrdered && clock.rng() > 0.6 && clock.tick > 10) {
       orderCounter++;
       const testTypes: PathoTestType[] = ["histopathology", "cytology", "frozen_section", "immunohistochemistry"];
       const tt = testTypes[orderCounter % 4]!;
@@ -86,9 +86,9 @@ export function pathologyHandler(state: HospitalState, clock: Clock, _queue: Eve
     if (o.status === "pending" && clock.tick % 5 === 0) {
       const pool = PATHO_DIAGNOSES[o.testType];
       if (!pool) continue;
-      const isMalignant = Math.random() > 0.5;
+      const isMalignant = clock.rng() > 0.5;
       const results = isMalignant ? pool.malignant : pool.benign;
-      const result = results[Math.floor(Math.random() * results.length)]!;
+      const result = results[Math.floor(clock.rng() * results.length)]!;
       newOrders.set(id, {
         ...o, status: "completed", completedAt: clock.hospitalTimeMs,
         result, malignant: isMalignant, pathologistId,

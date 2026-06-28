@@ -32,7 +32,7 @@ export function nursingHandler(state: HospitalState, clock: Clock, _queue: Event
 
   const newNotes = new Map(state.nurseNotes);
   for (const encounter of activeEncounters) {
-    if (Math.random() > 0.35) continue;
+    if (clock.rng() > 0.35) continue;
 
     const existing = Array.from(newNotes.values()).filter(n => n.encounterId === encounter.id);
     if (existing.length >= MAX_NOTES_PER_ENCOUNTER) {
@@ -47,7 +47,7 @@ export function nursingHandler(state: HospitalState, clock: Clock, _queue: Event
       encounterId: encounter.id,
       patientId: encounter.patientId,
       noteType: "round",
-      content: OBSERVATIONS[Math.floor(Math.random() * OBSERVATIONS.length)]!,
+      content: OBSERVATIONS[Math.floor(clock.rng() * OBSERVATIONS.length)]!,
       timestamp: clock.hospitalTimeMs,
     };
     newNotes.set(note.id, note);

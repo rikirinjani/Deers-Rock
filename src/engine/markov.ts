@@ -25,7 +25,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   const eventCtx = getEventSummary(state._calendarTicks);
   const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
   const surge = eventCtx.totalMultiplier > 1.3 || scenarioEff.surgeMultiplier > 1.5;
-  if (occupancyRate >= 0.85 && !surge && Math.random() > 0.3) {
+  if (occupancyRate >= 0.85 && !surge && clock.rng() > 0.3) {
     return state;
   }
   if (surge) {
@@ -51,7 +51,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
 
   if (admitablePatients.length === 0) return state;
 
-  const toAdmit = Math.min(availableBeds.length, Math.max(1, Math.floor(Math.random() * 3)));
+  const toAdmit = Math.min(availableBeds.length, Math.max(1, Math.floor(clock.rng() * 3)));
   let newBeds = new Map(state.beds);
   let newEncounters = new Map(state.encounters);
 
@@ -72,14 +72,14 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     const encounter = {
       id: `ENC-${clock.tick}-${patient.id}`,
       patientId: patient.id,
-      type: (Math.random() > 0.7 ? "emergency" : "admission") as "admission" | "emergency",
+      type: (clock.rng() > 0.7 ? "emergency" : "admission") as "admission" | "emergency",
       startTime: clock.hospitalTimeMs,
       endTime: null as number | null,
       status: "active" as const,
     };
     newEncounters.set(encounter.id, encounter);
 
-    const dischargeDelay = 4 + Math.floor(Math.random() * 8);
+    const dischargeDelay = 4 + Math.floor(clock.rng() * 8);
     queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
   }
 
@@ -98,7 +98,7 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
   let newMorgue = [...(state.morgue || [])];
 
   for (let i = 0; i < dischargeCount; i++) {
-    const idx = Math.floor(Math.random() * activeEncounters.length);
+    const idx = Math.floor(clock.rng() * activeEncounters.length);
     const toDischarge = activeEncounters[idx]!;
     const patient = state.patients.get(toDischarge.patientId);
 
@@ -106,7 +106,7 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
 
     const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
     const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
-    const dies = Math.random() < (deathRoll + scenarioEff.mortalityBoost);
+    const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
 
     if (dies && patient && newMorgue.length < state.morgueCapacity) {
       const activeDx = patient.diagnoses.filter(d => d.active);
@@ -154,11 +154,11 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
 
 export function newPatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   if (clock.tick > 0 && clock.tick % 15 === 0) {
-    const newCount = 1 + Math.floor(Math.random() * 3);
+    const newCount = 1 + Math.floor(clock.rng() * 3);
     let newPatients = new Map(state.patients);
     for (let i = 0; i < newCount; i++) {
       const fresh = generatePatient();
-      fresh.id = `PAT-${clock.tick}-${String(Math.floor(Math.random() * 9999)).padStart(4, "0")}`;
+      fresh.id = `PAT-${clock.tick}-${String(Math.floor(clock.rng() * 9999)).padStart(4, "0")}`;
       newPatients.set(fresh.id, fresh);
     }
     return { ...state, patients: newPatients };
@@ -166,11 +166,11 @@ export function newPatientHandler(state: HospitalState, clock: Clock, _queue: Ev
   return state;
 }
 
-export function vitalsUpdateHandler(state: HospitalState, _clock: Clock, _queue: EventQueue): HospitalState {
+export function vitalsUpdateHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newPatients = new Map(state.patients);
   for (const [id, patient] of newPatients) {
-    const drift = () => Math.floor(Math.random() * 6) - 3;
-    const tempDrift = (Math.random() * 0.4) - 0.2;
+    const drift = () => Math.floor(clock.rng() * 6) - 3;
+    const tempDrift = (clock.rng() * 0.4) - 0.2;
     newPatients.set(id, {
       ...patient,
       vitals: {
@@ -180,7 +180,7 @@ export function vitalsUpdateHandler(state: HospitalState, _clock: Clock, _queue:
         temperature: Math.max(35, Math.min(39.5, +(patient.vitals.temperature + tempDrift).toFixed(1))),
         oxygenSaturation: Math.max(90, Math.min(100, patient.vitals.oxygenSaturation + drift())),
         respiratoryRate: Math.max(10, Math.min(30, patient.vitals.respiratoryRate + drift())),
-        painLevel: Math.max(0, Math.min(10, patient.vitals.painLevel + (Math.random() > 0.5 ? 1 : -1))),
+        painLevel: Math.max(0, Math.min(10, patient.vitals.painLevel + (clock.rng() > 0.5 ? 1 : -1))),
       },
     });
   }

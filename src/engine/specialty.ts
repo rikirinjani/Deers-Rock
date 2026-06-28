@@ -47,10 +47,10 @@ export function specialtyHandler(state: HospitalState, clock: Clock, _queue: Eve
   if (activeEncounters.length === 0) return state;
 
   const allSpecialties = Object.keys(SERVICE_MAP) as SpecialtyType[];
-  const specialty = allSpecialties[Math.floor(Math.random() * allSpecialties.length)]!;
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
+  const specialty = allSpecialties[Math.floor(clock.rng() * allSpecialties.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
   const services = SERVICE_MAP[specialty];
-  const serviceName = services[Math.floor(Math.random() * services.length)]!;
+  const serviceName = services[Math.floor(clock.rng() * services.length)]!;
 
   const order: SpecialtyOrder = {
     id: `SPC-${clock.tick}-${encounter.patientId}-${specialty}`,
@@ -68,7 +68,7 @@ export function specialtyHandler(state: HospitalState, clock: Clock, _queue: Eve
   const newOrders = new Map(state.specialtyOrders);
   newOrders.set(order.id, order);
 
-  if (Math.random() > 0.5) {
+  if (clock.rng() > 0.5) {
     const updated = new Map(newOrders);
     updated.set(order.id, {
       ...order,

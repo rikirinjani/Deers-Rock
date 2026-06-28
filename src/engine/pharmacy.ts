@@ -44,8 +44,8 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 5 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const med = MEDICATIONS[Math.floor(Math.random() * MEDICATIONS.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const med = MEDICATIONS[Math.floor(clock.rng() * MEDICATIONS.length)]!;
 
   const order: MedicationOrder = {
     id: `MED-${clock.tick}-${encounter.patientId}-${med.code}`,
@@ -55,7 +55,7 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
     status: "ordered",
     dose: med.dose,
     route: med.route,
-    frequency: FREQUENCIES[Math.floor(Math.random() * FREQUENCIES.length)]!,
+    frequency: FREQUENCIES[Math.floor(clock.rng() * FREQUENCIES.length)]!,
     orderedAt: clock.hospitalTimeMs,
     administeredAt: null,
   };
@@ -75,7 +75,7 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
 export function medAdminHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newOrders = new Map(state.medicationOrders);
   for (const [id, order] of newOrders) {
-    if (order.status === "ordered" && Math.random() > 0.6) {
+    if (order.status === "ordered" && clock.rng() > 0.6) {
       newOrders.set(id, {
         ...order,
         status: "administered",

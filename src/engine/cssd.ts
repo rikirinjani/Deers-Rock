@@ -68,7 +68,7 @@ export function cssdHandler(state: HospitalState, clock: Clock, _queue: EventQue
   if (agentPool) {
     const staff = Array.from(agentPool.agents.values())
       .filter(a => (a.role === "perawat" || a.role === "petugas_kebersihan") && a.status.inShift);
-    if (staff.length > 0) operatorId = staff[Math.floor(Math.random() * staff.length)]!.id;
+    if (staff.length > 0) operatorId = staff[Math.floor(clock.rng() * staff.length)]!.id;
   }
 
   for (const t of newTrays) {
@@ -87,7 +87,7 @@ export function cssdHandler(state: HospitalState, clock: Clock, _queue: EventQue
 
   for (const [ci, c] of newCycles.entries()) {
     if (c.status === "running" && clock.tick >= c.endTick) {
-      newCycles[ci] = { ...c, status: Math.random() > 0.05 ? "completed" : "failed" };
+      newCycles[ci] = { ...c, status: clock.rng() > 0.05 ? "completed" : "failed" };
       for (const t of newTrays) {
         if (t.cycleId === c.id) {
           if (newCycles[ci].status === "completed") {
@@ -110,8 +110,8 @@ export function cssdHandler(state: HospitalState, clock: Clock, _queue: EventQue
 
   if (clock.tick % 20 === 0) {
     const used = newTrays.filter(t => t.status === "sterilized");
-    if (used.length > 3 && Math.random() > 0.6) {
-      const pick = used[Math.floor(Math.random() * used.length)]!;
+    if (used.length > 3 && clock.rng() > 0.6) {
+      const pick = used[Math.floor(clock.rng() * used.length)]!;
       pick.status = "in_use";
     }
   }

@@ -100,7 +100,7 @@ export function dispenseItem(
 
   const newTransactions = new Map(state.stockTransactions);
   const tx: StockTransaction = {
-    id: `DISP-${clock.tick}-${itemCode}-${Math.floor(Math.random() * 1000)}`,
+    id: `DISP-${clock.tick}-${itemCode}-${Math.floor(clock.rng() * 1000)}`,
     itemCode,
     type: "dispense",
     quantity,

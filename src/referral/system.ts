@@ -50,10 +50,10 @@ function generateReferrals(clock: Clock): ReferralLetter[] {
   const letters: ReferralLetter[] = [];
   const lowerFacilities = Array.from(REFERRAL_FACILITIES).filter(f => f.type === "Puskesmas" || f.type === "Klinik" || f.type === "RS Tipe D");
 
-  if (lowerFacilities.length === 0 || Math.random() > 0.3) return letters;
+  if (lowerFacilities.length === 0 || clock.rng() > 0.3) return letters;
 
-  const facility = lowerFacilities[Math.floor(Math.random() * lowerFacilities.length)]!;
-  const patientId = `REF-PAT-${clock.tick}-${Math.floor(Math.random() * 1000)}`;
+  const facility = lowerFacilities[Math.floor(clock.rng() * lowerFacilities.length)]!;
+  const patientId = `REF-PAT-${clock.tick}-${Math.floor(clock.rng() * 1000)}`;
 
   const reasons = [
     "Kasus memerlukan penanganan spesialis",
@@ -69,13 +69,13 @@ function generateReferrals(clock: Clock): ReferralLetter[] {
   const diagnoses = ["I10", "E11", "J15", "N39", "I50", "J44", "M54", "K35", "S72", "I21"];
 
   letters.push({
-    id: `RJL-${clock.tick}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`,
+    id: `RJL-${clock.tick}-${String(Math.floor(clock.rng() * 10000)).padStart(4, "0")}`,
     patientId,
     fromFacility: facility.id,
     fromType: facility.type,
     toFacility: "DEERS-ROCK",
-    reason: reasons[Math.floor(Math.random() * reasons.length)]!,
-    diagnosis: diagnoses[Math.floor(Math.random() * diagnoses.length)]!,
+    reason: reasons[Math.floor(clock.rng() * reasons.length)]!,
+    diagnosis: diagnoses[Math.floor(clock.rng() * diagnoses.length)]!,
     referralDate: clock.hospitalTimeMs,
     status: "active",
     notes: `Dirujuk dari ${facility.name} (${facility.type})`,

@@ -71,7 +71,7 @@ export function biomedHandler(state: HospitalState, clock: Clock, _queue: EventQ
   if (agentPool) {
     const eng = Array.from(agentPool.agents.values())
       .filter(a => (a.role === "perawat" || a.role === "staf_inventaris" || a.role === "petugas_kebersihan") && a.status.inShift);
-    if (eng.length > 0) engineerId = eng[Math.floor(Math.random() * eng.length)]!.id;
+    if (eng.length > 0) engineerId = eng[Math.floor(clock.rng() * eng.length)]!.id;
   }
 
   for (const [ei, e] of newEquip.entries()) {
@@ -84,7 +84,7 @@ export function biomedHandler(state: HospitalState, clock: Clock, _queue: EventQ
         findings: null, engineerId,
       });
     }
-    if (e.status === "broken" && Math.random() > 0.8) {
+    if (e.status === "broken" && clock.rng() > 0.8) {
       newEquip[ei] = { ...e, status: "under_maintenance" };
       maintCounter++;
       newMaint.push({
@@ -108,7 +108,7 @@ export function biomedHandler(state: HospitalState, clock: Clock, _queue: EventQ
         nextMaintenanceTick: clock.tick + e.maintenanceInterval,
       };
     }
-    if (clock.tick > e.lifetimeTicks && Math.random() > 0.95) {
+    if (clock.tick > e.lifetimeTicks && clock.rng() > 0.95) {
       newEquip[ei] = { ...e, status: "decommissioned" };
     }
   }

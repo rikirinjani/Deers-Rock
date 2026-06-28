@@ -30,11 +30,11 @@ export function socialWorkHandler(state: HospitalState, clock: Clock, _queue: Ev
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 9 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const noteType = Math.random() > 0.5 ? "assessment" : "counseling";
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const noteType = clock.rng() > 0.5 ? "assessment" : "counseling";
   const content = noteType === "assessment"
-    ? ASSESSMENTS[Math.floor(Math.random() * ASSESSMENTS.length)]!
-    : COUNSELING[Math.floor(Math.random() * COUNSELING.length)]!;
+    ? ASSESSMENTS[Math.floor(clock.rng() * ASSESSMENTS.length)]!
+    : COUNSELING[Math.floor(clock.rng() * COUNSELING.length)]!;
 
   const socialNote: SocialWorkNote = {
     id: `SW-${clock.tick}-${encounter.patientId}`,
@@ -43,7 +43,7 @@ export function socialWorkHandler(state: HospitalState, clock: Clock, _queue: Ev
     noteType: noteType as SocialWorkNote["noteType"],
     content,
     timestamp: clock.hospitalTimeMs,
-    disposition: noteType === "assessment" ? DISPOSITIONS[Math.floor(Math.random() * DISPOSITIONS.length)]! : null,
+    disposition: noteType === "assessment" ? DISPOSITIONS[Math.floor(clock.rng() * DISPOSITIONS.length)]! : null,
   };
 
   const newNotes = new Map(state.socialWorkNotes);

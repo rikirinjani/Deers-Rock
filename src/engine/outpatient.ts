@@ -60,7 +60,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     const referrals = Array.from(state._referralState?.letters?.values() ?? [])
       .filter(l => l.status === "received" && !Array.from(visits.values()).some(v => v.referralId === l.id));
 
-    const walkInsNeeded = Math.max(0, Math.floor(Math.random() * 3));
+    const walkInsNeeded = Math.max(0, Math.floor(clock.rng() * 3));
     const arrivals: { patientId: string; referralId: string | null; diagnosis: typeof DIAGNOSIS_POOL[0] }[] = [];
 
     for (const ref of referrals) {
@@ -71,8 +71,8 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     for (let i = 0; i < walkInsNeeded; i++) {
       const pats = Array.from(state.patients.values());
       if (pats.length === 0) break;
-      const dx = DIAGNOSIS_POOL[Math.floor(Math.random() * DIAGNOSIS_POOL.length)]!;
-      arrivals.push({ patientId: pats[Math.floor(Math.random() * pats.length)]!.id, referralId: null, diagnosis: dx });
+      const dx = DIAGNOSIS_POOL[Math.floor(clock.rng() * DIAGNOSIS_POOL.length)]!;
+      arrivals.push({ patientId: pats[Math.floor(clock.rng() * pats.length)]!.id, referralId: null, diagnosis: dx });
     }
 
     for (const arrival of arrivals) {
@@ -118,18 +118,18 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     const doctors = agentPool ? Array.from(agentPool.agents.values()).filter(
       a => (a.role === "dokter_umum" || a.role === "dokter_spesialis") && a.status.inShift
     ) : [];
-    const doctor = doctors[Math.floor(Math.random() * doctors.length)];
+    const doctor = doctors[Math.floor(clock.rng() * doctors.length)];
 
     visits.set(visit.id, { ...visit, status: "in-consultation", doctorId: doctor?.id ?? null });
   }
 
   const consultingVisits = Array.from(visits.values()).filter(v => v.status === "in-consultation");
   for (const visit of consultingVisits) {
-    if (Math.random() > 0.35) continue;
+    if (clock.rng() > 0.35) continue;
 
     const dx = DIAGNOSIS_POOL.find(d => d.icd === visit.icdCode);
-    if (dx && Math.random() > 0.4) {
-      const lab = LAB_TESTS[Math.floor(Math.random() * LAB_TESTS.length)]!;
+    if (dx && clock.rng() > 0.4) {
+      const lab = LAB_TESTS[Math.floor(clock.rng() * LAB_TESTS.length)]!;
       const labOrder: LabOrder = {
         id: `POLI-LAB-${clock.tick}-${visit.patientId}-${lab.code}`,
         encounterId: visit.encounterId, patientId: visit.patientId,
@@ -141,14 +141,14 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       newLabOrders.set(labOrder.id, labOrder);
     }
 
-    if (dx && Math.random() > 0.5) {
-      const med = MEDICATIONS[Math.floor(Math.random() * MEDICATIONS.length)]!;
+    if (dx && clock.rng() > 0.5) {
+      const med = MEDICATIONS[Math.floor(clock.rng() * MEDICATIONS.length)]!;
       const medOrder: MedicationOrder = {
         id: `POLI-MED-${clock.tick}-${visit.patientId}-${med.code}`,
         encounterId: visit.encounterId, patientId: visit.patientId,
         medication: { code: med.code, name: med.name, dose: med.dose, route: med.route },
         status: "ordered", dose: med.dose, route: med.route,
-        frequency: Math.random() > 0.5 ? "QD" : "BID",
+        frequency: clock.rng() > 0.5 ? "QD" : "BID",
         orderedAt: clock.hospitalTimeMs, administeredAt: null,
       };
       newMedOrders.set(medOrder.id, medOrder);

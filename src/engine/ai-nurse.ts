@@ -28,7 +28,7 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
     if (!patient) continue;
 
     if (!enc.assignedNurseId && availableNurses.length > 0) {
-      const nurse = availableNurses[Math.floor(Math.random() * availableNurses.length)]!;
+      const nurse = availableNurses[Math.floor(clock.rng() * availableNurses.length)]!;
       newEncounters.set(enc.id, { ...enc, assignedNurseId: nurse.id });
     }
 
@@ -100,7 +100,7 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
     );
 
     for (const med of pendingMeds.slice(0, 2)) {
-      if (Math.random() > 0.6) continue;
+      if (clock.rng() > 0.6) continue;
       newMedOrders.set(med.id, {
         ...med,
         status: "administered",

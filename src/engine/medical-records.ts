@@ -59,7 +59,7 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
         newCharts.set(id, {
           ...chart,
           status: "coded",
-          coder: CODERS[Math.floor(Math.random() * CODERS.length)]!,
+          coder: CODERS[Math.floor(clock.rng() * CODERS.length)]!,
         });
         break;
       }

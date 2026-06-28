@@ -7,7 +7,9 @@ import type { Clock } from "../src/engine/clock.js";
 import type { AgentState } from "../src/agent/system.js";
 
 function makeClock(tick: number): Clock {
-  return { tick, hospitalTimeMs: tick * 60000, timeMs: Date.now(), timePerTickMs: 1000 };
+  return {
+    rng: () => Math.random(),
+    rngSeed: tick, tick, hospitalTimeMs: tick * 60000, timeMs: Date.now(), timePerTickMs: 1000 };
 }
 
 function makeAgent(id: string, role: string): HospitalAgent {

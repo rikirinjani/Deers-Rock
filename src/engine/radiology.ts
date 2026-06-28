@@ -16,8 +16,8 @@ export function radiologyHandler(state: HospitalState, clock: Clock, _queue: Eve
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 6 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const study = RAD_STUDIES[Math.floor(Math.random() * RAD_STUDIES.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const study = RAD_STUDIES[Math.floor(clock.rng() * RAD_STUDIES.length)]!;
 
   const order: RadiologyOrder = {
     id: `RAD-${clock.tick}-${encounter.patientId}`,
@@ -48,8 +48,8 @@ export function radResultHandler(state: HospitalState, clock: Clock, _queue: Eve
       newOrders.set(id, {
         ...order,
         status: "resulted",
-        finding: study.findings[Math.floor(Math.random() * study.findings.length)]!,
-        impression: study.impressions[Math.floor(Math.random() * study.impressions.length)]!,
+        finding: study.findings[Math.floor(clock.rng() * study.findings.length)]!,
+        impression: study.impressions[Math.floor(clock.rng() * study.impressions.length)]!,
         resultedAt: clock.hospitalTimeMs,
       });
     }

@@ -153,10 +153,10 @@ export function scenarioHandler(state: HospitalState, clock: Clock, _queue: Even
     for (const def of SCENARIO_DEFS) {
       if (clock.tick < def.minTick) continue;
       const prob = def.baseProbability * (1 + cooldown / 500);
-      if (Math.random() < prob) {
+      if (clock.rng() < prob) {
         scenarioCounter++;
-        const severity = 0.3 + Math.random() * 0.7;
-        const duration = def.minDuration + Math.floor(Math.random() * (def.maxDuration - def.minDuration));
+        const severity = 0.3 + clock.rng() * 0.7;
+        const duration = def.minDuration + Math.floor(clock.rng() * (def.maxDuration - def.minDuration));
         active = {
           id: `SC-${scenarioCounter}`, type: def.type, name: def.name,
           severity, startTick: clock.tick, durationTicks: duration,

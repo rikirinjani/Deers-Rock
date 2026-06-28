@@ -20,8 +20,8 @@ export function dietaryHandler(state: HospitalState, clock: Clock, _queue: Event
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 7 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const dietType = DIET_TYPES[Math.floor(Math.random() * DIET_TYPES.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const dietType = DIET_TYPES[Math.floor(clock.rng() * DIET_TYPES.length)]!;
 
   const order: DietOrder = {
     id: `DIET-${clock.tick}-${encounter.patientId}`,

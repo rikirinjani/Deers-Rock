@@ -22,8 +22,8 @@ export function surgeryHandler(state: HospitalState, clock: Clock, _queue: Event
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 10 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const proc = PROCEDURES[Math.floor(Math.random() * PROCEDURES.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const proc = PROCEDURES[Math.floor(clock.rng() * PROCEDURES.length)]!;
 
   const surgery: SurgeryOrder = {
     id: `OR-${clock.tick}-${encounter.patientId}`,
@@ -32,7 +32,7 @@ export function surgeryHandler(state: HospitalState, clock: Clock, _queue: Event
     procedureName: proc.name,
     procedureCode: proc.code,
     status: "scheduled",
-    surgeon: SURGEONS[Math.floor(Math.random() * SURGEONS.length)]!,
+    surgeon: SURGEONS[Math.floor(clock.rng() * SURGEONS.length)]!,
     scheduledAt: clock.hospitalTimeMs,
     completedAt: null,
     notes: null,

@@ -16,8 +16,8 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 8 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const therapy = THERAPIES[Math.floor(Math.random() * THERAPIES.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const therapy = THERAPIES[Math.floor(clock.rng() * THERAPIES.length)]!;
 
   const order: RespiratoryOrder = {
     id: `RT-${clock.tick}-${encounter.patientId}`,
@@ -25,7 +25,7 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
     patientId: encounter.patientId,
     therapyType: therapy.type,
     status: "ordered",
-    settings: therapy.settings[Math.floor(Math.random() * therapy.settings.length)]!,
+    settings: therapy.settings[Math.floor(clock.rng() * therapy.settings.length)]!,
     orderedAt: clock.hospitalTimeMs,
     notes: null,
   };

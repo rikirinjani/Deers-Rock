@@ -24,14 +24,14 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
 
   const eventCtx = getEventSummary(state._calendarTicks);
   const eventPool = eventCtx.emergencyPool;
-  const complaint = eventPool.length > 0 && Math.random() > 0.5
-    ? eventPool[Math.floor(Math.random() * eventPool.length)]!
-    : COMPLAINTS[Math.floor(Math.random() * COMPLAINTS.length)]!;
+  const complaint = eventPool.length > 0 && clock.rng() > 0.5
+    ? eventPool[Math.floor(clock.rng() * eventPool.length)]!
+    : COMPLAINTS[Math.floor(clock.rng() * COMPLAINTS.length)]!;
   const acuity = assignAcuity(complaint);
-  const arrivalMode = ARRIVAL_MODES[Math.floor(Math.random() * ARRIVAL_MODES.length)];
+  const arrivalMode = ARRIVAL_MODES[Math.floor(clock.rng() * ARRIVAL_MODES.length)];
 
   const patientsArr = Array.from(state.patients.values());
-  const patient = patientsArr[Math.floor(Math.random() * patientsArr.length)]!;
+  const patient = patientsArr[Math.floor(clock.rng() * patientsArr.length)]!;
 
   const encounterId = `ED-${clock.tick}-${patient.id}`;
   const encounter = {
@@ -61,7 +61,7 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
   const newTriages = new Map(state.edTriages);
   newTriages.set(triage.id, triage);
 
-  const edStay = 2 + Math.floor(Math.random() * 6);
+  const edStay = 2 + Math.floor(clock.rng() * 6);
   _queue.schedule("ed_discharge", clock.tick + edStay, { encounterId, triageId: triage.id, patientId: patient.id });
 
   return { ...state, encounters: newEncounters, edTriages: newTriages };
@@ -71,7 +71,7 @@ export function edDischargeHandler(state: HospitalState, clock: Clock, _queue: E
   const newTriages = new Map(state.edTriages);
   for (const [id, t] of newTriages) {
     if (t.disposition === null) {
-      const admitted = t.acuity <= 2 || Math.random() > 0.5;
+      const admitted = t.acuity <= 2 || clock.rng() > 0.5;
       newTriages.set(id, {
         ...t,
         disposition: admitted ? "admitted" : "discharged",

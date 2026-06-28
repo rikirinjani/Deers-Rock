@@ -15,15 +15,15 @@ export const LAB_TESTS = [
   { code: "HBA1C", name: "Hemoglobin A1C", range: "<5.7%", unit: "%", supplyCode: "LAB-CHEM" },
 ];
 
-function generateResult(testCode: string): string {
-  const r = () => +(Math.random() * 3 + 0.5).toFixed(1);
+function generateResult(testCode: string, rng: () => number): string {
+  const r = () => +(rng() * 3 + 0.5).toFixed(1);
   switch (testCode) {
     case "CBC": return `${r() + 4}`;
-    case "TROP": return Math.random() > 0.8 ? `${r() * 0.5}` : "<0.04";
-    case "CRP": return `${Math.floor(Math.random() * 30)}`;
-    case "PT-INR": return `${(0.9 + Math.random() * 0.6).toFixed(1)}`;
-    case "HBA1C": return `${(4.5 + Math.random() * 4).toFixed(1)}`;
-    default: return `${Math.floor(Math.random() * 200)}`;
+    case "TROP": return rng() > 0.8 ? `${r() * 0.5}` : "<0.04";
+    case "CRP": return `${Math.floor(rng() * 30)}`;
+    case "PT-INR": return `${(0.9 + rng() * 0.6).toFixed(1)}`;
+    case "HBA1C": return `${(4.5 + rng() * 4).toFixed(1)}`;
+    default: return `${Math.floor(rng() * 200)}`;
   }
 }
 
@@ -31,8 +31,8 @@ export function labHandler(state: HospitalState, clock: Clock, queue: EventQueue
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
   if (activeEncounters.length === 0 || clock.tick % 3 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const test = LAB_TESTS[Math.floor(Math.random() * LAB_TESTS.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const test = LAB_TESTS[Math.floor(clock.rng() * LAB_TESTS.length)]!;
 
   // Check lab reagent stock before ordering
   if (test.supplyCode && getStock(state, test.supplyCode) < 1) return state;
@@ -66,7 +66,7 @@ export function labResultHandler(state: HospitalState, clock: Clock, _queue: Eve
       newOrders.set(id, {
         ...order,
         status: "resulted",
-        result: generateResult(order.testCode),
+        result: generateResult(order.testCode, clock.rng),
         resultedAt: clock.hospitalTimeMs,
       });
     }

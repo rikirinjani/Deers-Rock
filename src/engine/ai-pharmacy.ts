@@ -43,7 +43,7 @@ export function aiPharmacyHandler(state: HospitalState, clock: Clock, _queue: Ev
     const patient = stateMut.patients.get(order.patientId);
     if (!patient) continue;
 
-    const pharmacist = pharmacistAgents[Math.floor(Math.random() * pharmacistAgents.length)];
+    const pharmacist = pharmacistAgents[Math.floor(clock.rng() * pharmacistAgents.length)];
     const pharmacistId = pharmacist?.id ?? "SYS-PHARM";
 
     const drugCode = order.medication.code;

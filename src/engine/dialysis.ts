@@ -51,9 +51,9 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
   const agentPool = state._agentState?.pool;
   if (agentPool) {
     const nephros = Array.from(agentPool.agents.values()).filter(a => a.role === "dokter_spesialis" && a.status.inShift && a.spesialisasi === "Penyakit Dalam");
-    if (nephros.length > 0) nephrologistId = nephros[Math.floor(Math.random() * nephros.length)]!.id;
+    if (nephros.length > 0) nephrologistId = nephros[Math.floor(clock.rng() * nephros.length)]!.id;
     const nurses = Array.from(agentPool.agents.values()).filter(a => a.role === "perawat" && a.status.inShift);
-    if (nurses.length > 0) nurseId = nurses[Math.floor(Math.random() * nurses.length)]!.id;
+    if (nurses.length > 0) nurseId = nurses[Math.floor(clock.rng() * nurses.length)]!.id;
   }
 
   for (const enc of state.encounters.values()) {
@@ -64,7 +64,7 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
     if (!needsDialysis) continue;
     const hasActiveSession = newSessions.some(s => s.patientId === enc.patientId && s.status !== "completed");
     if (hasActiveSession) continue;
-    if (Math.random() > 0.6) continue;
+    if (clock.rng() > 0.6) continue;
 
     const availMachine = newMachines.find(m => m.status === "available");
     if (!availMachine) continue;
@@ -78,7 +78,7 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
       machineId: availMachine.id,
       type: availMachine.type,
       durationMinutes: availMachine.type === "pd" ? 480 : 240,
-      ultrafiltrationMl: 1000 + Math.floor(Math.random() * 2000),
+      ultrafiltrationMl: 1000 + Math.floor(clock.rng() * 2000),
       status: "scheduled",
       scheduledAt: clock.hospitalTimeMs, startedAt: null, completedAt: null,
       complication: null, nephrologistId, nurseId,
@@ -90,7 +90,7 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
       newSessions[si] = { ...s, status: "in_progress", startedAt: clock.hospitalTimeMs };
     }
     if (s.status === "in_progress" && clock.tick % 5 === 0) {
-      const complication = Math.random() > 0.9 ? (["Hypotension", "Muscle cramps", "Nausea", "Access site bleeding", "Chest pain"].sort(() => Math.random() - 0.5)[0] ?? null) : null;
+      const complication = clock.rng() > 0.9 ? (["Hypotension", "Muscle cramps", "Nausea", "Access site bleeding", "Chest pain"].sort(() => clock.rng() - 0.5)[0] ?? null) : null;
       const mi = newMachines.findIndex(m => m.id === s.machineId);
       if (mi !== -1) newMachines[mi] = { ...newMachines[mi]!, status: "available" };
       newSessions[si] = { ...s, status: "completed", completedAt: clock.hospitalTimeMs, complication };
@@ -98,7 +98,7 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
   }
 
   for (const [mi, m] of newMachines.entries()) {
-    if (m.status === "available" && clock.tick - m.lastUsedTick > 96 && Math.random() > 0.9) {
+    if (m.status === "available" && clock.tick - m.lastUsedTick > 96 && clock.rng() > 0.9) {
       newMachines[mi] = { ...m, status: "under_maintenance" };
     }
     if (m.status === "under_maintenance" && clock.tick % 8 === 0) {

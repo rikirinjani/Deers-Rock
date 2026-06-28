@@ -72,11 +72,11 @@ export function radiotherapyHandler(state: HospitalState, clock: Clock, _queue: 
   let therapistId: string | null = null;
   if (agentPool) {
     const oncos = Array.from(agentPool.agents.values()).filter(a => a.role === "dokter_spesialis" && a.status.inShift && a.spesialisasi === "Penyakit Dalam");
-    if (oncos.length > 0) oncoId = oncos[Math.floor(Math.random() * oncos.length)]!.id;
+    if (oncos.length > 0) oncoId = oncos[Math.floor(clock.rng() * oncos.length)]!.id;
     const physicists = Array.from(agentPool.agents.values()).filter(a => (a.role === "radiografer" || a.role === "teknisi_biomedik") && a.status.inShift);
-    if (physicists.length > 0) physicistId = physicists[Math.floor(Math.random() * physicists.length)]!.id;
+    if (physicists.length > 0) physicistId = physicists[Math.floor(clock.rng() * physicists.length)]!.id;
     const therapists = Array.from(agentPool.agents.values()).filter(a => (a.role === "perawat" || a.role === "radiografer") && a.status.inShift);
-    if (therapists.length > 0) therapistId = therapists[Math.floor(Math.random() * therapists.length)]!.id;
+    if (therapists.length > 0) therapistId = therapists[Math.floor(clock.rng() * therapists.length)]!.id;
   }
 
   for (const enc of state.encounters.values()) {
@@ -87,7 +87,7 @@ export function radiotherapyHandler(state: HospitalState, clock: Clock, _queue: 
     if (!cancerDx) continue;
     const alreadyPlanned = newPlans.some(p => p.patientId === enc.patientId && p.status !== "completed");
     if (alreadyPlanned) continue;
-    if (Math.random() > 0.6) continue;
+    if (clock.rng() > 0.6) continue;
 
     planCounter++;
     const modality = MODALITY_BY_DX[cancerDx.code] ?? "external_beam";

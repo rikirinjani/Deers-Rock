@@ -38,7 +38,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     if (!patient) continue;
 
     if (!enc.attendingDoctorId) {
-      const doctor = assignBestDoctor(assignableAgents, patient.diagnoses.map(d => d.code));
+      const doctor = assignBestDoctor(assignableAgents, patient.diagnoses.map(d => d.code), clock.rng);
       if (doctor) {
         newEncounters.set(enc.id, { ...enc, attendingDoctorId: doctor.id });
       }
@@ -301,7 +301,7 @@ const SPECIALTY_TO_SPESIALIS: Record<string, string> = {
   forensic: "Forensik",
 };
 
-function assignBestDoctor(agents: HospitalAgent[], diagnoses: string[]): HospitalAgent | undefined {
+function assignBestDoctor(agents: HospitalAgent[], diagnoses: string[], rng: () => number): HospitalAgent | undefined {
   if (agents.length === 0) return undefined;
   const primaryCode = diagnoses[0];
   const targetSpecialty = primaryCode ? mapIcdToSpecialty(primaryCode) : undefined;
@@ -312,8 +312,8 @@ function assignBestDoctor(agents: HospitalAgent[], diagnoses: string[]): Hospita
     return targetSpesialis ? a.spesialisasi === targetSpesialis : false;
   });
 
-  if (specialists.length > 0) return specialists[Math.floor(Math.random() * specialists.length)];
-  return agents.filter(a => a.role === "dokter_umum")[Math.floor(Math.random() * Math.min(5, agents.length))] ?? agents[Math.floor(Math.random() * agents.length)]!;
+  if (specialists.length > 0) return specialists[Math.floor(rng() * specialists.length)];
+  return agents.filter(a => a.role === "dokter_umum")[Math.floor(rng() * Math.min(5, agents.length))] ?? agents[Math.floor(rng() * agents.length)]!;
 }
 
 function determineFrequency(medName: string): string {

@@ -57,7 +57,7 @@ export function microbiologyHandler(state: HospitalState, clock: Clock, _queue: 
   if (agentPool) {
     const microStaff = Array.from(agentPool.agents.values())
       .filter(a => (a.role === "analis_lab" || a.role === "dokter_spesialis") && a.status.inShift && a.spesialisasi === "Patologi Klinik");
-    if (microStaff.length > 0) microId = microStaff[Math.floor(Math.random() * microStaff.length)]!.id;
+    if (microStaff.length > 0) microId = microStaff[Math.floor(clock.rng() * microStaff.length)]!.id;
   }
 
   for (const enc of state.encounters.values()) {
@@ -67,11 +67,11 @@ export function microbiologyHandler(state: HospitalState, clock: Clock, _queue: 
     const hasMicroDx = patient.diagnoses.some(d => ["J15", "J12", "A09", "N39", "A91", "K35"].includes(d.code));
     const alreadyOrdered = Array.from(newOrders.values()).some(o => o.patientId === enc.patientId && o.status !== "completed");
 
-    if (hasMicroDx && !alreadyOrdered && Math.random() > 0.7 && clock.tick > 10) {
+    if (hasMicroDx && !alreadyOrdered && clock.rng() > 0.7 && clock.tick > 10) {
       orderCounter++;
       const specimen = ["Blood", "Sputum", "Urine", "Stool", "Wound swab", "CSF"][orderCounter % 6]!;
       const testTypes: MicroTestType[] = ["gram_stain", "culture", "sensitivity", "pcr"];
-      const testType = testTypes[Math.floor(Math.random() * 4)]!;
+      const testType = testTypes[Math.floor(clock.rng() * 4)]!;
       newOrders.set(`MICRO-${orderCounter}`, {
         id: `MICRO-${orderCounter}`, encounterId: enc.id, patientId: enc.patientId,
         specimen, testType, status: "pending",
@@ -85,9 +85,9 @@ export function microbiologyHandler(state: HospitalState, clock: Clock, _queue: 
   for (const [id, o] of newOrders) {
     if (o.status === "pending" && clock.tick % 3 === 0) {
       const microbeKeys = Object.keys(ORGANISMS) as MicrobeType[];
-      const mt = microbeKeys[Math.floor(Math.random() * microbeKeys.length)]!;
+      const mt = microbeKeys[Math.floor(clock.rng() * microbeKeys.length)]!;
       const orgs = ORGANISMS[mt];
-      const org = orgs[Math.floor(Math.random() * orgs.length)]!;
+      const org = orgs[Math.floor(clock.rng() * orgs.length)]!;
       const sens = SENSITIVITY_PANEL[org] ?? ["Ceftriaxone S", "Ciprofloxacin S"];
       newOrders.set(id, {
         ...o, status: "completed", completedAt: clock.hospitalTimeMs,

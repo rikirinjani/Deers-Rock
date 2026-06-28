@@ -37,7 +37,7 @@ export function ipcHandler(state: HospitalState, clock: Clock, _queue: EventQueu
   if (agentPool) {
     const staff = Array.from(agentPool.agents.values())
       .filter(a => (a.role === "perawat" || a.role === "dokter_umum") && a.status.inShift);
-    if (staff.length > 0) ipcNurseId = staff[Math.floor(Math.random() * staff.length)]!.id;
+    if (staff.length > 0) ipcNurseId = staff[Math.floor(clock.rng() * staff.length)]!.id;
   }
 
   for (const enc of state.encounters.values()) {
@@ -45,22 +45,22 @@ export function ipcHandler(state: HospitalState, clock: Clock, _queue: EventQueu
     const patient = state.patients.get(enc.patientId);
     if (!patient) continue;
     const infectionRisk = patient.diagnoses.some(d => ["J15", "J12", "A09", "N39", "K35", "A91", "J44", "E10"].includes(d.code));
-    if (infectionRisk && Math.random() > 0.98) {
+    if (infectionRisk && clock.rng() > 0.98) {
       caseCounter++;
       newCases.push({
         id: `IPC-${caseCounter}`, encounterId: enc.id, patientId: enc.patientId,
-        infectionType: INFECTION_TYPES[Math.floor(Math.random() * INFECTION_TYPES.length)]!,
-        organism: OUTBREAK_ORGANISMS[Math.floor(Math.random() * OUTBREAK_ORGANISMS.length)]!,
+        infectionType: INFECTION_TYPES[Math.floor(clock.rng() * INFECTION_TYPES.length)]!,
+        organism: OUTBREAK_ORGANISMS[Math.floor(clock.rng() * OUTBREAK_ORGANISMS.length)]!,
         ward: "General Ward",
         detectedAt: clock.hospitalTimeMs,
-        isOutbreak: Math.random() > 0.95,
-        contained: Math.random() > 0.3,
+        isOutbreak: clock.rng() > 0.95,
+        contained: clock.rng() > 0.3,
         ipcNurseId,
       });
     }
   }
 
-  const hh = Math.min(100, Math.max(50, ipc.handHygieneCompliance + (Math.random() > 0.5 ? 0.5 : -0.5)));
+  const hh = Math.min(100, Math.max(50, ipc.handHygieneCompliance + (clock.rng() > 0.5 ? 0.5 : -0.5)));
   const recentActive = newCases.filter(c => !c.contained).slice(-5);
   const isolationBeds = recentActive.length;
 

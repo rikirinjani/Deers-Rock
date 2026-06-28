@@ -50,7 +50,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     const total = encCharges.reduce((s, c) => s + c.amount, 0);
     if (total === 0) continue;
 
-    const payer = PAYERS[Math.floor(Math.random() * PAYERS.length)]!;
+    const payer = PAYERS[Math.floor(clock.rng() * PAYERS.length)]!;
     const coverageRate = payer === "BPJS Kesehatan" ? 0.9 : payer === "Self-pay" ? 0 : 0.7;
     const claim: InsuranceClaim = {
       id: claimId,
@@ -70,7 +70,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
   if (clock.tick > 0 && clock.tick % 15 === 0) {
     for (const [id, claim] of newClaims) {
       if (claim.status === "submitted") {
-        const adjudicated = Math.random() > 0.2 ? "paid" : "denied";
+        const adjudicated = clock.rng() > 0.2 ? "paid" : "denied";
         newClaims.set(id, { ...claim, status: adjudicated, resolvedAt: clock.hospitalTimeMs });
         break;
       }
@@ -98,7 +98,7 @@ export function cashierHandler(state: HospitalState, clock: Clock, _queue: Event
         id: `PAY-${clock.tick}-${claim.patientId}`,
         encounterId: claim.encounterId,
         patientId: claim.patientId,
-        type: Math.random() > 0.5 ? "cash" : "card",
+        type: clock.rng() > 0.5 ? "cash" : "card",
         amount: claim.patientResponsibility,
         paidAt: clock.hospitalTimeMs,
         note: `Patient responsibility for ${claim.id}`,

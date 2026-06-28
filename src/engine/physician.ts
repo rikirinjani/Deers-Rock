@@ -22,8 +22,8 @@ export function physicianHandler(state: HospitalState, clock: Clock, _queue: Eve
 
   if (clock.tick % 4 !== 0) return state;
 
-  const encounter = activeEncounters[Math.floor(Math.random() * activeEncounters.length)]!;
-  const template = ORDER_TEMPLATES[Math.floor(Math.random() * ORDER_TEMPLATES.length)]!;
+  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+  const template = ORDER_TEMPLATES[Math.floor(clock.rng() * ORDER_TEMPLATES.length)]!;
 
   const order: PhysicianOrder = {
     id: `DR-${clock.tick}-${encounter.patientId}`,
@@ -45,7 +45,7 @@ export function physicianHandler(state: HospitalState, clock: Clock, _queue: Eve
 export function orderCompleteHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newOrders = new Map(state.physicianOrders);
   for (const [id, order] of newOrders) {
-    if (order.status === "active" && clock.tick % 8 === 0 && Math.random() > 0.5) {
+    if (order.status === "active" && clock.tick % 8 === 0 && clock.rng() > 0.5) {
       newOrders.set(id, {
         ...order,
         status: "completed",
