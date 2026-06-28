@@ -1,0 +1,4 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,avgLosTicks,maxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,500,117,425,0,23,438,106,416,360,59,100,,false
+1,500,113,418,0,7,396,105,399,333,72,100,,false
+2,500,109,413,0,13,470,96,405,315,61,100,earthquake,true

@@ -1,7 +1,7 @@
 import { createClock, tick, cloneClockWithRng, createRng, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
-import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
+import { admissionHandler, dischargeHandler, dischargeScheduledPatients, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { cleanupHandler } from "./cleanup.js";
 import { outcomeHandler } from "./outcome-tracker.js";
 import { learningHandler } from "./agent-learning.js";
@@ -254,15 +254,8 @@ export function step(world: World): World {
 
   const snap = journaling ? snapshotState(state) : null;
 
-  for (const evt of dueEvents) {
-    switch (evt.type) {
-      case "discharge": state = dischargeHandler(state, newClock, world.queue); break;
-      case "lab_result": state = labResultHandler(state, newClock, world.queue); break;
-      case "rad_result": state = radResultHandler(state, newClock, world.queue); break;
-      case "ed_discharge": state = edDischargeHandler(state, newClock, world.queue); break;
-      case "surgery_done": state = surgeryResultHandler(state, newClock, world.queue); break;
-    }
-  }
+  const scheduledDischarges = dueEvents.filter(e => e.type === "discharge").map(e => e.data as { patientId?: string; encounterId?: string });
+  state = dischargeScheduledPatients(state, newClock, scheduledDischarges);
 
   for (const handler of world.handlers) {
     state = handler(state, newClock, world.queue);

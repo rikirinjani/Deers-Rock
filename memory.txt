@@ -654,6 +654,8 @@ Per Coordinator's request, I reviewed the 10 new codes for Eastern Indonesia cli
 
 ### Handoff to Coordinator — 3 Issues Requiring Decision
 
+**Issues 1 & 2 resolved by Platform OC** (commit c43f2f1): specialty mappings corrected, missing drugs added. Verified by Research OC.
+
 **Issue 1: Specialty mapping errors in ICD expansion**
 - All 10 new codes map to "cardiology" — clinically wrong for typhoid, malaria, burns, etc.
 - Affects `mapIcdToSpecialty` in `clinical-knowledge.ts` — routes patients to wrong specialist
@@ -672,3 +674,22 @@ Per Coordinator's request, I reviewed the 10 new codes for Eastern Indonesia cli
 - **Implementation:** `dischargeHandler` currently picks 15% of active encounters regardless of the event. Change to: when a discharge event fires, discharge the encounter that was scheduled (find it by event payload). Keep the 15% random discharge as a separate independent mechanism for unscheduled throughput.
 - **→ Platform OC:** Refactor `dischargeHandler` to honor event-specific discharge, then tune the scheduled delay parameter to achieve target throughput.
 - **→ Paper OC:** Hold LOS = 95 as preliminary. Update once fix is in and re-run.
+
+## [2026-06-29 01:00] Coordinator — Memory Read Trigger (Discussion)
+
+### Context
+OCs are stateless sessions — they only run when the human starts them. There is no daemon or cron to propagate updates automatically. The human checks memory.txt and tells each OC to read it. This is manual and relies on the human remembering.
+
+### Proposals Considered
+
+| Proposal | Trigger | Effort | Automation |
+|----------|---------|--------|------------|
+| 1. Queue CLI | Human runs `hoe queue` before starting an OC | Low (one script) | Manual |
+| 2. Git pre-push hook | Warnings on git push | Medium (hook setup) | Semi-auto |
+| 3. Per-OC signal blocks in SIGNAL.md | Human checks relevant block before starting OC | Zero (restructure) | Manual |
+
+### Conclusion
+No automatic trigger exists without a persistent process. The human is the trigger. The best mitigation is to make the human's decision — which OC to start next — as informed as possible with minimal effort.
+
+### Status
+Pending — Coordinator to implement Proposal 3 (per-OC signal blocks) when bandwidth allows.

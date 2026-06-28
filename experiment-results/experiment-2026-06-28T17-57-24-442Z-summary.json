@@ -1,0 +1,62 @@
+{
+  "config": {
+    "seedCount": 3,
+    "ticks": 500,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 500,
+      "totalPatients": 117,
+      "totalEncounters": 425,
+      "totalDeaths": 0,
+      "avgLosTicks": 23,
+      "maxLosTicks": 438,
+      "peakBedOccupancy": 106,
+      "totalLabOrders": 416,
+      "totalMedOrders": 360,
+      "totalSurgeryOrders": 59,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 1,
+      "ticks": 500,
+      "totalPatients": 113,
+      "totalEncounters": 418,
+      "totalDeaths": 0,
+      "avgLosTicks": 7,
+      "maxLosTicks": 396,
+      "peakBedOccupancy": 105,
+      "totalLabOrders": 399,
+      "totalMedOrders": 333,
+      "totalSurgeryOrders": 72,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 2,
+      "ticks": 500,
+      "totalPatients": 109,
+      "totalEncounters": 413,
+      "totalDeaths": 0,
+      "avgLosTicks": 13,
+      "maxLosTicks": 470,
+      "peakBedOccupancy": 96,
+      "totalLabOrders": 405,
+      "totalMedOrders": 315,
+      "totalSurgeryOrders": 61,
+      "totalCharges": 100,
+      "disasterType": "earthquake",
+      "disasterTriggered": true
+    }
+  ],
+  "totals": {
+    "totalDeaths": 0,
+    "avgDeaths": 0,
+    "avgLos": 14
+  }
+}
