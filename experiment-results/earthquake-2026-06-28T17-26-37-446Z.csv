@@ -1,0 +1,6 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,avgLosTicks,maxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,1000,179,1273,58,102,873,49,500,500,100,100,,false
+1,1000,193,1372,86,92,761,24,500,500,100,100,forest_fire,true
+2,1000,178,1373,74,90,708,35,500,500,100,100,,false
+3,1000,174,1340,36,92,722,22,500,500,100,100,,false
+4,1000,182,1388,73,88,860,57,500,500,100,100,,false

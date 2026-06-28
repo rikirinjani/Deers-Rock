@@ -1,0 +1,94 @@
+{
+  "config": {
+    "seedCount": 5,
+    "ticks": 1000,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 1000,
+      "totalPatients": 182,
+      "totalEncounters": 1382,
+      "totalDeaths": 59,
+      "avgLosTicks": 93,
+      "maxLosTicks": 724,
+      "peakBedOccupancy": 55,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 1,
+      "ticks": 1000,
+      "totalPatients": 182,
+      "totalEncounters": 1291,
+      "totalDeaths": 89,
+      "avgLosTicks": 97,
+      "maxLosTicks": 821,
+      "peakBedOccupancy": 18,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 2,
+      "ticks": 1000,
+      "totalPatients": 195,
+      "totalEncounters": 1311,
+      "totalDeaths": 46,
+      "avgLosTicks": 103,
+      "maxLosTicks": 945,
+      "peakBedOccupancy": 46,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 3,
+      "ticks": 1000,
+      "totalPatients": 176,
+      "totalEncounters": 1259,
+      "totalDeaths": 29,
+      "avgLosTicks": 101,
+      "maxLosTicks": 833,
+      "peakBedOccupancy": 34,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 4,
+      "ticks": 1000,
+      "totalPatients": 174,
+      "totalEncounters": 1364,
+      "totalDeaths": 61,
+      "avgLosTicks": 91,
+      "maxLosTicks": 766,
+      "peakBedOccupancy": 61,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    }
+  ],
+  "totals": {
+    "totalDeaths": 284,
+    "avgDeaths": 57,
+    "avgLos": 97
+  }
+}

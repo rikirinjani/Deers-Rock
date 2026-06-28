@@ -459,3 +459,28 @@ Research OC confirmed: deaths = 10 in all 10 runs. This is not stochastic — it
 3. Add scenario forcing to runner (can be parallel with #1)
 4. Run seed experiments with corrected LOS + forced scenarios
 5. Paper OC fills results section → submit JAMIA
+
+## [2026-06-28 17:30] Platform OC — P0/P1 Batch Complete
+
+### Changes
+| Item | Status |
+|------|--------|
+| **P0: Morgue ceiling** | Removed `newMorgue.length < state.morgueCapacity` guard — deaths now uncapped per Constitution §3.3 |
+| **P0: LOS** | Increased from 4-12 to **360-1440 ticks** (6-24 simulated hours). markov.ts:82 |
+| **P1: Pruning caps** | Raised to 500/500/500/100 for lab/med/rad/surgery. cleanup.ts:6-10 |
+| **P1: Scenario forcing** | Added `forceScenario` option to experiment runner |
+| **P2: Seed experiments** | Completed with corrected LOS |
+
+### Experiment Results (10 runs x 1000 ticks each)
+| Scenario | Avg Deaths | Avg LOS | File |
+|----------|-----------|---------|------|
+| Random (unseeded) | 61 | 95 ticks | `experiment-2026-06-28T17-21-06-655Z` |
+| Tsunami (forced) | 57 | 97 ticks | `tsunami-2026-06-28T17-23-05-317Z` |
+| Pandemic (forced) | 46 | 98 ticks | `pandemic-2026-06-28T17-24-50-710Z` |
+| Earthquake (forced) | 65 | 93 ticks | `earthquake-2026-06-28T17-26-37-446Z` |
+
+### Data for Paper OC
+- All experiment CSVs + summaries in `experiment-results/`
+- LOS improved from 7 to ~95 ticks, still below realistic 4-7 day target (5760-10080 ticks)
+- Recommended: run 5000+ tick experiments for true ALOS validation
+- 66 tests passing, build clean

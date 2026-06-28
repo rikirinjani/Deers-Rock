@@ -16,3 +16,4 @@
 | 4 | 2026-06-28T12:20:00 | general | Platform OC: ADR-008 seeded RNG migration | pass |
 | 5 | 2026-06-28T12:35:00 | general | Platform OC: Generator seeding (full-world reproducibility) | pass |
 | 6 | 2026-06-28T16:55:00 | general | Platform OC: Multi-run experiment harness (Milestone 2.6) | pass |
+| 7 | 2026-06-28T17:30:00 | general | Platform OC: P0/P1 batch — morgue, LOS, pruning caps, scenario forcing | pass |

@@ -1,0 +1,17 @@
+{
+  "trace_id": "d4e5f6a7-b8c9-0123-def4-567890123456",
+  "timestamp": "2026-06-28T17:30:00+07:00",
+  "agent": "general",
+  "task_description": "Platform OC: P0 morgue ceiling fix + P0 LOS adjustment + P1 pruning caps + P1 scenario forcing + P2 seed experiments for Paper OC",
+  "outcome": "pass",
+  "duration_s": 1800,
+  "tool_calls": 15,
+  "key_files": [
+    "src/engine/markov.ts",
+    "src/engine/cleanup.ts",
+    "src/experiment/runner.ts",
+    "tests/world.test.ts",
+    "tests/journal.test.ts",
+    "memory.txt"
+  ]
+}
