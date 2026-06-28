@@ -1,6 +1,6 @@
 # Deer's Rock HOE — Roadmap
 
-**Last updated:** 2026-06-28
+**Last updated:** 2026-06-28 (Research OC: added calibration milestones, ADR-004 drafted)
 **Steward:** Coordinator OC
 
 ---
@@ -30,6 +30,7 @@ The simulation must run without data loss, without unbounded storage growth, and
 
 ### Milestone 1.4: Throughput Balance
 - [ ] Tune admission/discharge rates so all 95 beds are not permanently saturated
+- [ ] Research OC finding: root cause may be unrealistically short LOS (4-12 ticks), not admission rate — investigate LOS calibration first
 - [ ] Add buffer capacity for surge events
 - [ ] Ensure waiting room functions correctly under load
 
@@ -66,6 +67,17 @@ Expand clinical accuracy, protocol coverage, and formulary to match a Tier A ref
 ### Milestone 2.4: Continuous Validation
 - [ ] Run simulation for 1000+ ticks and verify invariants ✅ (exists in world.test.ts)
 - [ ] Load test: measure tick latency at 500+ patients
+
+### Milestone 2.5: Model Calibration
+- [ ] Document mortality risk factor weights with plausible clinical ranges (ADR-004 drafted)
+- [ ] Validate LOS distribution against real Indonesian hospital data (current: 4-12 ticks suspect)
+- [ ] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data
+
+### Milestone 2.6: Scientific Validation Infrastructure
+- [ ] Add seeded RNG to enable reproducible multi-run experiments (ADR-008 ✅)
+- [ ] Add multi-run test harness (run N simulations, aggregate results)
+- [ ] Add outcome recorder (per-run CSV export: deaths by ICD, LOS per encounter, bed occupancy)
+- [ ] Add learning toggle (freeze/disable agent learning for control experiments)
 
 ---
 
@@ -150,8 +162,12 @@ Quality-of-life improvements for developers and operators.
 
 ### Milestone 6.2: Code Quality
 - [ ] Fix M&M conference `as any[]` cast in `rest.ts:135`
-- [ ] Fix agent learning `getDeteriorationRate` to count deceased as deteriorated
+- [x] `getDeteriorationRate` already counts deceased as deteriorated (verified — code correct, EVALUATION-REPORT was wrong)
 - [ ] Split `HospitalState` into sub-states for maintainability (long-term)
+
+### Milestone 6.3: Experimental Instrumentation
+- [ ] Add per-tick outcome snapshot for time-series analysis
+- [ ] Expose action ranking distribution via API for external analysis
 
 ---
 
@@ -164,7 +180,7 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] ADR-002: Snapshot and Journal Retention Strategy
 - [x] ADR-003: Agent State Persistence Contract
 - [x] ADR-008: Seeded Random Number Generation
-- [ ] ADR-004: Mortality Risk Engine
+- [x] ADR-004: Mortality Risk Engine (drafted by Research OC, pending Coordinator approval)
 - [ ] ADR-005: Department Addition Pattern
 - [ ] ADR-006: Agent Learning Architecture
 - [ ] ADR-007: Referral System (Rujukan Berjenjang)

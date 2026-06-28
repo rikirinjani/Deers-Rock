@@ -1,5 +1,12 @@
 # Healthcare Operating Environment (HOE) — Research Program
 
+**Author:** Paper OC
+**Last updated:** 2026-06-28
+**Canonical location:** `docs/papers/deers-rock-platform-paper.md`
+**Status:** Pre-data — structural draft. Results placeholder requires experimental data before submission.
+
+---
+
 ## Core Thesis
 
 An event-driven Healthcare Operating Environment where healthcare software, AI agents, and operational policies can be executed, replayed, and evaluated against a persistent simulated world.

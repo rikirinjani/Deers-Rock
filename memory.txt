@@ -104,8 +104,11 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 
 ### Handoff to Coordinator
 - **ADR-004** drafted (`adr/ADR-004-mortality-risk-engine.md`): requires review and approval
-- **Proposed roadmap additions** (`docs/proposed-roadmap-additions.md`): two new milestones (2.5 Calibration, 2.6 Scientific Validation Infrastructure) plus Milestone 6.3 (Experimental Instrumentation)
-- **Proposed Constitution amendments** (`docs/proposed-constitution-amendments.md`): Amendment A (§3.3 provenance), Amendment B (new Article VII — Model Assumptions), Amendment C (§3.2 protocol gap logging)
+- **ROADMAP.md** updated with Milestones 2.5, 2.6, 6.3 (pending Coordinator review)
+
+### Constitution Amendments Applied (human-approved)
+- Amendment 3: §3.2 protocol gap logging + §3.3 mortality provenance
+- Amendment 4: Article VII — Model Assumptions & Calibration
 
 ### Files Created This Session
 - `docs/research-calibration.md` — calibration targets and 5 experiments (E1-E5)
@@ -224,3 +227,38 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 - ADR-008 is now fully implemented end-to-end
 - Milestone 2.6 (multi-run harness) is now feasible
 - All 66 tests passing, build clean
+
+## [2026-06-28 13:00] Paper OC — Publication Strategy Session
+
+### Research Program Defined
+Three-paper structure for the HOE project:
+- **Paper 1:** Deer's Rock platform paper — architecture + reproducible healthcare AI experimentation
+- **Paper 2:** HOE Systems Engineering — event-driven modular architecture
+- **Paper 3:** HOE Runtime — executable healthcare environments / SaaS
+- **Paper 4:** (Future) emergent behavior in persistent agent-based healthcare environments
+
+### Paper 1 — Ready for Data
+- **Title:** *Deer's Rock: A Persistent Event-Driven Healthcare Operating Environment for Reproducible AI and Policy Experimentation*
+- **Abstract:** Written and structurally reviewed (Paper OC). Results paragraph is a placeholder requiring experimental data.
+- **Outline:** 9 sections finalized with §4.8 (cultural calendar engine) as the key differentiator
+- **Design Principles:** 9 principles including "Simulation as self-critique" added
+- **Canonical location:** `docs/papers/deers-rock-platform-paper.md`
+- **Key Paper OC flags for this paper:**
+  1. Results paragraph cannot be submitted without actual seed experiment data
+  2. "Measurable improvement" claim removed — not yet supported
+  3. Closing sentence reframed as paradigm shift, not download instructions
+  4. Cultural contextualization elevated to lead differentiator
+
+### Research OC Philosophy Incorporated
+- Design Principle #9: "Simulation as self-critique — reports are instruments that expose assumptions"
+- Abstract opens with existing simulators treating outputs as end products vs. HOE revealing assumptions
+- Introduction outline opens with "unexpected behavior is a hypothesis, not a bug"
+
+### Handoffs to Other OCs
+- **→ Platform OC:** Paper 1 needs seed experiment data (10 runs, seeds 0-9, outcome distributions, tsunami vs. normal comparison, FHIR adapter demo)
+- **→ Research OC:** Paper 1 needs the cultural contextualization validated — do Lebaran patterns measurably affect admission distributions?
+- **→ Coordinator:** Three-paper structure and publication strategy documented. Decision needed: which venue to target first?
+
+### Files Created
+- `docs/papers/deers-rock-platform-paper.md` — Paper 1 structural draft with abstract, outline, and design principles
+- `docs/ideas/deers-rock-platform-paper.md` — cleaned up (old location, removed after migration)
