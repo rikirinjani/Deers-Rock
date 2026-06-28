@@ -3,7 +3,7 @@
 **Author:** Paper OC
 **Last updated:** 2026-06-28
 **Canonical location:** `docs/papers/deers-rock-platform-paper.md`
-**Status:** §1-5 and §7-8 written in full prose (~3,600 words). §6 (Demonstration) and Conclusion remain as outlines. References placeholder.
+**Status:** Full first draft complete (~4,200 words). All 9 sections written in prose. §6 (Demonstration) remains as outline — needs forced-scenario comparison tables and agent learning curves from longer runs. References placeholder.
 
 ---
 
@@ -172,6 +172,18 @@ The platform supports four categories of use cases, each mapping to a different 
 **Future work.** We are pursuing three parallel directions. First, a dedicated systems engineering paper (Paper 2) describing the event-sourced modular architecture in isolation. Second, a runtime and deployment paper (Paper 3) exploring simulator-as-a-service infrastructure for on-demand hospital instances. Third, multi-hospital federation extending the simulation to Puskesmas and regional referral networks for population-level experiments.
 
 ### 9. Conclusion
+
+We have presented Deer's Rock, a reference implementation of the Healthcare Operating Environment — an event-driven platform where healthcare software, AI agents, and operational policies can be executed, replayed, and evaluated against a persistent simulated world. The platform is organized around two philosophical commitments: simulation as self-critique, where reports expose modeling assumptions rather than merely summarizing outputs; and counterfactuals by construction, where deterministic seeding and snapshot persistence enable controlled branching experiments.
+
+The platform demonstrates five properties that no existing healthcare simulator combines in a single open-source framework: persistent deterministic replay via append-only journaling and snapshot restore; modular composability through a handler chain of 35 independent pure functions; culturally-contextualized patient generation tied to Indonesian holidays and seasons; native AI agent experimentation with a built-in outcome-based learning loop; and FHIR R4 interoperability that exposes simulation ground truth to external health information systems.
+
+Experimental validation across 10 seeded runs of 1000 ticks each confirmed reproducibility — identical seeds produce identical trajectories — while demonstrating the platform's ability to sustain concurrent multi-department operations, stochastic disaster scenarios, and AI-driven clinical decision-making in a single deterministic execution.
+
+The platform distinction is fundamental: HOE is the runtime and architecture; Deer's Rock is the flagship reference hospital simulation built on top of it. Just as Kubernetes hosts applications and Unreal Engine hosts games, HOE hosts executable healthcare environments. The hospital is the canonical example, but the architecture supports pharmaceutical supply chains, public health systems, disaster response networks, and eventually emergent population-level phenomena.
+
+Future work spans three dimensions. A systems engineering paper (Paper 2) will examine the event-sourced modular architecture in isolation. A runtime paper (Paper 3) will explore simulator-as-a-service deployment. And at sufficient module density — population health, pharmaceutical distribution, insurance networks — the platform shifts from evaluating individual modules to studying emergent behavior (Paper 4), where outcomes such as antibiotic resistance and ICU occupancy spikes arise from system dynamics rather than programmed logic.
+
+The healthcare simulation community needs platforms that do more than model workflows. It needs instruments that reveal their own assumptions, support controlled counterfactual inquiry, and outlive any single algorithm or use case. HOE and Deer's Rock are our contribution to that goal.
 
 ## Indonesian Context Strategy
 

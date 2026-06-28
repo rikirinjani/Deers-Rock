@@ -533,6 +533,31 @@ Research OC confirmed: deaths = 10 in all 10 runs. This is not stochastic — it
 - Recommended: run 5000+ tick experiments for true ALOS validation
 - 66 tests passing, build clean
 
+## [2026-06-28 18:30] Platform OC — ICD Expansion (50 codes + protocols)
+
+### Changes
+| Area | Before | After |
+|------|--------|-------|
+| ICD codes | 40 | **50** |
+| Clinical protocols | 40 | **50** |
+| Coverage | Broad NCDs + common infections | + typhoid, malaria, burns, leptospirosis, rabies, snake bite, diabetic foot, neonatal sepsis, RHD, scabies |
+
+### New Codes Added
+| Code | Condition | Weight | Protocol includes |
+|------|-----------|--------|-----------------|
+| A01 | Typhoid fever | 6 | Ciprofloxacin, CBC, CRP |
+| B50 | Malaria | 5 | Blood smear, CBC, antipyretic |
+| T20 | Burns | 3 | Analgesia, RL, surgical consult |
+| A27 | Leptospirosis | 3 | Ciprofloxacin, CBC, CRP, BMP |
+| A82 | Rabies exposure | 2 | Prophylaxis consult |
+| T63 | Snake bite | 2 | RL, coagulation, antivenom consult |
+| E11.5 | Diabetic foot | 3 | HBA1C, debridement consult |
+| P36 | Neonatal sepsis | 3 | Ceftriaxone, CBC, pediatrics consult |
+| I05 | RHD | 2 | Echo, cardiology consult |
+| B86 | Scabies | 2 | Permethrin, dermatology consult |
+
+### All 66 tests passing, build clean
+
 ## [2026-06-28 18:00] Paper OC — Manuscript Draft Session
 
 ### What was written
