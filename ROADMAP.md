@@ -163,6 +163,7 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] ADR-001: Handler Pipeline Architecture
 - [x] ADR-002: Snapshot and Journal Retention Strategy
 - [x] ADR-003: Agent State Persistence Contract
+- [x] ADR-008: Seeded Random Number Generation
 - [ ] ADR-004: Mortality Risk Engine
 - [ ] ADR-005: Department Addition Pattern
 - [ ] ADR-006: Agent Learning Architecture

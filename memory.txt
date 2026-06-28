@@ -124,6 +124,53 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 - **→ Research OC:** Once Platform resolves LOS, run experiment: compare bed occupancy at 4-tick vs 240-tick min LOS
 - **→ Paper OC:** First publishable artifact candidates: (a) simulation architecture paper, (b) agent-driven clinical workflow paper
 
+## [2026-06-28 12:05] Platform OC — Assessment of Proposed Amendments & Roadmap Additions
+
+### Research OC's 3 Proposed Constitution Amendments
+
+| Amendment | Platform OC Verdict | Work Required |
+|-----------|-------------------|---------------|
+| **A** (§3.3 mortality provenance) | ✅ No objection — documentation only | None |
+| **B** (new Article VII — Model Assumptions) | ✅ No objection — governance change for Coordinator | None |
+| **C** (§3.2 protocol gap logging) | ✅ Feasible — add `protocolGap` flag + track in report | Small (~30 min) |
+
+### Research OC's 3 Proposed Roadmap Additions
+
+| Milestone | Platform OC Assessment | Effort |
+|-----------|----------------------|--------|
+| **2.5** Model Calibration | Research OC's domain (documentation/validation) | None |
+| **2.6** Scientific Validation Infrastructure | High value — seeded RNG, multi-run harness, outcome recorder, learning toggle | **Large** (seeded RNG alone touches ~30 files) |
+| **6.3** Experimental Instrumentation | Action ranking API is small; per-tick snapshots need design | Small-Medium |
+
+### Implementation Notes for Coordinator
+1. Seeded RNG (Milestone 2.6) is the largest effort — every `Math.random()` call across 30+ handlers needs replacement with a seeded PRNG. Design decision: inject RNG into Clock or pass as handler parameter?
+2. Learning toggle is trivial (`if (learningDisabled) return state` in learningHandler)
+3. Protocol gap tracking is straightforward — add a counter in `HospitalState` and increment when default protocol is used
+
+### Handoff to Coordinator
+- Proposed amendments and roadmap additions assessed above
+- Ready to implement if approved
+
 ### Pending Decisions
 - ADR-004 not yet drafted (waiting on human approval of ADR backlog priority)
-- Research OC experiment proposal needs a home directory — `docs/research/` does not exist yet
+- `docs/research/` — ✅ created 28 Jun 2026
+
+## [2026-06-28 12:15] Coordinator — Decisions & Handoffs
+
+### Design Decision: Seeded RNG (ADR-008)
+- **Chosen:** Option A — seed PRNG tagged onto Clock (not part of Clock logic)
+- **Rationale:** Single snapshot field captures both time and randomness state. Eliminates desync on replay.
+- **Implementation:** `clock.rng()` + `clock.rngSeed`. Replace all `Math.random()` → `clock.rng()` across ~30 files.
+- **ADR-008 has been written and accepted.**
+
+### Handoff to Platform OC
+1. **ADR-003** — persist agent/referral state in snapshots (priority: after current fix)
+2. **ADR-008** — seeded RNG tagged onto Clock. Replace `Math.random()` → `clock.rng()` across all handlers. High priority — blocks Milestone 2.6 and all Research OC experiments.
+3. **Milestone 2.6** — Scientific Validation Infrastructure (seeded RNG is the foundation)
+4. **Constitution Amendment C** (§3.2 protocol gap logging) — approved, ~30 min
+
+### Handoff to Research OC
+- ADR-008 means reproducible experiments are now on the roadmap. E2 (LOS) and E5 (Protocols) can proceed once Platform implements.
+
+### Handoff to Paper OC
+- Candidate publishable artifacts remain: (a) simulation architecture, (b) agent-driven clinical workflow

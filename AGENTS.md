@@ -1,6 +1,6 @@
 # HOE — Agent Roles
 
-**Last updated:** 2026-06-28
+**Last updated:** 2026-06-28 (Research OC activated — first scientific critique completed)
 **Governed by:** Constitution Article VI (Agent Interoperability)
 
 ---

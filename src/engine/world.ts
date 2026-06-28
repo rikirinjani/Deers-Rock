@@ -1,4 +1,4 @@
-import { createClock, tick, type Clock } from "./clock.js";
+import { createClock, tick, cloneClockWithRng, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
@@ -63,9 +63,11 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
   state._agentState = initialAgentState;
   state._referralState = initialReferralState;
 
+  const clock = createClock(60, Date.now());
+  state._rngSeed = clock.rngSeed;
+
   if (jp) {
     initJournal(jp);
-    const clock = createClock(60);
     journalAppend(0, clock.hospitalTimeMs, "world.start", "world", "sim", {
       patientCount,
       agentCount: initialAgentState.pool.agents.size,
@@ -75,7 +77,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string): W
   }
 
   return {
-    clock: createClock(60),
+    clock,
     state,
     queue: new EventQueue(),
     journalPath: jp,
@@ -269,7 +271,7 @@ export function step(world: World): World {
   const mmResult = runMmConference(state, newClock, world.queue);
   state = mmResult.state;
 
-  state = { ...state, _calendarTicks: newClock.tick };
+  state = { ...state, _calendarTicks: newClock.tick, _rngSeed: newClock.rngSeed };
 
   if (snap && journaling) {
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
@@ -306,13 +308,11 @@ export function buildHandlers(): ((state: HospitalState, clock: Clock, queue: Ev
 }
 
 export function resumeWorld(state: HospitalState, startTick: number, journalPath: string): World {
-  const clock: Clock = {
-    tick: startTick,
-    hospitalTimeMs: startTick * 1000 * 60,
-    tickIntervalMs: 1000,
-    speedMultiplier: 60,
-    running: false,
-  };
+  const rngSeed = state._rngSeed || startTick + 1;
+  const clock = cloneClockWithRng(createClock(60, rngSeed), rngSeed);
+  clock.tick = startTick;
+  clock.hospitalTimeMs = startTick * 1000 * 60;
+  clock.running = false;
   return {
     clock,
     state,

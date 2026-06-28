@@ -64,12 +64,15 @@ Every tick's state is observable via the `/api/status` endpoint. Snapshots are r
 
 **3.2 — Protocol Coverage**
 - Every diagnosis in `ICD10_DIAGNOSES` shall have a corresponding protocol in `ICD_PROTOCOLS` or a default protocol shall apply
+- When a default protocol applies, this shall be logged as a "protocol gap" for scientific audit
+- The fraction of encounters using default protocols shall be reported in the hospital statistics report
 - Protocols shall include at minimum: one lab, one medication, one imaging (where applicable)
 - Nursing protocols shall exist for all high-weight diagnoses (weight ≥ 5)
 
 **3.3 — Mortality**
 - Death shall only occur via the death roll in `dischargeHandler`
 - Death probability: high risk = 35%, moderate = 10%, low = 2%
+- These probabilities shall have documented provenance (references to published literature or local hospital data) in ADR-004
 - Every death must be recorded in `morgue` with cause, diagnosis, and score
 - No cap on total deaths (morgueCapacity is 10 but overflow shall be silently accepted)
 
@@ -172,7 +175,25 @@ New agent roles shall be added to Article VI via amendment. Each new role must s
 
 ---
 
+## Article VII — Model Assumptions & Calibration
+
+**7.1 — Assumption Transparency**
+Every model parameter that materially affects clinical outcomes shall have documented provenance or a defined calibration target. Parameters include but are not limited to: mortality probabilities, length of stay distributions, diagnosis weights, and drug allergy prevalence.
+
+**7.2 — Calibration Requirement**
+Model outputs shall be periodically compared against real-world reference data (Indonesian hospital statistics, BPJS claims data, or published literature). Discrepancies exceeding clinically meaningful thresholds shall be documented as calibration gaps.
+
+**7.3 — Experimentation**
+The simulation may be run in experimental configurations (alternative parameter sets, frozen learning systems) for validation purposes. Results shall be clearly labeled as experimental and not conflated with baseline model outputs.
+
+**7.4 — Assumption Review**
+At each major release, Research OC shall review all documented model assumptions and flag any that are no longer supported by available evidence.
+
+---
+
 *Ratified: 27 June 2026*
 *Amendment 1 (Article VI): 28 June 2026*
 *Amendment 2 (Agent roles refined): 28 June 2026*
+*Amendment 3 (Article III §3.2, §3.3): 28 June 2026 — protocol gap logging, mortality provenance*
+*Amendment 4 (Article VII): 28 June 2026 — model assumptions & calibration framework*
 *One project. Four perspectives. Shared truth.*

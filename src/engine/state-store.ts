@@ -119,6 +119,7 @@ export interface HospitalState {
   _radiotherapy: RadiotherapyState;
   _dialysis: DialysisState;
   _scenario: ScenarioState;
+  _rngSeed: number;
 }
 
 export interface OutpatientVisit {
@@ -208,5 +209,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _radiotherapy: initRtState(),
     _dialysis: initDialysisState(),
     _scenario: initScenarioState(),
+    _rngSeed: 0,
   };
 }

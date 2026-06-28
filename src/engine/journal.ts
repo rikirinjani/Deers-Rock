@@ -276,6 +276,7 @@ export function saveSnapshot(tick: number, state: HospitalState): void {
     opVisits: mapToArr(state._outpatientVisits),
     calTicks: state._calendarTicks,
     icdTop: state._icdTop10,
+    rngSeed: state._rngSeed ?? 0,
   };
   saveSnapStmt.run(tick, JSON.stringify(data));
 }
@@ -339,6 +340,7 @@ function deserializeState(json: string): HospitalState {
     _radiotherapy: d.rt ?? initRtState(),
     _dialysis: d.dialysis ?? initDialysisState(),
     _scenario: d.scenario ?? initScenarioState(),
+    _rngSeed: d.rngSeed ?? 0,
   };
 }
 
