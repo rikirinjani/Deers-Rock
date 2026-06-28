@@ -1,4 +1,4 @@
-import { createClock, tick, cloneClockWithRng, type Clock } from "./clock.js";
+import { createClock, tick, cloneClockWithRng, createRng, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeHandler, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
@@ -49,21 +49,24 @@ export interface World {
   journalPath: string | null;
 }
 
-export function createWorld(patientCount: number = 100, journalPath?: string): World {
-  const patients = generatePatientPool(patientCount);
+export function createWorld(patientCount: number = 100, journalPath?: string, seed?: number): World {
+  const worldRng = seed !== undefined ? createRng(seed).next : undefined;
+  const effectiveRng = worldRng;
+  const patients = effectiveRng ? generatePatientPool(patientCount, effectiveRng) : generatePatientPool(patientCount);
   const jp = journalPath ?? null;
 
   const state = createState(patients);
   const totalBeds = Object.values(state.wardCapacity).reduce((s, c) => s + c, 0);
 
   const initialAgentState = initAgentState();
-  initialAgentState.pool = generateAgentPool(totalBeds);
+  initialAgentState.pool = effectiveRng ? generateAgentPool(totalBeds, effectiveRng) : generateAgentPool(totalBeds);
   const initialReferralState = initReferralState();
 
   state._agentState = initialAgentState;
   state._referralState = initialReferralState;
 
-  const clock = createClock(60, Date.now());
+  const clockSeed = seed ?? Date.now();
+  const clock = createClock(60, clockSeed);
   state._rngSeed = clock.rngSeed;
 
   if (jp) {

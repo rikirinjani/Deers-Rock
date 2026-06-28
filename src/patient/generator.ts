@@ -60,9 +60,10 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "D64", name: "Anemia unspecified", minAge: 5, maxAge: 85, genders: ["female", "male"], weight: 4 },
 ];
 
-function pickWeighted<T extends { weight: number }>(items: T[]): T {
+function pickWeighted<T extends { weight: number }>(items: T[], rng?: () => number): T {
+  const rand = rng ?? Math.random;
   const total = items.reduce((s, i) => s + i.weight, 0);
-  let r = Math.random() * total;
+  let r = rand() * total;
   for (const item of items) {
     r -= item.weight;
     if (r <= 0) return item;
@@ -70,33 +71,36 @@ function pickWeighted<T extends { weight: number }>(items: T[]): T {
   return items[items.length - 1]!;
 }
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pickRandom<T>(arr: T[], rng?: () => number): T {
+  const rand = rng ?? Math.random;
+  return arr[Math.floor(rand() * arr.length)];
 }
 
-function generateVitals(age: number, gender: Gender): Vitals {
+function generateVitals(age: number, gender: Gender, rng?: () => number): Vitals {
+  const rand = rng ?? Math.random;
   const baseHR = gender === "male" ? 65 : 70;
   const baseSBP = age < 18 ? 100 : age < 40 ? 115 : age < 60 ? 125 : 135;
   return {
-    heartRate: baseHR + Math.floor(Math.random() * 20),
-    bloodPressureSystolic: baseSBP + Math.floor(Math.random() * 20),
-    bloodPressureDiastolic: Math.max(60, baseSBP - 40 + Math.floor(Math.random() * 15)),
-    temperature: +(36.5 + Math.random() * 0.8).toFixed(1),
-    oxygenSaturation: 96 + Math.floor(Math.random() * 4),
-    respiratoryRate: 14 + Math.floor(Math.random() * 8),
-    painLevel: Math.floor(Math.random() * 5),
+    heartRate: baseHR + Math.floor(rand() * 20),
+    bloodPressureSystolic: baseSBP + Math.floor(rand() * 20),
+    bloodPressureDiastolic: Math.max(60, baseSBP - 40 + Math.floor(rand() * 15)),
+    temperature: +(36.5 + rand() * 0.8).toFixed(1),
+    oxygenSaturation: 96 + Math.floor(rand() * 4),
+    respiratoryRate: 14 + Math.floor(rand() * 8),
+    painLevel: Math.floor(rand() * 5),
   };
 }
 
-function generateDiagnoses(age: number, gender: Gender): Diagnosis[] {
+function generateDiagnoses(age: number, gender: Gender, rng?: () => number): Diagnosis[] {
+  const rand = rng ?? Math.random;
   const eligible = ICD10_DIAGNOSES.filter(d => age >= d.minAge && age <= d.maxAge && d.genders.includes(gender));
   if (eligible.length === 0) return [{ code: "Z00", name: "Encounter for general examination", active: true }];
 
-  const numDiagnoses = 1 + Math.floor(Math.random() * 3);
+  const numDiagnoses = 1 + Math.floor(rand() * 3);
   const selected: Diagnosis[] = [];
   const pool = [...eligible];
   for (let i = 0; i < numDiagnoses && pool.length > 0; i++) {
-    const dx = pickWeighted(pool);
+    const dx = pickWeighted(pool, rng);
     if (!selected.find(s => s.code === dx.code)) {
       selected.push({ code: dx.code, name: dx.name, active: true });
     }
@@ -111,35 +115,36 @@ const ALLERGIES_POOL = ["None", "None", "None", "Penicillin", "Sulfa", "NSAIDs",
 
 let patientCounter = 0;
 
-export function generatePatient(): Patient {
+export function generatePatient(rng?: () => number): Patient {
+  const rand = rng ?? Math.random;
   patientCounter++;
-  const gender: Gender = Math.random() > 0.5 ? "male" : "female";
-  const identity = generateIdentity(gender);
+  const gender: Gender = rand() > 0.5 ? "male" : "female";
+  const identity = generateIdentity(gender, rng);
   const age = new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
 
-  const bloodType = pickRandom(BLOOD_TYPES);
-  const rhesus = pickRandom(RHESUS);
+  const bloodType = pickRandom(BLOOD_TYPES, rng);
+  const rhesus = pickRandom(RHESUS, rng);
 
   return {
     id: `PAT-${String(patientCounter).padStart(4, "0")}`,
-    name: `${pickRandom(firstNames[gender])} ${pickRandom(lastNames)}`,
+    name: `${pickRandom(firstNames[gender], rng)} ${pickRandom(lastNames, rng)}`,
     age,
     gender,
     identity,
-    phone: `08${String(Math.floor(Math.random() * 1000000000)).padStart(10, "0")}`,
+    phone: `08${String(Math.floor(rand() * 1000000000)).padStart(10, "0")}`,
     bloodType: bloodType as BloodType,
     rhesus: rhesus as Rhesus,
-    allergies: [pickRandom(ALLERGIES_POOL)].filter(a => a !== "None"),
-    vitals: generateVitals(age, gender),
-    diagnoses: generateDiagnoses(age, gender),
+    allergies: [pickRandom(ALLERGIES_POOL, rng)].filter(a => a !== "None"),
+    vitals: generateVitals(age, gender, rng),
+    diagnoses: generateDiagnoses(age, gender, rng),
     medications: [],
   };
 }
 
-export function generatePatientPool(count: number): Patient[] {
+export function generatePatientPool(count: number, rng?: () => number): Patient[] {
   const pool: Patient[] = [];
   for (let i = 0; i < count; i++) {
-    pool.push(generatePatient());
+    pool.push(generatePatient(rng));
   }
   return pool;
 }

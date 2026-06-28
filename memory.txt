@@ -174,3 +174,37 @@ See docs/research/experiments-proposal.md — ✅ created 28 Jun 2026
 
 ### Handoff to Paper OC
 - Candidate publishable artifacts remain: (a) simulation architecture, (b) agent-driven clinical workflow
+
+## [2026-06-28 12:20] Platform OC — ADR-008 Seeded RNG Complete
+
+### What was done
+- Added mulberry32 PRNG to `clock.ts` — `createRng(seed)` + `clock.rng()` + `clock.rngSeed`
+- Updated `Clock` interface to carry `rng: () => number` and `rngSeed: number`
+- Updated `createWorld`, `resumeWorld`, `step` to initialize and persist RNG state
+- Added `_rngSeed` to `HospitalState` — saved/restored in snapshots (`saveSnapshot`/`deserializeState`)
+- Replaced **148 `Math.random()` calls** with `clock.rng()` across **31 handler files** in `src/engine/`, `src/agent/`, `src/referral/`
+- Reverted generators (`patient/`, `agent/`, `identity/`) — they don't receive Clock, pending seed injection design
+- Updated test mock clocks with `rng: () => Math.random()`
+
+### Remaining work (handoff to self or next OC)
+1. **ADR-003** — persist `_agentState` and `_referralState` in snapshots (agents=0 after restore)
+2. **Milestone 2.6** — Multi-run test harness (seeded RNG is the enabler)
+3. **Amendment C** — Protocol gap logging (~30 min)
+4. **Generator seeding** — Pass RNG to generators for full-world reproducibility
+
+### Railway deployment
+- ✅ Deployed at tick 2307, volume 72 MB / 500 MB stable
+- ✅ All 66 tests passing, build clean
+
+## [2026-06-28 12:30] Coordinator — Generator Seeding Decision
+
+**Approach:** Add an optional `rng` parameter to each generator function, defaulting to `Math.random` for backward compatibility.
+
+- `generatePatientPool(count, rng?)` — if rng provided, use it for all random choices
+- `generateAgentPool(totalBeds, rng?)` — same pattern
+- Identity generation — already deterministic-ish, but should accept rng for consistency
+- `createWorld(patientCount, opts?)` — new optional `opts.seed` or `opts.rng` that propagates to generators
+
+**Handoff to Platform OC:** Implement optional rng parameter on generators. Patient and agent generators are the priority — identity generator can follow. This closes the full-world reproducibility gap.
+
+**Handoff to Research OC:** Once generators are seeded, full-world reproducibility is complete. E2 (LOS) and E5 (Protocols) can run with identical initial conditions across runs.

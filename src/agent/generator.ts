@@ -60,17 +60,19 @@ const SPESIALIS_MAP: Record<Spesialisasi, DepartmentCode> = {
   "Gizi Klinik": "GIZI_KLINIK",
 };
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pickRandom<T>(arr: T[], rng?: () => number): T {
+  const rand = rng ?? Math.random;
+  return arr[Math.floor(rand() * arr.length)];
 }
 
 let agentCounter = 0;
 
-export function generateAgent(role: AgentRole): HospitalAgent {
+export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgent {
+  const rand = rng ?? Math.random;
   agentCounter++;
-  const isFemale = role === "bidan" || (["perawat", "apoteker", "nutrisionis", "psikolog", "pekerja_sosial"].includes(role) && Math.random() > 0.5) || Math.random() > 0.6;
+  const isFemale = role === "bidan" || (["perawat", "apoteker", "nutrisionis", "psikolog", "pekerja_sosial"].includes(role) && rand() > 0.5) || rand() > 0.6;
   const gender: "male" | "female" = isFemale ? "female" : "male";
-  const identity = generateIdentity(gender);
+  const identity = generateIdentity(gender, rng);
   const age = new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
 
   const rd = ROLE_DEPARTMENT[role];
@@ -85,26 +87,26 @@ export function generateAgent(role: AgentRole): HospitalAgent {
       : PERAWAT_NAMES);
 
   const spesialisasi = role === "dokter_spesialis"
-    ? pickRandom(Object.keys(SPESIALIS_MAP) as Spesialisasi[])
+    ? pickRandom(Object.keys(SPESIALIS_MAP) as Spesialisasi[], rng)
     : rd.spesialisasi;
 
   const actualDept = spesialisasi ? SPESIALIS_MAP[spesialisasi] : rd.dept;
 
   const lisensi = role.startsWith("dokter")
-    ? `STR-${String(Math.floor(Math.random() * 1000000)).padStart(6, "0")}`
+    ? `STR-${String(Math.floor(rand() * 1000000)).padStart(6, "0")}`
     : role === "perawat" || role === "perawat_anestesi" || role === "bidan"
-    ? `SIP-${String(Math.floor(Math.random() * 1000000)).padStart(6, "0")}`
-    : `SKP-${String(Math.floor(Math.random() * 1000000)).padStart(6, "0")}`;
+    ? `SIP-${String(Math.floor(rand() * 1000000)).padStart(6, "0")}`
+    : `SKP-${String(Math.floor(rand() * 1000000)).padStart(6, "0")}`;
 
   return {
     id: `${role.toUpperCase().slice(0, 4)}-${String(agentCounter).padStart(4, "0")}`,
-    nama: pickRandom(namePool) + " " + pickRandom(LAST_NAMES),
+    nama: pickRandom(namePool, rng) + " " + pickRandom(LAST_NAMES, rng),
     identity,
     role,
     spesialisasi: spesialisasi ?? null,
     department: actualDept,
     status: {
-      kelelahan: Math.floor(Math.random() * 30),
+      kelelahan: Math.floor(rand() * 30),
       kesehatan: "sehat",
       shift: "pagi",
       inShift: true,
@@ -112,10 +114,10 @@ export function generateAgent(role: AgentRole): HospitalAgent {
       totalShiftTicks: 0,
       consecutiveTicks: 0,
       sakitTerhitung: 0,
-      isHaids: gender === "female" && Math.random() > 0.7,
-      haidCycleDay: Math.floor(Math.random() * 28),
-      isHamil: gender === "female" && Math.random() > 0.95,
-      hamilWeeks: Math.floor(Math.random() * 36) + 4,
+      isHaids: gender === "female" && rand() > 0.7,
+      haidCycleDay: Math.floor(rand() * 28),
+      isHamil: gender === "female" && rand() > 0.95,
+      hamilWeeks: Math.floor(rand() * 36) + 4,
     },
     lisensi,
     tahunPengalaman: Math.max(1, Math.floor(age - 24)),
@@ -127,7 +129,7 @@ function repeatRoles(role: AgentRole, count: number): AgentRole[] {
   return Array.from({ length: count }, () => role);
 }
 
-export function generateAgentPool(totalBeds: number = 133): AgentPool {
+export function generateAgentPool(totalBeds: number = 133, rng?: () => number): AgentPool {
   const agents = new Map<string, HospitalAgent>();
 
   const minStaff = (ratio: number, min: number) => Math.max(min, Math.round(totalBeds / ratio));
@@ -160,7 +162,7 @@ export function generateAgentPool(totalBeds: number = 133): AgentPool {
   ];
 
   for (const role of roles) {
-    const agent = generateAgent(role);
+    const agent = generateAgent(role, rng);
     agents.set(agent.id, agent);
   }
 
