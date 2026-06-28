@@ -125,6 +125,30 @@ const SNAPSHOT_RETENTION_COUNT = 5;
 const PURGE_INTERVAL = 50;
 let lastPurgeTick = 0;
 
+const EXPORT_INTERVAL = 500;
+let lastExportTick = 0;
+let exportDir = "exports";
+
+export function setExportDir(dir: string): void {
+  exportDir = dir;
+}
+
+export function journalExportAll(currentTick: number): string | null {
+  if (!db) return null;
+  try {
+    const rows = db.prepare("SELECT * FROM world_journal ORDER BY id ASC").all() as JournalRow[];
+    if (rows.length === 0) return null;
+    const dir = exportDir;
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const filename = `journal-${currentTick}.json`;
+    const filepath = path.join(dir, filename);
+    fs.writeFileSync(filepath, JSON.stringify(rows, null, 1));
+    return filepath;
+  } catch {
+    return null;
+  }
+}
+
 export function journalPurge(currentTick: number): void {
   if (!db) return;
   if (currentTick - lastPurgeTick < PURGE_INTERVAL) return;
@@ -145,6 +169,14 @@ export function journalPurge(currentTick: number): void {
       }
     } catch { }
   }
+}
+
+export function journalExportAndPurge(currentTick: number): void {
+  if (!db) return;
+  if (currentTick - lastExportTick < EXPORT_INTERVAL) return;
+  lastExportTick = currentTick;
+  journalExportAll(currentTick);
+  journalPurge(currentTick);
 }
 
 export function journalHardPurge(): void {

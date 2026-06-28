@@ -34,7 +34,7 @@ import { dialysisHandler } from "./dialysis.js";
 import { scenarioHandler } from "./scenario.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { billingHandler, cashierHandler } from "./finance.js";
-import { initJournal, journalAppend, saveSnapshot, journalPurge } from "./journal.js";
+import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge } from "./journal.js";
 import { specialtyHandler } from "./specialty.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
@@ -276,7 +276,9 @@ export function step(world: World): World {
     if (newClock.tick > 0 && newClock.tick % 20 === 0) {
       saveSnapshot(newClock.tick, state);
     }
-    if (newClock.tick > 0 && newClock.tick % 100 === 0) {
+    if (newClock.tick > 0 && newClock.tick % 500 === 0) {
+      journalExportAndPurge(newClock.tick);
+    } else if (newClock.tick > 0 && newClock.tick % 100 === 0) {
       journalPurge(newClock.tick);
     }
   }

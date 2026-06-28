@@ -1,7 +1,7 @@
 import { createWorld, resumeWorld, step } from "../engine/world.js";
 import { createRestServer } from "../api/rest.js";
 import { createClock, formatHospitalTime } from "../engine/clock.js";
-import { initJournal, loadNearestSnapshot, closeJournal, journalHardPurge } from "../engine/journal.js";
+import { initJournal, loadNearestSnapshot, closeJournal, journalHardPurge, setExportDir } from "../engine/journal.js";
 import fs from "node:fs";
 
 const command = process.argv[2];
@@ -31,6 +31,8 @@ async function cmdUp() {
   const journalPath = `${dataDir}/world-journal.db`;
 
   let world: import("../engine/world.js").World;
+
+  setExportDir(`${dataDir}/exports`);
 
   if (fs.existsSync(journalPath) && fs.statSync(journalPath).size > 1024) {
     initJournal(journalPath);

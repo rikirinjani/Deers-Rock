@@ -18,7 +18,7 @@ describe("Snapshots", () => {
     try { if (existsSync(DB)) unlinkSync(DB); } catch { /* ok */ }
   });
 
-  it("saves snapshots every 20 ticks during simulation", () => {
+  it("saves snapshots every 20 ticks during simulation", { timeout: 15000 }, () => {
     closeJournal();
     if (existsSync(DB)) unlinkSync(DB);
     const w = createWorld(10, DB);

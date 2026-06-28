@@ -45,7 +45,21 @@
 - API: new endpoints — /api/agents, /api/agents/summary, /api/patients/identity, /api/referral, /api/referral/letters, /api/referral/facilities, /api/specialty
 - FHIR: enriched Patient resource with NIK, address, blood type, religion, marital status
 
-**Tests: 40/40 passing** (9 test files)
+**Tests: 66/66 passing** (13 test files, snapshot test timeout fixed 28 Jun)
+
+### Governance & ADRs Created (28 Jun 2026)
+- **Article VI** added to Constitution — Agent Interoperability (roles, filesystem-as-bus, handoff protocol, conflict resolution)
+- **AGENTS.md** created — canonical role definitions for Coordinator, Platform, Research OC, Paper OC (corrected from earlier Writer/Archivist split per user's refined model)
+- **ADR-001** — Handler Pipeline Architecture (35-handler execution order, special cases documented)
+- **ADR-002** — Snapshot and Journal Retention Strategy (100-tick journal, 5-snapshot retention, incremental vacuum)
+- **ADR-003** — Agent State Persistence Contract (agent/referral state not persisted in snapshots — 🔴 gap)
+- **ROADMAP.md** created — 7 epics, 22 milestones replacing flat TODO
+- **TODO.md** updated — sprint-focused, references roadmap
+
+### Known Gaps
+- `_agentState` and `_referralState` not persisted in snapshots (ADR-003)
+- Snapshot test needed timeout bump from 5s → 15s (Windows write overhead)
+- `tests/snapshot.test.ts` — fixed timeout, 6/6 passing
 
 ### What's missing / proposed next
 1. Dashboard UI overhaul — show new modules (agent cards, referral feed, identity table)
