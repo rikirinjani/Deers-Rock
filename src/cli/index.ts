@@ -1,7 +1,7 @@
 import { createWorld, resumeWorld, step } from "../engine/world.js";
 import { createRestServer } from "../api/rest.js";
 import { createClock, formatHospitalTime } from "../engine/clock.js";
-import { initJournal, loadNearestSnapshot, closeJournal } from "../engine/journal.js";
+import { initJournal, loadNearestSnapshot, closeJournal, journalHardPurge } from "../engine/journal.js";
 import fs from "node:fs";
 
 const command = process.argv[2];
@@ -48,6 +48,8 @@ async function cmdUp() {
 
   const server = createRestServer(() => world);
   server.listen(port);
+
+  journalHardPurge();
 
   setInterval(() => {
     world = step(world);

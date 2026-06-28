@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BI Dashboard — Deer's Rock</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#0b0e14;--surface:#141a24;--surface2:#1c2432;--border:#2a3444;--text:#e2e8f0;--muted:#8896a6;--accent:#38bdf8;--green:#4ade80;--yellow:#facc15;--red:#ef4444;--orange:#fb923c;--purple:#a78bfa;--pink:#f472b6;--teal:#2dd4bf}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'SF Mono','Cascadia Code','Consolas',monospace;background:var(--bg);color:var(--text);padding:8px;font-size:11px}
+  .container{max-width:1800px;margin:0 auto}
+  .header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+  .header h1{font-size:13px;font-weight:600}
+  .header h1 span{color:var(--accent)}
+  .header .meta{display:flex;gap:10px;font-size:10px;color:var(--muted)}
+  .tabs{display:flex;gap:2px;margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px;overflow-x:auto}
+  .tab{padding:5px 14px;border-radius:4px;cursor:pointer;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);transition:all .15s;white-space:nowrap}
+  .tab:hover{color:var(--text);background:var(--surface2)}
+  .tab.active{background:var(--accent);color:var(--bg);font-weight:600}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px}
+  .panel h3{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-bottom:8px}
+  .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center}
+  .kpi .value{font-size:20px;font-weight:700}
+  .kpi .label{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px}
+  .kpi .sub{font-size:8px;color:var(--muted);margin-top:1px}
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:8px;margin-bottom:8px}
+  .chart-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;position:relative}
+  .chart-box h4{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+  .chart-box canvas{width:100%!important;height:auto!important;max-height:220px}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .table-wrap{overflow-x:auto;max-height:300px;overflow-y:auto}
+  table{width:100%;border-collapse:collapse;font-size:9px}
+  th{text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:7px;text-transform:uppercase;letter-spacing:1px;position:sticky;top:0;background:var(--surface2)}
+  td{padding:3px 6px;border-bottom:1px solid var(--border)}
+  tr:hover td{background:var(--surface)}
+  .badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:7px;font-weight:600}
+  .progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:3px;transition:width .5s}
+  .loading{display:flex;justify-content:center;align-items:center;padding:40px;color:var(--muted);font-size:11px}
+  .error{color:var(--red);padding:12px;text-align:center}
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-track{background:var(--surface)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.chart-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class=container>
+  <div class=header>
+    <h1><span>BI</span> Dashboard</h1>
+    <div class=meta><span>Tick: <span id=hTick style=color:var(--yellow)>--</span></span><span id=lastUpdate style=color:var(--muted)>--</span></div>
+  </div>
+
+  <div class=tabs id=tabs>
+    <div class="tab active" data-tab=overview>Overview</div>
+    <div class=tab data-tab=census>Census</div>
+    <div class=tab data-tab=clinical>Clinical</div>
+    <div class=tab data-tab=financial>Financial</div>
+    <div class=tab data-tab=workforce>Workforce</div>
+    <div class=tab data-tab=departments>Departments</div>
+    <div class=tab data-tab=trends>Trends</div>
+  </div>
+
+  <div id=tab-overview class="tab-content active"><div class=loading>Loading data...</div></div>
+  <div id=tab-census class=tab-content></div>
+  <div id=tab-clinical class=tab-content></div>
+  <div id=tab-financial class=tab-content></div>
+  <div id=tab-workforce class=tab-content></div>
+  <div id=tab-departments class=tab-content></div>
+  <div id=tab-trends class=tab-content></div>
+</div>
+
+<script>
+var charts = {};
+var biData = null;
+var hasChart = typeof Chart !== 'undefined';
+
+document.getElementById('tabs').addEventListener('click', function(e) {
+  var tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  if (biData) renderTab(tab.dataset.tab);
+});
+
+function destroyCharts(prefix) {
+  for (var key in charts) {
+    if (charts.hasOwnProperty(key) && key.indexOf(prefix) === 0) {
+      try { charts[key].destroy(); } catch(_) {}
+      delete charts[key];
+    }
+  }
+}
+
+function makeChart(id, config) {
+  if (!hasChart) return null;
+  var el = document.getElementById(id);
+  if (!el) return null;
+  try {
+    var c = new Chart(el, config);
+    charts[id] = c;
+    return c;
+  } catch(e) {
+    return null;
+  }
+}
+
+function fmt(n) { return (n || 0).toLocaleString(); }
+function pct(n) { return (n || 0) + '%'; }
+function rp(n) { return 'Rp ' + ((n || 0) / 1000).toFixed(0) + 'K'; }
+
+async function refresh() {
+  try {
+    var resp = await fetch('/api/bi');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var d = await resp.json();
+    biData = d;
+    document.getElementById('hTick').textContent = d.snapshot.tick;
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+    renderAll();
+  } catch (e) {
+    document.querySelectorAll('.tab-content').forEach(function(el) {
+      el.innerHTML = '<div class=error>Failed to load BI data: ' + e.message + '</div>';
+    });
+  }
+}
+
+function renderAll() {
+  renderTab('overview');
+  renderTab('census');
+  renderTab('clinical');
+  renderTab('financial');
+  renderTab('workforce');
+  renderTab('departments');
+  renderTab('trends');
+}
+
+function renderTab(tab) {
+  if (!biData) return;
+  switch (tab) {
+    case 'overview': renderOverview(); break;
+    case 'census': renderCensus(); break;
+    case 'clinical': renderClinical(); break;
+    case 'financial': renderFinancial(); break;
+    case 'workforce': renderWorkforce(); break;
+    case 'departments': renderDepartments(); break;
+    case 'trends': renderTrends(); break;
+  }
+}
+
+function kpiRow(items) {
+  return '<div class=kpi-grid>' + items.map(function(it) {
+    return '<div class=kpi><div class=value style=color:' + it.c + '>' + it.v + '</div><div class=label>' + it.l + '</div>' + (it.s ? '<div class=sub>' + it.s + '</div>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+
+function renderOverview() {
+  var d = biData;
+  var el = document.getElementById('tab-overview');
+  el.innerHTML = kpiRow([
+    { v: fmt(d.census.totalPatients), l: 'Patients', c: 'var(--accent)' },
+    { v: fmt(d.census.activeEncounters), l: 'Active Encounters', c: 'var(--green)' },
+    { v: pct(d.census.occupancyRate), l: 'Bed Occupancy', c: 'var(--yellow)' },
+    { v: fmt(d.census.waitingRoom), l: 'Waiting Room', c: 'var(--orange)' },
+    { v: fmt(d.clinical.totalOutcomes), l: 'Outcomes Recorded', c: 'var(--purple)' },
+    { v: pct(d.clinical.improvementRate), l: 'Improvement Rate', c: 'var(--green)' },
+    { v: pct(d.clinical.mortalityRate), l: 'Mortality Rate', c: 'var(--red)' },
+    { v: fmt(Math.round(d.financial.totalChargeAmount/1e6)) + 'M', l: 'Total Charges', c: 'var(--teal)' },
+    { v: pct(d.financial.collectionRate), l: 'Collection Rate', c: 'var(--green)' },
+    { v: fmt(d.workforce.totalAgents), l: 'Staff', c: 'var(--accent)' },
+    { v: fmt(d.census.morgueTotal), l: 'Deceased', c: 'var(--red)' },
+    { v: fmt(d.trends.journalTotal), l: 'Journal Events', c: 'var(--pink)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Bed Occupancy by Ward</h4><canvas id=ov-c1></canvas></div>' +
+    '<div class=chart-box><h4>Age Distribution</h4><canvas id=ov-c2></canvas></div>' +
+    '<div class=chart-box><h4>Clinical Outcomes</h4><canvas id=ov-c3></canvas></div>' +
+    '<div class=chart-box><h4>Department Volume</h4><canvas id=ov-c4></canvas></div>' +
+    '</div>';
+  destroyCharts('ov-');
+  makeChart('ov-c1', {
+    type: 'bar', data: {
+      labels: d.census.byWard.map(function(w) { return w.ward; }),
+      datasets: [
+        { label: 'Occupied', data: d.census.byWard.map(function(w) { return w.occupied; }), backgroundColor: 'rgba(56,189,248,0.7)' },
+        { label: 'Free', data: d.census.byWard.map(function(w) { return w.total - w.occupied; }), backgroundColor: 'rgba(42,52,68,0.5)' },
+      ]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#8896a6', font: { size: 9 } } } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 7 } } }, y: { stacked: true, ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  makeChart('ov-c2', {
+    type: 'doughnut', data: {
+      labels: Object.keys(d.census.demographics.byAgeGroup),
+      datasets: [{ data: Object.values(d.census.demographics.byAgeGroup), backgroundColor: ['#38bdf8','#4ade80','#facc15','#fb923c','#a78bfa','#f472b6','#ef4444'] }]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  var o = d.clinical;
+  makeChart('ov-c3', {
+    type: 'doughnut', data: {
+      labels: ['Improved', 'Deteriorated', 'Deceased'],
+      datasets: [{ data: [o.improved, o.deteriorated, o.deceased], backgroundColor: ['#4ade80','#fb923c','#ef4444'] }]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+  var dp = d.departments;
+  makeChart('ov-c4', {
+    type: 'bar', data: {
+      labels: ['Lab','Rad','Pharmacy','Surgery','ED','Micro','Patho','CSSD','RT','Dialysis'],
+      datasets: [{ label: 'Items', data: [dp.laboratory.total, dp.radiology.total, dp.pharmacy.total, dp.surgery.total, dp.emergency.total, dp.microbiology.total, dp.pathology.total, dp.cssd.totalTrays, dp.radiotherapy.total, dp.dialysis.totalSessions], backgroundColor: 'rgba(167,139,250,0.7)' }]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 8 } } }, y: { ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+}
+
+function renderCensus() {
+  var c = biData.census;
+  var el = document.getElementById('tab-census');
+  el.innerHTML = kpiRow([
+    { v: fmt(c.totalPatients), l: 'Total Patients', c: 'var(--accent)' },
+    { v: fmt(c.activeEncounters), l: 'Active Encounters', c: 'var(--green)' },
+    { v: fmt(c.dischargedEncounters), l: 'Discharged', c: 'var(--muted)' },
+    { v: pct(c.occupancyRate), l: 'Occupancy Rate', c: 'var(--yellow)' },
+    { v: fmt(c.availableBeds), l: 'Available Beds', c: 'var(--orange)' },
+    { v: fmt(c.waitingRoom), l: 'Waiting Room', c: 'var(--orange)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Occupancy by Ward</h4><canvas id=ce-c1></canvas></div>' +
+    '<div class=chart-box><h4>Gender Distribution</h4><canvas id=ce-c2></canvas></div>' +
+    '</div>';
+  el.innerHTML += '<div class=panel><h3>Ward Details</h3><div class=table-wrap><table><thead><tr><th>Ward</th><th>Occupied</th><th>Total</th><th>Rate</th><th>Bar</th></tr></thead><tbody>' +
+    c.byWard.map(function(w) {
+      var wc = w.rate >= 80 ? 'var(--red)' : w.rate >= 60 ? 'var(--orange)' : w.rate >= 40 ? 'var(--yellow)' : 'var(--green)';
+      return '<tr><td>' + w.ward + '</td><td style=color:var(--accent)>' + w.occupied + '</td><td>' + w.total + '</td><td>' + pct(w.rate) + '</td><td style=width:120px><div class=progress-bar><div class=progress-fill style=width:' + w.rate + '%;background:' + wc + '></div></div></td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+  destroyCharts('ce-');
+  makeChart('ce-c1', {
+    type: 'bar', data: {
+      labels: c.byWard.map(function(w) { return w.ward; }),
+      datasets: [
+        { label: 'Occupied', data: c.byWard.map(function(w) { return w.occupied; }), backgroundColor: 'rgba(56,189,248,0.7)' },
+        { label: 'Free', data: c.byWard.map(function(w) { return w.total - w.occupied; }), backgroundColor: 'rgba(42,52,68,0.5)' },
+      ]
+    }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#8896a6', font: { size: 9 } } } }, scales: { x: { stacked: true, ticks: { color: '#8896a6', font: { size: 8 } } }, y: { stacked: true, ticks: { color: '#8896a6', font: { size: 7 } } } } }
+  });
+  var genders = Object.entries(c.demographics.byGender);
+  makeChart('ce-c2', {
+    type: 'pie', data: {
+      labels: genders.map(function(g) { return g[0]; }),
+      datasets: [{ data: genders.map(function(g) { return g[1]; }), backgroundColor: ['#38bdf8','#f472b6'] }]
+    }, options: { plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+}
+
+function renderClinical() {
+  var c = biData.clinical;
+  var el = document.getElementById('tab-clinical');
+  el.innerHTML = kpiRow([
+    { v: fmt(c.totalOutcomes), l: 'Total Outcomes', c: 'var(--green)' },
+    { v: fmt(c.improved), l: 'Improved', c: 'var(--green)', s: pct(c.improvementRate) },
+    { v: fmt(c.deteriorated), l: 'Deteriorated', c: 'var(--orange)' },
+    { v: fmt(c.deceased), l: 'Deceased', c: 'var(--red)', s: pct(c.mortalityRate) },
+    { v: fmt(c.avgLosTicks), l: 'Avg LOS (ticks)', c: 'var(--yellow)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Lab & Radiology</h4><canvas id=cl-c1></canvas></div>' +
+    '<div class=chart-box><h4>Pharmacy & Surgery & ED</h4><canvas id=cl-c2></canvas></div>' +
+    '</div>';
+  el.innerHTML += '<div class=panel><h3>Diagnosis Performance (Top 15)</h3><div class=table-wrap><table><thead><tr><th>#</th><th>ICD</th><th>Diagnosis</th><th>Cases</th><th>Improve</th><th>Mortality</th><th>LOS</th><th>Orders</th></tr></thead><tbody>' +
+    c.topDiagnoses.map(function(d, i) {
+      var ic = d.improvementRate >= 70 ? 'var(--green)' : d.improvementRate >= 40 ? 'var(--yellow)' : 'var(--red)';
+      var mc = d.mortalityRate > 10 ? 'var(--red)' : d.mortalityRate > 0 ? 'var(--orange)' : 'var(--muted)';
+      return '<tr><td>' + (i + 1) + '</td><td style=color:var(--accent)>' + d.icdCode + '</td><td style=font-size:8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>' + d.diagnosisName + '</td><td>' + d.totalCases + '</td><td style=color:' + ic + '>' + pct(d.improvementRate) + '</td><td style=color:' + mc + '>' + pct(d.mortalityRate) + '</td><td style=color:var(--muted)>' + d.avgLosTicks + '</td><td style=color:var(--muted)>' + d.totalOrders + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+  destroyCharts('cl-');
+  makeChart('cl-c1', {
+    type: 'bar', data: {
+      labels: ['Lab', 'Radiology'],
+      datasets: [
+        { label: 'Pending', data: [c.labPending, c.radPending], backgroundColor: 'rgba(251,191,36,0.7)' },
+        { label: 'Completed', data: [c.labResulted, c.radResulted], backgroundColor: 'rgba(74,222,128,0.7)' },
+      ]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#8896a6', font: { size: 9 } } } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 9 } } }, y: { stacked: true, ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  makeChart('cl-c2', {
+    type: 'bar', data: {
+      labels: ['Pharmacy', 'Surgery', 'ED'],
+      datasets: [
+        { label: 'Pending', data: [c.medPending, c.surgPending, c.edActive], backgroundColor: 'rgba(251,191,36,0.7)' },
+        { label: 'Completed', data: [c.medAdministered, c.surgCompleted, c.edTotal - c.edActive], backgroundColor: 'rgba(74,222,128,0.7)' },
+      ]
+    }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#8896a6', font: { size: 9 } } } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 9 } } }, y: { stacked: true, ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+}
+
+function renderFinancial() {
+  var f = biData.financial;
+  var el = document.getElementById('tab-financial');
+  el.innerHTML = kpiRow([
+    { v: rp(f.totalChargeAmount), l: 'Total Charges', c: 'var(--green)' },
+    { v: rp(f.totalPaymentAmount), l: 'Payments Collected', c: 'var(--teal)' },
+    { v: rp(f.outstanding), l: 'Outstanding', c: 'var(--red)' },
+    { v: pct(f.collectionRate), l: 'Collection Rate', c: 'var(--yellow)' },
+    { v: fmt(f.totalCharges), l: 'Charge Items', c: 'var(--accent)' },
+    { v: rp(f.avgChargePerPatient), l: 'Avg/Patient', c: 'var(--muted)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Charges vs Payments</h4><canvas id=fi-c1></canvas></div>' +
+    '<div class=chart-box><h4>Claims Breakdown</h4><canvas id=fi-c2></canvas></div>' +
+    '</div>';
+  el.innerHTML += '<div class=panel><h3>Claims Summary</h3><div style=display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--accent)>' + fmt(f.totalClaims) + '</div><div style=font-size:8px;color:var(--muted)>Total Claims</div></div>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--yellow)>' + fmt(f.pendingClaims) + '</div><div style=font-size:8px;color:var(--muted)>Pending</div></div>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--green)>' + fmt(f.paidClaims) + '</div><div style=font-size:8px;color:var(--muted)>Paid/Adjudicated</div></div>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--red)>' + fmt(f.deniedClaims) + '</div><div style=font-size:8px;color:var(--muted)>Denied</div></div>' +
+    '</div></div>';
+  destroyCharts('fi-');
+  makeChart('fi-c1', {
+    type: 'bar', data: {
+      labels: ['Charges', 'Payments', 'Outstanding'],
+      datasets: [{ label: 'Amount', data: [f.totalChargeAmount, f.totalPaymentAmount, f.outstanding], backgroundColor: ['rgba(74,222,128,0.6)','rgba(45,212,191,0.6)','rgba(239,68,68,0.6)'] }]
+    }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  makeChart('fi-c2', {
+    type: 'doughnut', data: {
+      labels: ['Paid/Adjudicated', 'Pending (Submitted)', 'Denied'],
+      datasets: [{ data: [f.paidClaims, f.pendingClaims, f.deniedClaims], backgroundColor: ['#4ade80','#facc15','#ef4444'] }]
+    }, options: { plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+}
+
+function renderWorkforce() {
+  var w = biData.workforce;
+  var el = document.getElementById('tab-workforce');
+  var roles = Object.entries(w.byRole).sort(function(a, b) { return b[1] - a[1]; });
+  el.innerHTML = kpiRow([
+    { v: fmt(w.totalAgents), l: 'Total Staff', c: 'var(--accent)' },
+    { v: fmt(w.available), l: 'Available (On Shift)', c: 'var(--green)' },
+    { v: fmt(w.sick), l: 'Sick/Unfit', c: 'var(--red)' },
+    { v: fmt(w.pregnant), l: 'Pregnant', c: 'var(--pink)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Staff by Role</h4><canvas id=wf-c1></canvas></div>' +
+    '<div class=chart-box><h4>Staff Availability</h4><canvas id=wf-c2></canvas></div>' +
+    '</div>';
+  el.innerHTML += '<div class=panel><h3>AI Case Load</h3><div style=display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--accent)>' + fmt(w.doctorCases) + '</div><div style=font-size:8px;color:var(--muted)>Doctor AI Cases</div></div>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--teal)>' + fmt(w.nurseCases) + '</div><div style=font-size:8px;color:var(--muted)>Nurse AI Cases</div></div>' +
+    '<div style=text-align:center><div style=font-size:16px;font-weight:700;color:var(--yellow)>' + fmt(w.pharmacyCases) + '</div><div style=font-size:8px;color:var(--muted)>Pharmacy AI Cases</div></div>' +
+    '</div></div>';
+  destroyCharts('wf-');
+  makeChart('wf-c1', {
+    type: 'bar', data: {
+      labels: roles.map(function(r) { return r[0]; }),
+      datasets: [{ label: 'Count', data: roles.map(function(r) { return r[1]; }), backgroundColor: 'rgba(167,139,250,0.7)' }]
+    }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 8 } } }, y: { ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  makeChart('wf-c2', {
+    type: 'doughnut', data: {
+      labels: ['Available', 'Sick/Unfit', 'Pregnant'],
+      datasets: [{ data: [w.available, w.sick, w.pregnant], backgroundColor: ['#4ade80','#ef4444','#f472b6'] }]
+    }, options: { plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+}
+
+function renderDepartments() {
+  var d = biData.departments;
+  var el = document.getElementById('tab-departments');
+  el.innerHTML = '<div class=chart-grid>' +
+    '<div class=chart-box><h4>Lab & Radiology</h4><canvas id=dp-c1></canvas></div>' +
+    '<div class=chart-box><h4>Pharmacy Pipeline</h4><canvas id=dp-c2></canvas></div>' +
+    '<div class=chart-box><h4>Surgery Pipeline</h4><canvas id=dp-c3></canvas></div>' +
+    '<div class=chart-box><h4>Equipment (Biomed)</h4><canvas id=dp-c4></canvas></div>' +
+    '</div>';
+  el.innerHTML += '<div class=panel><h3>All Departments — At a Glance</h3><div class=table-wrap><table><thead><tr><th>Department</th><th>Total</th><th>Active/Pending</th><th>Completed/Available</th><th>Status</th></tr></thead><tbody>' +
+    '<tr><td>Laboratory</td><td>' + d.laboratory.total + '</td><td style=color:var(--yellow)>' + d.laboratory.pending + '</td><td style=color:var(--green)>' + d.laboratory.resulted + '</td><td>' + (d.laboratory.pending > 0 ? '<span class=badge style=background:rgba(251,191,36,0.15);color:var(--yellow)>' + d.laboratory.pending + ' pending</span>' : '<span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>All clear</span>') + '</td></tr>' +
+    '<tr><td>Radiology</td><td>' + d.radiology.total + '</td><td style=color:var(--yellow)>' + d.radiology.pending + '</td><td style=color:var(--green)>' + d.radiology.resulted + '</td><td>' + (d.radiology.pending > 0 ? '<span class=badge style=background:rgba(251,191,36,0.15);color:var(--yellow)>' + d.radiology.pending + ' pending</span>' : '<span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>All clear</span>') + '</td></tr>' +
+    '<tr><td>Pharmacy</td><td>' + d.pharmacy.total + '</td><td style=color:var(--yellow)>' + d.pharmacy.pending + '</td><td style=color:var(--green)>' + d.pharmacy.administered + '</td><td><span class=badge style=background:rgba(45,212,191,0.15);color:var(--teal)>' + d.pharmacy.dispensed + ' dispensed</span></td></tr>' +
+    '<tr><td>Surgery</td><td>' + d.surgery.total + '</td><td style=color:var(--yellow)>' + d.surgery.scheduled + '</td><td style=color:var(--green)>' + d.surgery.completed + '</td><td>' + (d.surgery.inProgress > 0 ? '<span class=badge style=background:rgba(56,189,248,0.15);color:var(--accent)>' + d.surgery.inProgress + ' in-progress</span>' : '<span class=badge style=background:rgba(42,52,68,0.15);color:var(--muted)>--</span>') + '</td></tr>' +
+    '<tr><td>Emergency</td><td>' + d.emergency.total + '</td><td style=color:var(--red)>' + d.emergency.active + '</td><td style=color:var(--muted)>' + (d.emergency.total - d.emergency.active) + '</td><td>' + (d.emergency.active > 0 ? '<span class=badge style=background:rgba(239,68,68,0.15);color:var(--red)>' + d.emergency.active + ' active</span>' : '<span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>Clear</span>') + '</td></tr>' +
+    '<tr><td>Nursing</td><td colspan=4>' + d.nursing.totalNotes + ' total notes</td></tr>' +
+    '<tr><td>Respiratory</td><td colspan=4>' + d.respiratory.total + ' total orders</td></tr>' +
+    '<tr><td>Dietary</td><td colspan=4>' + d.dietary.total + ' total orders</td></tr>' +
+    '<tr><td>Social Work</td><td colspan=4>' + d.socialWork.total + ' total notes</td></tr>' +
+    '<tr><td>Medical Records</td><td>' + d.medicalRecords.total + '</td><td style=color:var(--yellow)>' + (d.medicalRecords.total - d.medicalRecords.coded) + '</td><td style=color:var(--green)>' + d.medicalRecords.coded + '</td><td><span class=badge style=background:rgba(167,139,250,0.15);color:var(--purple)>' + (d.medicalRecords.total > 0 ? Math.round(d.medicalRecords.coded / d.medicalRecords.total * 100) + '% coded' : '--') + '</span></td></tr>' +
+    '<tr><td>Outpatient</td><td>' + d.outpatient.total + '</td><td style=color:var(--yellow)>' + (d.outpatient.waiting + d.outpatient.consulting) + '</td><td style=color:var(--green)>' + d.outpatient.completed + '</td><td><span class=badge style=background:rgba(56,189,248,0.15);color:var(--accent)>' + d.outpatient.consulting + ' consulting</span></td></tr>' +
+    '<tr><td>Microbiology</td><td colspan=4>' + d.microbiology.total + ' orders</td></tr>' +
+    '<tr><td>Pathology</td><td colspan=4>' + d.pathology.total + ' orders</td></tr>' +
+    '<tr><td>CSSD</td><td>' + d.cssd.totalTrays + '</td><td style=color:var(--red)>' + (d.cssd.totalTrays - d.cssd.sterile) + '</td><td style=color:var(--green)>' + d.cssd.sterile + '</td><td><span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>' + (d.cssd.totalTrays > 0 ? Math.round(d.cssd.sterile / d.cssd.totalTrays * 100) + '% sterile' : '--') + '</span></td></tr>' +
+    '<tr><td>Biomedical Eng</td><td>' + d.biomedical.total + '</td><td style=color:var(--yellow)>' + d.biomedical.underMaintenance + '</td><td style=color:var(--green)>' + d.biomedical.operational + '</td><td>' + (d.biomedical.broken > 0 ? '<span class=badge style=background:rgba(239,68,68,0.15);color:var(--red)>' + d.biomedical.broken + ' broken</span>' : '<span class=badge style=background:rgba(74,222,128,0.15);color:var(--green)>All OK</span>') + '</td></tr>' +
+    '<tr><td>IPC</td><td>' + d.ipc.totalCases + '</td><td style=color:var(--yellow)>Isolation: ' + d.ipc.isolationBeds + '</td><td style=color:var(--green)>' + d.ipc.handHygiene + '% hygiene</td><td><span class=badge style=background:rgba(167,139,250,0.15);color:var(--purple)>' + d.ipc.totalCases + ' cases</span></td></tr>' +
+    '<tr><td>Nutrition</td><td>' + d.nutrition.total + '</td><td style=color:var(--red)>' + d.nutrition.highRisk + ' high risk</td><td colspan=2></td></tr>' +
+    '<tr><td>Radiotherapy</td><td>' + d.radiotherapy.total + '</td><td style=color:var(--accent)>' + d.radiotherapy.active + ' active</td><td style=color:var(--green)>' + d.radiotherapy.completed + ' completed</td><td></td></tr>' +
+    '<tr><td>Dialysis</td><td>' + d.dialysis.totalSessions + '</td><td style=color:var(--accent)>' + d.dialysis.activeSessions + ' active</td><td style=color:var(--green)>' + d.dialysis.availMachines + '/' + d.dialysis.totalSessions + ' machines free</td><td></td></tr>' +
+    '<tr><td>Blood Bank</td><td>' + d.bloodBank.totalUnits + '</td><td style=color:var(--green)>' + d.bloodBank.available + ' available</td><td colspan=2></td></tr>' +
+    '<tr><td>Referral</td><td>' + d.referral.totalLetters + '</td><td colspan=2>' + d.referral.totalFacilities + ' partner facilities</td><td></td></tr>' +
+    '<tr><td>Specialty Services</td><td colspan=4>' + d.specialty.total + ' orders</td></tr>' +
+    '</tbody></table></div></div>';
+  destroyCharts('dp-');
+  makeChart('dp-c1', {
+    type: 'bar', data: {
+      labels: ['Total', 'Completed', 'Pending'],
+      datasets: [
+        { label: 'Lab', data: [d.laboratory.total, d.laboratory.resulted, d.laboratory.pending], backgroundColor: 'rgba(167,139,250,0.7)' },
+        { label: 'Radiology', data: [d.radiology.total, d.radiology.resulted, d.radiology.pending], backgroundColor: 'rgba(244,114,182,0.7)' },
+      ]
+    }, options: { plugins: { legend: { labels: { color: '#8896a6', font: { size: 9 } } } }, scales: { y: { ticks: { color: '#8896a6', font: { size: 8 } } }, x: { ticks: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+  makeChart('dp-c2', {
+    type: 'bar', data: {
+      labels: ['Total', 'Pending', 'Dispensed', 'Administered'],
+      datasets: [{ label: 'Pharmacy', data: [d.pharmacy.total, d.pharmacy.pending, d.pharmacy.dispensed, d.pharmacy.administered], backgroundColor: 'rgba(45,212,191,0.7)' }]
+    }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8896a6', font: { size: 8 } } }, x: { ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+  makeChart('dp-c3', {
+    type: 'bar', data: {
+      labels: ['Total', 'Scheduled', 'In Progress', 'Completed'],
+      datasets: [{ label: 'Surgery', data: [d.surgery.total, d.surgery.scheduled, d.surgery.inProgress, d.surgery.completed], backgroundColor: 'rgba(251,146,60,0.7)' }]
+    }, options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#8896a6', font: { size: 8 } } }, x: { ticks: { color: '#8896a6', font: { size: 7 } } } } }
+  });
+  makeChart('dp-c4', {
+    type: 'doughnut', data: {
+      labels: ['Operational', 'Under Maintenance', 'Broken'],
+      datasets: [{ data: [d.biomedical.operational, d.biomedical.underMaintenance, d.biomedical.broken], backgroundColor: ['#4ade80','#facc15','#ef4444'] }]
+    }, options: { plugins: { legend: { position: 'right', labels: { color: '#8896a6', font: { size: 9 } } } } }
+  });
+}
+
+function renderTrends() {
+  var t = biData.trends;
+  var el = document.getElementById('tab-trends');
+  el.innerHTML = kpiRow([
+    { v: fmt(t.journalTotal), l: 'Journal Events', c: 'var(--accent)' },
+    { v: t.firstTick != null ? fmt(t.firstTick) : 'N/A', l: 'First Tick', c: 'var(--muted)' },
+    { v: t.lastTick != null ? fmt(t.lastTick) : 'N/A', l: 'Last Tick', c: 'var(--yellow)' },
+    { v: fmt(t.snapshots.length), l: 'Snapshots', c: 'var(--purple)' },
+  ]);
+  el.innerHTML += '<div class=chart-grid><div class=chart-box style=grid-column:1/-1><h4>Event Type Distribution</h4><canvas id=tr-c1 style=max-height:240px></canvas></div></div>';
+  el.innerHTML += '<div class=panel><h3>Recent Journal Events (Last 30)</h3><div class=table-wrap><table><thead><tr><th>Tick</th><th>Event</th><th>Entity</th><th>Detail</th></tr></thead><tbody>' +
+    t.recentEvents.map(function(e) {
+      return '<tr><td style=color:var(--yellow)>' + e.tick + '</td><td><span class=badge style=background:rgba(56,189,248,0.15);color:var(--accent)>' + e.eventType + '</span></td><td style=color:var(--muted)>' + (e.entityType || '--') + '</td><td style=font-size:8px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>' + e.summary + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+  el.innerHTML += '<div class=panel><h3>Snapshots Timeline</h3><div class=table-wrap><table><thead><tr><th>Tick</th><th>Created At</th></tr></thead><tbody>' +
+    t.snapshots.slice(-20).reverse().map(function(s) {
+      return '<tr><td style=color:var(--yellow)>' + s.tick + '</td><td style=color:var(--muted)>' + s.createdAt + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+  destroyCharts('tr-');
+  var eventTypes = Object.entries(t.journalByType).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 15);
+  var colors = ['#38bdf8','#4ade80','#facc15','#fb923c','#a78bfa','#f472b6','#2dd4bf','#ef4444','#fb7185','#818cf8','#34d399','#fbbf24','#f87171','#c084fc','#6ee7b7'];
+  makeChart('tr-c1', {
+    type: 'bar', data: {
+      labels: eventTypes.map(function(e) { return e[0]; }),
+      datasets: [{ label: 'Count', data: eventTypes.map(function(e) { return e[1]; }), backgroundColor: colors.slice(0, eventTypes.length).map(function(c) { return c + '99'; }), borderColor: colors.slice(0, eventTypes.length), borderWidth: 1 }]
+    }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#8896a6', font: { size: 8 } } }, y: { ticks: { color: '#8896a6', font: { size: 8 } } } } }
+  });
+}
+
+setInterval(refresh, 5000);
+refresh();
+</script>
+</body>
+</html>

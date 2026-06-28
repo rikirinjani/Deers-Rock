@@ -117,9 +117,9 @@ export function journalStats(): { total: number; byType: Record<string, number>;
   return { total, byType, firstTick: first, lastTick: last };
 }
 
-const JOURNAL_RETENTION_TICKS = 500;
+const JOURNAL_RETENTION_TICKS = 200;
 
-const PURGE_INTERVAL = 500;
+const PURGE_INTERVAL = 100;
 let lastPurgeTick = 0;
 
 export function journalPurge(currentTick: number): void {
@@ -128,9 +128,24 @@ export function journalPurge(currentTick: number): void {
   lastPurgeTick = currentTick;
   const cutoff = currentTick - JOURNAL_RETENTION_TICKS;
   if (cutoff > 0) {
-    db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
-    db.pragma("wal_checkpoint(TRUNCATE)");
+    try {
+      db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
+      db.pragma("wal_checkpoint(TRUNCATE)");
+    } catch { }
   }
+}
+
+export function journalHardPurge(): void {
+  if (!db) return;
+  try {
+    const row = db.prepare("SELECT MAX(tick) as t FROM world_journal").get() as { t: number | null } | undefined;
+    if (!row || row.t === null) return;
+    const cutoff = row.t - 100;
+    if (cutoff > 0) {
+      db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
+      db.pragma("wal_checkpoint(TRUNCATE)");
+    }
+  } catch { }
 }
 
 export function journalReplay(tickMax: number, eventTypes?: string[]): JournalRow[] {

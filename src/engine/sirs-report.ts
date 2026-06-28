@@ -91,7 +91,7 @@ interface RL3Form {
   totalBeds: number;
   availableBeds: number;
   occupancyRate: number;
-  averageLosTicks: number;
+  averageLosDays: number;
   wardData: WardBedData[];
   bedTurnoverRatio: number;
 }
@@ -340,16 +340,21 @@ export function generateSirsReport(world: World): SirsReportBundle {
     rate: w.total > 0 ? Math.round((w.occupied / w.total) * 100) : 0,
     losDays: 0,
   }));
-  const avgLos = dischargedEncs.length > 0
-    ? Math.round(dischargedEncs.reduce((s, e) => s + ((e.endTime ?? world.clock.tick) - e.startTime), 0) / dischargedEncs.length * 100 / 1440) / 100
+
+  const dischargedInpatientRI = dischargedEncs.filter(e => e.type === "admission");
+  const avgLosDaysRI = dischargedInpatientRI.length > 0
+    ? Math.round(dischargedInpatientRI.reduce((s, e) => {
+        const endMs = e.endTime ?? world.clock.tick * 60000;
+        return s + (endMs - e.startTime);
+      }, 0) / dischargedInpatientRI.length / 86400000 * 1000) / 1000
     : 0;
-  const bedTurnoverRatio = bedsArr.length > 0 ? Math.round((dischargedEncs.length / bedsArr.length) * 100) / 100 : 0;
+  const bedTurnoverRatio = bedsArr.length > 0 ? Math.round((dischargedInpatientRI.length / bedsArr.length) * 100) / 100 : 0;
 
   const rl3: RL3Form = {
     totalBeds: bedsArr.length,
     availableBeds,
     occupancyRate: bedsArr.length > 0 ? Math.round(((bedsArr.length - availableBeds) / bedsArr.length) * 100) : 0,
-    averageLosTicks: avgLos,
+    averageLosDays: avgLosDaysRI,
     wardData,
     bedTurnoverRatio,
   };
@@ -357,9 +362,12 @@ export function generateSirsReport(world: World): SirsReportBundle {
   // ─── RL 4a: Rawat Inap ───
   const inpatientEncs = encounters.filter(e => e.type === "admission");
   const dischargedInpatient = inpatientEncs.filter(e => e.status === "discharged");
-  const totalInpatientDays = dischargedInpatient.reduce((s, e) => s + ((e.endTime ?? world.clock.tick) - e.startTime), 0);
+  const totalInpatientMs = dischargedInpatient.reduce((s, e) => {
+    const endMs = e.endTime ?? world.clock.tick * 60000;
+    return s + (endMs - e.startTime);
+  }, 0);
   const avgLosDays = dischargedInpatient.length > 0
-    ? Math.round((totalInpatientDays / dischargedInpatient.length) * 100 / 1440) / 100
+    ? Math.round((totalInpatientMs / dischargedInpatient.length) / 86400000 * 1000) / 1000
     : 0;
   const bOR = bedsArr.length > 0 ? Math.round((((bedsArr.length - availableBeds) / bedsArr.length) * 100) * 100) / 100 : 0;
   const deaths = s.morgue.length;
@@ -385,7 +393,7 @@ export function generateSirsReport(world: World): SirsReportBundle {
   const rl4a: RL4aForm = {
     totalInpatientAdmissions: inpatientEncs.length,
     totalInpatientDischarges: dischargedInpatient.length,
-    totalInpatientDays: Math.round(totalInpatientDays),
+    totalInpatientDays: Math.round(totalInpatientMs / 86400000),
     averageLengthOfStay: avgLosDays,
     bedOccupancyRate: bOR,
     bedTurnOverInterval: bOR > 0 ? Math.round((1 / (bOR / 100)) * 100) / 100 : 0,

@@ -77,7 +77,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span>    <button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button><a href=/bi.html style=text-decoration:none><button>📈 BI Dashboard</button></a></div>
   </div>
 
   <div class="loading-overlay" id=loadingOverlay><span class="loading-pulse">⏳ Loading<span class=loading-dots></span></span></div>
@@ -704,7 +704,7 @@ function buildRl3(d){
   const wardRows=r.wardData.map(w=>'<tr><td style=font-size:9px>'+w.ward+'</td><td style=font-size:9px;text-align:center>'+w.total+'</td><td style=font-size:9px;text-align:center>'+w.occupied+'</td><td style=font-size:9px;text-align:center;color:'+wc(w.rate)+'>'+w.rate+'%</td></tr>').join('');
   return hdr('RL 3 — Tempat Tidur')+
   '<table>'+tRow('Total Tempat Tidur',r.totalBeds)+tRow('TT Tersedia',r.availableBeds)
-  +tRow('BOR (Bed Occupancy Rate)',r.occupancyRate+'%')+tRow('Rata LOS (hari)',r.averageLosTicks)
+  +tRow('BOR (Bed Occupancy Rate)',r.occupancyRate+'%')+tRow('Rata LOS (hari)',r.averageLosDays+' hr')
   +tRow('BTO (Bed Turn Over)',r.bedTurnoverRatio)+'</table>'
   +hdr('Perawarab')+'<table><thead><tr><th>Bangsal</th><th>Total</th><th>Terisi</th><th>BOR</th></tr></thead><tbody>'+wardRows+'</tbody></table>';
 }

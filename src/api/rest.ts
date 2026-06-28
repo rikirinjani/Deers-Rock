@@ -20,6 +20,7 @@ import { initRtState } from "../engine/radiotherapy.js";
 import { initDialysisState } from "../engine/dialysis.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots } from "../engine/journal.js";
 import { SCENARIO_DEFS } from "../engine/scenario.js";
+import { buildBiData } from "./bi.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -260,6 +261,13 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     if (w.state._icdTop10) { json(res, w.state._icdTop10); return true; }
     json(res, { period: 0, tick: 0, top10: [] }); return true;
   }
+  if (p === "/api/bi") { try { json(res, buildBiData(w)); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/census") { try { json(res, buildBiData(w).census); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/financial") { try { json(res, buildBiData(w).financial); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/clinical") { try { json(res, buildBiData(w).clinical); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/workforce") { try { json(res, buildBiData(w).workforce); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/departments") { try { json(res, buildBiData(w).departments); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  if (p === "/api/bi/trends") { try { json(res, buildBiData(w).trends); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {
@@ -282,14 +290,20 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
 
 export function createRestServer(world: () => World): RestServer {
   const server = http.createServer((req, res) => {
-    const w = world();
-    const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-    if (apiRoutes(req, res, w, url)) return;
-    let fp = path.join(publicDir, url.pathname === "/" ? "index.html" : url.pathname);
-    if (!fp.startsWith(publicDir)) { res.statusCode = 403; res.end("Forbidden"); return; }
-    const ext = path.extname(fp);
-    res.setHeader("Content-Type", MIME[ext] ?? "application/octet-stream");
-    fs.readFile(fp, (err, data) => { if (err) { res.statusCode = 404; res.end("Not found"); } else res.end(data); });
+    try {
+      const w = world();
+      const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+      if (apiRoutes(req, res, w, url)) return;
+      let fp = path.join(publicDir, url.pathname === "/" ? "index.html" : url.pathname);
+      if (!fp.startsWith(publicDir)) { res.statusCode = 403; res.end("Forbidden"); return; }
+      const ext = path.extname(fp);
+      res.setHeader("Content-Type", MIME[ext] ?? "application/octet-stream");
+      fs.readFile(fp, (err, data) => { if (err) { res.statusCode = 404; res.end("Not found"); } else res.end(data); });
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ error: String(e) }));
+    }
   });
   return { listen(port: number) { server.listen(port); }, close() { server.close(); } };
 }
