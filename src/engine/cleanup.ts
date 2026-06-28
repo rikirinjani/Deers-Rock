@@ -1,6 +1,7 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import type { Charge, InsuranceClaim, Payment } from "../patient/schema.js";
 
 const MAX_LAB = 200;
 const MAX_MED = 200;
@@ -14,6 +15,11 @@ const MAX_CHART = 100;
 const MAX_SPEC = 100;
 const MAX_STOCK = 100;
 const MAX_SOCIAL = 100;
+/** Constitution IV §4.2 */
+const MAX_NURSING = 300;
+const MAX_CHARGES = 100;
+const MAX_CLAIMS = 100;
+const MAX_PAYMENTS = 50;
 
 function pruneOldest<K, V>(map: Map<K, V>, max: number, predicate: (v: V) => boolean, sortKey: (v: V) => number): Map<K, V> {
   if (map.size <= max) return map;
@@ -41,5 +47,9 @@ export function cleanupHandler(state: HospitalState, _clock: Clock, _queue: Even
     specialtyOrders: pruneOldest(state.specialtyOrders, MAX_SPEC, o => o.status === "completed", o => o.orderedAt),
     socialWorkNotes: pruneOldest(state.socialWorkNotes, MAX_SOCIAL, () => true, o => o.timestamp),
     stockTransactions: pruneOldest(state.stockTransactions, MAX_STOCK, () => true, o => o.timestamp),
+    nurseNotes: pruneOldest(state.nurseNotes, MAX_NURSING, () => true, o => o.timestamp),
+    charges: pruneOldest(state.charges, MAX_CHARGES, (o: Charge) => o.paid, o => o.billedAt),
+    insuranceClaims: pruneOldest(state.insuranceClaims, MAX_CLAIMS, (o: InsuranceClaim) => o.status === "paid" || o.status === "denied", o => o.submittedAt),
+    payments: pruneOldest(state.payments, MAX_PAYMENTS, () => true, o => o.paidAt),
   };
 }

@@ -116,11 +116,14 @@ In case of simulation-breaking bug, a human may temporarily suspend any Article 
 ## Article VI — Agent Interoperability
 
 **6.1 — Agent Roles**
-Each autonomous agent within the HOE ecosystem shall have a defined role, home directory, and scope of authority. No agent may operate outside its defined scope without explicit human approval.
+Each autonomous agent within the HOE ecosystem shall have a defined role, home directory, and scope of authority. No agent may operate outside its defined scope without explicit human approval. Every OC begins by reading the Project Constitution and contributes from its own perspective.
 
-**6.2 — Workflow Model**
+**6.2 — Governance Over Consensus**
+The objective is not consensus. Productive disagreement between OCs is a feature, not a bug. Platform OC correctness, Research OC plausibility, and Paper OC publishability can all be simultaneously true. That tension is where good science happens.
 
-Nobody commands anybody. Each agent contributes from a different perspective. Information flows through shared canonical files, not through hierarchy.
+**6.3 — Workflow Model**
+
+No OC commands another. Each agent contributes from a different perspective. Information flows through shared canonical files, not through hierarchy.
 
 ```
                 Coordinator OC
@@ -134,36 +137,37 @@ Platform OC    Research OC      Paper OC
           Shared Memory / Git
 ```
 
-**6.3 — Agent Directory**
+**6.4 — Agent Directory**
 
 | Role | Home | Primary Authority | Boundary |
 |------|------|-------------------|----------|
-| Coordinator | `adr/`, `ROADMAP.md`, `CONSTITUTION.md` | Canonical truth, architecture coherence, roadmap, terminology, ADR decisions | Must not write production code or scientific papers |
+| Coordinator | `adr/`, `ROADMAP.md`, `CONSTITUTION.md` | Governance, architecture coherence, roadmap, terminology, ADR decisions | Must not write production code, conduct scientific review, or write papers |
 | Platform OC | `src/`, `package.json`, `tsconfig.json`, `infra/` | Source code, APIs, event system, modules, database, tests, deployment, performance | Must not amend Constitution or override ADRs without Coordinator review |
-| Research OC | `docs/` | Scientific validity, calibration strategy, benchmark design, experimental methodology, validation framework, model assumptions | Must not modify source code or Constitution |
-| Paper OC | `docs/` | Papers, figures, abstracts, diagrams, documentation, publication strategy, grant text | Must not modify source code or Constitution |
+| Research OC | `docs/research/` | Validation, calibration, benchmark design, scientific methodology, model assumptions | Must not modify source code or Constitution |
+| Paper OC | `docs/papers/` | Papers, figures, abstracts, diagrams, documentation, publication strategy | Must not modify source code or Constitution |
 
-**6.4 — Filesystem as Bus**
+**6.5 — Filesystem as Bus**
 All inter-agent communication shall occur through canonical files (ADRs, memory.txt, AGENTS.md). Conversation history between sessions is not a synchronization mechanism. Each agent shall read the canonical files at session start to establish context.
 
-**6.5 — Handoff Protocol**
+**6.6 — Handoff Protocol**
 When an agent identifies work that belongs to another agent's scope:
 1. The requesting agent records the handoff in `memory.txt` with sufficient context
 2. The owning agent picks up the handoff on its next session
 3. If the handoff implies an architecture change, the owning agent drafts an ADR for Coordinator review
 
-**6.6 — Escalation & Conflict Resolution**
+**6.7 — Escalation & Conflict Resolution**
 - Constitution governs all agents. No agent may override it.
 - ADRs bind all agents. Coordinator approves or rejects ADRs.
 - Roadmap priorities guide all agents. Coordinator owns the roadmap.
+- The objective is not consensus. Disagreement is productive.
 - Ties and scope disputes escalate to human. No agent may unilaterally expand its scope.
 
-**6.7 — Memory Synchronization**
+**6.8 — Memory Synchronization**
 - `memory.txt` is the shared long-term memory. All agents may append observations.
 - Git is the shared version of truth for code and documents.
 - Coordinator shall periodically restructure memory.txt for clarity.
 
-**6.8 — Agent Registration**
+**6.9 — Agent Registration**
 New agent roles shall be added to Article VI via amendment. Each new role must specify home, authority, and boundary before first operation.
 
 ---
@@ -171,4 +175,4 @@ New agent roles shall be added to Article VI via amendment. Each new role must s
 *Ratified: 27 June 2026*
 *Amendment 1 (Article VI): 28 June 2026*
 *Amendment 2 (Agent roles refined): 28 June 2026*
-*By: vierm2606-bangtan & OpenCode Agent*
+*One project. Four perspectives. Shared truth.*
