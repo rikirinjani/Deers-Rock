@@ -52,14 +52,30 @@ function collectResult(world: import("../engine/world.js").World): RunResult {
 }
 
 function runToCSV(results: RunResult[]): string {
-  const headers = ["seed", "ticks", "totalPatients", "totalEncounters", "totalDeaths", "avgLosTicks", "maxLosTicks", "peakBedOccupancy", "totalLabOrders", "totalMedOrders", "totalSurgeryOrders", "totalCharges", "disasterType", "disasterTriggered"];
+  const headers = ["seed", "ticks", "totalPatients", "totalEncounters", "totalDeaths", "deathsByIcd", "avgLosTicks", "maxLosTicks", "peakBedOccupancy", "totalLabOrders", "totalMedOrders", "totalSurgeryOrders", "totalCharges", "disasterType", "disasterTriggered"];
   const rows = results.map(r => [
     r.seed, r.ticks, r.totalPatients, r.totalEncounters, r.totalDeaths,
+    JSON.stringify(r.deathsByIcd),
     r.avgLosTicks, r.maxLosTicks, r.peakBedOccupancy,
     r.totalLabOrders, r.totalMedOrders, r.totalSurgeryOrders, r.totalCharges,
     r.disasterType ?? "", r.disasterTriggered,
   ].join(","));
   return headers.join(",") + "\n" + rows.join("\n");
+}
+
+function mean(values: number[]): number {
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+}
+
+function stdDev(values: number[], avg: number): number {
+  if (values.length < 2) return 0;
+  const sqDiffs = values.map(v => (v - avg) ** 2);
+  return Math.sqrt(sqDiffs.reduce((a, b) => a + b, 0) / (values.length - 1));
+}
+
+function ci95(sd: number, n: number): number {
+  if (n < 2) return 0;
+  return 1.96 * (sd / Math.sqrt(n));
 }
 
 export function runExperiment(options: {
@@ -111,13 +127,22 @@ export function runExperiment(options: {
   writeFileSync(filepath, csv, "utf-8");
 
   const summaryPath = path.join(outDir, `${prefix}-${timestamp}-summary.json`);
+  const deathValues = results.map(r => r.totalDeaths);
+  const losValues = results.map(r => r.avgLosTicks);
+  const occValues = results.map(r => r.peakBedOccupancy);
+  const deathMean = mean(deathValues);
+  const losMean = mean(losValues);
+  const occMean = mean(occValues);
+  const deathSd = stdDev(deathValues, deathMean);
+  const losSd = stdDev(losValues, losMean);
+  const occSd = stdDev(occValues, occMean);
   const summary = {
     config: { seedCount: count, ticks, patientCount: patients },
-    results: results.map(r => ({ ...r, deathsByIcd: undefined })),
-    totals: {
-      totalDeaths: results.reduce((s, r) => s + r.totalDeaths, 0),
-      avgDeaths: Math.round(results.reduce((s, r) => s + r.totalDeaths, 0) / count),
-      avgLos: Math.round(results.reduce((s, r) => s + r.avgLosTicks, 0) / count),
+    results: results.map(r => ({ ...r })),
+    statistics: {
+      deaths: { mean: +deathMean.toFixed(1), sd: +deathSd.toFixed(1), ci95: +ci95(deathSd, count).toFixed(1), min: Math.min(...deathValues), max: Math.max(...deathValues) },
+      los: { mean: +losMean.toFixed(1), sd: +losSd.toFixed(1), ci95: +ci95(losSd, count).toFixed(1), min: Math.min(...losValues), max: Math.max(...losValues) },
+      bedOccupancy: { mean: +occMean.toFixed(1), sd: +occSd.toFixed(1), ci95: +ci95(occSd, count).toFixed(1), min: Math.min(...occValues), max: Math.max(...occValues) },
     },
   };
   writeFileSync(summaryPath, JSON.stringify(summary, null, 2), "utf-8");
@@ -125,8 +150,9 @@ export function runExperiment(options: {
   console.log(`Experiment complete: ${count} runs x ${ticks} ticks`);
   console.log(`  CSV: ${filepath}`);
   console.log(`  Summary: ${summaryPath}`);
-  console.log(`  Total deaths: ${summary.totals.totalDeaths} (avg ${summary.totals.avgDeaths}/run)`);
-  console.log(`  Avg LOS: ${summary.totals.avgLos} ticks`);
+  console.log(`  Deaths: ${summary.statistics.deaths.mean} ± ${summary.statistics.deaths.ci95} (SD=${summary.statistics.deaths.sd}, range ${summary.statistics.deaths.min}-${summary.statistics.deaths.max})`);
+  console.log(`  LOS: ${summary.statistics.los.mean} ± ${summary.statistics.los.ci95} ticks (SD=${summary.statistics.los.sd})`);
+  console.log(`  Bed occupancy: ${summary.statistics.bedOccupancy.mean} ± ${summary.statistics.bedOccupancy.ci95}`);
 
   return results;
 }

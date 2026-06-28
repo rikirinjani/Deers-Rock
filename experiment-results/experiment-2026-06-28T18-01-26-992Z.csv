@@ -1,0 +1,6 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,deathsByIcd,avgLosTicks,maxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,500,124,421,1,{"T20":1},30,438,111,427,411,58,100,,false
+1,500,115,423,0,{},13,446,107,404,348,71,100,,false
+2,500,125,422,0,{},13,470,114,403,334,80,100,,false
+3,500,112,397,0,{},22,482,102,405,323,73,100,,false
+4,500,111,410,0,{},33,470,96,388,357,63,100,,false
