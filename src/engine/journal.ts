@@ -120,6 +120,7 @@ export function journalStats(): { total: number; byType: Record<string, number>;
 }
 
 const JOURNAL_RETENTION_TICKS = 100;
+const SNAPSHOT_RETENTION_COUNT = 5;
 
 const PURGE_INTERVAL = 50;
 let lastPurgeTick = 0;
@@ -132,6 +133,13 @@ export function journalPurge(currentTick: number): void {
   if (cutoff > 0) {
     try {
       const deleted = db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
+      const allSnaps = db.prepare("SELECT tick FROM world_snapshots ORDER BY tick ASC").all() as { tick: number }[];
+      if (allSnaps.length > SNAPSHOT_RETENTION_COUNT) {
+        const toRemove = allSnaps.slice(0, allSnaps.length - SNAPSHOT_RETENTION_COUNT);
+        for (const s of toRemove) {
+          db.prepare("DELETE FROM world_snapshots WHERE tick = ?").run(s.tick);
+        }
+      }
       if (deleted.changes > 1000) {
         db.pragma("incremental_vacuum");
       }
