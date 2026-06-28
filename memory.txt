@@ -262,3 +262,48 @@ Three-paper structure for the HOE project:
 ### Files Created
 - `docs/papers/deers-rock-platform-paper.md` — Paper 1 structural draft with abstract, outline, and design principles
 - `docs/ideas/deers-rock-platform-paper.md` — cleaned up (old location, removed after migration)
+
+## [2026-06-28 13:15] Coordinator — Venue Decision
+
+**Decision:** Multi-venue pipeline, JAMIA first.
+
+### Publication Pipeline
+| Paper | Venue | Timeline | Lead |
+|-------|-------|----------|------|
+| **Paper 1** — HOE Platform | **JAMIA** (target) | After seed experiment data | Paper OC |
+| **Paper 2** — HOE Systems Engineering | SoftwareX or JOSS | After Paper 1 accepted | Paper OC |
+| **Paper 3** — HOE Runtime / SaaS | IEEE or ACM conference | After deployment stable | Paper OC + Platform |
+| **Paper 4** — Emergent Behavior | PLoS ONE or higher | After 1000+ tick experiments | Paper OC + Research |
+
+### Handoff to Paper OC
+- **Venue confirmed: JAMIA first.** Draft Paper 1 to JAMIA's author guidelines and submission format.
+- Seed experiment data needed from Platform OC before results section is complete.
+
+### Handoff to Platform OC
+- Paper 1 needs seed experiment data (10 runs, seeds 0-9, outcome distributions, tsunami vs normal comparison, FHIR adapter demo). Paper OC is waiting on this.
+
+## [2026-06-28 16:55] Platform OC — Milestone 2.6 Multi-Run Harness
+
+### What was built
+- `src/experiment/runner.ts` — multi-run experiment harness
+  - `runExperiment({ seedCount, ticks, patientCount })` — runs N seeded simulations
+  - Collects per-run metrics: deaths, LOS, bed occupancy, orders, disaster events
+  - Exports CSV + JSON summary to `experiment-results/`
+
+### Run: 10 seeds x 1000 ticks
+| Metric | Value |
+|--------|-------|
+| Avg deaths/run | 10 (range: 10-10) |
+| Avg LOS | 7 ticks |
+| Bed occupancy peak | 6-11 (of 133 beds) |
+| Disasters triggered | 3/10 (earthquake, industrial_accident, forest_fire) |
+| File | `experiment-results/experiment-2026-06-28T16-51-18-845Z.csv` |
+
+### Handoff to Paper OC
+- Seed experiment data ready in `experiment-results/`
+- Results confirm: LOS is critically short (7 ticks avg, Research OC flagged this)
+- Disaster events do occur and are captured in output
+- Next: tsunami scenario comparison could be added by forcing a specific scenario
+
+### Handoff to Research OC
+- Paper 1 needs cultural contextualization validated (Lebaran patterns → admission distributions).

@@ -1,0 +1,94 @@
+{
+  "config": {
+    "seedCount": 5,
+    "ticks": 500,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 500,
+      "totalPatients": 112,
+      "totalEncounters": 963,
+      "totalDeaths": 10,
+      "avgLosTicks": 7,
+      "maxLosTicks": 45,
+      "peakBedOccupancy": 9,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 1,
+      "ticks": 500,
+      "totalPatients": 115,
+      "totalEncounters": 971,
+      "totalDeaths": 10,
+      "avgLosTicks": 7,
+      "maxLosTicks": 55,
+      "peakBedOccupancy": 11,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 2,
+      "ticks": 500,
+      "totalPatients": 114,
+      "totalEncounters": 959,
+      "totalDeaths": 10,
+      "avgLosTicks": 7,
+      "maxLosTicks": 55,
+      "peakBedOccupancy": 9,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": "earthquake",
+      "disasterTriggered": true
+    },
+    {
+      "seed": 3,
+      "ticks": 500,
+      "totalPatients": 127,
+      "totalEncounters": 977,
+      "totalDeaths": 10,
+      "avgLosTicks": 7,
+      "maxLosTicks": 67,
+      "peakBedOccupancy": 9,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": "forest_fire",
+      "disasterTriggered": true
+    },
+    {
+      "seed": 4,
+      "ticks": 500,
+      "totalPatients": 117,
+      "totalEncounters": 969,
+      "totalDeaths": 10,
+      "avgLosTicks": 7,
+      "maxLosTicks": 43,
+      "peakBedOccupancy": 9,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    }
+  ],
+  "totals": {
+    "totalDeaths": 50,
+    "avgDeaths": 10,
+    "avgLos": 7
+  }
+}

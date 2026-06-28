@@ -15,3 +15,4 @@
 | 3 | 2026-06-28T06:20:05 | orchestrator | Add startup skills config | pass |
 | 4 | 2026-06-28T12:20:00 | general | Platform OC: ADR-008 seeded RNG migration | pass |
 | 5 | 2026-06-28T12:35:00 | general | Platform OC: Generator seeding (full-world reproducibility) | pass |
+| 6 | 2026-06-28T16:55:00 | general | Platform OC: Multi-run experiment harness (Milestone 2.6) | pass |

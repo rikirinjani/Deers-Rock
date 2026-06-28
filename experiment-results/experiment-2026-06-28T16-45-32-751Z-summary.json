@@ -1,0 +1,62 @@
+{
+  "config": {
+    "seedCount": 3,
+    "ticks": 300,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 300,
+      "totalPatients": 85,
+      "totalEncounters": 607,
+      "totalDeaths": 8,
+      "avgLosTicks": 407475,
+      "maxLosTicks": 2880000,
+      "peakBedOccupancy": 8,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 43,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 1,
+      "ticks": 300,
+      "totalPatients": 90,
+      "totalEncounters": 588,
+      "totalDeaths": 10,
+      "avgLosTicks": 421684,
+      "maxLosTicks": 3420000,
+      "peakBedOccupancy": 11,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 2,
+      "ticks": 300,
+      "totalPatients": 94,
+      "totalEncounters": 577,
+      "totalDeaths": 10,
+      "avgLosTicks": 436838,
+      "maxLosTicks": 3060000,
+      "peakBedOccupancy": 6,
+      "totalLabOrders": 200,
+      "totalMedOrders": 200,
+      "totalSurgeryOrders": 50,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    }
+  ],
+  "totals": {
+    "totalDeaths": 28,
+    "avgDeaths": 9,
+    "avgLos": 421999
+  }
+}
