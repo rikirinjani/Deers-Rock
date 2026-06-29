@@ -1,0 +1,49 @@
+{
+  "config": {
+    "seedCount": 1,
+    "ticks": 500,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 500,
+      "totalPatients": 107,
+      "totalEncounters": 393,
+      "totalDeaths": 0,
+      "deathsByIcd": {},
+      "avgLosTicks": 27,
+      "maxLosTicks": 470,
+      "peakBedOccupancy": 92,
+      "totalLabOrders": 372,
+      "totalMedOrders": 357,
+      "totalSurgeryOrders": 64,
+      "totalCharges": 100,
+      "disasterType": "earthquake",
+      "disasterTriggered": true
+    }
+  ],
+  "statistics": {
+    "deaths": {
+      "mean": 0,
+      "sd": 0,
+      "ci95": 0,
+      "min": 0,
+      "max": 0
+    },
+    "los": {
+      "mean": 27,
+      "sd": 0,
+      "ci95": 0,
+      "min": 27,
+      "max": 27
+    },
+    "bedOccupancy": {
+      "mean": 92,
+      "sd": 0,
+      "ci95": 0,
+      "min": 92,
+      "max": 92
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "config": {
+    "seedCount": 1,
+    "ticks": 500,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 500,
+      "totalPatients": 122,
+      "totalEncounters": 418,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "J15": 1,
+        "I10": 1
+      },
+      "avgLosTicks": 23,
+      "maxLosTicks": 470,
+      "peakBedOccupancy": 108,
+      "totalLabOrders": 435,
+      "totalMedOrders": 387,
+      "totalSurgeryOrders": 62,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    }
+  ],
+  "statistics": {
+    "deaths": {
+      "mean": 2,
+      "sd": 0,
+      "ci95": 0,
+      "min": 2,
+      "max": 2
+    },
+    "los": {
+      "mean": 23,
+      "sd": 0,
+      "ci95": 0,
+      "min": 23,
+      "max": 23
+    },
+    "bedOccupancy": {
+      "mean": 108,
+      "sd": 0,
+      "ci95": 0,
+      "min": 108,
+      "max": 108
+    }
+  }
+}

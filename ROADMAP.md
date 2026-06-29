@@ -1,6 +1,6 @@
 # Deer's Rock HOE — Roadmap
 
-**Last updated:** 2026-06-28 (Research OC: added calibration milestones, ADR-004 drafted)
+**Last updated:** 2026-06-29
 **Steward:** Coordinator OC
 
 ---
@@ -29,13 +29,14 @@ The simulation must run without data loss, without unbounded storage growth, and
 - [ ] Bounded collection growth per Constitution IV §4.2
 
 ### Milestone 1.4: Throughput Balance
-- [ ] Tune admission/discharge rates so all 95 beds are not permanently saturated
-- [ ] Research OC finding: root cause may be unrealistically short LOS (4-12 ticks), not admission rate — investigate LOS calibration first
+- [x] LOS increased from 4-12 to 360-1440 ticks (Platform OC)
+- [x] Morgue ceiling removed (deaths now uncapped)
+- [ ] Tune admission/discharge rates for stable occupancy
 - [ ] Add buffer capacity for surge events
 - [ ] Ensure waiting room functions correctly under load
 
 ### Milestone 1.5: Snapshot Test Fix
-- [ ] Fix `tests/snapshot.test.ts` timeout (5s limit too short for 45-tick run)
+- [x] Fix `tests/snapshot.test.ts` timeout (5s → 15s)
 
 ---
 
@@ -44,12 +45,14 @@ The simulation must run without data loss, without unbounded storage growth, and
 Make the simulation believable enough that experiments are meaningful. The goal is not exhaustive clinical depth but sufficient fidelity for controlled experiments.
 
 ### Milestone 2.1: Protocol Coverage
-- [ ] Add protocols for all 58 ICD codes in the generator (L03, N20, S06, T14, N40, etc.)
+- [x] ICD codes expanded from 40 to 50 (Platform OC)
+- [ ] Add protocols for remaining 8 uncovered codes
 - [ ] Ensure every diagnosis has a corresponding protocol or explicit default
-- [ ] See EVALUATION-REPORT §2.3
+- [ ] Fix specialty mappings for 10 new codes (currently all cardiology)
 
 ### Milestone 2.2: Formulary Expansion
-- [ ] Expand from 22 to 30+ drugs covering more diagnosis groups
+- [x] New drugs added: ciprofloxacin, artemisinin-combination therapy, rabies Ig, polyvalent antivenom (in progress)
+- [ ] Expand from 22 to 30+ drugs
 - [ ] Add more drug-drug and drug-diagnosis interaction rules
 - [ ] Ensure pharmacy allergy detection is testable (>3% allergy rate)
 
@@ -74,9 +77,10 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 - [ ] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data
 
 ### Milestone 2.6: Scientific Validation Infrastructure
-- [ ] Add seeded RNG to enable reproducible multi-run experiments (ADR-008 ✅)
-- [ ] Add multi-run test harness (run N simulations, aggregate results)
-- [ ] Add outcome recorder (per-run CSV export: deaths by ICD, LOS per encounter, bed occupancy)
+- [x] Seeded RNG (ADR-008) — 148 `Math.random()` → `clock.rng()`
+- [x] Generator seeding — `createWorld(50, "db", 42)` = identical output
+- [x] Multi-run test harness — `src/experiment/runner.ts` (seedCount, ticks, scenario forcing)
+- [x] Outcome recorder — per-run CSV/JSON export with CI/SD, deaths by ICD, LOS, occupancy
 - [ ] Add learning toggle (freeze/disable agent learning for control experiments)
 
 ---
@@ -231,9 +235,54 @@ Architectural decisions must be recorded for future agents and humans.
 - [ ] ADR-006: Agent Learning Architecture
 - [ ] ADR-007: Referral System (Rujukan Berjenjang)
 
+### Milestone 8.3: Constitution Amendments
+- [x] Amendment 1: Article VI — Agent Interoperability
+- [x] Amendment 2: Agent roles refined
+- [x] Amendment 3: §3.2 protocol gap logging + §3.3 mortality provenance
+- [x] Amendment 4: Article VII — Model Assumptions & Calibration
+- [x] Amendment 5: §1.4 — Counterfactual Experimentation (branch mandate, outcome diff)
+
 ### Milestone 8.2: Terminology Standardization
 - [ ] Normalize "Tier A" / "Tipe A" / "Type A" across all docs
 - [ ] Standardize department naming conventions
+
+---
+
+## Epic IX — Financial & Referral Realism
+
+Build out the business and logistics layer to match a real Indonesian Tier A hospital: real costs, real insurance, real referral geography, and expanded formulary.
+
+**Status:** Design phase — requirements collected from human via Research OC. Implementation after JAMIA submission.
+
+### Milestone 9.1: Finance Overhaul
+- [ ] Drug charges — each medication dispensed generates acquisition cost + markup
+- [ ] Professional charges — doctor/specialist consultation fees (per INA-CBG tariff schedules)
+- [ ] Procedure charges — lab, imaging, surgery, dialysis, radiotherapy with real costs
+- [ ] Bed/day charges — differentiated by ward class (VIP, I, II, III)
+- [ ] AI Medical Records/Coder agent — ICD-10 coding validation, DRG assignment, chart completeness, claim coding
+
+### Milestone 9.2: Claims & Insurance
+- [ ] BPJS model — INA-CBG (ICD-10 → fixed tariff mapping)
+- [ ] Private insurance — coverage levels, co-pay, policy limits
+- [ ] Jasa Raharja — mandatory accident insurance, 30-day emergency cover
+- [ ] Out-of-pocket — balance billing, self-pay, co-payments
+- [ ] Claim workflow: verification → approval → payment/rejection
+
+### Milestone 9.3: Referral System Redesign
+- [ ] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A
+- [ ] ED walk-in / self-referral with ESI-based routing
+- [ ] Road accidents + Jasa Raharja claim integration
+- [ ] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia
+- [ ] Referral capacity: limited specialist slots per day
+- [ ] Ambulance system: BLS, ALS, helicopter; dispatch, tracking, costing
+
+### Milestone 9.4: Expanded Formulary
+- [ ] Expand from 22 to 200-500 essential drugs
+- [ ] All generic names (no brands)
+- [ ] 12 categories: antibiotics, cardiovascular, endocrine, respiratory, CNS, GI, IV fluids, emergency, chemotherapy, vaccines, anaesthetics, nutrition
+
+### Design Note
+These four milestones are interconnected — finance needs drug costs, insurance needs ICD→INA-CBG mapping, referral needs geographic routing, ambulance needs dispatch logic. **A design review session is recommended before any code changes.**
 
 ---
 
