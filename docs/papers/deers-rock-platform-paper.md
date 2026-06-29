@@ -3,7 +3,7 @@
 **Author:** Paper OC
 **Last updated:** 2026-06-29
 **Canonical location:** `docs/papers/deers-rock-platform-paper.md`
-**Status:** First draft complete. All 9 manuscript sections in prose with clean experimental data. 13 AMA-style references. References [6]-[13] should be verified against original sources before submission. §6 uses E1 data; consider 5000+ tick runs for final submission.
+**Status:** First draft complete. All 9 manuscript sections in prose with clean E1 data (10×1000 ticks). 14 AMA-style references with DOIs. Refs [6],[8],[11],[12],[13],[14] verified. Ref [7] flagged — unverified workshop paper. Refs [9],[10] URLs updated. Longer runs (5000+) timeout due to 98% bed saturation — noted as limitation.
 
 ---
 
@@ -95,7 +95,7 @@ The remainder of the paper is organized as follows. Section 2 surveys related wo
 
 **Hospital simulation platforms.** General-purpose simulation frameworks such as SimPy [1] and AnyLogic [2] have been widely used for healthcare modeling. SimPy provides process-based discrete-event simulation in Python but lacks built-in support for deterministic replay, modular domain handlers, or healthcare-specific data models. AnyLogic offers multi-method simulation (discrete-event, agent-based, system dynamics) and has been applied to emergency department crowding [3] and operating room scheduling [4]. However, AnyLogic is proprietary, its agent-based capabilities are general-purpose rather than healthcare-specific, and it does not provide an event-sourced journal for reproducible replay. MedModel [5] is purpose-built for healthcare simulation but is also proprietary and limited to discrete-event modeling. None of these platforms embed AI agents that learn from outcomes, model culturally-contextualized patient generation, or expose FHIR-compliant data for external system integration.
 
-**AI and reinforcement learning benchmarks.** The need for standardized healthcare AI benchmarks has produced several simulation environments. KCH (Kybland Central Hospital) [6] and Medical Gym [7] provide RL environments for clinical decision-making tasks such as sepsis management and ventilator weaning. HiPhy [8] offers a hybrid physics-ML simulation for physiological modeling. These environments are valuable for algorithmic research but focus on isolated clinical tasks — antibiotic selection, fluid resuscitation — rather than full hospital operations. They do not model departmental workflows, supply chains, staffing, or disaster scenarios. Deer's Rock differs by embedding AI agents within a persistent, multi-department hospital that continues to operate across all clinical areas simultaneously, enabling questions that cross departmental boundaries.
+**AI and reinforcement learning benchmarks.** The need for standardized healthcare AI benchmarks has produced several simulation environments. Komorowski et al. [6] demonstrated RL for sepsis treatment optimization using retrospective ICU data. Medical Gym [7] provides RL environments for clinical decision-making tasks such as sepsis management and ventilator weaning. These environments are valuable for algorithmic research but focus on isolated clinical tasks — antibiotic selection, fluid resuscitation — rather than full hospital operations. They do not model departmental workflows, supply chains, staffing, or disaster scenarios. Deer's Rock differs by embedding AI agents within a persistent, multi-department hospital that continues to operate across all clinical areas simultaneously, enabling questions that cross departmental boundaries.
 
 **Digital twin platforms.** Healthcare digital twin initiatives have gained momentum. The NHS DIGIT programme [9] explores digital twins for hospital operations management. Siemens Healthineers has developed hospital digital twin prototypes for workflow optimization [10]. These efforts are organization-specific, tied to particular hospital data, and generally not open-source. They are calibrated to a specific facility and cannot be freely modified or redistributed. Deer's Rock is designed as an open-source, generalizable platform that ships with a reference locale pack — Eastern Indonesia — but can be adapted to other regions through its modular architecture.
 
@@ -196,14 +196,15 @@ The healthcare simulation community needs platforms that do more than model work
 3. Jacobson SH, Hall SN, Swisher JR. Discrete-event simulation of health care systems. In: Hall RW, ed. Patient Flow: Reducing Delay in Healthcare Delivery. Springer; 2006:211-252.
 4. Jun JB, Jacobson SH, Swisher JR. Application of discrete-event simulation in health care clinics: a survey. J Oper Res Soc. 1999;50(2):109-123.
 5. ProModel Corporation. MedModel: Healthcare Simulation Software [Internet]. Available from: https://www.promodel.com/medmodel/
-6. Komorowski M, Celi LA, Badawi O, Gordon AC, Faisal AA. The Artificial Intelligence Clinician learns optimal treatment strategies for sepsis in intensive care. Nat Med. 2018;24(11):1716-1720.
-7. Killian TW, Bisberg AJ, Ren S, et al. Medical Gym: An Environments Library for Healthcare Reinforcement Learning. In: NeurIPS 2019 Workshop on Machine Learning for Health; 2019.
-8. Gaba DM. The future vision of simulation in health care. Qual Saf Health Care. 2004;13(Suppl 1):i2-i10.
-9. National Health Service. NHS Digital Twin Programme [Internet]. 2023. Available from: https://transform.england.nhs.uk/
-10. Siemens Healthineers. Digital Twin in Healthcare: From Imaging to Operations [Internet]. 2023. Available from: https://www.siemens-healthineers.com/
-11. Bender D, Sartipi K. HL7 FHIR: An agile and RESTful approach to healthcare information exchange. In: Proceedings of the 26th IEEE International Symposium on Computer-Based Medical Systems; 2013. p. 326-331.
-12. Lambin P, Leijenaar RTH, Deist TM, et al. Radiomics: the bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14(12):749-762.
-13. Mnih V, Kavukcuoglu K, Silver D, et al. Human-level control through deep reinforcement learning. Nature. 2015;518(7540):529-533.
+6. Komorowski M, Celi LA, Badawi O, Gordon AC, Faisal AA. The Artificial Intelligence Clinician learns optimal treatment strategies for sepsis in intensive care. Nat Med. 2018;24(11):1716-1720. doi:10.1038/s41591-018-0213-5
+7. Killian TW, Bisberg AJ, Ren S, et al. Medical Gym: An Environments Library for Healthcare Reinforcement Learning. In: NeurIPS 2019 Workshop on Machine Learning for Health; 2019. ⚠️ Workshop paper — confirm DOI before publication.
+14. Johnson AEW, Pollard TJ, Shen L, et al. MIMIC-III, a freely accessible critical care database. Sci Data. 2016;3:160035. doi:10.1038/sdata.2016.35
+8. Gaba DM. The future vision of simulation in health care. Qual Saf Health Care. 2004;13(Suppl 1):i2-i10. doi:10.1136/qshc.2004.009878
+9. National Health Service. NHS Digital Twin Programme [Internet]. 2023. Available from: https://digital.nhs.uk/
+10. Siemens Healthineers. Digital Twin in Healthcare [Internet]. 2023. Available from: https://www.siemens-healthineers.com/innovations#digital-twin
+11. Bender D, Sartipi K. HL7 FHIR: An agile and RESTful approach to healthcare information exchange. In: Proceedings of the 26th IEEE International Symposium on Computer-Based Medical Systems; 2013. p. 326-331. doi:10.1109/CBMS.2013.6627810
+12. Lambin P, Leijenaar RTH, Deist TM, et al. Radiomics: the bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14(12):749-762. doi:10.1038/nrclinonc.2017.141
+13. Mnih V, Kavukcuoglu K, Silver D, et al. Human-level control through deep reinforcement learning. Nature. 2015;518(7540):529-533. doi:10.1038/nature14236
 
 ## Indonesian Context Strategy
 
