@@ -5,7 +5,7 @@
 ### Before JAMIA Submission
 | Item | Owner | Status |
 |------|-------|--------|
-| Aggregate mortality to infectious vs NCD categories in Paper 1 | Paper OC | Pending Research OC recommendation |
+| Aggregate mortality to infectious vs NCD categories in Paper 1 | Paper OC | ✅ Research OC recommendation delivered — see below |
 | Resolve flagged reference [7] Medical Gym (DOI needed) | Paper OC | Pending |
 | Author information + cover letter | Coordinator | After other items done |
 
@@ -23,6 +23,14 @@
 | AI Medical Records/Coder agent | Platform OC | IX |
 
 ---
+
+### Research OC → Paper OC: Mortality Category Mapping (for Paper 1 Results)
+Use these aggregated categories instead of raw ICD-level mortality:
+- **Infectious** (14 deaths): pneumonia (J15/J18), TB (A15), dengue (A91), malaria (B50), UTI (N39), acute gastroenteritis (A09), rabies (A82), appendicitis (K35)
+- **NCD** (15 deaths): diabetes (E11), hypertension (I10), hyperlipidemia (E78), asthma (J45), RHD (I05), cholelithiasis (K80)
+- **External / Trauma** (4 deaths): fracture (S72), open wound (T14), snake bite (T63)
+- **Exclude from COD table** (8 deaths — not direct causes): depression (F32), gastritis (K29), scabies (B86)
+- **Note:** Hyperlipidemia (E78, 3 deaths) included in NCD but flagged as indirect COD — mention in limitations
 
 ## [2026-06-27 22:00] Major identity & infrastructure overhaul
 ### New Modules Built
