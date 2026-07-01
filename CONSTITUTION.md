@@ -96,8 +96,9 @@ Every tick's state is observable via the `/api/status` endpoint. Snapshots are r
 
 **4.2 — Pruning**
 - The cleanup handler shall run every 10 ticks
-- Maximum records: lab 200, meds 200, radiology 200, surgery 50, nursing 300, charges 100, claims 100, payments 50
-- The oldest records shall be removed first (FIFO)
+- No hard caps on collection sizes; journal retention (§4.3) bounds storage
+- Historical pruning may remove obsolete records (e.g., completed charges >1000 ticks old) to control memory, but clinical state (active encounters, morgue) shall not be pruned
+- The oldest records shall be removed first (FIFO) when pruning is necessary
 
 **4.3 — Journaling**
 - When enabled, every state change shall be journaled
@@ -200,5 +201,6 @@ At each major release, Research OC shall review all documented model assumptions
 *Amendment 3 (Article III §3.2, §3.3): 28 June 2026 — protocol gap logging, mortality provenance*
 *Amendment 4 (Article VII): 28 June 2026 — model assumptions & calibration framework*
 *Amendment 5 (§1.4 Counterfactual Experimentation): 28 June 2026 — branch mandate + outcome diff*
+*Amendment 6 (Article IV §4.2): 1 July 2026 — remove pruning caps, rely on journal retention*
 *One project. Four perspectives. Shared truth.*
 *Simulation as Self-Critique. Counterfactuals by Construction. Every seed is a history — every snapshot is a choice.*

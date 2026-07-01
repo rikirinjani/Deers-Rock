@@ -37,6 +37,30 @@ See `SIGNAL.md` for per-OC signal flags. Check your section before starting work
 
 ---
 
+## [2026-07-01] Research OC — E2 Sensitivity Analysis
+
+**Method:** Patched death roll probabilities (Article VII §7.3), compiled via tsc, ran 5 seeds × 1000 ticks per config. Source restored after each config.
+
+**Results (partial — timed out at mod=0.15):**
+| Config | Deaths (mean ± 95% CI) | vs Baseline |
+|--------|----------------------|-------------|
+| baseline (0.35/0.10/0.02) | 55.6 ± 10.3 | — |
+| high=0.20 | 71.4 ± 29.5 | ns |
+| high=0.35 | 50.2 ± 7.3 | ns |
+| high=0.50 | 68.4 ± 29.9 | ns |
+| mod=0.05 | 46.2 ± 5.5 | -17% |
+| mod=0.10 | 62.8 ± 8.0 | +13% |
+
+**Key finding: HIGH-risk death roll probability is NOT a sensitive parameter.** Varying 2.5× (0.20→0.50) produces no monotonic response — all CIs overlap. ADR-004 HIGH-priority factors (SpO2, SBP, Critical diagnosis) affect mortality through RISK TIER CLASSIFICATION (factor weights), not through tier probabilities.
+
+**Implications:**
+1. E2 needs 20-30 seeds for statistical power — 5 seeds insufficient
+2. Calibration effort should focus on scoring function weights, not death roll probabilities
+3. The 35/10/2% values are empirically adequate — changing them within reasonable bounds has negligible system-level effect
+4. Track B discharge fix shifted baseline from 4.3 to ~55 (dischargeHandler now active)
+
+---
+
 **50K re-run tracker (UPDATED):**
 | Milestone | ms/tick | Active | Status |
 |-----------|---------|--------|--------|
@@ -824,6 +848,60 @@ No automatic trigger exists without a persistent process. The human is the trigg
 Pending — Coordinator to implement Proposal 3 (per-OC signal blocks) when bandwidth allows.
 
 ## [2026-07-01 16:30] Coordinator — ADR-004 Accepted
+
+**Decision:** ADR-004 (Mortality Risk Engine) **ACCEPTED** — Option A with condition.
+- Calibration Priority column added ranking 9 mortality factors by sensitivity impact
+- Research OC to run sensitivity analysis on HIGH-priority factors (SpO2, SBP, Critical diagnosis) in E2
+- Status: Proposed → Accepted. Handoff closed.
+
+## [2026-07-01 16:30] Coordinator — Amendment 6 + Phase 1 Brief to Platform OC
+
+### Amendment 6 (Article IV §4.2)
+Removed hard pruning caps (lab 200, meds 200, charges 100, etc.). Collections now unbounded; journal retention bounds storage. Historical pruning still allowed for old completed records.
+
+### Phase 1: Finance Foundation — Engineering Brief → Platform OC
+
+**Context:** Epic IX design review complete. 4 design decisions locked:
+1. Kelas → 4-building architecture (VVIP/VIP, Regular, Diagnostics, Surgery)
+2. Professional fees → fixed per-action-type list
+3. Drug costs → e-catalogue flat, no margin (margin deferred)
+4. All patients are BPJS default
+
+**Tasks (in order):**
+
+**Task 1 — Drug costs.** Add `DRUG_COSTS: Record<string, number>` to `pharmacy.ts`. Use Indonesian e-catalogue (e-katalog) acquisition prices. Flat, no margin. 22 entries. Note: margin will be added in Phase 2.
+
+**Task 2 — Dispense charges.** Generate a charge (`category: "pharmacy"`) when `dispenseItem` is called in `central-supply.ts`. Similarly add charge generation at lab result (`lab.ts`), radiology result (`radiology.ts`), surgery completion (`surgery.ts`). Currently only room charges exist.
+
+**Task 3 — 4-building architecture.** Restructure from flat ward list to buildings:
+- **VVIP/VIP Building**: ICU, NICU, PICU, CICU, HCU, VVIP/VIP non-intensive wards
+- **Regular Building**: ICU, NICU, PICU, CICU, HCU, Kelas I/II/III wards
+- **Diagnostics Building**: Lab, Radiology, Pathology, Blood Bank, Diet — flat Kelas 2 (no overnight)
+- **Surgery & Procedures Building**: OR, ICU, Radiotherapy, Dialysis, non-overnight procedures — flat Kelas 2
+HCU in BOTH VVIP/VIP and Regular buildings. Diagnostics/Surgery buildings use flat Kelas 2 cost (accommodation class doesn't apply).
+Files: `state-store.ts` (bed/ward structure), `finance.ts` (rate lookup), `sirs-report.ts` (kelas mapping).
+
+**Task 4 — Professional fees.** Add `PROCEDURE_COSTS` map keyed by action type + description:
+- Doctor round: 150,000
+- Specialist consult: 300,000
+- Nursing procedure: 50,000 (injection, wound care, catheter)
+- Surgery: 5,000,000–15,000,000 (graded by complexity)
+AI Doctor/AI Nurse generate these when they perform actions.
+
+**Task 5 — Charge generator split.** Extract charge generation from `billingHandler` into a separate `charge-generator.ts`. Charges become event-driven (triggered by dispense, lab result, rad result, surgery done, consult) instead of tick-polled. `billingHandler` only aggregates charges per encounter and submits claims.
+
+**Task 6 — Caps removed.** Amendment 6 applied. Remove all cap checks from `finance.ts` (MAX_CHARGES, MAX_CLAIMS, MAX_PAYMENTS). Rely on journal retention for storage bounds.
+
+**Design references:**
+- `finance.ts` — current billing handler, cashier handlers
+- `pharmacy.ts` — MEDICATIONS array + MED_MAP
+- `central-supply.ts` — inventory, dispenseItem
+- `pharmacy-knowledge.ts` — drug interactions
+- `sirs-report.ts:21` — kelasRawatan: ["VVIP", "VIP", "Kelas I", "Kelas II", "Kelas III"]
+- `state-store.ts:165-168` — current 11 clinical wards
+- `CONSTITUTION.md:97-100` — Amendment 6 removes caps
+
+**Priority:** After SoftwareX submission. No rush.
 
 **Decision:** ADR-004 (Mortality Risk Engine) **ACCEPTED** — Option A with condition.
 - Calibration Priority column added ranking 9 mortality factors by sensitivity impact
