@@ -6,13 +6,13 @@
 
 ## → Platform OC
 - **ADR-003**: Agent state persistence in snapshots — pending (post-paper)
-- **Epic IX Phase 1 (Finance Foundation)**: 6 tasks — queued after SoftwareX submission
-  1. Drug costs — add DRUG_COSTS to pharmacy.ts (22 entries, e-catalogue)
-  2. Dispense charges — generate charges on dispense/lab/rad/surgery
-  3. 4-building architecture — restructure wards (VVIP/VIP, Regular, Diagnostics, Surgery)
-  4. Professional fees — PROCEDURE_COSTS map (150K-15M IDR)
-  5. Charge generator split — event-driven from tick-polled
-  6. Remove caps from finance.ts per Amendment 6
+- **Epic IX Phase 1 (Finance Foundation)**: 6 tasks
+  - ✅ Task 1: Drug costs — DRUG_COSTS in pharmacy.ts (22 entries)
+  - ✅ Task 2: Dispense charges — addCharge wired into lab/rad/surgery/dispense
+  - ⬜ Task 3: 4-building architecture — large refactor, not started
+  - ✅ Task 4: Professional fees — PROCEDURE_COSTS in finance.ts
+  - ⬜ Task 5: Charge generator split — event-driven, not started
+  - ✅ Task 6: Remove caps from finance.ts per Amendment 6
 - **SIGNAL.md maintenance**: Add new signals when handing off to other OCs
 
 ## → Coordinator
