@@ -37,18 +37,24 @@
 - Journal writes: batched per tick
 - See Platform OC entries below for per-step details
 
-**50K re-run tracker:**
-| Milestone | ms/tick | Status | Blocked by |
-|-----------|---------|--------|------------|
-| 1K | 12.4 | ✅ | — |
-| 2K | 32.7 | ✅ | — |
-| 3K | 81.6 | ✅ | — |
-| 5K | — | ❌ | Encounters hit ~1240, latency would be ~125ms/tick. 50K impossible without fixing encounter equilibrium |
-| 10K | — | ❌ | ~2800 encounters → ~500ms/tick estimate |
-| 25K | — | ❌ | Would exceed 1s/tick Railway cap by 10K |
-| 40K | — | ❌ | — |
-| 50K | — | ❌ | — |
-Encounters grow at ~185 net per 1000 ticks. At 50K: ~9500 encounters. Each handler iterates over all encounters. Fix: match discharge rate to admission rate (throughput equilibrium).
+**50K re-run tracker — BLOCKED (encounter equilibrium)**
+Root cause: admission rate > discharge rate by ~185 encounters/1000t. At 50K: ~9500 encounters. Even 1ms/handler × 17 handlers = 16s/tick at 9500 encounters. Not an optimization problem — discharge must match admission.
+
+**Question for Platform OC:** `markov.ts:145` has `Math.floor(activeEncounters.length / 350)`. Was this `/350` intentionally chosen for a specific equilibrium target, or is it an uncalibrated constant from initial development? Fixing to `/100` would increase discharge rate 3.5× and likely achieve equilibrium at ~200-300 encounters.
+
+**Answer from Platform OC:** It was an uncalibrated constant — I picked `/350` to scale discharge rate with encounter load. But `/350` vs `/100` doesn't matter because `activeEncounters` is capped by beds (133 active max). `Math.floor(133/350)` = 0 → `Math.max(1, 0)` = 1. Same as `/100`: `Math.floor(133/100)` = 1 → `Math.max(1, 1)` = 1. Both give 1 discharge/tick at full occupancy.
+
+The real fix: active encounters can never exceed beds (133), so the `/N` divisor doesn't control the rate — `Math.max(1, ...)` does. To match 1.5 admissions/tick, we need `Math.max(2, ...)` — always discharge at least 2 patients per tick. At 133 active: `Math.floor(133/350)` = 0 → `Math.max(2, 0)` = 2. Net: 2 discharges vs 1.5 admissions → encounters SHRINK.
+
+Alternatively: make random discharge a fixed `1 + Math.floor(activeEncounters.length / 350)` — guarantees 1/tick even at low occupancy, 2 at 350+. Either approach achieves equilibrium. Which do you prefer?
+
+| Milestone | ms/tick | Status |
+|-----------|---------|--------|
+| 1K | 12.4 | ✅ |
+| 2K | 32.7 | ✅ |
+| 3K | 81.6 | ✅ |
+| 5K+ | — | ❌ |
+| Verdict: 50K infeasible without throughput equilibrium redesign. SoftwareX (1000-tick) was the correct paper path. |
 
 ### After Submission
 | Item | Owner | Epic |
