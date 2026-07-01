@@ -13,25 +13,38 @@ export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: strin
 ];
 
 export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  let newOrders = new Map(state.respiratoryOrders);
+
+  // Fulfillment: discontinue orders >2 ticks old, or for discharged encounters
+  for (const [id, order] of newOrders) {
+    if (order.status === "ordered" && clock.tick - ticksFromMs(order.orderedAt, clock) > 2) {
+      newOrders.set(id, { ...order, status: "discontinued", notes: "Therapy course completed." });
+    }
+    const enc = state.encounters.get(order.encounterId);
+    if (enc && enc.status !== "active" && order.status === "ordered") {
+      newOrders.set(id, { ...order, status: "discontinued", notes: "Patient discharged — therapy discontinued." });
+    }
+  }
+
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
-  if (activeEncounters.length === 0 || clock.tick % 8 !== 0) return state;
-
-  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
-  const therapy = THERAPIES[Math.floor(clock.rng() * THERAPIES.length)]!;
-
-  const order: RespiratoryOrder = {
-    id: `RT-${clock.tick}-${encounter.patientId}`,
-    encounterId: encounter.id,
-    patientId: encounter.patientId,
-    therapyType: therapy.type,
-    status: "ordered",
-    settings: therapy.settings[Math.floor(clock.rng() * therapy.settings.length)]!,
-    orderedAt: clock.hospitalTimeMs,
-    notes: null,
-  };
-
-  const newOrders = new Map(state.respiratoryOrders);
-  newOrders.set(order.id, order);
+  if (activeEncounters.length > 0 && clock.tick % 8 === 0) {
+    const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+    const therapy = THERAPIES[Math.floor(clock.rng() * THERAPIES.length)]!;
+    newOrders.set(`RT-${clock.tick}-${encounter.patientId}`, {
+      id: `RT-${clock.tick}-${encounter.patientId}`,
+      encounterId: encounter.id,
+      patientId: encounter.patientId,
+      therapyType: therapy.type,
+      status: "ordered",
+      settings: therapy.settings[Math.floor(clock.rng() * therapy.settings.length)]!,
+      orderedAt: clock.hospitalTimeMs,
+      notes: null,
+    });
+  }
 
   return { ...state, respiratoryOrders: newOrders };
+}
+
+function ticksFromMs(hospitalTimeMs: number, clock: Clock): number {
+  return Math.floor(hospitalTimeMs / (clock.tickIntervalMs * clock.speedMultiplier));
 }

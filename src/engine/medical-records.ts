@@ -40,31 +40,20 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
     newCharts.set(chart.id, chart);
   }
 
-  // Auto-complete charts when encounter ends
+  // Auto-code charts when encounter ends (skip "incomplete" staging)
+  // Also code any straggler "incomplete" charts
+  let coded = 0;
   for (const [id, chart] of newCharts) {
+    if (coded >= 30) break;
     const enc = state.encounters.get(chart.encounterId);
-    if (enc && enc.status === "discharged" && chart.status === "open") {
+    if (enc && enc.status !== "active" && (chart.status === "open" || chart.status === "incomplete")) {
       newCharts.set(id, {
         ...chart,
-        status: "incomplete",
+        status: "coded",
         completedAt: clock.hospitalTimeMs,
+        coder: CODERS[Math.floor(clock.rng() * CODERS.length)]!,
       });
-    }
-  }
-
-  // Code charts every 12 ticks (process up to 20 per cycle)
-  if (clock.tick > 0 && clock.tick % 12 === 0) {
-    let coded = 0;
-    for (const [id, chart] of newCharts) {
-      if (coded >= 20) break;
-      if (chart.status === "incomplete") {
-        newCharts.set(id, {
-          ...chart,
-          status: "coded",
-          coder: CODERS[Math.floor(clock.rng() * CODERS.length)]!,
-        });
-        coded++;
-      }
+      coded++;
     }
   }
 

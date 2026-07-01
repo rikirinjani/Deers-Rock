@@ -17,24 +17,37 @@ const DIET_NOTES: Record<DietOrder["dietType"], string> = {
 };
 
 export function dietaryHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  let newOrders = new Map(state.dietOrders);
+
+  // Fulfillment: complete orders placed >2 ticks ago, discontinue for discharged encounters
+  for (const [id, order] of newOrders) {
+    if (order.status === "active" && clock.tick - ticksFromMs(order.orderedAt, clock) > 2) {
+      newOrders.set(id, { ...order, status: "discontinued", notes: "Diet served and documented." });
+    }
+    const enc = state.encounters.get(order.encounterId);
+    if (enc && enc.status !== "active" && order.status === "active") {
+      newOrders.set(id, { ...order, status: "discontinued", notes: "Patient discharged — diet discontinued." });
+    }
+  }
+
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
-  if (activeEncounters.length === 0 || clock.tick % 7 !== 0) return state;
-
-  const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
-  const dietType = DIET_TYPES[Math.floor(clock.rng() * DIET_TYPES.length)]!;
-
-  const order: DietOrder = {
-    id: `DIET-${clock.tick}-${encounter.patientId}`,
-    encounterId: encounter.id,
-    patientId: encounter.patientId,
-    dietType,
-    status: "active",
-    orderedAt: clock.hospitalTimeMs,
-    notes: DIET_NOTES[dietType],
-  };
-
-  const newOrders = new Map(state.dietOrders);
-  newOrders.set(order.id, order);
+  if (activeEncounters.length > 0 && clock.tick % 7 === 0) {
+    const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
+    const dietType = DIET_TYPES[Math.floor(clock.rng() * DIET_TYPES.length)]!;
+    newOrders.set(`DIET-${clock.tick}-${encounter.patientId}`, {
+      id: `DIET-${clock.tick}-${encounter.patientId}`,
+      encounterId: encounter.id,
+      patientId: encounter.patientId,
+      dietType,
+      status: "active",
+      orderedAt: clock.hospitalTimeMs,
+      notes: DIET_NOTES[dietType],
+    });
+  }
 
   return { ...state, dietOrders: newOrders };
+}
+
+function ticksFromMs(hospitalTimeMs: number, clock: Clock): number {
+  return Math.floor(hospitalTimeMs / (clock.tickIntervalMs * clock.speedMultiplier));
 }
