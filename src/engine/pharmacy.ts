@@ -4,6 +4,16 @@ import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 
+/** Drug acquisition costs in IDR (Indonesian e-catalogue, flat prices, no margin) */
+export const DRUG_COSTS: Record<string, number> = {
+  ACE: 500, MET: 300, ATR: 1000, OMP: 500,
+  LVF: 5000, PRC: 200, HEP: 30000, SAL: 50000,
+  FUR: 500, DIA: 300,
+  AMX: 500, CTR: 15000, MTZ: 2000, CIP: 2000,
+  AML: 500, BIS: 500, ASP: 100, INS: 20000,
+  OND: 5000, MOR: 5000, KCL: 3000, RL: 15000,
+};
+
 const MED_MAP: Record<string, string> = {
   "ACE": "MED-ACE", "MET": "MED-MET", "ATR": "MED-ATR", "OMP": "MED-OMP",
   "LVF": "MED-LVF", "PRC": "MED-PRC", "HEP": "MED-HEP", "SAL": "MED-SAL",

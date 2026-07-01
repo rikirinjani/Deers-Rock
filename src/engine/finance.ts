@@ -10,9 +10,37 @@ const CHARGE_RATES: Record<ChargeCategory, number> = {
   room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
 };
 
-const MAX_CHARGES = 100;
-const MAX_CLAIMS = 100;
-const MAX_PAYMENTS = 50;
+/** Professional fees per action type (IDR). Used by AI Doctor/AI Nurse when performing actions. */
+export const PROCEDURE_COSTS: Record<string, number> = {
+  "doctor_round": 150000,
+  "specialist_consult": 300000,
+  "nursing_procedure": 50000,
+  "surgery_major": 15000000,
+  "surgery_intermediate": 10000000,
+  "surgery_minor": 5000000,
+};
+
+let chargeCounter = 0;
+
+/** Generate a single charge and return updated charges map. Used by multiple handlers. */
+export function addCharge(
+  state: HospitalState, clock: Clock,
+  encounterId: string, patientId: string,
+  category: ChargeCategory, description: string, amount?: number
+): Map<string, Charge> {
+  chargeCounter++;
+  const newCharges = new Map(state.charges);
+  newCharges.set(`CHG-${chargeCounter}-${patientId}`, {
+    id: `CHG-${chargeCounter}-${patientId}`,
+    encounterId, patientId,
+    category,
+    description,
+    amount: amount ?? CHARGE_RATES[category],
+    billedAt: clock.hospitalTimeMs,
+    paid: false,
+  });
+  return newCharges;
+}
 
 export function billingHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   let newCharges = new Map(state.charges);
@@ -33,12 +61,6 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       };
       newCharges.set(charge.id, charge);
     }
-  }
-
-  if (newCharges.size > MAX_CHARGES) {
-    const sorted = Array.from(newCharges.entries()).sort((a, b) => a[1].billedAt - b[1].billedAt);
-    const toRemove = sorted.slice(0, newCharges.size - MAX_CHARGES);
-    for (const [id] of toRemove) newCharges.delete(id);
   }
 
   for (const enc of state.encounters.values()) {
@@ -77,12 +99,6 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     }
   }
 
-  if (newClaims.size > MAX_CLAIMS) {
-    const sorted = Array.from(newClaims.entries()).sort((a, b) => (a[1].submittedAt ?? 0) - (b[1].submittedAt ?? 0));
-    const toRemove = sorted.slice(0, newClaims.size - MAX_CLAIMS);
-    for (const [id] of toRemove) newClaims.delete(id);
-  }
-
   return { ...state, charges: newCharges, insuranceClaims: newClaims };
 }
 
@@ -106,12 +122,6 @@ function processCashier(state: HospitalState, clock: Clock, encounterType: strin
     };
     newPayments.set(payment.id, payment);
     break;
-  }
-
-  if (newPayments.size > MAX_PAYMENTS) {
-    const sorted = Array.from(newPayments.entries()).sort((a, b) => a[1].paidAt - b[1].paidAt);
-    const toRemove = sorted.slice(0, newPayments.size - MAX_PAYMENTS);
-    for (const [id] of toRemove) newPayments.delete(id);
   }
 
   return { ...state, insuranceClaims: newClaims, payments: newPayments };

@@ -97,7 +97,7 @@ graph TD
 
 ### 3.3 Implementation and performance
 
-The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales super-linearly with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms. Longer experiments require handler-level optimisation currently in development.
+The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales super-linearly with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms. Longer experiments require handler-level optimisation currently in development. All performance and experimental results in this paper reflect the codebase at [commit 7352adb](https://github.com/vierm2606-bangtan/Deers-Rock/commit/7352adb); the repository continues to evolve.
 
 ### 3.4 Agent learning mechanism
 

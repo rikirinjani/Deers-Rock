@@ -2,6 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { RadiologyOrder } from "../patient/schema.js";
+import { addCharge } from "./finance.js";
 
 export const RAD_STUDIES: { modality: RadiologyOrder["modality"]; studyType: string; findings: string[]; impressions: string[] }[] = [
   { modality: "X-ray", studyType: "Chest X-ray PA & Lateral", findings: ["Clear lung fields bilaterally", "Mild interstitial prominence", "Focal opacity right lower lobe", "Cardiomegaly with pulmonary congestion", "Small pleural effusion left base"], impressions: ["No acute cardiopulmonary abnormality", "Community-acquired pneumonia", "Congestive heart failure exacerbation", "Normal study"] },
@@ -42,6 +43,7 @@ export function radiologyHandler(state: HospitalState, clock: Clock, _queue: Eve
 
 export function radResultHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newOrders = new Map(state.radiologyOrders);
+  let newCharges = new Map(state.charges);
   for (const [id, order] of newOrders) {
     if (order.status === "ordered") {
       const study = RAD_STUDIES.find(s => s.studyType === order.studyType) ?? RAD_STUDIES[0]!;
@@ -52,7 +54,8 @@ export function radResultHandler(state: HospitalState, clock: Clock, _queue: Eve
         impression: study.impressions[Math.floor(clock.rng() * study.impressions.length)]!,
         resultedAt: clock.hospitalTimeMs,
       });
+      newCharges = addCharge(state, clock, order.encounterId, order.patientId, "radiology", `Imaging: ${order.studyType}`);
     }
   }
-  return { ...state, radiologyOrders: newOrders };
+  return { ...state, radiologyOrders: newOrders, charges: newCharges };
 }
