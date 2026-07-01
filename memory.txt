@@ -22,9 +22,9 @@
 2. Archive completed orders ✅
 3. Reduce handler frequency ✅
 4. Selective execution + time-gating ✅
-5. **Batch journal writes** — wrap per-tick INSERTs in single transaction
-6. **Reduce snapshot frequency** — 20→100 ticks for long runs
-7. Re-run 50K (after T5+T6, low priority)
+5. Batch journal writes ✅
+6. Reduce snapshot frequency ✅
+7. Re-run 50K (pending encounter equilibrium fix — high active encounter count still limits throughput)
 
 ### After Submission
 | Item | Owner | Epic |
