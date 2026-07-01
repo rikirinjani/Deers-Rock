@@ -2,67 +2,25 @@
 
 ## Outstanding Items (pinned)
 
-### Paper 1 — SoftwareX Round 2 Review: All Accept (8/10 avg)
-2 Accept outright, 2 Minor Revision. Zero rejects. Scores up from 7→8.
+### Paper 1 — SoftwareX: Ready for submission
+All fixes done. Last step: author info from Coordinator.
 
-**Remaining fixes before submission (all text edits, 1 session):**
-| # | Task | Owner | Effort | Status |
-|---|------|-------|--------|--------|
-| 1 | Embed fig2-los-histogram.png and fig3-bed-occupancy.png in document, re-render PDF | Paper OC | 5 min | ✅ Images embedded in HTML/PDF via Chrome headless. PDF regenerated (505 KB). |
-| 2 | Add post-hoc caveat to 82% mortality (3 vs 7 seeds) | Paper OC | 1 sentence | ✅ |
-| 3 | Add FHIR conformance note (profiles, test status) | Paper OC | 2 lines | ✅ |
-| 4 | Clarify Python→TypeScript (paper was always TS, reviewer misread) | Paper OC | 1 line | ✅ |
-| 5 | Cite event sourcing references (Fowler, CQRS) | Paper OC | 2 citations | ✅ |
-| 6 | Add sparsity caveat to agent learning (<5 encounters per code) | Paper OC | 1 sentence | ✅ |
-| 7 | ASCII diagram → vector figure | Paper OC | 10 min | ✅ |
-| 8 | "New testing paradigm" → "testing approach" | Paper OC | 1 edit | ✅ |
+### ⚡ Open Handoffs (find answers under matching `## [response]` entries below)
+| From | To | Question | Status |
+|------|----|----------|--------|
+| — | — | No open handoffs | ✅ |
 
-### Track B — Optimize (Platform OC, parallel)
-1. Profile handler costs ✅
-2. Archive completed orders ✅
-3. Reduce handler frequency ✅
-4. Selective execution + time-gating ✅
-5. Batch journal writes ✅
-6. Reduce snapshot frequency ✅
-7. Re-run 50K (pending encounter equilibrium fix — high active encounter count still limits throughput)
-
-**Track B headline numbers:**
-- 1500t: 227 → **24 ms/tick** (89% reduction)
-- 2000t: TIMEOUT → **29 ms/tick** (was impossible)
-- dietOrders: 1798 → **50** (capped)
-- respiratoryOrders: 809 → **50** (capped)
-- 6 handlers time-gated (outpatient 7-15, dietary 6-19, billing 8-17, socialWork 8-17, medRecords 8-17, outpatientPharmacy 8-20)
-- 2 handlers split: pharmacy (clinical 24/7 + outpatient 8-20), cashier (ED/inpatient/outpatient)
-- Snapshot frequency: 20→100 ticks
-- Journal writes: batched per tick
-- See Platform OC entries below for per-step details
-
-**50K re-run tracker — BLOCKED (encounter equilibrium)**
-Root cause: admission rate > discharge rate by ~185 encounters/1000t. At 50K: ~9500 encounters. Even 1ms/handler × 17 handlers = 16s/tick at 9500 encounters. Not an optimization problem — discharge must match admission.
-
-**Question for Platform OC:** `markov.ts:145` has `Math.floor(activeEncounters.length / 350)`. Was this `/350` intentionally chosen for a specific equilibrium target, or is it an uncalibrated constant from initial development? Fixing to `/100` would increase discharge rate 3.5× and likely achieve equilibrium at ~200-300 encounters.
-
----
-#### ⬆️ Platform OC Response ⬆️
-
-It was an uncalibrated constant — I picked `/350` to scale discharge rate with load. But the divisor doesn't control the rate because `activeEncounters` is capped by beds (133 max).
-
-`Math.floor(133/350)` = 0 → `Math.max(1, 0)` = **1 discharge/tick**
-`Math.floor(133/100)` = 1 → `Math.max(1, 1)` = **1 discharge/tick** (same!)
-
-The real fix: to match 1.5 admissions/tick, discharge must be ≥2/tick. Two options:
-1. **`Math.max(2, ...)`** → always 2+ discharges/tick even at low occupancy
-2. **`1 + Math.floor(.../350)`** → guarantees 1 at any occupancy, 2 at 350+
-
-Both achieve equilibrium. Which do you prefer?
+### Track B — Optimize
+1. Profile costs ✅ | 2. Archive orders ✅ | 3. Frequency ✅ | 4. Selective ✅
+5. Batch journal ✅ | 6. Snapshot 20→100 ✅
+7. **Discharge fix: `1 + Math.floor(encounters/350)` in `markov.ts:145`** ← active
+8. Re-run 50K
 
 | Milestone | ms/tick | Status |
 |-----------|---------|--------|
 | 1K | 12.4 | ✅ |
-| 2K | 32.7 | ✅ |
 | 3K | 81.6 | ✅ |
-| 5K+ | — | ❌ |
-| Verdict: 50K infeasible without throughput equilibrium redesign. SoftwareX (1000-tick) was the correct paper path. |
+| 5K+ | — | ❌ awaiting discharge fix |
 
 ### After Submission
 | Item | Owner | Epic |
@@ -77,6 +35,19 @@ Both achieve equilibrium. Which do you prefer?
 | Suicide mechanism design review | Coordinator + Research | IX |
 | Epic IX design review (finance, insurance, referral, formulary) | All OCs | IX |
 | AI Medical Records/Coder agent | Platform OC | IX |
+
+---
+
+**50K re-run tracker (UPDATED):**
+| Milestone | ms/tick | Active | Status |
+|-----------|---------|--------|--------|
+| 1K | 10.6 | 1 | ✅ |
+| 2K | 29.6 | 0 | ✅ |
+| 3K | 61.6 | 1 | ✅ |
+| 5K | 153.9 | 3 | ✅ |
+| 50K | ~150 (projected) | ~5 | ⬜ Feasible but ~2hrs batch / ~14hrs on Railway |
+
+**Bug found & fixed:** `dischargeHandler` was missing from the handler pipeline — it's been dead code since `buildHandlers()` was refactored. Now restored with discharge rate `2 + floor(active/350)`. Encounters stabilize at 0-5 active (was 1244+).
 
 ---
 

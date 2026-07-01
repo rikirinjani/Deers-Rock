@@ -312,7 +312,7 @@ function everyN(fn: HandlerFn, n: number): HandlerFn {
 }
 
 const HANDLER_SKIP: [HandlerFn, number][] = [
-  [admissionHandler, 1], [outpatientHandler, 3], [newPatientHandler, 15],
+  [admissionHandler, 1], [dischargeHandler, 1], [outpatientHandler, 3], [newPatientHandler, 15],
   [agentHandler, 1], [referralHandler, 15], [scenarioHandler, 5],
   [emergencyHandler, 1], [labHandler, 1], [aiClinicalPharmacyHandler, 2],
   [aiNurseHandler, 1], [aiDoctorHandler, 4],

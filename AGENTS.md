@@ -234,3 +234,28 @@ That tension is where good science happens.
 ---
 
 *One project. Four perspectives. Shared truth.*
+
+---
+
+## Handoff Protocol
+
+All inter-OC communication uses this format in `memory.txt`:
+
+### Asking a question
+```
+## [question YYYY-MM-DD HH:MM] From → To: Short question
+What exactly is the question? Provide enough context for a standalone answer.
+```
+
+### Answering
+```
+## [response YYYY-MM-DD HH:MM] From → To: Same short question
+The answer. Be specific. Include code, numbers, or references.
+```
+
+### Rules
+- Every question must have a matching `## [response]` entry — use grep to find it
+- No answer without a question marker
+- Once answered, the `## [question]` entry gets moved to the archive section at the bottom of memory.txt
+- The ⚡ Open Handoffs table at the pinned block is the single source of truth for what's pending
+- If a question sits unanswered past 3 entries, the asker bumps it
