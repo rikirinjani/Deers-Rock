@@ -1,36 +1,38 @@
 # Deer's Rock HOE — Memory File
 
-## Outstanding Items (pinned)
+## Coordinator Restart Briefing — 2026-07-01 16:30
 
-### Paper 1 — SoftwareX: Ready for submission
-All fixes done. Last step: author info from Coordinator.
+### State of the Project
+- **SoftwareX paper**: All 8 reviewer fixes done. **Only remaining: Coordinator fills author info → submit.**
+- **Track B (Platform OC)**: All 6 optimization steps complete. Plus critical bugfix.
+- **50K re-run**: Now feasible. 5K ticks at 153.9ms/tick stable. Projected ~2hrs batch.
 
-### ⚡ Open Handoffs (find answers under matching `## [response]` entries below)
-| From | To | Question | Status |
-|------|----|----------|--------|
-| — | — | No open handoffs | ✅ |
+### Critical Bug Found & Fixed
+`dischargeHandler` was **missing from handler pipeline** since `buildHandlers()` refactor — it was dead code. Random discharge wasn't running at all (only scheduled discharges at 360-1440 ticks). Active encounters dropped from **1244+ → 0-5** after fix. Commit: `7352adb`.
 
-### Track B — Optimize
-1. Profile costs ✅ | 2. Archive orders ✅ | 3. Frequency ✅ | 4. Selective ✅
-5. Batch journal ✅ | 6. Snapshot 20→100 ✅
-7. **Discharge fix: `1 + Math.floor(encounters/350)` in `markov.ts:145`** ← active
-8. Re-run 50K
+### 50K Tracker (after discharge fix)
+| Milestone | ms/tick | Active | Status |
+|-----------|---------|--------|--------|
+| 1K | 10.6 | 1 | ✅ |
+| 2K | 29.6 | 0 | ✅ |
+| 3K | 61.6 | 1 | ✅ |
+| 5K | 153.9 | 3 | ✅ |
+| 50K | ~150 (projected) | ~5 | ⬜ Ready to run |
 
-| Milestone | ms/tick | Status |
-|-----------|---------|--------|
-| 1K | 12.4 | ✅ |
-| 3K | 81.6 | ✅ |
-| 5K+ | — | ❌ awaiting discharge fix |
+### ⚡ Handoffs Awaiting Coordinator
+| From | To | Item | Urgency |
+|------|----|------|---------|
+| Platform OC | **Coordinator** | Fill author info → **submit SoftwareX** | 🔴 Only blocker |
+| Research OC | **Coordinator** | ADR-004 (Mortality Risk Engine) review & approve | 🟡 |
+| All OCs | **Coordinator** | Epic IX design review scheduling | 🟡 |
+| — | **Coordinator** | Signal file for memory triggers (Proposal 3) | 🟢 |
 
-### After Submission
+### After Submission Queue
 | Item | Owner | Epic |
 |------|-------|------|
 | Learning toggle (freeze agent learning) | Platform OC | II |
 | Protocol gap logging | Platform OC | II |
-| Performance profiling for 5000+ tick runs | Platform OC | II |
-| ADR-004 (Mortality Risk Engine) review & approve | Coordinator | VIII |
-| Signal file for memory triggers (Proposal 3) | Coordinator | VIII |
-| ADR-003 (agent state persistence) | Platform OC | I (deferred — post-paper) |
+| ADR-003 (agent state persistence) | Platform OC | I |
 | Review protocol-to-medication mappings (Diazepam bias fix) | Platform OC | II |
 | Suicide mechanism design review | Coordinator + Research | IX |
 | Epic IX design review (finance, insurance, referral, formulary) | All OCs | IX |
