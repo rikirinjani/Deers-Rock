@@ -184,4 +184,4 @@ AI doctors are assigned by ICD-specialty matching:
 
 ## License
 
-Internal project — Deer's Rock Healthcare Operating Environment.
+Apache 2.0 — See [LICENSE](./LICENSE).

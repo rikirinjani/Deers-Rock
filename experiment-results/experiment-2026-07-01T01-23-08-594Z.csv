@@ -1,0 +1,4 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,deathsByIcd,avgLosTicks,maxLosTicks,activeEncounters,activeAvgLosTicks,activeMaxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,1000,177,754,4,{"N20":1,"A27":1,"I10":1,"K80":1},82,949,415,496,998,130,500,500,100,100,forest_fire,true
+1,1000,169,797,3,{"A01":1,"T14":1,"A91":1},82,978,392,499,998,122,500,500,100,100,industrial_accident,true
+2,1000,181,774,2,{"E11":1,"J15":1},87,982,389,501,999,130,500,500,100,100,industrial_accident,true

@@ -1,0 +1,93 @@
+{
+  "config": {
+    "seedCount": 3,
+    "ticks": 1000,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 1000,
+      "totalPatients": 183,
+      "totalEncounters": 777,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "K29": 1,
+        "F32": 1
+      },
+      "avgLosTicks": 74,
+      "maxLosTicks": 949,
+      "peakBedOccupancy": 133,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 1,
+      "ticks": 1000,
+      "totalPatients": 188,
+      "totalEncounters": 771,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "A91": 1,
+        "K29": 1
+      },
+      "avgLosTicks": 85,
+      "maxLosTicks": 978,
+      "peakBedOccupancy": 132,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": null,
+      "disasterTriggered": false
+    },
+    {
+      "seed": 2,
+      "ticks": 1000,
+      "totalPatients": 177,
+      "totalEncounters": 791,
+      "totalDeaths": 3,
+      "deathsByIcd": {
+        "O80": 1,
+        "I10": 1,
+        "E86": 1
+      },
+      "avgLosTicks": 86,
+      "maxLosTicks": 982,
+      "peakBedOccupancy": 129,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": "sunken_ship",
+      "disasterTriggered": true
+    }
+  ],
+  "statistics": {
+    "deaths": {
+      "mean": 2.3,
+      "sd": 0.6,
+      "ci95": 0.7,
+      "min": 2,
+      "max": 3
+    },
+    "los": {
+      "mean": 81.7,
+      "sd": 6.7,
+      "ci95": 7.5,
+      "min": 74,
+      "max": 86
+    },
+    "bedOccupancy": {
+      "mean": 131.3,
+      "sd": 2.1,
+      "ci95": 2.4,
+      "min": 129,
+      "max": 133
+    }
+  }
+}

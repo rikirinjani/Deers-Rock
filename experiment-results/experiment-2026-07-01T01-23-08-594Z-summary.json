@@ -1,0 +1,110 @@
+{
+  "config": {
+    "seedCount": 3,
+    "ticks": 1000,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 1000,
+      "totalPatients": 177,
+      "totalEncounters": 754,
+      "totalDeaths": 4,
+      "deathsByIcd": {
+        "N20": 1,
+        "A27": 1,
+        "I10": 1,
+        "K80": 1
+      },
+      "avgLosTicks": 82,
+      "maxLosTicks": 949,
+      "peakBedOccupancy": 130,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": "forest_fire",
+      "disasterTriggered": true,
+      "activeEncounters": 415,
+      "activeAvgLosTicks": 496,
+      "activeMaxLosTicks": 998
+    },
+    {
+      "seed": 1,
+      "ticks": 1000,
+      "totalPatients": 169,
+      "totalEncounters": 797,
+      "totalDeaths": 3,
+      "deathsByIcd": {
+        "A01": 1,
+        "T14": 1,
+        "A91": 1
+      },
+      "avgLosTicks": 82,
+      "maxLosTicks": 978,
+      "peakBedOccupancy": 122,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": "industrial_accident",
+      "disasterTriggered": true,
+      "activeEncounters": 392,
+      "activeAvgLosTicks": 499,
+      "activeMaxLosTicks": 998
+    },
+    {
+      "seed": 2,
+      "ticks": 1000,
+      "totalPatients": 181,
+      "totalEncounters": 774,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "E11": 1,
+        "J15": 1
+      },
+      "avgLosTicks": 87,
+      "maxLosTicks": 982,
+      "peakBedOccupancy": 130,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 100,
+      "disasterType": "industrial_accident",
+      "disasterTriggered": true,
+      "activeEncounters": 389,
+      "activeAvgLosTicks": 501,
+      "activeMaxLosTicks": 999
+    }
+  ],
+  "statistics": {
+    "deaths": {
+      "mean": 3,
+      "sd": 1,
+      "ci95": 1.1,
+      "min": 2,
+      "max": 4
+    },
+    "los": {
+      "mean": 83.7,
+      "sd": 2.9,
+      "ci95": 3.3,
+      "min": 82,
+      "max": 87
+    },
+    "activeLos": {
+      "mean": 498.7,
+      "sd": 2.5,
+      "min": 496,
+      "max": 501
+    },
+    "bedOccupancy": {
+      "mean": 127.3,
+      "sd": 4.6,
+      "ci95": 5.2,
+      "min": 122,
+      "max": 130
+    }
+  }
+}

@@ -17,3 +17,4 @@
 | 5 | 2026-06-28T12:35:00 | general | Platform OC: Generator seeding (full-world reproducibility) | pass |
 | 6 | 2026-06-28T16:55:00 | general | Platform OC: Multi-run experiment harness (Milestone 2.6) | pass |
 | 7 | 2026-06-28T17:30:00 | general | Platform OC: P0/P1 batch — morgue, LOS, pruning caps, scenario forcing | pass |
+| 8 | 2026-06-29T14:00:00 | general | Paper OC: Complete Paper 1 manuscript for JAMIA — all sections, data, references, mortality | pass |

@@ -1,0 +1,4 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,deathsByIcd,avgLosTicks,maxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,1000,183,777,2,{"K29":1,"F32":1},74,949,133,500,500,100,100,,false
+1,1000,188,771,2,{"A91":1,"K29":1},85,978,132,500,500,100,100,,false
+2,1000,177,791,3,{"O80":1,"I10":1,"E86":1},86,982,129,500,500,100,100,sunken_ship,true

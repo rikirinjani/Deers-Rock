@@ -2,14 +2,16 @@
 
 ## Outstanding Items (pinned)
 
-### Before JAMIA Submission
-| Item | Owner | Status |
-|------|-------|--------|
-| Aggregate mortality to infectious vs NCD categories in Paper 1 | Paper OC | ✅ Research OC recommendation delivered — see below |
-| Resolve flagged reference [7] Medical Gym (DOI needed) | Paper OC | Pending |
-| Author information + cover letter | Coordinator | After other items done |
+### Paper 1 — Experiment Extension (post-review)
+4 blind reviews all flagged 1000 ticks as insufficient. Target: 50K-100K ticks on Railway.
 
-### After JAMIA Submission
+| Phase | Steps | Owner |
+|-------|-------|-------|
+| 1 - Model fixes | Fix LOS, fix COD attribution, profile Railway | Platform OC |
+| 2 - Experiments | 50K run, counterfactual branch, forced disaster, FHIR validation | Platform OC |
+| 3 - Paper revision | Tone claims, add Synthea, rename agents, ethics, figure | Paper OC |
+
+### After Submission
 | Item | Owner | Epic |
 |------|-------|------|
 | Learning toggle (freeze agent learning) | Platform OC | II |
@@ -1269,3 +1271,67 @@ Proposal accepted. Depression (F32) deaths currently attributed via generic deat
 - Runner methodology: deathsByIcd + CI/SD (b23f0fc)
 - Event switch regression fix (8c15c8c)
 - 5000-tick experiment attempt documented (a88a9f1)
+
+## [2026-06-29 13:00] Paper OC — Incorporated Research OC Mortality Validation
+
+### What was changed in the paper
+- **Abstract Results**: Replaced "19 ICD codes including pneumonia, diabetes, dengue, and depression" with aggregated categories "infectious diseases (pneumonia, tuberculosis, dengue) and non-communicable conditions (diabetes, chronic kidney disease)"
+- **§5 Reproducibility**: Changed mortality distribution from "19 distinct ICD codes" to "infectious and non-communicable disease categories"
+- **§6 Demonstration**: Added aggregated mortality categorization
+- **§8 Limitations**: Added new paragraph on cause-of-death attribution — 19% of deaths have implausible COD assignment (primary diagnosis used instead of terminal event). Documented as known limitation; paper uses aggregated categories.
+
+### Status
+- Paper OC: All tasks complete. Manuscript structurally and data- complete.
+- Research OC: Mortality validation done ✅ — Paper 1 incorporated.
+- Still open: Coordinator author info + cover letter needed before submission.
+
+## [2026-06-29 14:00] Paper OC — Final Reference Verification Complete
+
+### What was done
+- **Replaced [7]**: Unverifiable Medical Gym (Killian et al., NeurIPS 2019 workshop) → Gottesman O, et al. *Guidelines for reinforcement learning in healthcare.* Nat Med. 2019;25(1):16-18. doi:10.1038/s41591-018-0310-5 ✅ confirmed live
+- **All 14 references now verified** against live source URLs and DOIs — zero flags remaining
+- Paper status updated to reflect no outstanding items
+
+### Final Paper 1 Status
+| Task | OC | Status |
+|------|----|--------|
+| Manuscript (all 9 sections) | Paper OC | ✅ Complete |
+| References (14 AMA-style) | Paper OC | ✅ All verified |
+| Experiment data (E1, 10×1000) | Platform OC | ✅ Done |
+| Mortality validation | Research OC | ✅ Incorporated |
+| Forced scenarios excluded | Coordinator | ✅ Decision made |
+| Author info + cover letter | Coordinator | ⬜ Pending |
+
+## [2026-06-29] Coordinator — Experiment Extension Plan (Railway)
+
+### Context
+4 blind reviews flagged 1000 ticks (16.7 hrs) as insufficient. Target: 50K-100K ticks for steady-state. Local machine (Ryzen 3 4300U, 6GB RAM) will timeout/OOM. Solution: run experiments on Railway (already deployed, tick 2300+, 72MB/500MB stable).
+
+### Phase 1: Model Fixes (prerequisites — experiments are meaningless without these)
+| Step | Owner | What | Why |
+|------|-------|------|-----|
+| 1a | Platform OC | Debug dischargeScheduledPatients — honor scheduled encounter, not random 15% | LOS stuck at 83 min despite 360-1440 tick delays |
+| 1b | Platform OC | Add terminalEvent mapping per ICD code (e.g., E78 → AMI → death) | Fix 19% implausible cause-of-death |
+| 1c | Platform OC | Profile Railway: per-tick latency at 1K, 5K, 10K, 50K ticks | Find breakpoint before committing to 100K |
+
+### Phase 2: Experiments on Railway
+| Step | What | Method | Target |
+|------|------|--------|--------|
+| 2a | 50K-tick steady-state | 10 seeds, fixed model, sequential via API | LOS dist, occupancy equilibrium, mortality convergence |
+| 2b | Counterfactual | Branch at tick 5000 → +20 ICU beds → run to 50000 → compare | Mortality delta — proves architecture claim |
+| 2c | Forced disaster | Same seed, two branches: no disaster vs tsunami at tick 2000 | Fixes methodologically unsound 82% claim |
+| 2d | FHIR validator | Export bundles → pass through HL7 official validator | Concrete conformance statement |
+
+### Phase 3: Paper Revision
+| Step | Owner | What |
+|------|-------|------|
+| 3a | Paper OC | Tone down "new category" → "novel combination"; drop Kubernetes analogy |
+| 3b | Paper OC | Add Synthea to related work; add FHIR validation results |
+| 3c | Paper OC | Rename "AI agents" → "rule-based clinical agents" |
+| 3d | Paper OC | Add ethics/bias paragraph on cultural scenarios |
+| 3e | Paper OC | Add one architecture figure |
+
+### Handoff
+- **→ Platform OC:** Phase 1a-1c, 2a-2d
+- **→ Paper OC:** Phase 3a-3e (after Phase 2 data)
+- **→ Coordinator:** Track progress, update roadmap

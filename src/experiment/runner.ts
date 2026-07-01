@@ -18,12 +18,18 @@ export interface RunResult {
   totalCharges: number;
   disasterType: string | null;
   disasterTriggered: boolean;
+  activeEncounters: number;
+  activeAvgLosTicks: number;
+  activeMaxLosTicks: number;
 }
 
 function collectResult(world: import("../engine/world.js").World): RunResult {
   const state = world.state;
+  const clock = world.clock;
   const discharges = Array.from(state.encounters.values()).filter(e => e.status === "discharged");
   const losValues = discharges.map(e => (e.endTime ?? e.startTime) - e.startTime);
+  const activePatients = Array.from(state.encounters.values()).filter(e => e.status === "active");
+  const activeLosValues = activePatients.map(e => clock.hospitalTimeMs - e.startTime);
   const occupiedNow = Array.from(state.beds.values()).filter(b => b.patientId).length;
   const deaths = state.morgue.length;
   const deathsByIcd: Record<string, number> = {};
@@ -48,15 +54,18 @@ function collectResult(world: import("../engine/world.js").World): RunResult {
     totalCharges: state.charges.size,
     disasterType: scenario?.active?.type ?? null,
     disasterTriggered: scenario?.active !== null && scenario.active.phase !== "resolved",
+    activeEncounters: activePatients.length,
+    activeAvgLosTicks: activeLosValues.length > 0 ? Math.round((activeLosValues.reduce((a, b) => a + b, 0) / activeLosValues.length) / 60000) : 0,
+    activeMaxLosTicks: activeLosValues.length > 0 ? Math.round(Math.max(...activeLosValues) / 60000) : 0,
   };
 }
 
 function runToCSV(results: RunResult[]): string {
-  const headers = ["seed", "ticks", "totalPatients", "totalEncounters", "totalDeaths", "deathsByIcd", "avgLosTicks", "maxLosTicks", "peakBedOccupancy", "totalLabOrders", "totalMedOrders", "totalSurgeryOrders", "totalCharges", "disasterType", "disasterTriggered"];
+  const headers = ["seed", "ticks", "totalPatients", "totalEncounters", "totalDeaths", "deathsByIcd", "avgLosTicks", "maxLosTicks", "activeEncounters", "activeAvgLosTicks", "activeMaxLosTicks", "peakBedOccupancy", "totalLabOrders", "totalMedOrders", "totalSurgeryOrders", "totalCharges", "disasterType", "disasterTriggered"];
   const rows = results.map(r => [
     r.seed, r.ticks, r.totalPatients, r.totalEncounters, r.totalDeaths,
     JSON.stringify(r.deathsByIcd),
-    r.avgLosTicks, r.maxLosTicks, r.peakBedOccupancy,
+    r.avgLosTicks, r.maxLosTicks, r.activeEncounters, r.activeAvgLosTicks, r.activeMaxLosTicks, r.peakBedOccupancy,
     r.totalLabOrders, r.totalMedOrders, r.totalSurgeryOrders, r.totalCharges,
     r.disasterType ?? "", r.disasterTriggered,
   ].join(","));
@@ -129,6 +138,7 @@ export function runExperiment(options: {
   const summaryPath = path.join(outDir, `${prefix}-${timestamp}-summary.json`);
   const deathValues = results.map(r => r.totalDeaths);
   const losValues = results.map(r => r.avgLosTicks);
+  const activeLosValues = results.map(r => r.activeAvgLosTicks);
   const occValues = results.map(r => r.peakBedOccupancy);
   const deathMean = mean(deathValues);
   const losMean = mean(losValues);
@@ -142,6 +152,7 @@ export function runExperiment(options: {
     statistics: {
       deaths: { mean: +deathMean.toFixed(1), sd: +deathSd.toFixed(1), ci95: +ci95(deathSd, count).toFixed(1), min: Math.min(...deathValues), max: Math.max(...deathValues) },
       los: { mean: +losMean.toFixed(1), sd: +losSd.toFixed(1), ci95: +ci95(losSd, count).toFixed(1), min: Math.min(...losValues), max: Math.max(...losValues) },
+      activeLos: { mean: +mean(activeLosValues).toFixed(1), sd: +stdDev(activeLosValues, mean(activeLosValues)).toFixed(1), min: Math.min(...activeLosValues), max: Math.max(...activeLosValues) },
       bedOccupancy: { mean: +occMean.toFixed(1), sd: +occSd.toFixed(1), ci95: +ci95(occSd, count).toFixed(1), min: Math.min(...occValues), max: Math.max(...occValues) },
     },
   };
@@ -151,7 +162,8 @@ export function runExperiment(options: {
   console.log(`  CSV: ${filepath}`);
   console.log(`  Summary: ${summaryPath}`);
   console.log(`  Deaths: ${summary.statistics.deaths.mean} ± ${summary.statistics.deaths.ci95} (SD=${summary.statistics.deaths.sd}, range ${summary.statistics.deaths.min}-${summary.statistics.deaths.max})`);
-  console.log(`  LOS: ${summary.statistics.los.mean} ± ${summary.statistics.los.ci95} ticks (SD=${summary.statistics.los.sd})`);
+  console.log(`  LOS (discharged): ${summary.statistics.los.mean} ± ${summary.statistics.los.ci95} ticks (SD=${summary.statistics.los.sd})`);
+  console.log(`  LOS (active): ${summary.statistics.activeLos.mean} ticks (range ${summary.statistics.activeLos.min}-${summary.statistics.activeLos.max})`);
   console.log(`  Bed occupancy: ${summary.statistics.bedOccupancy.mean} ± ${summary.statistics.bedOccupancy.ci95}`);
 
   return results;
