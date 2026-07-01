@@ -1,8 +1,8 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { InsuranceClaim, Payment } from "../patient/schema.js";
-import { generateCharge } from "./charge-generator.js";
+import type { InsuranceClaim, Payment, RoomClass } from "../patient/schema.js";
+import { generateCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 
 const PAYERS = ["BPJS Kesehatan", "BPJS Ketenagakerjaan", "Private Insurance A", "Private Insurance B", "Self-pay"];
 
@@ -23,7 +23,10 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
   if (clock.tick % 5 === 0) {
     const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
     for (const enc of activeEncounters) {
-      newCharges = generateCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room charge - tick ${clock.tick}`);
+      const bed = Array.from(state.beds.values()).find(b => b.patientId === enc.patientId);
+      const rc: RoomClass = bed?.roomClass ?? "kelas-3";
+      const rate = Math.round(CHARGE_RATES.room * (ROOM_CLASS_MULTIPLIER[rc] ?? 1));
+      newCharges = generateCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room (${rc}) - tick ${clock.tick}`, rate);
     }
   }
 

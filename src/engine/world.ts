@@ -56,7 +56,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string, se
   const jp = journalPath ?? null;
 
   const state = createState(patients);
-  const totalBeds = Object.values(state.wardCapacity).reduce((s, c) => s + c, 0);
+  const totalBeds = state.beds.size;
 
   const initialAgentState = initAgentState();
   initialAgentState.pool = effectiveRng ? generateAgentPool(totalBeds, effectiveRng) : generateAgentPool(totalBeds);

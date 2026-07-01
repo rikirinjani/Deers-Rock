@@ -14,6 +14,7 @@ const SPECIALTY_TO_WARD: Record<string, string> = {
   endoscopy: "Internal Medicine", pathology_anatomy: "Internal Medicine",
   forensic: "Internal Medicine", ophthalmology: "Internal Medicine",
   ent: "Internal Medicine", dermatology: "Internal Medicine", dentistry: "Internal Medicine",
+  surgery: "ICU",
 };
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;

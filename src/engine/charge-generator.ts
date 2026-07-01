@@ -1,12 +1,18 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
-import type { Charge, ChargeCategory } from "../patient/schema.js";
+import type { Charge, ChargeCategory, RoomClass } from "../patient/schema.js";
 
 let chargeCounter = 0;
 
 const CHARGE_RATES: Record<ChargeCategory, number> = {
   lab: 250000, radiology: 500000, pharmacy: 75000, surgery: 5000000,
   room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
+};
+
+const ROOM_CLASS_MULTIPLIER: Record<RoomClass, number> = {
+  vvip: 4, vip: 3,
+  "kelas-1": 2, "kelas-2": 1.5, "kelas-3": 1,
+  icu: 3.5, hcu: 2, nicu: 3.5, picu: 3.5,
 };
 
 /** Generate a single charge and return updated charges map. Called by event handlers on action completion. */
@@ -29,4 +35,4 @@ export function generateCharge(
   return newCharges;
 }
 
-export { CHARGE_RATES };
+export { CHARGE_RATES, ROOM_CLASS_MULTIPLIER };

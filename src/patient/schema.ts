@@ -54,9 +54,13 @@ export interface Encounter {
   assignedNurseId?: string;
 }
 
+export type RoomClass = "vvip" | "vip" | "kelas-1" | "kelas-2" | "kelas-3" | "icu" | "hcu" | "nicu" | "picu";
+
 export interface Bed {
   id: string;
   ward: string;
+  building: string;
+  roomClass: RoomClass;
   patientId: string | null;
 }
 

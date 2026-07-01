@@ -6,10 +6,10 @@
 
 ## → Platform OC
 - **ADR-003**: Agent state persistence in snapshots — pending (post-paper)
-- **Epic IX Phase 1 (Finance Foundation)**: 4/6 tasks done (commit 3c2ed24)
+- **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done
   - ✅ Task 1: Drug costs
   - ✅ Task 2: Dispense charges
-  - ⬜ Task 3: 4-building architecture — deferred, human will discuss directly
+  - ✅ Task 3: 4-building architecture — full kelas hierarchy (VVIP/VIP/K1-3/ICU/HCU/NICU/PICU), 131 beds across 4 buildings
   - ✅ Task 4: Professional fees
   - ✅ Task 5: Charge generator split — `charge-generator.ts` created, all handlers use `generateCharge()`
   - ✅ Task 6: Remove caps

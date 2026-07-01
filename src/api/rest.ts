@@ -77,7 +77,7 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     if (pt) json(res, pt); else { res.statusCode = 404; json(res, { error: "Patient not found", mrn: num }); } return true;
   }
   if (p === "/api/encounters") { json(res, toArr(w.state.encounters)); return true; }
-  if (p === "/api/beds") { const b = Array.from(w.state.beds.values()); const bw: Record<string, {total:number;occupied:number}> = {}; for (const x of b) { if (!bw[x.ward]) bw[x.ward] = {total:0,occupied:0}; bw[x.ward]!.total++; if (x.patientId) bw[x.ward]!.occupied++; } json(res, {beds:b, byWard:bw}); return true; }
+  if (p === "/api/beds") { const b = Array.from(w.state.beds.values()); const bw: Record<string, {total:number;occupied:number}> = {}; const bb: Record<string, {total:number;occupied:number}> = {}; for (const x of b) { if (!bw[x.ward]) bw[x.ward] = {total:0,occupied:0}; bw[x.ward]!.total++; if (x.patientId) bw[x.ward]!.occupied++; if (x.building) { if (!bb[x.building]) bb[x.building] = {total:0,occupied:0}; bb[x.building]!.total++; if (x.patientId) bb[x.building]!.occupied++; } } json(res, {beds:b, byWard:bw, byBuilding:bb}); return true; }
   if (p === "/api/labs") { json(res, toArr(w.state.labOrders)); return true; }
   if (p === "/api/radiology") { json(res, toArr(w.state.radiologyOrders)); return true; }
   if (p === "/api/medications") { json(res, toArr(w.state.medicationOrders)); return true; }

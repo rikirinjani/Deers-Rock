@@ -1,4 +1,4 @@
-import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart, Charge, InsuranceClaim, Payment, InventoryItem, StockTransaction } from "../patient/schema.js";
+import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart, Charge, InsuranceClaim, Payment, InventoryItem, StockTransaction, RoomClass } from "../patient/schema.js";
 import type { SpecialtyOrder } from "./specialty.js";
 import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
@@ -147,6 +147,49 @@ export interface LearningMemory {
   byDiagnosis: Map<string, DiagnosisLearning>;
 }
 
+export interface BuildingConfig {
+  name: string;
+  code: string;
+  wards: {
+    name: string;
+    roomClasses: Partial<Record<RoomClass, number>>;
+  }[];
+}
+
+export const BUILDING_LAYOUT: BuildingConfig[] = [
+  {
+    name: "VVIP-VIP Pavilion", code: "A",
+    wards: [
+      { name: "Executive Pavilion", roomClasses: { vvip: 4, vip: 8 } },
+    ],
+  },
+  {
+    name: "Main Inpatient Building", code: "B",
+    wards: [
+      { name: "Internal Medicine", roomClasses: { "kelas-1": 4, "kelas-2": 10, "kelas-3": 16 } },
+      { name: "Neurology", roomClasses: { "kelas-1": 1, "kelas-2": 3, "kelas-3": 4 } },
+      { name: "Pulmonology", roomClasses: { "kelas-1": 1, "kelas-2": 3, "kelas-3": 4 } },
+    ],
+  },
+  {
+    name: "Mother & Child Pavilion", code: "C",
+    wards: [
+      { name: "Pediatrics", roomClasses: { "kelas-1": 2, "kelas-2": 4, "kelas-3": 4 } },
+      { name: "OBGYN", roomClasses: { "kelas-1": 2, "kelas-2": 4, "kelas-3": 4 } },
+      { name: "NICU", roomClasses: { nicu: 6 } },
+      { name: "PICU", roomClasses: { picu: 6 } },
+    ],
+  },
+  {
+    name: "Critical Care Tower", code: "D",
+    wards: [
+      { name: "Cardiology", roomClasses: { "kelas-1": 2, "kelas-2": 3, "kelas-3": 5 } },
+      { name: "ICU", roomClasses: { icu: 16 } },
+      { name: "HCU", roomClasses: { hcu: 15 } },
+    ],
+  },
+];
+
 export interface PharmacistCaseRecord {
   encounterId: string;
   patientId: string;
@@ -162,18 +205,41 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
   const patientMap = new Map<string, Patient>();
   for (const p of patients) patientMap.set(p.id, p);
 
-  const defaultCapacity = {
-    "Internal Medicine": 30, "Surgery": 20, "Pediatrics": 10, "OBGYN": 10,
-    "ICU": 10, "Telemetry": 15, "Cardiology": 10, "Neurology": 8,
-    "Pulmonology": 8, "NICU": 6, "PICU": 6,
-  };
-  const capacity = { ...defaultCapacity, ...wardCapacity };
+  // If custom wardCapacity provided, use flat method (backward compat for tests)
+  let beds: Map<string, Bed>;
+  let capacity: Record<string, number>;
 
-  const beds = new Map<string, Bed>();
-  for (const [ward, count] of Object.entries(capacity)) {
-    for (let i = 1; i <= count; i++) {
-      const bedId = `${ward.replace(/\s+/g, "-")}-${String(i).padStart(2, "0")}`;
-      beds.set(bedId, { id: bedId, ward, patientId: null });
+  if (Object.keys(wardCapacity).length > 0) {
+    capacity = wardCapacity;
+    beds = new Map<string, Bed>();
+    for (const [ward, count] of Object.entries(wardCapacity)) {
+      for (let i = 1; i <= count; i++) {
+        const bedId = `${ward.replace(/\s+/g, "-")}-${String(i).padStart(2, "0")}`;
+        beds.set(bedId, { id: bedId, ward, building: "", roomClass: "kelas-3", patientId: null });
+      }
+    }
+  } else {
+    capacity = {};
+    beds = new Map<string, Bed>();
+    let globalIndex = 1;
+    for (const building of BUILDING_LAYOUT) {
+      for (const ward of building.wards) {
+        for (const [rc, count] of Object.entries(ward.roomClasses)) {
+          for (let i = 1; i <= count; i++) {
+            const wardKey = ward.name.replace(/\s+/g, "-");
+            const bedId = `${wardKey}-${String(globalIndex).padStart(2, "0")}`;
+            beds.set(bedId, {
+              id: bedId,
+              ward: ward.name,
+              building: building.name,
+              roomClass: rc as RoomClass,
+              patientId: null,
+            });
+            capacity[ward.name] = (capacity[ward.name] ?? 0) + 1;
+            globalIndex++;
+          }
+        }
+      }
     }
   }
 
