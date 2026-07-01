@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
 import { getEventSummary } from "./calendar.js";
-import { assessMortalityRisk } from "./clinical-knowledge.js";
+import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
 import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
 
@@ -107,7 +107,8 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     if (dies && patient) {
       const activeDx = patient.diagnoses.filter(d => d.active);
       const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
-      const cause = mortality.factors.length > 0 ? mortality.factors.join("; ") : `${primaryDx.name} complication`;
+      const terminalEvent = mapIcdToTerminalEvent(primaryDx.code, clock.rng);
+      const cause = mortality.factors.length > 0 ? mortality.factors.join("; ") : (terminalEvent ?? `${primaryDx.name} complication`);
       newMorgue.push({
         patientId: toDischarge.patientId, encounterId: toDischarge.id,
         primaryDiagnosis: primaryDx.name, icdCode: primaryDx.code,
@@ -160,9 +161,10 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
     if (dies && patient) {
       const activeDx = patient.diagnoses.filter(d => d.active);
       const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
+      const terminalEvent = mapIcdToTerminalEvent(primaryDx.code, clock.rng);
       const cause = mortality.factors.length > 0
         ? mortality.factors.join("; ")
-        : `${primaryDx.name} complication`;
+        : (terminalEvent ?? `${primaryDx.name} complication`);
 
       newMorgue.push({
         patientId: toDischarge.patientId,

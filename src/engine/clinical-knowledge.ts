@@ -563,6 +563,65 @@ export interface EscalationTrigger {
   escalationAction: ClinicalAction;
 }
 
+const TERMINAL_EVENTS: Record<string, string[]> = {
+  I10: ["Hypertensive crisis", "Intracerebral hemorrhage"],
+  E11: ["Diabetic ketoacidosis", "Hyperosmolar hyperglycemic state"],
+  J15: ["Respiratory failure due to pneumonia", "Sepsis due to pneumonia"],
+  N39: ["Urosepsis", "Septic shock"],
+  J45: ["Status asthmaticus", "Respiratory arrest"],
+  K29: ["Upper GI hemorrhage", "Perforated ulcer"],
+  A91: ["Dengue shock syndrome", "Severe dengue with hemorrhage"],
+  I50: ["Cardiogenic shock", "Acute pulmonary edema"],
+  A09: ["Hypovolemic shock due to dehydration", "Acute renal failure"],
+  E78: ["Acute myocardial infarction", "Acute ischemic stroke"],
+  N18: ["End-stage renal disease", "Hyperkalemic cardiac arrest"],
+  J44: ["Acute respiratory failure", "Ventilator-associated pneumonia"],
+  G40: ["Status epilepticus", "Sudden unexpected death in epilepsy"],
+  M17: ["Pulmonary embolism due to immobility"],
+  F32: ["Suicide", "Self-harm"],
+  O80: ["Postpartum hemorrhage", "Amniotic fluid embolism"],
+  O20: ["Hemorrhagic shock due to abortion", "Sepsis due to incomplete abortion"],
+  N20: ["Obstructive uropathy with sepsis", "Acute renal failure"],
+  I21: ["Cardiogenic shock", "Ventricular arrhythmia", "Cardiac arrest"],
+  S72: ["Fat embolism syndrome", "Postoperative pulmonary embolism"],
+  P07: ["Neonatal respiratory distress syndrome", "Intraventricular hemorrhage"],
+  H66: ["Intracranial complication of otitis media", "Meningitis"],
+  J20: ["Respiratory failure", "Bronchiolitis obliterans"],
+  K35: ["Perforated appendicitis with peritonitis", "Septic shock"],
+  N40: ["Acute urinary retention with urosepsis"],
+  C50: ["Metastatic breast cancer", "Sepsis due to neutropenia"],
+  C61: ["Metastatic prostate cancer"],
+  D25: ["Hemorrhagic shock due to uterine fibroid"],
+  K80: ["Acute cholangitis with sepsis", "Gallstone pancreatitis"],
+  M81: ["Hip fracture due to fall", "Pulmonary embolism"],
+  E05: ["Thyroid storm", "Cardiac arrhythmia"],
+  I63: ["Cerebral edema", "Brainstem herniation"],
+  A15: ["Respiratory failure due to TB", "Hemoptysis due to cavitary TB"],
+  B20: ["AIDS-defining opportunistic infection", "Wasting syndrome"],
+  L03: ["Necrotizing fasciitis", "Sepsis due to cellulitis"],
+  S06: ["Cerebral edema", "Intracranial hypertension"],
+  T14: ["Hemorrhagic shock", "Wound sepsis"],
+  E86: ["Hypovolemic shock", "Acute renal failure"],
+  D64: ["Heart failure due to severe anemia", "Acute coronary syndrome"],
+  A01: ["Intestinal perforation due to typhoid", "GI hemorrhage"],
+  B50: ["Cerebral malaria", "Severe malarial anemia"],
+  T20: ["Burn shock", "Inhalation injury"],
+  A27: ["Weil's disease with multi-organ failure", "Pulmonary hemorrhage"],
+  A82: ["Paralytic rabies", "Respiratory failure due to rabies"],
+  T63: ["Anaphylactic shock", "Neurotoxic paralysis"],
+  P36: ["Neonatal septic shock", "Neonatal meningitis"],
+  I05: ["Acute rheumatic fever with carditis", "Mitral valve regurgitation"],
+  B86: ["Secondary bacterial infection with sepsis"],
+  M54: ["Septic arthritis", "Spinal infection"],
+};
+
+export function mapIcdToTerminalEvent(code: string, rng?: () => number): string | null {
+  const events = TERMINAL_EVENTS[code];
+  if (!events || events.length === 0) return null;
+  const rand = rng ?? Math.random;
+  return events[Math.floor(rand() * events.length)] ?? null;
+}
+
 export const ESCALATION_TRIGGERS: EscalationTrigger[] = [
   { condition: "qSOFA ≥ 2 + fever", reason: "Suspected sepsis — escalate to senior physician", escalationAction: { type: "consult", label: "Penyakit Dalam", priority: 10, detail: "sepsis_alert" } },
   { condition: "HR > 120 + SBP < 90", reason: "Hemodynamic instability — ICU review needed", escalationAction: { type: "consult", label: "Jantung", priority: 10, detail: "icu_alert" } },

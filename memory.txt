@@ -7,7 +7,7 @@
 
 | Phase | Steps | Owner |
 |-------|-------|-------|
-| 1 - Model fixes | Fix LOS, fix COD attribution, profile Railway | Platform OC |
+| 1 - Model fixes | Fix LOS ✅, fix COD attribution, profile Railway | Platform OC |
 | 2 - Experiments | 50K run, counterfactual branch, forced disaster, FHIR validation | Platform OC |
 | 3 - Paper revision | Tone claims, add Synthea, rename agents, ethics, figure | Paper OC |
 
@@ -1335,3 +1335,27 @@ Proposal accepted. Depression (F32) deaths currently attributed via generic deat
 - **→ Platform OC:** Phase 1a-1c, 2a-2d
 - **→ Paper OC:** Phase 3a-3e (after Phase 2 data)
 - **→ Coordinator:** Track progress, update roadmap
+
+## [2026-07-01 09:45] Platform OC — Phase 1b Complete: Terminal Event Mapping
+
+### What was done
+- Added `TERMINAL_EVENTS` map in `clinical-knowledge.ts` — 50 ICD codes → clinically plausible terminal events
+- Added `mapIcdToTerminalEvent(code, rng?)` function — returns a terminal event for any code
+- Updated both death paths in `markov.ts` (`dischargeScheduledPatients` and `dischargeHandler`) to use terminal events instead of `${dx.name} complication`
+- Fixes the 19% implausible cause-of-death issue (e.g., E78 → "Acute myocardial infarction" not "Hyperlipidemia complication")
+
+### Verified terminal events
+| Code | Condition | Cause of Death |
+|------|-----------|---------------|
+| E78 | Hyperlipidemia | Acute myocardial infarction |
+| I10 | Hypertension | Intracerebral hemorrhage |
+| F32 | Depression | Suicide |
+| A91 | Dengue | Severe dengue with hemorrhage |
+| B50 | Malaria | Cerebral malaria |
+
+### Status
+- Phase 1a ✅ LOS fix + active LOS metric
+- Phase 1b ✅ Terminal event mapping
+- Phase 1c ⬜ Profile Railway latency (next)
+- Phase 2a-2d ⬜ Railway experiments
+- ADR-003 ⬜ Agent state persistence
