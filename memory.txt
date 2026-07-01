@@ -1517,7 +1517,7 @@ Not yet — respiratoryOrders (1798), dietOrders (809), medicalCharts (1287) gro
 - **D — State/scalar:** scenario, agent-learning, vitalsUpdateHandler (✅)
 - **E — Fixed:** specialty, medical-records (✅ backlog processing added)
 
-### Next: implementing receiver patterns for 3 worst offenders
-1. dietary.ts — fulfillment pass: mark orders >2 ticks old as "completed"
-2. respiratory.ts — fulfillment pass: mark orders >2 ticks old as "discontinued"  
-3. medical-records.ts — existing coding 20/12ticks, also close charts for discharged encounters faster
+### Receiver patterns implemented for 3 worst offenders ✅
+1. dietary.ts — fulfillment pass: discontinue orders >2 ticks old + discharged encounters → **capped at 50 (was 809)**
+2. respiratory.ts — fulfillment pass: discontinue orders >2 ticks old + discharged encounters → **capped at 50 (was 1798)**
+3. medical-records.ts — auto-code on discharge (skip "incomplete" stage) + code up to 30 per tick → **chart growth matches encounter rate**
