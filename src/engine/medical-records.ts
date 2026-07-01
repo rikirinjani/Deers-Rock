@@ -52,16 +52,18 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
     }
   }
 
-  // Code charts every 12 ticks
+  // Code charts every 12 ticks (process up to 20 per cycle)
   if (clock.tick > 0 && clock.tick % 12 === 0) {
+    let coded = 0;
     for (const [id, chart] of newCharts) {
+      if (coded >= 20) break;
       if (chart.status === "incomplete") {
         newCharts.set(id, {
           ...chart,
           status: "coded",
           coder: CODERS[Math.floor(clock.rng() * CODERS.length)]!,
         });
-        break;
+        coded++;
       }
     }
   }

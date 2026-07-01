@@ -299,17 +299,35 @@ export function runWorld(world: World, steps: number): World {
   return w;
 }
 
-export function buildHandlers(): ((state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState)[] {
-  return [
-    admissionHandler, outpatientHandler, newPatientHandler, agentHandler, referralHandler, scenarioHandler,
-    emergencyHandler, labHandler, aiPharmacyHandler, aiNurseHandler, aiDoctorHandler,
-    radiologyHandler, surgeryHandler, respiratoryHandler, dietaryHandler, socialWorkHandler,
-    bloodBankHandler, microbiologyHandler, pathologyHandler, cssdHandler, biomedHandler,
-    ipcHandler, clinicalNutritionHandler, radiotherapyHandler, dialysisHandler,
-    centralSupplyHandler, medicalRecordsHandler, specialtyHandler, billingHandler,
-    cashierHandler, vitalsUpdateHandler, icdTrackerHandler, outcomeHandler,
-    learningHandler, cleanupHandler,
-  ];
+type HandlerFn = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
+
+/** Wrap handler to run only every N ticks. Returns state unchanged on skipped ticks. */
+function everyN(fn: HandlerFn, n: number): HandlerFn {
+  return (state, clock, queue) => {
+    if (clock.tick > 0 && clock.tick % n !== 0) return state;
+    return fn(state, clock, queue);
+  };
+}
+
+const HANDLER_SKIP: [HandlerFn, number][] = [
+  [admissionHandler, 1], [outpatientHandler, 3], [newPatientHandler, 15],
+  [agentHandler, 1], [referralHandler, 15], [scenarioHandler, 5],
+  [emergencyHandler, 1], [labHandler, 1], [aiPharmacyHandler, 2],
+  [aiNurseHandler, 1], [aiDoctorHandler, 4],
+  [radiologyHandler, 2], [surgeryHandler, 3], [respiratoryHandler, 2],
+  [dietaryHandler, 3], [socialWorkHandler, 5],
+  [bloodBankHandler, 5], [microbiologyHandler, 5], [pathologyHandler, 5],
+  [cssdHandler, 5], [biomedHandler, 5],
+  [ipcHandler, 5], [clinicalNutritionHandler, 3], [radiotherapyHandler, 5],
+  [dialysisHandler, 5],
+  [centralSupplyHandler, 3], [medicalRecordsHandler, 3], [specialtyHandler, 2],
+  [billingHandler, 5], [cashierHandler, 5],
+  [vitalsUpdateHandler, 1], [icdTrackerHandler, 10], [outcomeHandler, 1],
+  [learningHandler, 10], [cleanupHandler, 10],
+];
+
+export function buildHandlers(): HandlerFn[] {
+  return HANDLER_SKIP.map(([fn, n]) => n > 1 ? everyN(fn, n) : fn);
 }
 
 export function resumeWorld(state: HospitalState, startTick: number, journalPath: string): World {

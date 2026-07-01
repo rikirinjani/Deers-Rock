@@ -1,0 +1,14 @@
+{
+  "failure_id": "paper-oc-2026-07-01-memory-pin",
+  "timestamp": "2026-07-01T11:00:00.000Z",
+  "trace_id": "paper-oc-2026-06-29",
+  "category": "workflow",
+  "severity": "minor",
+  "root_cause": "Updated pinned block at top of memory.txt but did not append a session record at the bottom. Coordinator reads from the tail of memory.txt and did not see the status update.",
+  "trace_summary": "Paper OC completed 9 SoftwareX minor revision tasks and updated the pinned status block at lines 5-23 of memory.txt with completion markers. However, no entry was appended to the end of the file. When Coordinator checked memory.txt, the pinned block was not visible from the tail read. User had to point out the oversight before Paper OC appended a session record.",
+  "failure_signature": {
+    "verifier_cause": "User/Coordinator asked 'have you push to memory? coordinator didnt see it'",
+    "agent_behavior": "Only updated the existing pinned block at the top of memory.txt instead of appending a new timestamped session record at the bottom",
+    "agent_mechanism": "Used edit (replace) on the pinned block section rather than appending a new entry at the end of the file"
+  }
+}

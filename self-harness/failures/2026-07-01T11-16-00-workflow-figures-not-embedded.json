@@ -1,0 +1,14 @@
+{
+  "failure_id": "d0e1f2a3-4b5c-6d7e-8f9a-0b1c2d3e4f5a",
+  "timestamp": "2026-07-01T11:16:00Z",
+  "trace_id": "c9f0e1d2-3a4b-5c6d-7e8f-9a0b1c2d3e4f",
+  "category": "workflow",
+  "severity": "cosmetic",
+  "root_cause": "Paper OC created figures (fig2-los-histogram.png, fig3-bed-occupancy.png) but forgot to embed them in the document. Round 2 reviewer noted placeholders instead of embedded images.",
+  "trace_summary": "Paper OC completed SoftwareX minor revision. All 9 reviewer tasks marked done. But post-submission check revealed figures exist in folder but were never referenced in the markdown document. Two of 4 Round 2 review packages flagged missing figures as a remaining gap.",
+  "failure_signature": {
+    "verifier_cause": "Round 2 re-review flagged 'figures remain placeholders' as a remaining issue",
+    "agent_behavior": "Figures were created and saved to disk but document was not updated to reference them",
+    "agent_mechanism": "Task completion was verified against a checklist of file creation, not document integration. No cross-reference step existed in the workflow."
+  }
+}

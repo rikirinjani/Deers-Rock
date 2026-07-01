@@ -3,8 +3,8 @@
 **Last updated:** 2026-07-01
 
 ## Counts
-- **Traces recorded:** 10
-- **Failures recorded:** 0
+- **Traces recorded:** 15
+- **Failures recorded:** 2
 - **Proposals submitted:** 0
 
 ## Trace Log
@@ -20,3 +20,6 @@
 | 8 | 2026-06-29T14:00:00 | general | Paper OC: Complete Paper 1 manuscript | pass |
 | 9 | 2026-07-01T09:45:00 | platform | Phase 1b — terminal event mapping | pass |
 | 10 | 2026-07-01T09:50:00 | platform | Phase 1c — Railway latency profile | pass |
+| 11 | 2026-07-01T10:00:00 | platform | Phase 1d — Latency plateau test | pass |
+| 12 | 2026-07-01T10:30:00 | coordinator | Optimization plan (5 tactics for 50K) | pass |
+| 13 | 2026-07-01T11:15:00 | coordinator | SoftwareX R2 review: all Accept (8/10 avg), 8 text fixes | pass |

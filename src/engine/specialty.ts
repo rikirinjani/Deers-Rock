@@ -69,17 +69,16 @@ export function specialtyHandler(state: HospitalState, clock: Clock, _queue: Eve
   };
 
   const newOrders = new Map(state.specialtyOrders);
-  newOrders.set(order.id, order);
+  newOrders.set(order.id, { ...order, status: "completed", completedAt: clock.hospitalTimeMs, findings: `${serviceName} completed. ${specialty === "cardiology" ? "Normal sinus rhythm" : specialty === "neurology" ? "No focal neurological deficit" : "Within normal limits"}.` });
 
-  if (clock.rng() > 0.5) {
-    const updated = new Map(newOrders);
-    updated.set(order.id, {
-      ...order,
-      status: "completed",
-      completedAt: clock.hospitalTimeMs + 60000,
-      findings: `${serviceName} completed. ${specialty === "cardiology" ? "Normal sinus rhythm" : specialty === "neurology" ? "No focal neurological deficit" : "Within normal limits"}.`,
-    });
-    return { ...state, specialtyOrders: updated };
+  // Process backlog: complete up to 5 "ordered" or "in_progress" orders
+  let backlogged = 0;
+  for (const [id, o] of newOrders) {
+    if (backlogged >= 5) break;
+    if (o.status === "ordered" || o.status === "in-progress") {
+      newOrders.set(id, { ...o, status: "completed", completedAt: clock.hospitalTimeMs, findings: o.findings ?? `${o.serviceName} completed.` });
+      backlogged++;
+    }
   }
 
   return { ...state, specialtyOrders: newOrders };

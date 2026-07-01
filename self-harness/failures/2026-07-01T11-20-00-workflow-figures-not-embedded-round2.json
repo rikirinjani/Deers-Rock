@@ -1,0 +1,14 @@
+{
+  "failure_id": "e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b",
+  "timestamp": "2026-07-01T11:20:00Z",
+  "trace_id": "c9f0e1d2-3a4b-5c6d-7e8f-9a0b1c2d3e4f",
+  "category": "workflow",
+  "severity": "minor",
+  "root_cause": "Recurring pattern: Paper OC marks 'add figures' as done when files are created, but does not embed them in the document. Same failure occurred in Round 1. Checklist item conflates file creation with document integration.",
+  "trace_summary": "Paper OC checked off 'figures created' for a second time. User confirmed files exist in folder but are not referenced in the markdown or rendered PDF. The previous failure record did not prevent recurrence because the checklist wording did not change.",
+  "failure_signature": {
+    "verifier_cause": "User manually verified that PDF has no embedded images despite task being marked done",
+    "agent_behavior": "Paper OC created PNG files but did not add image references to the markdown document or re-render the PDF",
+    "agent_mechanism": "Task description 'Embed figures in document' was marked done based on file creation alone. No verification step ensures document integration."
+  }
+}

@@ -142,7 +142,7 @@ export function dischargeHandler(state: HospitalState, clock: Clock, _queue: Eve
 
   if (activeEncounters.length === 0) return state;
 
-  const dischargeCount = activeEncounters.length > 10 && clock.rng() < 0.05 ? 1 : 0;
+  const dischargeCount = Math.min(activeEncounters.length, Math.max(1, Math.floor(activeEncounters.length / 350)));
   let newEncounters = new Map(state.encounters);
   let newBeds = new Map(state.beds);
   let newMorgue = [...(state.morgue || [])];
