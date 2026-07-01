@@ -2,14 +2,25 @@
 
 ## Outstanding Items (pinned)
 
-### Paper 1 — Experiment Extension (post-review)
-4 blind reviews all flagged 1000 ticks as insufficient. Target: 50K-100K ticks on Railway.
+### Paper 1 — SoftwareX Minor Revision (per 4 blind reviews)
+All reviews: Minor Revision, 6-8/10, zero rejects. Pivot from JAMIA worked.
 
-| Phase | Steps | Owner |
-|-------|-------|-------|
-| 1 - Model fixes | Fix LOS ✅, fix COD ✅, profile Railway | Platform OC |
-| 2 - Experiments | 50K run, counterfactual branch, forced disaster, FHIR validation | Platform OC |
-| 3 - Paper revision | Tone claims, add Synthea, rename agents, ethics, figure | Paper OC |
+| # | Task | Owner | Effort |
+|---|------|-------|--------|
+| 1 | Add SoftwareX metadata (version, DOI, repo, license, language) | Paper OC | 5 min |
+| 2 | Add feature comparison table (vs SimPy, AnyLogic, Synthea, MedModel) | Paper OC | 15 min |
+| 3 | Add 2-3 figures (LOS histogram, bed occupancy, disaster timeline) | Paper OC | 20 min |
+| 4 | Caveat 1000-tick as functional demo, not validation | Paper OC | Edit |
+| 5 | Source cultural calendar multipliers (citation) | Paper OC | 5 min |
+| 6 | FHIR adapter implementation details | Paper OC | 5 min |
+| 7 | Runtime performance (wall-clock for 1000 ticks) | Paper OC | Already have |
+| 8 | Tone down "simulation as self-critique" | Paper OC | Edit |
+| 9 | Bound generalization claims | Paper OC | Edit |
+
+No Platform OC dependencies. Estimated: 1 session.
+
+### Track B — Optimize (Platform OC, parallel)
+1. Profile handler costs → 2. Handler skipping → 3. State diff fix → 4. Reduce frequency → 5. Re-run 50K
 
 ### After Submission
 | Item | Owner | Epic |
@@ -1303,39 +1314,27 @@ Proposal accepted. Depression (F32) deaths currently attributed via generic deat
 | Forced scenarios excluded | Coordinator | ✅ Decision made |
 | Author info + cover letter | Coordinator | ⬜ Pending |
 
-## [2026-06-29] Coordinator — Experiment Extension Plan (Railway)
+## [2026-07-01] Coordinator — Parallel Plan: Submit + Optimize
 
 ### Context
-4 blind reviews flagged 1000 ticks (16.7 hrs) as insufficient. Target: 50K-100K ticks for steady-state. Local machine (Ryzen 3 4300U, 6GB RAM) will timeout/OOM. Solution: run experiments on Railway (already deployed, tick 2300+, 72MB/500MB stable).
+Latency profiling confirmed: super-linear growth does not plateau. Cloud VM won't help — algorithmic optimization is required before 50K+ ticks are feasible.
 
-### Phase 1: Model Fixes (prerequisites — experiments are meaningless without these)
-| Step | Owner | What | Why |
-|------|-------|------|-----|
-| 1a | Platform OC | Debug dischargeScheduledPatients — honor scheduled encounter, not random 15% | LOS stuck at 83 min despite 360-1440 tick delays |
-| 1b | Platform OC | Add terminalEvent mapping per ICD code (e.g., E78 → AMI → death) | Fix 19% implausible cause-of-death |
-| 1c | Platform OC | Profile Railway: per-tick latency at 1K, 5K, 10K, 50K ticks | Find breakpoint before committing to 100K |
+### Decision
+Run two tracks in parallel, no dependencies:
 
-### Phase 2: Experiments on Railway
-| Step | What | Method | Target |
-|------|------|--------|--------|
-| 2a | 50K-tick steady-state | 10 seeds, fixed model, sequential via API | LOS dist, occupancy equilibrium, mortality convergence |
-| 2b | Counterfactual | Branch at tick 5000 → +20 ICU beds → run to 50000 → compare | Mortality delta — proves architecture claim |
-| 2c | Forced disaster | Same seed, two branches: no disaster vs tsunami at tick 2000 | Fixes methodologically unsound 82% claim |
-| 2d | FHIR validator | Export bundles → pass through HL7 official validator | Concrete conformance statement |
+**Track A — Submit to SoftwareX (Paper OC)**
+- Reframe from clinical validation → software architecture paper
+- Tone down claims, rename agents, add Synthea, ethics paragraph, architecture figure
+- Target: SoftwareX short paper (5-6 pages, focused on impact + reusability)
+- Timeline: 1 session this week
 
-### Phase 3: Paper Revision
-| Step | Owner | What |
-|------|-------|------|
-| 3a | Paper OC | Tone down "new category" → "novel combination"; drop Kubernetes analogy |
-| 3b | Paper OC | Add Synthea to related work; add FHIR validation results |
-| 3c | Paper OC | Rename "AI agents" → "rule-based clinical agents" |
-| 3d | Paper OC | Add ethics/bias paragraph on cultural scenarios |
-| 3e | Paper OC | Add one architecture figure |
-
-### Handoff
-- **→ Platform OC:** Phase 1a-1c, 2a-2d
-- **→ Paper OC:** Phase 3a-3e (after Phase 2 data)
-- **→ Coordinator:** Track progress, update roadmap
+**Track B — Optimize Engine (Platform OC)**
+- Profile handler costs → find top 5 bottlenecks
+- Implement handler skipping (skip when no relevant state)
+- Fix state diff bottleneck (only diff changed collections, not all 30)
+- Reduce frequency for low-impact handlers (cleanup, social work → every 5 ticks)
+- Re-run 50K experiment after fixes
+- Timeline: 1-2 weeks, parallel with Track A
 
 ## [2026-07-01 09:45] Platform OC — Phase 1b Complete: Terminal Event Mapping
 
@@ -1402,3 +1401,28 @@ Railway profiled up to 2000 ticks (186ms/tick, still climbing). If latency **pla
 
 ### Recommendation
 Route performance optimization to Epic II (Clinical Fidelity) post-JAMIA. The 10×1000 data remains the practical maximum for the current architecture. Proceed with ADR-003 (agent persistence) or queue for post-paper work.
+
+## [2026-07-01 10:30] Paper OC — SoftwareX Submission Draft Complete
+
+### What was produced
+- `docs/papers/deers-rock-softwarex.md` — ~2,500 word short paper for SoftwareX
+- `docs/papers/deers-rock-softwarex.pdf` — 155 KB rendered PDF
+- `docs/papers/deers-rock-softwarex.html` — intermediate HTML
+
+### Changes from JAMIA version
+| Change | JAMIA | SoftwareX |
+|--------|-------|-----------|
+| Length | ~4,200 words | ~2,500 words |
+| Framing | Clinical platform | Software architecture |
+| Agents | "AI agents" | "Rule-based clinical agents" |
+| Claims | "New category" | "Novel combination" |
+| Kubernetes analogy | Present | Dropped |
+| Synthea | Not cited | Added [6] |
+| Ethics paragraph | None | Added §5 |
+| Architecture figure | None | Added ASCII diagram §3.1 |
+| Clinical validation | Central claim | Removed |
+| References | 14 | 12 |
+
+### Status
+- Track A (submit) ✅ Draft complete — Coordinator adds author info
+- Track B (optimize) — Platform OC's queue

@@ -20,6 +20,8 @@ const MAX_NURSING = 300;
 const MAX_CHARGES = 100;
 const MAX_CLAIMS = 100;
 const MAX_PAYMENTS = 50;
+/** Performance: prune completed encounters (main driver of per-tick latency) */
+const MAX_ENCOUNTERS = 500;
 
 function pruneOldest<K, V>(map: Map<K, V>, max: number, predicate: (v: V) => boolean, sortKey: (v: V) => number): Map<K, V> {
   if (map.size <= max) return map;
@@ -32,7 +34,8 @@ function pruneOldest<K, V>(map: Map<K, V>, max: number, predicate: (v: V) => boo
   return r;
 }
 
-export function cleanupHandler(state: HospitalState, _clock: Clock, _queue: EventQueue): HospitalState {
+export function cleanupHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  if (clock.tick > 0 && clock.tick % 10 !== 0) return state;
   return {
     ...state,
     labOrders: pruneOldest(state.labOrders, MAX_LAB, o => o.status === "resulted", o => o.orderedAt),
@@ -51,5 +54,6 @@ export function cleanupHandler(state: HospitalState, _clock: Clock, _queue: Even
     charges: pruneOldest(state.charges, MAX_CHARGES, (o: Charge) => o.paid, o => o.billedAt),
     insuranceClaims: pruneOldest(state.insuranceClaims, MAX_CLAIMS, (o: InsuranceClaim) => o.status === "paid" || o.status === "denied", o => o.submittedAt),
     payments: pruneOldest(state.payments, MAX_PAYMENTS, () => true, o => o.paidAt),
+    encounters: pruneOldest(state.encounters, MAX_ENCOUNTERS, o => o.status !== "active" && o.endTime !== null, o => o.endTime ?? o.startTime),
   };
 }
