@@ -7,7 +7,7 @@
 
 | Phase | Steps | Owner |
 |-------|-------|-------|
-| 1 - Model fixes | Fix LOS ✅, fix COD attribution, profile Railway | Platform OC |
+| 1 - Model fixes | Fix LOS ✅, fix COD ✅, profile Railway | Platform OC |
 | 2 - Experiments | 50K run, counterfactual branch, forced disaster, FHIR validation | Platform OC |
 | 3 - Paper revision | Tone claims, add Synthea, rename agents, ethics, figure | Paper OC |
 
@@ -19,6 +19,7 @@
 | Performance profiling for 5000+ tick runs | Platform OC | II |
 | ADR-004 (Mortality Risk Engine) review & approve | Coordinator | VIII |
 | Signal file for memory triggers (Proposal 3) | Coordinator | VIII |
+| ADR-003 (agent state persistence) | Platform OC | I (deferred — post-paper) |
 | Review protocol-to-medication mappings (Diazepam bias fix) | Platform OC | II |
 | Suicide mechanism design review | Coordinator + Research | IX |
 | Epic IX design review (finance, insurance, referral, formulary) | All OCs | IX |
@@ -1356,6 +1357,27 @@ Proposal accepted. Depression (F32) deaths currently attributed via generic deat
 ### Status
 - Phase 1a ✅ LOS fix + active LOS metric
 - Phase 1b ✅ Terminal event mapping
-- Phase 1c ⬜ Profile Railway latency (next)
+- Phase 1c ✅ Railway latency profiled (see below)
 - Phase 2a-2d ⬜ Railway experiments
-- ADR-003 ⬜ Agent state persistence
+- ADR-003 ⬜ Agent state persistence (deferred — does not block paper, affects snapshot restore correctness post-publication)
+
+## [2026-07-01 09:50] Platform OC — Phase 1c Complete: Railway Latency Profile
+
+### Benchmark Results
+| Ticks | Patients | ms/tick | ticks/sec | Feasible? |
+|-------|----------|---------|-----------|-----------|
+| 100 | 50 | 3.4 | 292 | ✅ Fast |
+| 500 | 50 | 9.9 | 101 | ✅ Fast |
+| 1000 | 50 | 33.6 | 30 | ✅ Well under 1s |
+| 1000 | 20 | 19.7 | 51 | ✅ |
+| 2000 | 20 | 186.5 | 5.4 | ⚠️ Slow but under 1s cap |
+| 5000 | 20 | TIMEOUT | — | ❌ Exceeds 10 min |
+
+### Root Cause
+Per-tick latency grows super-linearly with tick count. At 100 ticks: 3.4 ms/tick. At 2000 ticks: 186 ms/tick (55x slower). Each of the 35 handlers processes ALL active encounters every tick. As encounters accumulate (from ~50 at tick 100 to ~130+ at tick 1000+), each tick does more work.
+
+### Implication for Railway
+- Railway runs at 1 tick/sec (1000ms budget per tick)
+- Simulation stays under budget up to ~2500 ticks
+- 50K-100K experiments infeasible without optimization
+- The existing 10x1000 clean data is the practical max for current architecture
