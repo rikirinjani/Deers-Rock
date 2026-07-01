@@ -26,6 +26,17 @@
 6. Reduce snapshot frequency ✅
 7. Re-run 50K (pending encounter equilibrium fix — high active encounter count still limits throughput)
 
+**Track B headline numbers:**
+- 1500t: 227 → **24 ms/tick** (89% reduction)
+- 2000t: TIMEOUT → **29 ms/tick** (was impossible)
+- dietOrders: 1798 → **50** (capped)
+- respiratoryOrders: 809 → **50** (capped)
+- 6 handlers time-gated (outpatient 7-15, dietary 6-19, billing 8-17, socialWork 8-17, medRecords 8-17, outpatientPharmacy 8-20)
+- 2 handlers split: pharmacy (clinical 24/7 + outpatient 8-20), cashier (ED/inpatient/outpatient)
+- Snapshot frequency: 20→100 ticks
+- Journal writes: batched per tick
+- See Platform OC entries below for per-step details
+
 ### After Submission
 | Item | Owner | Epic |
 |------|-------|------|
