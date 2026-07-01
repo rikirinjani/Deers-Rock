@@ -75,6 +75,14 @@ export function initJournal(dbPath?: string): void {
   listSnapsStmt = db.prepare("SELECT tick, created_at FROM world_snapshots ORDER BY tick ASC");
 }
 
+export function journalBeginTransaction(): void {
+  if (db) db.exec("BEGIN TRANSACTION");
+}
+
+export function journalCommitTransaction(): void {
+  if (db) db.exec("COMMIT");
+}
+
 export function journalAppend(
   tick: number, hospitalTimeMs: number,
   eventType: string,

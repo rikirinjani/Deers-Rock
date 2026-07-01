@@ -34,7 +34,7 @@ import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { specialtyHandler } from "./specialty.js";
 import { edCashierHandler, inpatientCashierHandler, outpatientCashierHandler, billingHandler } from "./finance.js";
-import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge } from "./journal.js";
+import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge, journalBeginTransaction, journalCommitTransaction } from "./journal.js";
 import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
@@ -279,10 +279,12 @@ export function step(world: World): World {
   state = { ...state, _calendarTicks: newClock.tick, _rngSeed: newClock.rngSeed };
 
   if (snap && journaling) {
+    journalBeginTransaction();
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
     if (newClock.tick > 0 && newClock.tick % 20 === 0) {
       saveSnapshot(newClock.tick, state);
     }
+    journalCommitTransaction();
     if (newClock.tick > 0 && newClock.tick % 500 === 0) {
       journalExportAndPurge(newClock.tick);
     } else if (newClock.tick > 0 && newClock.tick % 100 === 0) {
