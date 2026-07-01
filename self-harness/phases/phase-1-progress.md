@@ -25,3 +25,6 @@
 | 13 | 2026-07-01T11:15:00 | coordinator | SoftwareX R2 review: all Accept (8/10 avg), 8 text fixes | pass |
 | 14 | 2026-07-01T10:30:00 | platform | Track B: handler frequency + cleanup — 89% reduction at 1500t | pass |
 | 15 | 2026-07-01T14:00:00 | platform | Handler categorization (A/B/C/D/E) + plan for 3 worst offenders | pass |
+| 16 | 2026-07-01T14:30:00 | platform | Receiver patterns for dietary/respiratory/charts — diet 1798→50 | pass |
+| 17 | 2026-07-01T15:00:00 | platform | Step 4: pharmacy+cashier split + time-gating. Before/after table | pass |
+| 18 | 2026-07-01T15:30:00 | platform | Track B complete: steps 5 (batch journal) + 6 (snapshot 20→100) | pass |
