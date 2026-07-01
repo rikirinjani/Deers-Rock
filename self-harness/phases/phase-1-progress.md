@@ -28,3 +28,4 @@
 | 16 | 2026-07-01T14:30:00 | platform | Receiver patterns for dietary/respiratory/charts — diet 1798→50 | pass |
 | 17 | 2026-07-01T15:00:00 | platform | Step 4: pharmacy+cashier split + time-gating. Before/after table | pass |
 | 18 | 2026-07-01T15:30:00 | platform | Track B complete: steps 5 (batch journal) + 6 (snapshot 20→100) | pass |
+| 19 | 2026-07-01T16:00:00 | platform | Fix dischargeHandler missing from pipeline (dead code). Active 1244→0-5. 50K tracker updated. | pass |
