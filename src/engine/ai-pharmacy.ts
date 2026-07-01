@@ -26,7 +26,19 @@ export interface PharmacistCaseRecord {
   lastReviewTick: number;
 }
 
-export function aiPharmacyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+/** 24/7 clinical pharmacy: review + dispense for ED/inpatient. Skips outpatient orders. */
+export function aiClinicalPharmacyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  return processPharmacyOrders(state, clock, "inpatient");
+}
+
+/** Outpatient pharmacy (8am-8pm): dispense for poli encounters only */
+export function aiOutpatientPharmacyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  const hour = Math.floor((clock.tick % 1440) / 60);
+  if (hour < 8 || hour >= 20) return state;
+  return processPharmacyOrders(state, clock, "outpatient");
+}
+
+function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpatient" | "outpatient"): HospitalState {
   if (clock.tick % 2 !== 0) return state;
 
   const newMedOrders = new Map(state.medicationOrders);
@@ -37,7 +49,18 @@ export function aiPharmacyHandler(state: HospitalState, clock: Clock, _queue: Ev
     .filter(a => a.role === "apoteker" && a.status.inShift && a.status.kesehatan !== "sakit_berat");
 
   const orderedMeds = Array.from(newMedOrders.values())
-    .filter(o => o.status === "ordered");
+    .filter(o => o.status === "ordered")
+    .filter(o => {
+      if (mode === "inpatient") {
+        const enc = stateMut.encounters.get(o.encounterId);
+        return enc && enc.type !== "outpatient";
+      }
+      if (mode === "outpatient") {
+        const enc = stateMut.encounters.get(o.encounterId);
+        return enc && enc.type === "outpatient";
+      }
+      return true;
+    });
 
   for (const order of orderedMeds) {
     const patient = stateMut.patients.get(order.patientId);

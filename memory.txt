@@ -19,12 +19,12 @@
 
 ### Track B — Optimize (Platform OC, parallel)
 1. Profile handler costs ✅
-2. **Archive completed orders** ← active (resp/diet/charts grow unbounded at 4K ticks)
+2. Archive completed orders ✅ (diet: 809→50, resp: 1798→50, charts: stable)
 3. Reduce handler frequency ✅ (35→17 frequent, 89% latency cut)
-4. Selective handler execution (follows from T2)
+4. **Selective handler execution** ← active
 5. Batch journal writes
 6. Reduce snapshot frequency
-7. Re-run 50K after T2+T4
+7. Re-run 50K after T4
 
 ### After Submission
 | Item | Owner | Epic |

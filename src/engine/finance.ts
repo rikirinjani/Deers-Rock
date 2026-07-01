@@ -86,26 +86,26 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
   return { ...state, charges: newCharges, insuranceClaims: newClaims };
 }
 
-export function cashierHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+function processCashier(state: HospitalState, clock: Clock, encounterType: string): HospitalState {
   let newPayments = new Map(state.payments);
   const newClaims = new Map(state.insuranceClaims);
 
-  if (clock.tick % 10 !== 0) return { ...state, insuranceClaims: newClaims, payments: newPayments };
-
   for (const [id, claim] of newClaims) {
-    if (claim.status === "paid" && claim.patientResponsibility > 0) {
-      const payment: Payment = {
-        id: `PAY-${clock.tick}-${claim.patientId}`,
-        encounterId: claim.encounterId,
-        patientId: claim.patientId,
-        type: clock.rng() > 0.5 ? "cash" : "card",
-        amount: claim.patientResponsibility,
-        paidAt: clock.hospitalTimeMs,
-        note: `Patient responsibility for ${claim.id}`,
-      };
-      newPayments.set(payment.id, payment);
-      break;
-    }
+    if (claim.status !== "paid" || claim.patientResponsibility <= 0) continue;
+    const enc = state.encounters.get(claim.encounterId);
+    if (!enc || enc.type !== encounterType) continue;
+
+    const payment: Payment = {
+      id: `PAY-${clock.tick}-${claim.patientId}`,
+      encounterId: claim.encounterId,
+      patientId: claim.patientId,
+      type: clock.rng() > 0.5 ? "cash" : "card",
+      amount: claim.patientResponsibility,
+      paidAt: clock.hospitalTimeMs,
+      note: `Patient responsibility for ${claim.id}`,
+    };
+    newPayments.set(payment.id, payment);
+    break;
   }
 
   if (newPayments.size > MAX_PAYMENTS) {
@@ -115,4 +115,16 @@ export function cashierHandler(state: HospitalState, clock: Clock, _queue: Event
   }
 
   return { ...state, insuranceClaims: newClaims, payments: newPayments };
+}
+
+export function edCashierHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
+  return processCashier(state, clock, "emergency");
+}
+
+export function inpatientCashierHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
+  return processCashier(state, clock, "admission");
+}
+
+export function outpatientCashierHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
+  return processCashier(state, clock, "outpatient");
 }

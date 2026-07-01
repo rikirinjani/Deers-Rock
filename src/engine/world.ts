@@ -11,7 +11,7 @@ import { icdTrackerHandler } from "./icd-tracker.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { medAdminHandler } from "./pharmacy.js";
-import { aiPharmacyHandler } from "./ai-pharmacy.js";
+import { aiClinicalPharmacyHandler, aiOutpatientPharmacyHandler } from "./ai-pharmacy.js";
 import { aiNurseHandler } from "./ai-nurse.js";
 import { orderCompleteHandler } from "./physician.js";
 import { aiDoctorHandler } from "./ai-doctor.js";
@@ -21,7 +21,6 @@ import { surgeryHandler, surgeryResultHandler } from "./surgery.js";
 import { respiratoryHandler } from "./respiratory.js";
 import { dietaryHandler } from "./dietary.js";
 import { socialWorkHandler } from "./social-work.js";
-import { centralSupplyHandler } from "./central-supply.js";
 import { bloodBankHandler } from "./blood-bank.js";
 import { microbiologyHandler } from "./microbiology.js";
 import { pathologyHandler } from "./pathology.js";
@@ -31,11 +30,12 @@ import { ipcHandler } from "./ipc.js";
 import { clinicalNutritionHandler } from "./clinical-nutrition.js";
 import { radiotherapyHandler } from "./radiotherapy.js";
 import { dialysisHandler } from "./dialysis.js";
-import { scenarioHandler } from "./scenario.js";
+import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
-import { billingHandler, cashierHandler } from "./finance.js";
-import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge } from "./journal.js";
 import { specialtyHandler } from "./specialty.js";
+import { edCashierHandler, inpatientCashierHandler, outpatientCashierHandler, billingHandler } from "./finance.js";
+import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge } from "./journal.js";
+import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
 import { generateAgentPool } from "../agent/generator.js";
@@ -312,7 +312,7 @@ function everyN(fn: HandlerFn, n: number): HandlerFn {
 const HANDLER_SKIP: [HandlerFn, number][] = [
   [admissionHandler, 1], [outpatientHandler, 3], [newPatientHandler, 15],
   [agentHandler, 1], [referralHandler, 15], [scenarioHandler, 5],
-  [emergencyHandler, 1], [labHandler, 1], [aiPharmacyHandler, 2],
+  [emergencyHandler, 1], [labHandler, 1], [aiClinicalPharmacyHandler, 2],
   [aiNurseHandler, 1], [aiDoctorHandler, 4],
   [radiologyHandler, 2], [surgeryHandler, 3], [respiratoryHandler, 2],
   [dietaryHandler, 3], [socialWorkHandler, 5],
@@ -321,9 +321,9 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [ipcHandler, 5], [clinicalNutritionHandler, 3], [radiotherapyHandler, 5],
   [dialysisHandler, 5],
   [centralSupplyHandler, 3], [medicalRecordsHandler, 3], [specialtyHandler, 2],
-  [billingHandler, 5], [cashierHandler, 5],
+  [billingHandler, 5], [edCashierHandler, 3], [inpatientCashierHandler, 5], [outpatientCashierHandler, 5],
   [vitalsUpdateHandler, 1], [icdTrackerHandler, 10], [outcomeHandler, 1],
-  [learningHandler, 10], [cleanupHandler, 10],
+  [learningHandler, 10], [cleanupHandler, 10], [aiOutpatientPharmacyHandler, 3],
 ];
 
 export function buildHandlers(): HandlerFn[] {
