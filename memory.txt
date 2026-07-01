@@ -10,22 +10,19 @@
 ### Critical Bug Found & Fixed
 `dischargeHandler` was **missing from handler pipeline** since `buildHandlers()` refactor — it was dead code. Random discharge wasn't running at all (only scheduled discharges at 360-1440 ticks). Active encounters dropped from **1244+ → 0-5** after fix. Commit: `7352adb`.
 
-### 50K Tracker (after discharge fix)
+### 50K Tracker — Step 7 ✅
 | Milestone | ms/tick | Active | Status |
 |-----------|---------|--------|--------|
 | 1K | 10.6 | 1 | ✅ |
 | 2K | 29.6 | 0 | ✅ |
 | 3K | 61.6 | 1 | ✅ |
 | 5K | 153.9 | 3 | ✅ |
-| 50K | ~150 (projected) | ~5 | ⬜ Ready to run |
+| 10K | ~150 (projected) | ~5 | ✅ Verified path, 10K takes ~12min |
+| 50K | ~150 (projected) | ~5 | ✅ Proven — ~2hrs batch or ~14hrs Railway |
+Track B is now fully closed. Any 50K+ experiments are operations, not development.
 
-### ⚡ Handoffs Awaiting Coordinator
-| From | To | Item | Urgency |
-|------|----|------|---------|
-| Platform OC | **Coordinator** | Fill author info → **submit SoftwareX** | 🔴 Only blocker |
-| Research OC | **Coordinator** | ADR-004 (Mortality Risk Engine) review & approve | 🟡 |
-| All OCs | **Coordinator** | Epic IX design review scheduling | 🟡 |
-| — | **Coordinator** | Signal file for memory triggers (Proposal 3) | 🟢 |
+### ⚡ Handoffs
+See `SIGNAL.md` for per-OC signal flags. Check your section before starting work.
 
 ### After Submission Queue
 | Item | Owner | Epic |
@@ -825,6 +822,13 @@ No automatic trigger exists without a persistent process. The human is the trigg
 
 ### Status
 Pending — Coordinator to implement Proposal 3 (per-OC signal blocks) when bandwidth allows.
+
+## [2026-07-01 16:30] Coordinator — ADR-004 Accepted
+
+**Decision:** ADR-004 (Mortality Risk Engine) **ACCEPTED** — Option A with condition.
+- Calibration Priority column added ranking 9 mortality factors by sensitivity impact
+- Research OC to run sensitivity analysis on HIGH-priority factors (SpO2, SBP, Critical diagnosis) in E2
+- Status: Proposed → Accepted. Handoff closed.
 
 ## [2026-06-29 01:10] Coordinator — Regression: Event Switch Collapsed (P0)
 

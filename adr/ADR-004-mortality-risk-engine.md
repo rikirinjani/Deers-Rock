@@ -1,7 +1,7 @@
 # ADR-004: Mortality Risk Engine
 
-**Status:** Proposed (drafted by Research OC)
-**Date:** 2026-06-28
+**Status:** Accepted
+**Date:** 2026-07-01
 **Owner:** Research OC → Coordinator (for approval)
 
 ---
@@ -20,17 +20,17 @@ These probabilities directly encode the simulation's answer to "how often do pat
 
 The scoring function uses 9 factors with the following weights:
 
-| Factor | Weight | Evidence Base |
-|--------|--------|---------------|
-| Age > 75 | +2 | Unspecified |
-| Age > 60 | +1 | Unspecified |
-| SpO2 < 90% | +2 | Unspecified |
-| SBP < 90 mmHg | +2 | Unspecified |
-| HR >120 or <50 | +1 | Unspecified |
-| Fever > 39°C | +1 | Unspecified |
-| RR > 24 | +1 | Unspecified |
-| Critical diagnosis (I21, I50, R57, A41, I63, J84, A91) | +2 | Unspecified |
-| ≥3 comorbidities | +1 | Unspecified |
+| Factor | Weight | Evidence Base | Calibration Priority |
+|--------|--------|---------------|---------------------|
+| Age > 75 | +2 | Unspecified | MEDIUM — affects geriatric subset only |
+| Age > 60 | +1 | Unspecified | MEDIUM — broad population, low weight |
+| SpO2 < 90% | +2 | Unspecified | HIGH — high weight, high prevalence |
+| SBP < 90 mmHg | +2 | Unspecified | HIGH — high weight, shock-defining |
+| HR >120 or <50 | +1 | Unspecified | MEDIUM — common but low weight |
+| Fever > 39°C | +1 | Unspecified | LOW — low weight, narrow trigger range |
+| RR > 24 | +1 | Unspecified | MEDIUM — common but low weight |
+| Critical diagnosis (I21, I50, R57, A41, I63, J84, A91) | +2 | Unspecified | HIGH — high weight, directly maps to COD |
+| ≥3 comorbidities | +1 | Unspecified | MEDIUM — common in elderly but low weight |
 
 Risk tiers: high ≥5, moderate ≥3, low <3.
 
@@ -56,9 +56,13 @@ It is unknown whether system-level mortality is robust to small changes in tier 
 
 ## Decision
 
-**Option A (Recommended):** Document with plausible clinical ranges and mark as calibration targets
-**Option B:** Leave undocumented (current state)
-**Option C:** Remove and replace with evidence-based scoring from published Indonesian hospital mortality data
+**Accepted** (2026-07-01) — Option A with condition.
+
+**Condition:** Calibration Priority column added to factors table. Research OC to rank the HIGH-priority factors (SpO2, SBP, Critical diagnosis) for sensitivity analysis in E2.
+
+**Rejected options:**
+- Option B (leave undocumented) would violate Constitution §3.3
+- Option C (replace with published data) is deferred — suitable published Eastern Indonesia mortality data is not yet in hand
 
 ## Consequences
 
