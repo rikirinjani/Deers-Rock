@@ -80,7 +80,10 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     };
     newEncounters.set(encounter.id, encounter);
 
-    const dischargeDelay = 360 + Math.floor(clock.rng() * 1080);
+    const isInpatient = encounter.type === "admission";
+    const dischargeDelay = isInpatient
+      ? 4320 + Math.floor(clock.rng() * 5760)   // admission: 3-7 days (avg 5)
+      : 1440 + Math.floor(clock.rng() * 2880);  // emergency: 1-3 days (avg 2)
     queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
   }
 

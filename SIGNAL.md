@@ -25,10 +25,10 @@
 - **Mortality distribution**: 19 ICD codes validated per Paper 1 requirements ✅
 - **ADR-004**: Accepted with calibration priority column ✅
 - **Track B Step 7**: 50K feasible at ~150ms/tick. Active encounters stabilized at 0-5.
+- **LOS calibration**: admission mean 5d (3-7d), emergency mean 2d (1-3d). Old formula was 6-24h (ED obs times).
 
 ## → Paper OC
 - **SoftwareX**: All 8 reviewer fixes done. Author info needed from Coordinator → submit.
-- **No pending signals**
 
 ---
 
