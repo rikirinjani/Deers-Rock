@@ -1381,3 +1381,24 @@ Per-tick latency grows super-linearly with tick count. At 100 ticks: 3.4 ms/tick
 - Simulation stays under budget up to ~2500 ticks
 - 50K-100K experiments infeasible without optimization
 - The existing 10x1000 clean data is the practical max for current architecture
+
+### Key Question — Does per-tick latency plateau after saturation?
+Railway profiled up to 2000 ticks (186ms/tick, still climbing). If latency **plateaus** after saturation (~2000 ticks), a $20-40/mo cloud VM could handle 50K ticks. If it **keeps climbing** (SQLite journal growth, state diff accumulation), no hardware upgrade helps — algorithmic fixes needed first.
+
+**→ Platform OC:** Run one test: 3000 ticks, measure ms/tick at tick 2000 vs tick 3000. If ms/tick flattens → cloud is viable. If it continues climbing → need handler skipping / state diff optimization before any hardware upgrade.
+
+## [2026-07-01 10:00] Platform OC — Latency Test Results: Does NOT Plateau
+
+### Result: Latency climbs continuously
+| Range | ms/tick | vs baseline |
+|-------|---------|-------------|
+| 0→1000 | 32.7 | 1× |
+| 1000→1500 | 300.0 | **9×** |
+| 1500→2000 | 727.0 | **22×** |
+| 2000+ | TIMEOUT | — |
+
+### Conclusion
+**Algorithmic optimization required** — no hardware upgrade helps. Every tick processes ALL 35 handlers against ALL active encounters. As encounters grow (50→130+), each handler does proportionally more work. The fix is to skip handlers when no relevant state exists, or reduce processing frequency for low-impact handlers.
+
+### Recommendation
+Route performance optimization to Epic II (Clinical Fidelity) post-JAMIA. The 10×1000 data remains the practical maximum for the current architecture. Proceed with ADR-003 (agent persistence) or queue for post-paper work.
