@@ -37,6 +37,19 @@
 - Journal writes: batched per tick
 - See Platform OC entries below for per-step details
 
+**50K re-run tracker:**
+| Milestone | ms/tick | Status | Blocked by |
+|-----------|---------|--------|------------|
+| 1K | 12.4 | ✅ | — |
+| 2K | 32.7 | ✅ | — |
+| 3K | 81.6 | ✅ | — |
+| 5K | — | ❌ | Encounters hit ~1240, latency would be ~125ms/tick. 50K impossible without fixing encounter equilibrium |
+| 10K | — | ❌ | ~2800 encounters → ~500ms/tick estimate |
+| 25K | — | ❌ | Would exceed 1s/tick Railway cap by 10K |
+| 40K | — | ❌ | — |
+| 50K | — | ❌ | — |
+Encounters grow at ~185 net per 1000 ticks. At 50K: ~9500 encounters. Each handler iterates over all encounters. Fix: match discharge rate to admission rate (throughput equilibrium).
+
 ### After Submission
 | Item | Owner | Epic |
 |------|-------|------|
