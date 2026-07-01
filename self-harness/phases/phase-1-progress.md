@@ -23,3 +23,5 @@
 | 11 | 2026-07-01T10:00:00 | platform | Phase 1d — Latency plateau test | pass |
 | 12 | 2026-07-01T10:30:00 | coordinator | Optimization plan (5 tactics for 50K) | pass |
 | 13 | 2026-07-01T11:15:00 | coordinator | SoftwareX R2 review: all Accept (8/10 avg), 8 text fixes | pass |
+| 14 | 2026-07-01T10:30:00 | platform | Track B: handler frequency + cleanup — 89% reduction at 1500t | pass |
+| 15 | 2026-07-01T14:00:00 | platform | Handler categorization (A/B/C/D/E) + plan for 3 worst offenders | pass |

@@ -8,7 +8,7 @@
 **Remaining fixes before submission (all text edits, 1 session):**
 | # | Task | Owner | Effort | Status |
 |---|------|-------|--------|--------|
-| 1 | Embed fig2-los-histogram.png and fig3-bed-occupancy.png in document, re-render PDF | Paper OC | 5 min | **⚠️ Markdown fixed, images embedded. HTML/PDF need regeneration from updated source (markdown conversion tool not available on this machine).** |
+| 1 | Embed fig2-los-histogram.png and fig3-bed-occupancy.png in document, re-render PDF | Paper OC | 5 min | ✅ Images embedded in HTML/PDF via Chrome headless. PDF regenerated (505 KB). |
 | 2 | Add post-hoc caveat to 82% mortality (3 vs 7 seeds) | Paper OC | 1 sentence | ✅ |
 | 3 | Add FHIR conformance note (profiles, test status) | Paper OC | 2 lines | ✅ |
 | 4 | Clarify Python→TypeScript (paper was always TS, reviewer misread) | Paper OC | 1 line | ✅ |
@@ -18,13 +18,13 @@
 | 8 | "New testing paradigm" → "testing approach" | Paper OC | 1 edit | ✅ |
 
 ### Track B — Optimize (Platform OC, parallel)
-1. Profile handler costs ✅ (30% win)
-2. Archive completed orders
-3. Reduce handler frequency
-4. Selective handler execution
+1. Profile handler costs ✅
+2. **Archive completed orders** ← active (resp/diet/charts grow unbounded at 4K ticks)
+3. Reduce handler frequency ✅ (35→17 frequent, 89% latency cut)
+4. Selective handler execution (follows from T2)
 5. Batch journal writes
 6. Reduce snapshot frequency
-7. Re-run 50K after optimization
+7. Re-run 50K after T2+T4
 
 ### After Submission
 | Item | Owner | Epic |
@@ -1471,12 +1471,22 @@ Route performance optimization to Epic II (Clinical Fidelity) post-JAMIA. The 10
 
 ### Files
 - `docs/papers/deers-rock-softwarex.md` — all 8 edits applied
-- `docs/papers/deers-rock-softwarex.pdf` — rendered with embedded figures (195 KB)
+- `docs/papers/deers-rock-softwarex.pdf` — rendered with embedded figures (505 KB)
 - `docs/papers/fig2-los-histogram.png`
 - `docs/papers/fig3-bed-occupancy.png`
 
 ### Remaining for submission
 - Coordinator: Author info → submit
+
+## [2026-07-01 12:10] Paper OC — Task 1 redo: images embedded in PDF properly
+
+### What changed
+- Regenerated HTML via updated htmlify.js — handles `![](img.png)` markdown syntax for images
+- Regenerated PDF via Chrome headless — images now properly included (505 KB, was 155 KB)
+- No placeholder text remaining in HTML or PDF
+
+### Pinned block updated to ✅
+### Only remaining: Coordinator fills author info + submit
 
 ## [2026-07-01 10:30] Platform OC — Track B Steps 1+3 Done
 
@@ -1497,3 +1507,17 @@ Route performance optimization to Epic II (Clinical Fidelity) post-JAMIA. The 10
 
 ### 50K feasibility
 Not yet — respiratoryOrders (1798), dietOrders (809), medicalCharts (1287) grow unbounded at 4000 ticks. Need steps 2 (archive) + 4 (selective execution) to contain them before 50K is viable.
+
+## [2026-07-01 14:00] Platform OC — Handler Step 2 Plan
+
+### Categories
+- **A — Orphaned (creates, never closes):** dietary, respiratory, clinical-nutrition, social-work, blood-bank, microbiology, pathology, cssd, biomed, ipc, radiotherapy, dialysis
+- **B — Self-cleaning:** lab, radiology, surgery, pharmacy, physician, ai-pharmacy, emergency, markov, outpatient (✅)
+- **C — Read-only:** icd-tracker, outcome-tracker, calendar, report, fhir-export (✅)
+- **D — State/scalar:** scenario, agent-learning, vitalsUpdateHandler (✅)
+- **E — Fixed:** specialty, medical-records (✅ backlog processing added)
+
+### Next: implementing receiver patterns for 3 worst offenders
+1. dietary.ts — fulfillment pass: mark orders >2 ticks old as "completed"
+2. respiratory.ts — fulfillment pass: mark orders >2 ticks old as "discontinued"  
+3. medical-records.ts — existing coding 20/12ticks, also close charts for discharged encounters faster
