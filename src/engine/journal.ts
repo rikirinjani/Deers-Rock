@@ -307,7 +307,7 @@ export function listSnapshots(): { tick: number; createdAt: string }[] {
   return rows.map(r => ({ tick: r.tick, createdAt: r.created_at }));
 }
 
-export const SNAPSHOT_INTERVAL = 20;
+export const SNAPSHOT_INTERVAL = 100;
 
 function deserializeState(json: string): HospitalState {
   const d = JSON.parse(json);

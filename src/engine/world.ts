@@ -281,7 +281,7 @@ export function step(world: World): World {
   if (snap && journaling) {
     journalBeginTransaction();
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
-    if (newClock.tick > 0 && newClock.tick % 20 === 0) {
+    if (newClock.tick > 0 && newClock.tick % 100 === 0) {
       saveSnapshot(newClock.tick, state);
     }
     journalCommitTransaction();
