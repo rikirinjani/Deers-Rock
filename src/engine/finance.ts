@@ -1,14 +1,10 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { Charge, InsuranceClaim, Payment, ChargeCategory } from "../patient/schema.js";
+import type { InsuranceClaim, Payment } from "../patient/schema.js";
+import { generateCharge } from "./charge-generator.js";
 
 const PAYERS = ["BPJS Kesehatan", "BPJS Ketenagakerjaan", "Private Insurance A", "Private Insurance B", "Self-pay"];
-
-const CHARGE_RATES: Record<ChargeCategory, number> = {
-  lab: 250000, radiology: 500000, pharmacy: 75000, surgery: 5000000,
-  room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
-};
 
 /** Professional fees per action type (IDR). Used by AI Doctor/AI Nurse when performing actions. */
 export const PROCEDURE_COSTS: Record<string, number> = {
@@ -20,28 +16,6 @@ export const PROCEDURE_COSTS: Record<string, number> = {
   "surgery_minor": 5000000,
 };
 
-let chargeCounter = 0;
-
-/** Generate a single charge and return updated charges map. Used by multiple handlers. */
-export function addCharge(
-  state: HospitalState, clock: Clock,
-  encounterId: string, patientId: string,
-  category: ChargeCategory, description: string, amount?: number
-): Map<string, Charge> {
-  chargeCounter++;
-  const newCharges = new Map(state.charges);
-  newCharges.set(`CHG-${chargeCounter}-${patientId}`, {
-    id: `CHG-${chargeCounter}-${patientId}`,
-    encounterId, patientId,
-    category,
-    description,
-    amount: amount ?? CHARGE_RATES[category],
-    billedAt: clock.hospitalTimeMs,
-    paid: false,
-  });
-  return newCharges;
-}
-
 export function billingHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   let newCharges = new Map(state.charges);
   const newClaims = new Map(state.insuranceClaims);
@@ -49,17 +23,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
   if (clock.tick % 5 === 0) {
     const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
     for (const enc of activeEncounters) {
-      const charge: Charge = {
-        id: `CHG-${clock.tick}-${enc.patientId}`,
-        encounterId: enc.id,
-        patientId: enc.patientId,
-        category: "room",
-        description: `Room charge - tick ${clock.tick}`,
-        amount: CHARGE_RATES.room,
-        billedAt: clock.hospitalTimeMs,
-        paid: false,
-      };
-      newCharges.set(charge.id, charge);
+      newCharges = generateCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room charge - tick ${clock.tick}`);
     }
   }
 

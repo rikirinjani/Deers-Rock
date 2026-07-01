@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
-import { addCharge } from "./finance.js";
+import { generateCharge } from "./charge-generator.js";
 import { checkDrugAllergy, checkDiagnosisContraindication, checkDrugInteraction, getDoseRange } from "./pharmacy-knowledge.js";
 import { getDeteriorationRate } from "./agent-learning.js";
 
@@ -124,7 +124,7 @@ function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpati
       if (supplyCode) {
         stateMut = dispenseItem(stateMut, supplyCode, 1, clock, order.id);
       }
-      stateMut = { ...stateMut, charges: addCharge(stateMut, clock, order.encounterId, order.patientId, "pharmacy", `Dispensed: ${order.medication.name}`) };
+      stateMut = { ...stateMut, charges: generateCharge(stateMut.charges ?? new Map(), clock, order.encounterId, order.patientId, "pharmacy", `Dispensed: ${order.medication.name}`) };
     }
 
     const caseKey = `PHARM-${order.encounterId}`;

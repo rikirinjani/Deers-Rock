@@ -1,5 +1,18 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-01 18:18] Platform OC — Phase 1 Tasks 1/2/4/6 Complete
+
+**Commit:** `3c2ed24`
+**Done:**
+- Task 1: DRUG_COSTS in pharmacy.ts (22 drugs, e-catalogue flat prices)
+- Task 2: addCharge() in finance.ts, wired into lab/radiology/surgery/ai-pharmacy
+- Task 4: PROCEDURE_COSTS in finance.ts (doctor_round 150K, specialist_consult 300K, nursing_procedure 50K, surgery graded 5-15M)
+- Task 6: Caps removed from finance.ts per Amendment 6
+
+**Remaining (handled directly with Platform OC):**
+- Task 3: 4-building architecture — pending
+- Task 5: Charge generator split — pending
+
 ## Coordinator Restart Briefing — 2026-07-01 16:30
 
 ### State of the Project

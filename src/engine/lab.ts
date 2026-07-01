@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { LabOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
-import { addCharge } from "./finance.js";
+import { generateCharge } from "./charge-generator.js";
 
 export const LAB_TESTS = [
   { code: "CBC", name: "Complete Blood Count", range: "4.5-11.0 x10^3/uL", unit: "x10^3/uL", supplyCode: "LAB-CBC" },
@@ -71,7 +71,7 @@ export function labResultHandler(state: HospitalState, clock: Clock, _queue: Eve
         result: generateResult(order.testCode, clock.rng),
         resultedAt: clock.hospitalTimeMs,
       });
-      newCharges = addCharge(state, clock, order.encounterId, order.patientId, "lab", `Lab test: ${order.testName}`);
+      newCharges = generateCharge(newCharges, clock, order.encounterId, order.patientId, "lab", `Lab test: ${order.testName}`);
     }
   }
   return { ...state, labOrders: newOrders, charges: newCharges };

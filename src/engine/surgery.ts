@@ -2,7 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { SurgeryOrder } from "../patient/schema.js";
-import { addCharge } from "./finance.js";
+import { generateCharge } from "./charge-generator.js";
 
 const SURGEONS = ["Dr. Wijaya", "Dr. Santoso", "Dr. Kusuma", "Dr. Hidayat", "Dr. Pratama"];
 
@@ -58,7 +58,7 @@ export function surgeryResultHandler(state: HospitalState, clock: Clock, _queue:
         completedAt: clock.hospitalTimeMs,
         notes: "Procedure completed without complications. Patient transferred to recovery.",
       });
-      newCharges = addCharge(state, clock, order.encounterId, order.patientId, "surgery", `Surgery: ${order.procedureName}`);
+      newCharges = generateCharge(newCharges, clock, order.encounterId, order.patientId, "surgery", `Surgery: ${order.procedureName}`);
     }
   }
   return { ...state, surgeryOrders: newOrders, charges: newCharges };
