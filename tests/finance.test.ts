@@ -6,12 +6,12 @@ import { generatePatientPool } from "../src/patient/generator.js";
 import { billingHandler, inpatientCashierHandler } from "../src/engine/finance.js";
 import type { Encounter } from "../src/patient/schema.js";
 
-function makeActiveEncounter(patientId: string): Encounter {
-  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: null, status: "active" };
+function makeActiveEncounter(patientId: string, payer: Encounter["payer"] = "BPJS Kesehatan"): Encounter {
+  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: null, status: "active", payer };
 }
 
-function makeDischargedEncounter(patientId: string): Encounter {
-  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: 2000, status: "discharged" };
+function makeDischargedEncounter(patientId: string, payer: Encounter["payer"] = "BPJS Kesehatan"): Encounter {
+  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: 2000, status: "discharged", payer };
 }
 
 describe("Finance", () => {
@@ -56,7 +56,15 @@ describe("Finance", () => {
     state = billingHandler(state, clock5, new EventQueue());
     expect(state.charges.size).toBe(2);
 
-    // Step 2: Discharge and run billing again (tick 10)
+    // Step 2: Create coded medical chart so BPJS claim can be submitted
+    state.medicalCharts.set(`CHART-${pid}`, {
+      id: `CHART-${pid}`, encounterId: encId, patientId: pid, status: "coded",
+      createdAt: 1000, completedAt: 2000,
+      diagnoses: [{ code: "A09", name: "Infectious gastroenteritis", type: "primary" }],
+      procedures: [], coder: "AI Coder",
+    });
+
+    // Step 3: Discharge and run billing again (tick 10)
     state.encounters.set(encId, makeDischargedEncounter(pid));
     const clock10 = createClock(60);
     clock10.tick = 10;
@@ -66,7 +74,8 @@ describe("Finance", () => {
     const claim = Array.from(state.insuranceClaims.values())[0]!;
     expect(claim.encounterId).toBe(encId);
     expect(claim.status).toBe("submitted");
-    expect(["BPJS Kesehatan", "BPJS Ketenagakerjaan", "Private Insurance A", "Private Insurance B", "Self-pay"]).toContain(claim.payer);
+    expect(claim.payer).toBe("BPJS Kesehatan");
+    expect(claim.sepNumber).not.toBeNull();
     expect(claim.totalCharges).toBeGreaterThan(0);
     expect(claim.coveredAmount + claim.patientResponsibility).toBe(claim.totalCharges);
   });
@@ -83,17 +92,23 @@ describe("Finance", () => {
     state = billingHandler(state, clock5, new EventQueue());
 
     state.encounters.set(encId, makeDischargedEncounter(pid));
+    state.medicalCharts.set(`CHART-${pid}`, {
+      id: `CHART-${pid}`, encounterId: encId, patientId: pid, status: "coded",
+      createdAt: 1000, completedAt: 2000,
+      diagnoses: [{ code: "A09", name: "Infectious gastroenteritis", type: "primary" }],
+      procedures: [], coder: "AI Coder",
+    });
     const clock10 = createClock(60);
     clock10.tick = 10;
     state = billingHandler(state, clock10, new EventQueue());
+    expect(state.insuranceClaims.size).toBeGreaterThanOrEqual(1);
 
     const clock15 = createClock(60);
     clock15.tick = 15;
     state = billingHandler(state, clock15, new EventQueue());
 
-    expect(state.insuranceClaims.size).toBeGreaterThanOrEqual(1);
     const claim = Array.from(state.insuranceClaims.values())[0]!;
-    expect(["paid", "denied"]).toContain(claim.status);
+    expect(["paid", "returned", "denied"]).toContain(claim.status);
     expect(claim.resolvedAt).not.toBeNull();
   });
 

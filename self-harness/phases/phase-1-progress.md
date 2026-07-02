@@ -3,7 +3,7 @@
 **Last updated:** 2026-07-02
 
 ## Counts
-- **Traces recorded:** 22
+- **Traces recorded:** 28
 - **Failures recorded:** 2
 - **Proposals submitted:** 0
 
@@ -32,3 +32,9 @@
 | 20 | 2026-07-01T19:00:00 | platform | Epic IX Phase 1 complete: Task 5 (charge generator split) + Task 3 (4-building architecture, full kelas hierarchy) | pass |
 | 21 | 2026-07-01T20:50:00 | platform | Fix unrealistic LOS: admission 3-7 days, emergency 1-3 days (was 6-24 hours) | pass |
 | 22 | 2026-07-02T06:55:00 | platform | Fix 3 finance tests to match admin tariff + encounter type changes; all finance 5/5 passing | pass |
+| 23 | 2026-07-02T10:30:00 | platform | Phase 2 Task 1: INA-CBG mapping (68 entries, PMK 28/2020 RS Tipe A) | pass |
+| 24 | 2026-07-02T10:35:00 | platform | Phase 2 Task 2: Payer assignment on encounter | pass |
+| 25 | 2026-07-02T10:38:00 | platform | Phase 2 Task 3: BPJS claim workflow (SEP, coding gating, adjudication, resubmit) | pass |
+| 26 | 2026-07-02T10:39:00 | platform | Phase 2 Task 4: Jasa Raharja claim workflow (30-day cap, auto-approve) | pass |
+| 27 | 2026-07-02T10:39:30 | platform | Phase 2 Task 5: Real cost vs BPJS tariff efficiency ratio | pass |
+| 28 | 2026-07-02T10:40:00 | platform | Phase 2 Task 6: AI Coder agent (specialty coders, accuracy, variable delay) | pass |

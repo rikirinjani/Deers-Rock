@@ -43,6 +43,8 @@ export interface Medication {
   route: string;
 }
 
+export type PayerType = "BPJS Kesehatan" | "BPJS Ketenagakerjaan" | "Jasa Raharja" | "Private Insurance" | "Self-pay";
+
 export interface Encounter {
   id: string;
   patientId: string;
@@ -50,6 +52,7 @@ export interface Encounter {
   startTime: number;
   endTime: number | null;
   status: "active" | "discharged" | "transferred";
+  payer: PayerType;
   attendingDoctorId?: string;
   assignedNurseId?: string;
 }
@@ -207,15 +210,20 @@ export interface Charge {
   paid: boolean;
 }
 
+export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | null;
+
 export interface InsuranceClaim {
   id: string;
   encounterId: string;
   patientId: string;
   payer: string;
+  sepNumber: string | null;
+  actualCost: number;
   totalCharges: number;
   coveredAmount: number;
   patientResponsibility: number;
-  status: "submitted" | "adjudicated" | "paid" | "denied";
+  status: "submitted" | "adjudicated" | "paid" | "denied" | "returned";
+  denialReason: ClaimDenialReason;
   submittedAt: number;
   resolvedAt: number | null;
 }

@@ -1,0 +1,10 @@
+{
+  "trace_id": "trc-payer-002",
+  "timestamp": "2026-07-02T10:35:00",
+  "agent": "platform",
+  "task_description": "Phase 2 Task 2: Payer assignment on encounter — default BPJS, Jasa Raharja for accident ICD codes, Self-pay for foreigners",
+  "outcome": "pass",
+  "duration_s": 600,
+  "tool_calls": 20,
+  "key_files": ["src/engine/finance.ts", "src/patient/schema.ts", "src/engine/emergency.ts", "src/engine/markov.ts", "src/engine/outpatient.ts", "SIGNAL.md"]
+}

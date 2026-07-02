@@ -7,13 +7,12 @@
 ## → Platform OC
 - **ADR-003**: Agent state persistence in snapshots — pending (post-paper)
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
-- **Phase 2 Task 1**: ✅ INA-CBG mapping (68 entries, PMK 28/2020 RS Tipe A). Commit 88a9e17.
-- **Phase 2 Task 2**: ⬜ **NOW** — Payer assignment on encounter:
-  - Default: all patients BPJS Kesehatan
-  - ED triage: accident ICD codes (S06, S72, T14, T20, T63) → Jasa Raharja
-  - Foreigners → self-pay
-  - Assign at encounter start, not identity generation
-- **Phase 2 Tasks 3-6**: Pending (after Task 2)
+- **Phase 2 Task 1**: ✅ INA-CBG mapping (68 entries, PMK 28/2020 RS Tipe A).
+- **Phase 2 Task 2**: ✅ Payer assignment on encounter (default BPJS; Jasa Raharja for accident ICD codes; foreigners self-pay). `assignPayer()` in finance.ts.
+- **Phase 2 Task 3**: ✅ BPJS claim workflow (SEP generation, coded chart gating, adjudication with paid/returned/denied, auto-resubmit on returned)
+- **Phase 2 Task 4**: ✅ Jasa Raharja claim workflow (30-day treatment cap, auto-approve, separate queue model)
+- **Phase 2 Task 5**: ✅ Real cost vs BPJS tariff efficiency ratio (tracked per claim, reported in generateReport())
+- **Phase 2 Task 6**: ✅ AI Coder agent (4 coders by specialty, accuracy-based coding, variable delay per chart)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 
 ## → Coordinator

@@ -1,0 +1,10 @@
+{
+  "trace_id": "trc-eff-005",
+  "timestamp": "2026-07-02T10:39:30",
+  "agent": "platform",
+  "task_description": "Phase 2 Task 5: Real cost vs BPJS tariff efficiency ratio — actualCost tracked per claim, ratio + atLoss count in generateReport()",
+  "outcome": "pass",
+  "duration_s": 60,
+  "tool_calls": 5,
+  "key_files": ["src/engine/finance.ts", "src/engine/report.ts", "src/patient/schema.ts", "SIGNAL.md"]
+}

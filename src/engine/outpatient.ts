@@ -4,6 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
+import { assignPayer } from "./finance.js";
 
 export interface Poli {
   id: string;
@@ -78,6 +79,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     for (const arrival of arrivals) {
       if (arrivals.indexOf(arrival) >= 8) break;
       const dx = arrival.diagnosis;
+      const pat = state.patients.get(arrival.patientId);
       const enc: Encounter = {
         id: `POLI-${clock.tick}-${arrival.patientId}`,
         patientId: arrival.patientId,
@@ -85,6 +87,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
         startTime: clock.hospitalTimeMs,
         endTime: null,
         status: "active",
+        payer: assignPayer(pat ?? { diagnoses: [], identity: undefined }),
       };
       newEncounters.set(enc.id, enc);
 

@@ -3,7 +3,12 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { MedicalChart } from "../patient/schema.js";
 
-const CODERS = ["Coder A", "Coder B", "Coder C", "Coder D"];
+const CODERS = [
+  { name: "AI Coder Alpha", specialty: "internal_medicine", accuracy: 0.92 },
+  { name: "AI Coder Beta", specialty: "surgery", accuracy: 0.88 },
+  { name: "AI Coder Gamma", specialty: "pediatrics", accuracy: 0.90 },
+  { name: "AI Coder Delta", specialty: "general", accuracy: 0.85 },
+];
 
 const DX_MAP: Record<string, string> = {
   "I10": "Essential hypertension", "E11": "Type 2 diabetes", "J15": "Bacterial pneumonia",
@@ -13,12 +18,28 @@ const DX_MAP: Record<string, string> = {
   "F32": "Major depressive disorder",
 };
 
+function mapIcdToSpecialty(code: string): string {
+  if (!code || code.length === 0) return "general";
+  const prefix = code.charAt(0);
+  if (prefix === "I" || prefix === "E" || prefix === "N" || prefix === "R") return "internal_medicine";
+  if (prefix === "S" || prefix === "T" || prefix === "M") return "surgery";
+  if (prefix === "P") return "pediatrics";
+  return "general";
+}
+
+function pickCoder(diagnosisCode: string, rng: () => number): { name: string; accuracy: number } {
+  const preferred = CODERS.filter(c => c.specialty === mapIcdToSpecialty(diagnosisCode));
+  const pool = preferred.length > 0 ? preferred : CODERS;
+  return pool[Math.floor(rng() * pool.length)]!;
+}
+
 export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  // Create charts for new encounters
   const newCharts = new Map(state.medicalCharts);
+
+  // Create charts for new encounters (always "open" on creation)
+  const newlyCreated = new Set<string>();
   for (const encounter of state.encounters.values()) {
     if (newCharts.has(`CHART-${encounter.id}`)) continue;
-
     const patient = state.patients.get(encounter.patientId);
     if (!patient) continue;
 
@@ -38,23 +59,41 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
       coder: null,
     };
     newCharts.set(chart.id, chart);
+    newlyCreated.add(chart.id);
   }
 
-  // Auto-code charts when encounter ends (skip "incomplete" staging)
-  // Also code any straggler "incomplete" charts
+  // AI Coder assigns coders to "open" charts that weren't just created (up to 5 per tick)
+  let assigned = 0;
+  for (const [id, chart] of newCharts) {
+    if (assigned >= 5) break;
+    if (chart.status !== "open" || newlyCreated.has(id)) continue;
+    const coder = pickCoder(chart.diagnoses[0]?.code ?? "", () => clock.rng());
+    newCharts.set(id, { ...chart, status: "incomplete", coder: coder.name });
+    assigned++;
+  }
+
+  // Coders process "incomplete" charts.
+  // Discharged encounters get fast-track coded (next handler call).
+  // Active encounters wait a variable delay (5-15 ticks) for coding.
   let coded = 0;
   for (const [id, chart] of newCharts) {
-    if (coded >= 30) break;
+    if (coded >= 10) break;
+    if (chart.status !== "incomplete" || !chart.coder) continue;
+    const coder = CODERS.find(c => c.name === chart.coder);
+    if (!coder) continue;
+
     const enc = state.encounters.get(chart.encounterId);
-    if (enc && enc.status !== "active" && (chart.status === "open" || chart.status === "incomplete")) {
-      newCharts.set(id, {
-        ...chart,
-        status: "coded",
-        completedAt: clock.hospitalTimeMs,
-        coder: CODERS[Math.floor(clock.rng() * CODERS.length)]!,
-      });
-      coded++;
-    }
+    const isDischarged = enc && enc.status !== "active";
+    const codingDelay = isDischarged ? 1 : Math.floor(clock.rng() * 11) + 5;
+    if (clock.tick % codingDelay !== 0) continue;
+
+    const isAccurate = clock.rng() < coder.accuracy;
+    newCharts.set(id, {
+      ...chart,
+      status: isAccurate ? "coded" : "incomplete",
+      completedAt: isAccurate ? clock.hospitalTimeMs : null,
+    });
+    if (isAccurate) coded++;
   }
 
   return { ...state, medicalCharts: newCharts };

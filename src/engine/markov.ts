@@ -6,6 +6,7 @@ import { getEventSummary } from "./calendar.js";
 import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
 import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
+import { assignPayer } from "./finance.js";
 
 const SPECIALTY_TO_WARD: Record<string, string> = {
   cardiology: "Cardiology", neurology: "Neurology", pulmonology: "Pulmonology",
@@ -77,6 +78,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       startTime: clock.hospitalTimeMs,
       endTime: null as number | null,
       status: "active" as const,
+      payer: assignPayer(patient),
     };
     newEncounters.set(encounter.id, encounter);
 

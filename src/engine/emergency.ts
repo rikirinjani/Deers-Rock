@@ -3,6 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { EdTriage } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
+import { assignPayer } from "./finance.js";
 
 const COMPLAINTS = [
   "Chest pain", "Abdominal pain", "Shortness of breath", "Headache", "Fever", "Trauma from fall",
@@ -41,6 +42,7 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
     startTime: clock.hospitalTimeMs,
     endTime: null,
     status: "active" as const,
+    payer: assignPayer(patient),
   };
 
   const triage: EdTriage = {

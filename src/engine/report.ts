@@ -1,5 +1,6 @@
 import type { World } from "./world.js";
 import { formatHospitalTime } from "./clock.js";
+import type { InsuranceClaim } from "../patient/schema.js";
 
 export interface HospitalReport {
   generatedAt: string;
@@ -94,6 +95,7 @@ interface FinanceSummary {
   totalPaymentAmount: number;
   payerMix: Record<string, number>;
   avgChargePerEncounter: number;
+  bpjsEfficiency: { ratio: number; atLoss: number; totalActual: number; totalTariff: number } | null;
 }
 
 interface SupplyChainSummary {
@@ -108,6 +110,15 @@ interface DepartmentSummary {
   name: string;
   orderCount: number;
   activeCount: number;
+}
+
+export function computeBpjsEfficiency(claims: InsuranceClaim[]): FinanceSummary["bpjsEfficiency"] {
+  const bpjsClaims = claims.filter(c => c.payer === "BPJS Kesehatan" && c.totalCharges > 0);
+  if (bpjsClaims.length === 0) return null;
+  const totalActual = bpjsClaims.reduce((s, c) => s + c.actualCost, 0);
+  const totalTariff = bpjsClaims.reduce((s, c) => s + c.totalCharges, 0);
+  const atLoss = bpjsClaims.filter(c => c.actualCost > c.totalCharges).length;
+  return { ratio: totalTariff > 0 ? Math.round((totalActual / totalTariff) * 100) / 100 : 0, atLoss, totalActual, totalTariff };
 }
 
 export function generateReport(world: World): HospitalReport {
@@ -300,6 +311,7 @@ export function generateReport(world: World): HospitalReport {
       deniedClaims: claims.filter(c => c.status === "denied").length,
       totalPayments: payments.length, totalPaymentAmount,
       payerMix, avgChargePerEncounter,
+      bpjsEfficiency: computeBpjsEfficiency(claims),
     },
     supplyChain: {
       totalItems: inv.length, lowStockItems,

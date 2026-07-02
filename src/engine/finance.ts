@@ -1,9 +1,50 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { InsuranceClaim, Payment, RoomClass } from "../patient/schema.js";
+import type { InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
 import { generateCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 import { lookupCbgTariff } from "./ina-cbg.js";
+
+const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
+const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
+
+/**
+ * Assign payer at encounter start.
+ * Rules per Coordinator design brief:
+ * - Default: BPJS Kesehatan
+ * - Accident ICD codes → Jasa Raharja (state traffic accident insurance)
+ * - Foreigners (nationality !== "WNI") → Self-pay
+ */
+export function assignPayer(patient: { diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string } }): PayerType {
+  if (patient.identity?.nationality && patient.identity.nationality !== "WNI") {
+    return "Self-pay";
+  }
+  const activeDx = patient.diagnoses.find(d => d.active);
+  if (activeDx && ACCIDENT_ICD_CODES.has(activeDx.code)) {
+    return "Jasa Raharja";
+  }
+  return "BPJS Kesehatan";
+}
+
+/**
+ * Generate a BPJS SEP (Surat Elegibilitas Peserta) number.
+ * Format: SEP + timestamp + sequential (simplified).
+ */
+function generateSepNumber(clock: Clock): string {
+  return `SEP-${clock.tick}-${Math.floor(clock.rng() * 9000) + 1000}`;
+}
+
+/**
+ * Check if the claim's ICD codes match the INA-CBG tariff group.
+ * Returns true if valid, false if mismatched.
+ */
+function validateCbgCoding(enc: { id: string }, patient: { diagnoses: { code: string; active: boolean }[] } | undefined): boolean {
+  if (!patient) return false;
+  const primaryDx = patient.diagnoses.find(d => d.active) ?? patient.diagnoses[0];
+  if (!primaryDx) return false;
+  const cbgEntry = lookupCbgTariff(primaryDx.code);
+  return cbgEntry !== undefined;
+}
 
 const PAYERS = ["BPJS Kesehatan", "BPJS Ketenagakerjaan", "Private Insurance A", "Private Insurance B", "Self-pay"];
 
@@ -50,27 +91,53 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     const total = encCharges.reduce((s, c) => s + c.amount, 0);
     if (total === 0) continue;
 
-    const payer = PAYERS[Math.floor(clock.rng() * PAYERS.length)]!;
+    const payer = enc.payer ?? "BPJS Kesehatan";
 
-    // Look up INA-CBG tariff for BPJS claims
+    // BPJS claims require coded chart before submission
     const patient = state.patients.get(enc.patientId);
+    const chart = Array.from(state.medicalCharts.values()).find(c => c.encounterId === enc.id);
+    const chartStatus = chart?.status ?? "open";
+
+    // Only submit BPJS claims when chart is coded
+    if (payer === "BPJS Kesehatan" && chartStatus !== "coded") {
+      continue;
+    }
+
     const primaryDx = patient?.diagnoses.find(d => d.active) ?? patient?.diagnoses[0];
     const cbgEntry = primaryDx ? lookupCbgTariff(primaryDx.code) : undefined;
 
     let totalCharges = total;
     let coveredAmount: number;
     let patientResponsibility: number;
+    let sepNumber: string | null = null;
+    let denialReason: ClaimDenialReason = null;
 
-    if (payer === "BPJS Kesehatan" && cbgEntry) {
-      // BPJS: all-inclusive tariff per INA-CBG. Patient pays nothing.
-      totalCharges = cbgEntry.tariffIdr;
-      coveredAmount = cbgEntry.tariffIdr;
-      patientResponsibility = 0;
-    } else if (payer === "BPJS Kesehatan") {
-      // BPJS but no CBG mapping found — fallback to 90% coverage
+    if (payer === "BPJS Kesehatan") {
+      // BPJS: all-inclusive tariff per INA-CBG
+      if (cbgEntry) {
+        totalCharges = cbgEntry.tariffIdr;
+        coveredAmount = cbgEntry.tariffIdr;
+        patientResponsibility = 0;
+        sepNumber = generateSepNumber(clock);
+      } else {
+        // No CBG mapping — deny with mismatched_icd_cbg
+        totalCharges = total;
+        coveredAmount = 0;
+        patientResponsibility = total;
+        denialReason = "mismatched_icd_cbg";
+      }
+    } else if (payer === "Jasa Raharja") {
+      // JR: full coverage for accident cases, capped at 30 days
+      const encounterDurationTicks = (enc.endTime && enc.startTime)
+        ? Math.round((enc.endTime - enc.startTime) / 60000)
+        : 0;
+      const jrCapRatio = encounterDurationTicks > JR_TICK_CAP
+        ? JR_TICK_CAP / encounterDurationTicks
+        : 1;
       totalCharges = total;
-      coveredAmount = Math.round(total * 0.9);
+      coveredAmount = Math.round(total * jrCapRatio);
       patientResponsibility = total - coveredAmount;
+      sepNumber = generateSepNumber(clock);
     } else if (payer === "Self-pay") {
       totalCharges = total;
       coveredAmount = 0;
@@ -87,23 +154,50 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       encounterId: enc.id,
       patientId: enc.patientId,
       payer,
+      sepNumber,
+      actualCost: total,
       totalCharges,
       coveredAmount,
       patientResponsibility,
-      status: "submitted",
+      status: denialReason ? "denied" : (payer === "Jasa Raharja" ? "paid" : "submitted"),
+      denialReason,
       submittedAt: clock.hospitalTimeMs,
-      resolvedAt: null,
+      resolvedAt: denialReason ? clock.hospitalTimeMs : (payer === "Jasa Raharja" ? clock.hospitalTimeMs : null),
     };
     newClaims.set(claim.id, claim);
   }
 
+  // Adjudicate submitted claims every 15 ticks
   if (clock.tick > 0 && clock.tick % 15 === 0) {
     for (const [id, claim] of newClaims) {
       if (claim.status === "submitted") {
-        const adjudicated = clock.rng() > 0.2 ? "paid" : "denied";
-        newClaims.set(id, { ...claim, status: adjudicated, resolvedAt: clock.hospitalTimeMs });
+        // BPJS: 85% approve, 10% returned for coding issues, 5% deny
+        const roll = clock.rng();
+        let newStatus: InsuranceClaim["status"];
+        let denialReason: ClaimDenialReason = null;
+
+        if (roll < 0.85) {
+          newStatus = "paid";
+        } else if (roll < 0.95) {
+          newStatus = "returned";
+          denialReason = "incomplete_coding";
+        } else {
+          newStatus = "denied";
+          denialReason = "missing_documents";
+        }
+
+        newClaims.set(id, { ...claim, status: newStatus, denialReason, resolvedAt: clock.hospitalTimeMs });
         break;
       }
+    }
+  }
+
+  // Process returned claims: resubmit if coding is now complete
+  for (const [id, claim] of newClaims) {
+    if (claim.status !== "returned") continue;
+    const chart = Array.from(state.medicalCharts.values()).find(c => c.encounterId === claim.encounterId);
+    if (chart?.status === "coded") {
+      newClaims.set(id, { ...claim, status: "submitted", denialReason: null, resolvedAt: null });
     }
   }
 
