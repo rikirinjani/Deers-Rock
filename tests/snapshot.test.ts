@@ -18,32 +18,32 @@ describe("Snapshots", () => {
     try { if (existsSync(DB)) unlinkSync(DB); } catch { /* ok */ }
   });
 
-  it("saves snapshots every 20 ticks during simulation", { timeout: 15000 }, () => {
+  it("saves snapshots every 100 ticks during simulation", { timeout: 15000 }, () => {
     closeJournal();
     if (existsSync(DB)) unlinkSync(DB);
     const w = createWorld(10, DB);
-    runWorld(w, 45);
+    runWorld(w, 210);
     const snaps = listSnapshots();
-    expect(snaps.length).toBeGreaterThanOrEqual(2); // tick 20, 40
+    expect(snaps.length).toBeGreaterThanOrEqual(2); // tick 100, 200
     const ticks = snaps.map(s => s.tick);
-    expect(ticks).toContain(20);
-    expect(ticks).toContain(40);
+    expect(ticks).toContain(100);
+    expect(ticks).toContain(200);
   });
 
   it("loadNearestSnapshot returns state at or before given tick", () => {
-    const snap = loadNearestSnapshot(25);
-    expect(snap.tick).toBe(20);
+    const snap = loadNearestSnapshot(150);
+    expect(snap.tick).toBe(100);
     expect(snap.state).not.toBeNull();
     expect(snap.state!.encounters.size).toBeGreaterThan(0);
   });
 
   it("returns snapshot at exact tick when available", () => {
-    const snap = loadNearestSnapshot(20);
-    expect(snap.tick).toBe(20);
+    const snap = loadNearestSnapshot(100);
+    expect(snap.tick).toBe(100);
   });
 
   it("saved snapshot has all state collections intact", () => {
-    const snap = loadNearestSnapshot(40);
+    const snap = loadNearestSnapshot(200);
     expect(snap.state).not.toBeNull();
     const s = snap.state!;
     expect(s.patients.size).toBeGreaterThan(0);

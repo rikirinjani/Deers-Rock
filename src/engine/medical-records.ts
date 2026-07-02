@@ -63,22 +63,24 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
   }
 
   // AI Coder assigns coders to "open" charts that weren't just created (up to 5 per tick)
+  const newlyAssigned = new Set<string>();
   let assigned = 0;
   for (const [id, chart] of newCharts) {
     if (assigned >= 5) break;
     if (chart.status !== "open" || newlyCreated.has(id)) continue;
     const coder = pickCoder(chart.diagnoses[0]?.code ?? "", () => clock.rng());
     newCharts.set(id, { ...chart, status: "incomplete", coder: coder.name });
+    newlyAssigned.add(id);
     assigned++;
   }
 
-  // Coders process "incomplete" charts.
+  // Coders process "incomplete" charts (skip those just assigned this pass).
   // Discharged encounters get fast-track coded (next handler call).
   // Active encounters wait a variable delay (5-15 ticks) for coding.
   let coded = 0;
   for (const [id, chart] of newCharts) {
     if (coded >= 10) break;
-    if (chart.status !== "incomplete" || !chart.coder) continue;
+    if (chart.status !== "incomplete" || !chart.coder || newlyAssigned.has(id)) continue;
     const coder = CODERS.find(c => c.name === chart.coder);
     if (!coder) continue;
 

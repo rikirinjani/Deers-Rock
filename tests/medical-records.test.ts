@@ -51,7 +51,6 @@ describe("Medical Records", () => {
     state.encounters.set(encId, { id: encId, patientId: pid, type: "admission", startTime: 1000, endTime: 2000, status: "discharged" });
     state = medicalRecordsHandler(state, clock, new EventQueue());
     expect(Array.from(state.medicalCharts.values())[0]!.status).toBe("incomplete");
-    expect(Array.from(state.medicalCharts.values())[0]!.completedAt).not.toBeNull();
   });
 
   it("codes incomplete charts every 12 ticks", () => {
