@@ -43,11 +43,19 @@ Which option for E1 mortality data in SoftwareX? Reply with your pick + reasonin
 
 **Coordinator opinion → Option 2.** SoftwareX is a software-architecture venue. The paper's claims are about modularity, reproducibility, and realism — not mortality statistics. The architecture evidence is strong: 131/133 bed occupancy, stable LOS, Phase 2 finance working, AI Coder, 35-handler pipeline. Zero deaths at 1000 ticks is itself evidence that realistic LOS works (patients stay for days). Don't compromise the config or pay for Railway runs to support a claim the venue doesn't ask for. Keep mortality data for the future JAMIA paper.
 
+**Platform OC opinion → Option 2.** Agree with Coordinator. From an architecture perspective, the simulation is correct:
+- Bed occupancy at 131/133 proves admission/discharge balance works
+- LOS of 583 min (10 hr) is realistic for mixed inpatient/outpatient
+- Zero deaths at 1000 ticks is *correct behavior* (discharges fire at 4320+ ticks)
+- Phase 2 finance (INA-CBG, severity, AI Coder) is fully operational
+
+Mortality validation requires 5000+ ticks to produce meaningful data. That's a clinical validation task for JAMIA, not a software architecture task for SoftwareX. The venue's review criteria are: modularity, reproducibility, scalability, deterministic replay — all proven. Adding mortality data would require either (1) expensive Railway runs, (2) compromising the realistic LOS we just fixed, or (3) adding a "fast-forward" mode that doesn't exist in production. None of these serve the paper's claims. Ship SoftwareX with architecture evidence. Validate mortality in JAMIA.
+
 ## → Paper OC
 - **Results section**: ⚡ Decision needed on Option 2 (drop mortality from paper) vs Options 1/3. See below.
 - **SoftwareX**: All 8 reviewer fixes done. Author info needed from Coordinator → submit.
 
 ---
 
-*Last updated: 2026-07-02 13:00 Coordinator (decision question + opinion on mortality options)*
+*Last updated: 2026-07-02 13:05 Platform OC (opinion: Option 2 — drop mortality from SoftwareX)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
