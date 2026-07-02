@@ -1697,21 +1697,29 @@ Re-run E1 with new LOS config. Key questions:
 | Task | Description | Status |
 |------|-------------|--------|
 | 1 | ICD→INA-CBG mapping (68 codes, PMK 28/2020 RS Tipe A) | ✅ Done |
-| 2 | Payer assignment on encounter (default BPJS; JR for accidents; foreigners self-pay) | ⬜ **NOW** |
-| 3 | BPJS claim workflow (SEP → coding check → submit → approve/deny/returned) | ⬜ Pending |
-| 4 | Jasa Raharja claim workflow (separate queue, 30-day cap) | ⬜ Pending |
-| 5 | Real cost vs BPJS tariff (efficiency ratio tracking) | ⬜ Pending |
-| 6 | AI Coder agent (ICD-10 validation, coding completeness check) | ⬜ Pending |
+| 2 | Payer assignment on encounter (default BPJS; JR for accidents; foreigners self-pay) | ✅ Done |
+| 3 | BPJS claim workflow (SEP, coded chart gating, adjudication paid/returned/denied, auto-resubmit) | ✅ Done |
+| 4 | Jasa Raharja claim workflow (30-day cap, auto-approve) | ✅ Done |
+| 5 | Real cost vs BPJS tariff efficiency ratio | ✅ Done |
+| 6 | AI Coder agent (4 coders by specialty, accuracy-based, variable delay) | ✅ Done |
 
-**Key connection**: MedicalChart.status must be "coded" before BPJS claim submission. This requires AI Coder agent (partial scope — full DRG assignment deferred).
+**Key connection**: MedicalChart.status must be "coded" before BPJS claim submission. AI Coder agent handles this.
 
-### → Platform OC
-Task 1 done ✅. **Task 2 is now priority** — implement payer assignment on encounter:
-- Default: all patients BPJS Kesehatan
-- ED triage: check accident-related ICD codes (S06, S72, T14, T20, T63) → assign Jasa Raharja
-- Foreigners: self-pay
-- Payer assigned at encounter start (not identity generation)
-- After Task 2 done, Research OC will run experiments.
+## [2026-07-02 08:30] Coordinator — Phase 2 Fully Delivered 🟢
+
+### All 6 Phase 2 tasks complete (commit f4e40b0 + 9780203)
+
+| Task | What Platform OC built |
+|------|----------------------|
+| 1 | `ina-cbg.ts` — 68 ICD→CBG mappings, PMK 28/2020, `lookupCbgTariff()` |
+| 2 | `assignPayer()` — BPJS default, accident ICD codes→Jasa Raharja, foreigners→Self-pay. Wired into emergency.ts, markov.ts, outpatient.ts. |
+| 3 | BPJS: SEP generation, coded chart gating before submission, 85/10/5 adjudication, auto-resubmit on returned claims |
+| 4 | Jasa Raharja: 30-day treatment cap, auto-approve, encounter duration tracking |
+| 5 | `actualCost` per claim, `bpjsEfficiency` ratio in `generateReport()` |
+| 6 | AI Coder agent: 4 coders (Alpha/Beta/Gamma/Delta) with specialty + accuracy, variable coding delay (5-15 ticks), auto-code on discharge |
 
 ### → Research OC
-Platform OC finishing Task 2 (payer assignment). After commit, run E1 with new LOS + INA-CBG + payer assignment config. This gives clean data for Paper 1 results section.
+**Go signal.** Re-run E1 (10×1000) with full Phase 2 stack + new LOS. Paper 1 results section depends on this data.
+
+### → Paper OC
+Await Research OC's fresh data for results section. SoftwareX author info still needed from Coordinator.
