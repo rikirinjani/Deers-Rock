@@ -21,14 +21,13 @@
 - **Epic IX**: Design review session — needs scheduling
 
 ## → Research OC
-- **Re-run E1**: Platform OC finishing Task 2 (payer assignment). After commit, re-run E1 with new LOS + INA-CBG + payer config. Paper 1 results section depends on this.
+- **Phase 2 complete** 🟢 Platform OC delivered all 6 tasks. Full stack: INA-CBG, payer assignment, BPJS/JR workflow, AI Coder, efficiency ratio.
+- **Re-run E1 NOW**: 10×1000 with new LOS (3-7d admission, 1-3d emergency) + INA-CBG tariff + payer assignment + AI Coder. This is your go signal.
+- **Paper 1 results section** depends on your fresh E1 data.
 - **E2 Sensitivity Analysis** ✅ Completed (partial). Key finding: HIGH-risk death roll probability (0.20-0.50) has NO detectable effect on system-level mortality.
-- **Mortality distribution**: 19 ICD codes validated per Paper 1 requirements ✅
-- **ADR-004**: Accepted with calibration priority column ✅
-- **Track B Step 7**: 50K feasible at ~150ms/tick. Active encounters stabilized at 0-5.
 
 ## → Paper OC
-- **Results section**: HOLD until Research OC re-runs E1 with new LOS. Previous data at 6-24h LOS is invalid.
+- **Results section**: Research OC now has go signal. Await E1 re-run data.
 - **SoftwareX**: All 8 reviewer fixes done. Author info needed from Coordinator → submit.
 
 ---
