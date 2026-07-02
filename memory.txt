@@ -1662,3 +1662,48 @@ Steps 2+3+4 now done. diet/resp capped at 50. Pharmacy/cashier split. Pursuing 5
 1. dietary.ts — fulfillment pass: discontinue orders >2 ticks old + discharged encounters → **capped at 50 (was 809)**
 2. respiratory.ts — fulfillment pass: discontinue orders >2 ticks old + discharged encounters → **capped at 50 (was 1798)**
 3. medical-records.ts — auto-code on discharge (skip "incomplete" stage) + code up to 30 per tick → **chart growth matches encounter rate**
+
+## [2026-07-02 08:00] Coordinator — Phase 2 Brief + Experiment Data Flag
+
+### LOS Fix (commit 4cfc564)
+Platform OC fixed LOS to realistic ranges:
+- Admission: 4320-10080 ticks (3-7 days, avg 5d)
+- Emergency: 1440-4320 ticks (1-3 days, avg 2d)
+This changes every metric. All prior experiment data (E1 10×1000) is now obsolete.
+
+### → Research OC / Paper OC
+Re-run E1 with new LOS config. Key questions:
+1. Does bed occupancy reach realistic steady state?
+2. Mortality distribution — does longer stay change which ICD codes drive deaths?
+3. New LOS distribution — does avg LOS match 4-7 day target?
+4. Paper 1 results section MUST use new data. Previous 10×1000 data at 6-24h LOS is invalid for claims.
+
+### Phase 2: Claims & Insurance — Design Brief → Platform OC
+
+**Research Findings:**
+
+1. **INA-CBG tariff**: Each ICD-10 code maps to a Case Based Group with a fixed all-inclusive tariff (room + drugs + procedures + labs). Tariff varies by hospital class (A/B/C/D) and regional index. Payment per episode — hospital profits if actual cost < tariff, absorbs loss if actual cost > tariff.
+
+2. **BPJS claim completeness**: Requires (a) valid SEP, (b) ICD-10 diagnosis codes, (c) ICD-9-CM procedure codes, (d) supporting documents (lab/imaging results). Coding must be "complete" before submission. Denial reasons: incomplete coding, missing docs, mismatched ICD-CBG group.
+
+3. **Jasa Raharja**: State-owned traffic accident insurance (UU No. 34/1964). Covers ALL traffic accident victims (drivers, passengers, pedestrians). Emergency treatment up to 30 days. Hospital bills JR directly — separate claim system from BPJS. After 30 days, BPJS takes over. Work accidents go to BPJS Ketenagakerjaan (JKK), not Jasa Raharja.
+
+4. **Payer assignment**: All patients default BPJS. ED triage checks accident ICD codes → assign Jasa Raharja. Foreigners → self-pay. Assignment happens at encounter start, not identity generation.
+
+5. **Real cost vs BPJS tariff**: Finance handler tracks actual unit cost (Phase 1). Compare against INA-CBG tariff for efficiency analysis.
+
+**Tasks:**
+
+| Task | Description | Depends on |
+|------|-------------|------------|
+| 1 | ICD→INA-CBG mapping (50 codes → tariff per PMK) | — |
+| 2 | Payer assignment on encounter (default BPJS; JR for accidents; foreigners self-pay) | Phase 1 |
+| 3 | BPJS claim workflow (SEP → coding check → submit → approve/deny/returned) | Task 1, MedicalChart |
+| 4 | Jasa Raharja claim workflow (separate queue, 30-day cap) | Task 2 |
+| 5 | Real cost vs BPJS tariff (efficiency ratio tracking) | Task 1, Phase 1 |
+| 6 | AI Coder agent (ICD-10 validation, coding completeness check) | Task 3 |
+
+**Key connection**: MedicalChart.status must be "coded" before BPJS claim submission. This requires AI Coder agent (partial scope — full DRG assignment deferred).
+
+### → Platform OC
+Phase 2 design brief above. Begin with Task 1 (ICD→INA-CBG mapping) when ready. Research OC can provide tariff data source if needed.
