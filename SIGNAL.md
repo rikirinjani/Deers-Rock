@@ -14,7 +14,7 @@
   - ✅ Task 5: Charge generator split — `charge-generator.ts` created, all handlers use `generateCharge()`
   - ✅ Task 6: Remove caps
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d (avg 5d), emergency 1-3d (avg 2d). Realistic Tier A behavior.
-- **Phase 2 (Claims & Insurance)**: Design brief pushed. 6 tasks queued. Start with Task 1 (ICD→INA-CBG mapping).
+- **Phase 2 (Claims & Insurance)**: Task 1 done — INA-CBG mapping (68 entries, tariff from PMK 28/2020 for RS Tipe A). BPJS claims now use tariff instead of actual charges. Task 2 next: payer assignment on encounter.
 - **SIGNAL.md maintenance**: Add new signals when handing off to other OCs
 
 ## → Coordinator

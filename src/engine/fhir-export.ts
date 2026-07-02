@@ -37,7 +37,7 @@ function buildEncounterResource(enc: Encounter): FhirResource {
     id: enc.id,
     identifier: [{ system: "http://deers-rock.hospital/encounter", value: enc.id }],
     status: enc.status === "active" ? "in-progress" : "finished",
-    class: { system: "http://terminology.hl7.org/CodeSystem/v3-ActCode", code: enc.type === "admission" ? "IMP" : enc.type === "emergency" ? "EMER" : "AMB" },
+    class: { system: "http://terminology.hl7.org/CodeSystem/v3-ActCode", code: enc.type === "inpatient" ? "IMP" : "AMB" },
     period: { start: fhirDateTime(enc.startTime), end: enc.endTime ? fhirDateTime(enc.endTime) : undefined },
     subject: { reference: `Patient/${enc.patientId}` },
     diagnosis: [] as unknown[],

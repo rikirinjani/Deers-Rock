@@ -341,7 +341,7 @@ export function generateSirsReport(world: World): SirsReportBundle {
     losDays: 0,
   }));
 
-  const dischargedInpatientRI = dischargedEncs.filter(e => e.type === "admission");
+  const dischargedInpatientRI = dischargedEncs.filter(e => e.type === "inpatient");
   const avgLosDaysRI = dischargedInpatientRI.length > 0
     ? Math.round(dischargedInpatientRI.reduce((s, e) => {
         const endMs = e.endTime ?? world.clock.tick * 60000;
@@ -360,7 +360,7 @@ export function generateSirsReport(world: World): SirsReportBundle {
   };
 
   // ─── RL 4a: Rawat Inap ───
-  const inpatientEncs = encounters.filter(e => e.type === "admission");
+  const inpatientEncs = encounters.filter(e => e.type === "inpatient");
   const dischargedInpatient = inpatientEncs.filter(e => e.status === "discharged");
   const totalInpatientMs = dischargedInpatient.reduce((s, e) => {
     const endMs = e.endTime ?? world.clock.tick * 60000;

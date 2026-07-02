@@ -3,15 +3,15 @@ import { createClock } from "../src/engine/clock.js";
 import { EventQueue } from "../src/engine/event-queue.js";
 import { createState } from "../src/engine/state-store.js";
 import { generatePatientPool } from "../src/patient/generator.js";
-import { billingHandler, cashierHandler } from "../src/engine/finance.js";
+import { billingHandler, inpatientCashierHandler } from "../src/engine/finance.js";
 import type { Encounter } from "../src/patient/schema.js";
 
 function makeActiveEncounter(patientId: string): Encounter {
-  return { id: `ENC-${patientId}`, patientId, type: "admission", startTime: 1000, endTime: null, status: "active" };
+  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: null, status: "active" };
 }
 
 function makeDischargedEncounter(patientId: string): Encounter {
-  return { id: `ENC-${patientId}`, patientId, type: "admission", startTime: 1000, endTime: 2000, status: "discharged" };
+  return { id: `ENC-${patientId}`, patientId, type: "inpatient", startTime: 1000, endTime: 2000, status: "discharged" };
 }
 
 describe("Finance", () => {
@@ -24,21 +24,23 @@ describe("Finance", () => {
     const clock = createClock(60);
     clock.tick = 5;
     const result = billingHandler(state, clock, new EventQueue());
-    expect(result.charges.size).toBe(1);
-    const charge = Array.from(result.charges.values())[0]!;
-    expect(charge.category).toBe("room");
-    expect(charge.amount).toBe(350000);
-    expect(charge.paid).toBe(false);
+    expect(result.charges.size).toBe(2);
+    const charges = Array.from(result.charges.values());
+    const roomCharge = charges.find(c => c.category === "room")!;
+    expect(roomCharge).toBeDefined();
+    expect(roomCharge.amount).toBe(350000);
+    expect(roomCharge.paid).toBe(false);
   });
 
-  it("does not generate charges on non-5 ticks", () => {
+  it("does not generate room charges on non-5 ticks", () => {
     const patients = generatePatientPool(1);
     const state = createState(patients);
     state.encounters.set(`ENC-${patients[0]!.id}`, makeActiveEncounter(patients[0]!.id));
     const clock = createClock(60);
     clock.tick = 3;
     const result = billingHandler(state, clock, new EventQueue());
-    expect(result.charges.size).toBe(0);
+    const roomCharges = Array.from(result.charges.values()).filter(c => c.category === "room");
+    expect(roomCharges.length).toBe(0);
   });
 
   it("creates insurance claims on discharge when charges exist", () => {
@@ -52,7 +54,7 @@ describe("Finance", () => {
     const clock5 = createClock(60);
     clock5.tick = 5;
     state = billingHandler(state, clock5, new EventQueue());
-    expect(state.charges.size).toBe(1);
+    expect(state.charges.size).toBe(2);
 
     // Step 2: Discharge and run billing again (tick 10)
     state.encounters.set(encId, makeDischargedEncounter(pid));
@@ -121,7 +123,7 @@ describe("Finance", () => {
     // Tick 20: cashier runs (20 % 10 === 0) and creates payment for paid claims
     const clock20 = createClock(60);
     clock20.tick = 20;
-    state = cashierHandler(state, clock20, new EventQueue());
+    state = inpatientCashierHandler(state, clock20, new EventQueue());
 
     const paidClaims = Array.from(state.insuranceClaims.values()).filter(c => c.status === "paid" && c.patientResponsibility > 0);
     if (paidClaims.length > 0) {

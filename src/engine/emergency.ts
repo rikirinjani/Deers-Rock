@@ -37,7 +37,7 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
   const encounter = {
     id: encounterId,
     patientId: patient.id,
-    type: "emergency" as const,
+    type: "outpatient" as const,
     startTime: clock.hospitalTimeMs,
     endTime: null,
     status: "active" as const,

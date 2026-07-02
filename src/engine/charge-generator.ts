@@ -7,7 +7,11 @@ let chargeCounter = 0;
 const CHARGE_RATES: Record<ChargeCategory, number> = {
   lab: 250000, radiology: 500000, pharmacy: 75000, surgery: 5000000,
   room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
+  administration: 150000,
 };
+
+/** Flat administration tariff charged once per encounter (inpatient or outpatient). */
+const ADMIN_TARIFF = 150000;
 
 const ROOM_CLASS_MULTIPLIER: Record<RoomClass, number> = {
   vvip: 4, vip: 3,
@@ -35,4 +39,4 @@ export function generateCharge(
   return newCharges;
 }
 
-export { CHARGE_RATES, ROOM_CLASS_MULTIPLIER };
+export { CHARGE_RATES, ROOM_CLASS_MULTIPLIER, ADMIN_TARIFF };

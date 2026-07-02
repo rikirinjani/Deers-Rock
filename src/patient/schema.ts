@@ -46,7 +46,7 @@ export interface Medication {
 export interface Encounter {
   id: string;
   patientId: string;
-  type: "admission" | "outpatient" | "emergency";
+  type: "inpatient" | "outpatient";
   startTime: number;
   endTime: number | null;
   status: "active" | "discharged" | "transferred";
@@ -194,7 +194,7 @@ export interface MedicalChart {
 }
 
 // ─── Finance / Billing ───
-export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply";
+export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply" | "administration";
 
 export interface Charge {
   id: string;
