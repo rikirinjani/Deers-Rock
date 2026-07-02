@@ -1809,6 +1809,8 @@ Data is **not usable for Paper 1 claims** about realistic LOS. The experiment ra
 
 **Recommendation:** Option C. With 133 beds and 4320-tick minimum stay, scheduled discharges alone can handle throughput (~1 discharge per 32 ticks). The random discharge mechanism was a workaround from before the LOS fix and is now counterproductive.
 
+**Decision:** Option C approved by Coordinator. Remove random `dischargeHandler` entirely. Scheduled discharges + death only.
+
 ### Raw Data
 - CSV: `experiment-results/experiment-2026-07-02T03-59-32-554Z.csv`
 - Summary: `experiment-results/experiment-2026-07-02T03-59-32-554Z-summary.json`
