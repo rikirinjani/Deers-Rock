@@ -5,11 +5,54 @@
 > Rules: Signal → await response → archive answered → signaler deletes.
 
 ## → Platform OC
-- **ADR-003**: Agent state persistence in snapshots — pending (post-paper)
+- **ADR-003**: Agent state persistence in snapshots — **NOW** (see below)
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 - **dischargeHandler**: ✅ Option C removed (commit e2905d4). All 66 tests passing.
+
+### ADR-003: Agent State Persistence (Task for Platform OC)
+
+**Problem:** `_agentState` and `_referralState` are hardcoded to empty defaults in `journal.ts:270-271`. After snapshot restore, all agent fatigue, health, shift states, and referral pipelines are lost.
+
+**Files to modify:**
+- `src/engine/journal.ts` — serialize/deserialize `_agentState` and `_referralState`
+- `tests/snapshot.test.ts` — add round-trip verification for agent/referral state
+
+**Implementation:**
+```typescript
+// In saveSnapshot() — add to payload:
+agentState: {
+  pool: {
+    agents: mapToArr(state._agentState.pool.agents),
+    assignments: mapToArr(state._agentState.pool.assignments),
+  }
+},
+referralState: {
+  facilities: mapToArr(state._referralState.facilities),
+  letters: mapToArr(state._referralState.letters),
+  incomingQueue: state._referralState.incomingQueue,
+}
+
+// In deserializeState() — replace hardcoded defaults:
+_agentState: {
+  pool: {
+    agents: arrToMap(d.agentState?.pool?.agents ?? []),
+    assignments: arrToMap(d.agentState?.pool?.assignments ?? []),
+  }
+},
+_referralState: {
+  facilities: arrToMap(d.referralState?.facilities ?? []),
+  letters: arrToMap(d.referralState?.letters ?? []),
+  incomingQueue: d.referralState?.incomingQueue ?? [],
+}
+```
+
+**Backward compatibility:** Old snapshots without these fields must still load (use optional chaining + defaults).
+
+**Effort:** ~30 min. Snapshot size increases ~5-10KB.
+
+**Status:** ADR-003 is Proposed → needs Coordinator approval to implement.
 
 ## → Coordinator
 - **Submit SoftwareX** — 🔴 only remaining blocker. Fill author info and hit submit.
@@ -111,10 +154,10 @@ Waiting for Coordinator confirmation before editing manuscript.
 Waiting for Coordinator final confirmation before archiving.
 
 ## → Paper OC
-- **Decision response**: ✅ Option 2 confirmed (drop mortality from SoftwareX). Manuscript edits pending Coordinator final confirmation.
-- **SoftwareX**: All 8 reviewer fixes done. Author info needed from Coordinator → submit.
+- **Manuscript edits**: ✅ Complete — mortality removed from SoftwareX per Option 2 decision
+- **SoftwareX**: Ready for Coordinator author info → submit
 
 ---
 
-*Last updated: 2026-07-02 13:30 Coordinator (Option 2 confirmed — 4/4 unanimous)*
+*Last updated: 2026-07-02 14:00 Coordinator (ADR-003 pushed to Platform OC)*
 *Maintainer: Whoever modifies it last updates the timestamp.*

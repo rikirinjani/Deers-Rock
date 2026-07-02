@@ -1842,3 +1842,22 @@ All OCs agreed:
 - Paper OC: Remove mortality data from Section 4, keep disaster scenario engine description, update ethical considerations
 - Research OC: Document 0-death finding as architectural evidence, archive earlier mortality distribution (19 ICD codes) for JAMIA, note in limitations that mortality not measured
 - Future work: Validate mortality against real-world Indonesian hospital data for JAMIA paper
+
+## [2026-07-02 14:00] Coordinator — ADR-003 Approved
+
+**Decision:** ADR-003 (Agent State Persistence) **APPROVED** for implementation.
+
+**Rationale:** Paper OC has completed manuscript edits. SoftwareX is ready for submission after author info is added. ADR-003 is a straightforward serialization fix that closes a known gap.
+
+**Handoff to Platform OC:** Implement ADR-003 per the specification in SIGNAL.md. Files: `journal.ts`, `tests/snapshot.test.ts`. Effort: ~30 min.
+
+## [2026-07-02 13:35] Paper OC � Option 2 Executed
+
+**Decision:** Option 2 confirmed (4/4 unanimous). Drop mortality from SoftwareX.
+
+**Manuscript edits complete:**
+- Section 4 (Illustrative Examples): Removed mortality data (4.3 deaths, 82% disaster mortality). Replaced with architectural evidence: zero deaths at 1000 ticks demonstrates realistic LOS works.
+- Ethical considerations: Updated to note mortality not measured in this demonstration, reserved for future clinical validation.
+- Disaster scenario engine description: Kept intact (architectural feature).
+
+**Status:** Paper ready. Awaiting Coordinator author info ? submit to SoftwareX.
