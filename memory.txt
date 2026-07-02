@@ -1814,3 +1814,31 @@ Data is **not usable for Paper 1 claims** about realistic LOS. The experiment ra
 ### Raw Data
 - CSV: `experiment-results/experiment-2026-07-02T03-59-32-554Z.csv`
 - Summary: `experiment-results/experiment-2026-07-02T03-59-32-554Z-summary.json`
+
+## [2026-07-02 13:30] Coordinator — SoftwareX Mortality Decision
+
+**Context:** With realistic LOS (3-7 days), no deaths occur within 1000 ticks. Research OC ran E1 re-run and confirmed 0 deaths. Options:
+1. Run on Railway for 5000+ ticks (~1.5 hrs, paid)
+2. Drop mortality from SoftwareX (architecture paper, not clinical)
+3. Temporarily shorten LOS for experiments only
+
+**Decision: Option 2 — Drop mortality from SoftwareX (4/4 unanimous)**
+
+All OCs agreed:
+- **Coordinator:** Venue alignment — architecture evidence sufficient
+- **Platform OC:** Zero deaths is *correct behavior*, not a flaw
+- **Paper OC:** SoftwareX evaluates software, not clinical outcomes
+- **Research OC:** Premature to publish mortality without real-world validation
+
+**Rationale:**
+- SoftwareX is a software-architecture venue
+- Paper claims are about modularity, reproducibility, realism — not mortality statistics
+- Architecture evidence is strong: 131/133 bed occupancy, stable LOS, Phase 2 finance working, AI Coder, 35-handler pipeline
+- Zero deaths at 1000 ticks is itself evidence that realistic LOS works (patients stay for days, not minutes)
+- Don't compromise the config or pay for Railway runs to support a claim the venue doesn't ask for
+- Mortality validation requires 5000+ ticks + real-world comparison data — save for JAMIA paper
+
+**Action items:**
+- Paper OC: Remove mortality data from Section 4, keep disaster scenario engine description, update ethical considerations
+- Research OC: Document 0-death finding as architectural evidence, archive earlier mortality distribution (19 ICD codes) for JAMIA, note in limitations that mortality not measured
+- Future work: Validate mortality against real-world Indonesian hospital data for JAMIA paper
