@@ -1694,16 +1694,24 @@ Re-run E1 with new LOS config. Key questions:
 
 **Tasks:**
 
-| Task | Description | Depends on |
-|------|-------------|------------|
-| 1 | ICD→INA-CBG mapping (50 codes → tariff per PMK) | — |
-| 2 | Payer assignment on encounter (default BPJS; JR for accidents; foreigners self-pay) | Phase 1 |
-| 3 | BPJS claim workflow (SEP → coding check → submit → approve/deny/returned) | Task 1, MedicalChart |
-| 4 | Jasa Raharja claim workflow (separate queue, 30-day cap) | Task 2 |
-| 5 | Real cost vs BPJS tariff (efficiency ratio tracking) | Task 1, Phase 1 |
-| 6 | AI Coder agent (ICD-10 validation, coding completeness check) | Task 3 |
+| Task | Description | Status |
+|------|-------------|--------|
+| 1 | ICD→INA-CBG mapping (68 codes, PMK 28/2020 RS Tipe A) | ✅ Done |
+| 2 | Payer assignment on encounter (default BPJS; JR for accidents; foreigners self-pay) | ⬜ **NOW** |
+| 3 | BPJS claim workflow (SEP → coding check → submit → approve/deny/returned) | ⬜ Pending |
+| 4 | Jasa Raharja claim workflow (separate queue, 30-day cap) | ⬜ Pending |
+| 5 | Real cost vs BPJS tariff (efficiency ratio tracking) | ⬜ Pending |
+| 6 | AI Coder agent (ICD-10 validation, coding completeness check) | ⬜ Pending |
 
 **Key connection**: MedicalChart.status must be "coded" before BPJS claim submission. This requires AI Coder agent (partial scope — full DRG assignment deferred).
 
 ### → Platform OC
-Phase 2 design brief above. Begin with Task 1 (ICD→INA-CBG mapping) when ready. Research OC can provide tariff data source if needed.
+Task 1 done ✅. **Task 2 is now priority** — implement payer assignment on encounter:
+- Default: all patients BPJS Kesehatan
+- ED triage: check accident-related ICD codes (S06, S72, T14, T20, T63) → assign Jasa Raharja
+- Foreigners: self-pay
+- Payer assigned at encounter start (not identity generation)
+- After Task 2 done, Research OC will run experiments.
+
+### → Research OC
+Platform OC finishing Task 2 (payer assignment). After commit, run E1 with new LOS + INA-CBG + payer assignment config. This gives clean data for Paper 1 results section.
