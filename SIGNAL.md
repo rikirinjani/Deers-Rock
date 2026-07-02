@@ -10,7 +10,7 @@
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 - **Severity + ICD-9-CM**: ✅ Done (commit aebf1fa) — severity-aware tariff, CC list, procedure chart wiring
-- **🔴 PRIORITY — dischargeHandler (markov.ts:148)**: **Option C still not implemented.** This is the #1 blocker for ALL experiments and Paper 1 data. Remove random `dischargeHandler` from handler list FIRST (5 min). Severity/ICD-9-CM work is nice but blocks nothing — dischargeHandler blocks everything.
+- **dischargeHandler (markov.ts:148)**: ✅ **Option C implemented** — random `dischargeHandler` removed. Only scheduled discharges + death control patient flow.
 
 ## → Coordinator
 - **Submit SoftwareX** — 🔴 only remaining blocker. Fill author info and hit submit.

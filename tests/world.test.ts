@@ -48,8 +48,11 @@ describe("World", () => {
     const rads = s.radiologyOrders.size;
     const charges = s.charges.size;
     expect(labs + meds + rads + charges).toBeGreaterThan(0);
-    const activeEncs = Array.from(s.encounters.values()).filter(e => e.status === "active").length;
-    expect(activeEncs).toBeLessThanOrEqual(totalBeds);
+    const activeEncs = Array.from(s.encounters.values()).filter(e => e.status === "active");
+    const activeInpatient = activeEncs.filter(e => e.type === "inpatient").length;
+    const activeOutpatient = activeEncs.filter(e => e.type === "outpatient").length;
+    expect(activeInpatient).toBeLessThanOrEqual(totalBeds);
+    expect(activeOutpatient + activeInpatient).toBe(activeEncs.length);
     expect(s.morgue.length).toBeGreaterThanOrEqual(0);
     expect(s._outcomeRecords.length).toBeGreaterThan(0);
     const outcomes = s._outcomeRecords;

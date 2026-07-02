@@ -3,7 +3,7 @@
 **Last updated:** 2026-07-02
 
 ## Counts
-- **Traces recorded:** 31
+- **Traces recorded:** 34
 - **Failures recorded:** 2
 - **Proposals submitted:** 0
 
@@ -40,3 +40,4 @@
 | 28 | 2026-07-02T10:40:00 | platform | Phase 2 Task 6: AI Coder agent (specialty coders, accuracy, variable delay) | pass |
 | 29 | 2026-07-02T11:06:01 | general | Research OC: E1 re-run (new LOS + Phase 2) — diagnosed random discharge override | pass |
 | 30 | 2026-07-02T11:14:00 | platform | ICD-9-CM procedure pool (23 codes), CC list (13), severity inference (3-tier), severity-aware tariff, chart procedures wiring, severity in BPJS billing | pass |
+| 31 | 2026-07-02T18:50:00 | platform | Remove random dischargeHandler (Option C). Fix world test invariant: activeInpatient ≤ beds. All 66 tests pass. | pass |

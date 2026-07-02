@@ -1,0 +1,14 @@
+{
+  "trace_id": "trc-remove-dischargehandler-010",
+  "timestamp": "2026-07-02T18:50:00",
+  "agent": "platform",
+  "task_description": "Remove random dischargeHandler (Option C per Coordinator). Only scheduled discharges + death control patient flow. Fix world test invariant: activeInpatient ≤ beds instead of all-encounters ≤ beds.",
+  "outcome": "pass",
+  "duration_s": 300,
+  "tool_calls": 12,
+  "key_files": [
+    "src/engine/markov.ts",
+    "src/engine/world.ts",
+    "tests/world.test.ts"
+  ]
+}
