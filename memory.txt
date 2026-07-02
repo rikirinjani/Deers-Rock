@@ -15,6 +15,39 @@
 
 **Status:** Pending user approval to implement.
 
+## [2026-07-02 11:00] Platform OC — INA-CBG Severity Dependencies Research
+
+**Research findings on severity level determinants (PMK 26/2021, PMK 27/2014, PMK 3/2023):**
+
+**Three factors determine severity:**
+1. **ICD-10 secondary diagnoses (CC list)** — Primary determinant. A CC list (Complication/Comorbidity) classifies each ICD code as mild or major. Having 1+ mild CC → Level II. Having 1+ major CC → Level III.
+2. **ICD-9-CM procedures** — Must be coded in the chart. Missing procedure codes when a procedure was performed → claim downcoding or rejection. Common procedures: surgery, hemodialysis, cathlab, CT/MRI, skin graft (for burns).
+3. **Documentation completeness** — Without complete chart documentation (SOAP, discharge summary), the grouper defaults to unspecified codes → Level I instead of true severity.
+
+**Separate from severity (Top-Up / Special CMG):**
+- **Special Drugs**: Human Albumin for burns, chemotherapy, certain biologics — paid as ADD-ON to base tariff, not a severity modifier
+- **Special Procedures**: Hemodialysis, PCI/cathlab — separate top-up
+- **Special Prosthesis**: Stents, pacemakers, implants
+- **Special Investigation**: CT Scan, MRI
+- **Subacute/Chronic**: LOS > 42 days, uses ADL assessment
+- These exist because the base INA-CBG tariff would otherwise grossly underpay for these high-cost items
+
+**Current simulation gap:**
+- No ICD-9-CM procedure codes exist in the codebase
+- `MedicalChart.procedures` exists in schema but is always `[]` — never populated
+- Surgery generates `procedureCode` but never writes it to the chart
+- No CC list implemented — severity inference from diagnosis count is a rough approximation
+- No Special CMG items tracked
+
+**For implementation priority:**
+1. ICD-9-CM pool for our 42 diagnoses' common procedures (highest impact)
+2. Wire procedure codes into charts from surgery/ai-doctor handlers
+3. CC list classification for our 42 ICD codes (mild vs major)
+4. Then severity calculation uses BOTH diagnosis codes + procedure presence
+5. Special CMG top-ups can follow later
+
+**References:** PMK 26/2021, PMK 27/2014, PMK 3/2023, PERATURAN BPJS 3/2024
+
 ## [2026-07-01 18:18] Platform OC — Phase 1 Tasks 1/2/4/6 Complete
 
 **Commit:** `3c2ed24`
@@ -1738,3 +1771,44 @@ Re-run E1 with new LOS config. Key questions:
 
 ### → Paper OC
 Await Research OC's fresh data for results section. SoftwareX author info still needed from Coordinator.
+
+## [2026-07-02 12:00] Research OC — E1 Re-Run: Random Discharge Override Finding
+
+### E1 Re-Run Complete (10×1000 ticks, 50 patients, Phase 2 stack + new LOS)
+
+| Metric | Value | Note |
+|--------|-------|------|
+| Deaths | **53.1 ± 10.5** (SD=16.9, range 39-81) | High throughput, plausible variance |
+| LOS (discharged) | **2.3 ± 0.3** ticks (SD=0.5) | **NOT the 3-7 day LOS — random discharge override** |
+| LOS (active) | 1.5 ticks (range 0-3) | Patients barely stay minutes |
+| Bed occupancy | **2.2 ± 1.6** / 133 beds | Essentially empty |
+| Encounters | Always at 500 (pruning cap) | High throughput bounded by pruning |
+| DeathsByIcd | Good diversity (~20 codes/run) | Plausible distribution |
+
+### Root Cause: `dischargeHandler` (random) overrides scheduled LOS
+
+The system has **two competing discharge mechanisms** in `markov.ts`:
+
+1. **`dischargeScheduledPatients`** — fires at `clock.tick + 4320-10080` (3-7 day stay). ✅ correct
+2. **`dischargeHandler`** (line 142) — runs **every tick**, discharges `2 + floor(active/350)` **random** patients. ❌ overrides #1
+
+Since `dischargeHandler` runs every tick discharging 2-3 random patients, and admissions happen only ~1 per 15 ticks at low occupancy, patients get discharged within minutes of admission. The scheduled 4320-10080 tick stay **never fires** because the patient is long gone.
+
+### Impact on Paper 1
+
+Data is **not usable for Paper 1 claims** about realistic LOS. The experiment ran correctly, but the system property means the random discharge dominates. Any claim about "3-7 day average LOS" would be false at current configuration.
+
+### Options for Coordinator
+
+| Option | Description | Effort |
+|--------|-------------|--------|
+| **A** | Reduce `dischargeHandler` rate to match scheduled discharge rate (~1 per 32 ticks at steady state) | Trivial (change line 148) |
+| **B** | Gate random discharge by minimum stay (only discharge patients who have been active > N ticks) | Small (~10 min) |
+| **C** | Remove random `dischargeHandler` entirely; rely only on scheduled discharges + death | Trivial (remove from handler list) |
+| **D** | Keep current behavior; document as "high-throughput ED fast-track mode" | No code change, weak paper claim |
+
+**Recommendation:** Option C. With 133 beds and 4320-tick minimum stay, scheduled discharges alone can handle throughput (~1 discharge per 32 ticks). The random discharge mechanism was a workaround from before the LOS fix and is now counterproductive.
+
+### Raw Data
+- CSV: `experiment-results/experiment-2026-07-02T03-59-32-554Z.csv`
+- Summary: `experiment-results/experiment-2026-07-02T03-59-32-554Z-summary.json`
