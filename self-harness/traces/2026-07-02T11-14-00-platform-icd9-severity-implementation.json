@@ -1,0 +1,15 @@
+{
+  "trace_id": "trc-icd9-severity-009",
+  "timestamp": "2026-07-02T11:14:00",
+  "agent": "platform",
+  "task_description": "Implement ICD-9-CM procedure code pool (23 codes), CC list classification (13 entries), severity inference (3-tier), severity-aware tariff lookup, wire completed surgery procedures into MedicalChart, wire severity into BPJS billing. All 66 tests pass.",
+  "outcome": "pass",
+  "duration_s": 1200,
+  "tool_calls": 24,
+  "key_files": [
+    "src/engine/ina-cbg.ts",
+    "src/engine/surgery.ts",
+    "src/engine/medical-records.ts",
+    "src/engine/finance.ts"
+  ]
+}

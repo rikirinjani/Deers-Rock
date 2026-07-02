@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
 import { generateCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
-import { lookupCbgTariff } from "./ina-cbg.js";
+import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 
 const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
@@ -103,8 +103,11 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       continue;
     }
 
+    // Compute severity from chart diagnoses
+    const chartDxCodes = chart?.diagnoses.map(d => d.code) ?? [];
+    const severity = inferSeverity(chartDxCodes);
     const primaryDx = patient?.diagnoses.find(d => d.active) ?? patient?.diagnoses[0];
-    const cbgEntry = primaryDx ? lookupCbgTariff(primaryDx.code) : undefined;
+    const cbgEntry = primaryDx ? lookupCbgTariff(primaryDx.code, severity) : undefined;
 
     let totalCharges = total;
     let coveredAmount: number;

@@ -1,7 +1,8 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { MedicalChart } from "../patient/schema.js";
+import type { MedicalChart, SurgeryOrder } from "../patient/schema.js";
+import { getProceduresForDiagnosis } from "./ina-cbg.js";
 
 const CODERS = [
   { name: "AI Coder Alpha", specialty: "internal_medicine", accuracy: 0.92 },
@@ -43,6 +44,15 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
     const patient = state.patients.get(encounter.patientId);
     if (!patient) continue;
 
+    // Collect completed procedures from surgery orders
+    const completedSurgs = Array.from(state.surgeryOrders.values())
+      .filter(s => s.encounterId === encounter.id && s.status === "completed");
+    const procedures = completedSurgs.map(s => ({
+      code: s.procedureCode,
+      name: s.procedureName,
+      date: s.completedAt ?? clock.hospitalTimeMs,
+    }));
+
     const chart: MedicalChart = {
       id: `CHART-${encounter.id}`,
       encounterId: encounter.id,
@@ -55,7 +65,7 @@ export function medicalRecordsHandler(state: HospitalState, clock: Clock, _queue
         name: DX_MAP[d.code] ?? d.name,
         type: i === 0 ? "primary" as const : "secondary" as const,
       })),
-      procedures: [],
+      procedures,
       coder: null,
     };
     newCharts.set(chart.id, chart);

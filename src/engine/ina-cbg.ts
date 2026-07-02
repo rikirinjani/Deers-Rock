@@ -8,14 +8,116 @@
  * Payment is per episode — hospital profits if actual cost < tariff,
  * absorbs loss if actual cost > tariff.
  *
- * Reference: Permenkes No. 28/2020 tentang INA-CBG
+ * Severity levels (PMK 3/2023):
+ *   Level I  — w/o CC (without complication/comorbidity)
+ *   Level II — w CC (with complication/comorbidity, mild)
+ *   Level III — w MCC (with major complication/comorbidity)
+ *
+ * Reference: Permenkes No. 28/2020, PMK 3/2023 tentang INA-CBG
  */
+
+export type SeverityLevel = "I" | "II" | "III";
 
 export interface CbgEntry {
   icdCode: string;
   cbgGroup: string;
   tariffIdr: number;
   description: string;
+  severity?: SeverityLevel;
+}
+
+/**
+ * Simplified CC list for simulation.
+ * Tags each ICD-10 code as mild (w CC) or major (w MCC).
+ * Codes not in the list are treated as w/o CC (Level I).
+ */
+export const CC_LIST: Record<string, "mild" | "major"> = {
+  "I10": "mild",      // Essential hypertension
+  "E11": "mild",      // Type 2 diabetes
+  "E78": "mild",      // Hyperlipidemia
+  "N18": "mild",      // CKD
+  "J44": "mild",      // COPD
+  "E05": "mild",      // Hyperthyroidism
+  "M81": "mild",      // Osteoporosis
+  "D64": "mild",      // Anemia
+  "E86": "mild",      // Dehydration
+  "N39": "mild",      // UTI
+  "B20": "major",     // HIV
+  "I50": "major",     // Heart failure
+  "I21": "major",     // AMI
+  "N18.5": "major",   // CKD stage 5
+  "J96": "major",     // Respiratory failure
+  "R57": "major",     // Septic shock
+};
+
+/**
+ * ICD-9-CM procedure codes commonly performed for each diagnosis.
+ * Only diagnoses that typically involve a procedure are listed.
+ * Used for chart coding completeness and INA-CBG severity awareness.
+ */
+export const ICD9_PROCEDURES: { code: string; name: string; icdCodes: string[] }[] = [
+  { code: "47.01", name: "Laparoscopic appendectomy", icdCodes: ["K35"] },
+  { code: "51.23", name: "Laparoscopic cholecystectomy", icdCodes: ["K80"] },
+  { code: "85.43", name: "Mastectomy", icdCodes: ["C50"] },
+  { code: "60.29", name: "TURP (Transurethral prostatectomy)", icdCodes: ["N40"] },
+  { code: "68.29", name: "Myomectomy", icdCodes: ["D25"] },
+  { code: "81.54", name: "Total knee arthroplasty", icdCodes: ["M17"] },
+  { code: "79.35", name: "Open reduction of femur fracture with internal fixation", icdCodes: ["S72"] },
+  { code: "01.24", name: "Craniotomy", icdCodes: ["S06"] },
+  { code: "86.22", name: "Debridement of wound", icdCodes: ["T20", "T14", "E11.5"] },
+  { code: "86.28", name: "Skin graft", icdCodes: ["T20"] },
+  { code: "99.10", name: "Thrombolytic therapy", icdCodes: ["I63"] },
+  { code: "36.07", name: "Drug-eluting coronary stent insertion", icdCodes: ["I21"] },
+  { code: "39.95", name: "Hemodialysis", icdCodes: ["N18"] },
+  { code: "73.59", name: "Vaginal delivery", icdCodes: ["O80"] },
+  { code: "74.1", name: "Cesarean section", icdCodes: ["O80"] },
+  { code: "84.17", name: "Below knee amputation", icdCodes: ["E11.5"] },
+  { code: "96.04", name: "Mechanical ventilation >96 hours", icdCodes: ["J44", "J15", "J18"] },
+  { code: "20.01", name: "Myringotomy with tube insertion", icdCodes: ["H66"] },
+  { code: "88.56", name: "Coronary angiography", icdCodes: ["I21", "I05"] },
+  { code: "45.23", name: "Colonoscopy", icdCodes: ["D25", "K80"] },
+  { code: "39.25", name: "AV fistula creation for dialysis", icdCodes: ["N18"] },
+  { code: "86.59", name: "Wound closure", icdCodes: ["T14"] },
+  { code: "84.10", name: "Partial amputation of lower limb", icdCodes: ["E11.5"] },
+];
+
+/**
+ * Get procedure codes that could apply to a given diagnosis.
+ */
+export function getProceduresForDiagnosis(icdCode: string): { code: string; name: string }[] {
+  return ICD9_PROCEDURES
+    .filter(p => p.icdCodes.includes(icdCode))
+    .map(p => ({ code: p.code, name: p.name }));
+}
+
+/**
+ * Given a list of diagnosis codes, infer severity level (I/II/III).
+ * Uses CC list classification + diagnosis count as approximation.
+ *
+ * Rules:
+ * - 0 secondary diagnoses → Level I (w/o CC)
+ * - Any secondary is "major" CC → Level III (w MCC)
+ * - Any secondary is "mild" CC → Level II (w CC)
+ * - No CC-tagged secondaries but 2+ diagnoses → Level II
+ */
+export function inferSeverity(diagnosisCodes: string[]): SeverityLevel {
+  if (diagnosisCodes.length <= 1) return "I";
+  const [, ...secondaries] = diagnosisCodes;
+  const seen = new Set<string>();
+  for (const code of secondaries) {
+    if (seen.has(code)) continue;
+    seen.add(code);
+    const cc = CC_LIST[code];
+    if (cc === "major") return "III";
+  }
+  for (const code of secondaries) {
+    if (seen.has(code)) continue;
+    seen.add(code);
+    const cc = CC_LIST[code];
+    if (cc === "mild") return "II";
+  }
+  // Multiple diagnoses but none CC-tagged → Level II
+  return "II";
 }
 
 export const INA_CBG: CbgEntry[] = [
@@ -24,10 +126,10 @@ export const INA_CBG: CbgEntry[] = [
   { icdCode: "A09", cbgGroup: "I06A", tariffIdr: 3_100_000, description: "Infectious gastroenteritis, w/o CC" },
   { icdCode: "A15", cbgGroup: "I03A", tariffIdr: 8_500_000, description: "Tuberculosis, w/o CC" },
   { icdCode: "A27", cbgGroup: "I04A", tariffIdr: 6_800_000, description: "Leptospirosis, w/o CC" },
-  { icdCode: "A41", cbgGroup: "I10A", tariffIdr: 12_000_000, description: "Sepsis, w MCC" },
+  { icdCode: "A41", cbgGroup: "I10C", tariffIdr: 12_000_000, description: "Sepsis, w MCC", severity: "III" },
   { icdCode: "A82", cbgGroup: "I15A", tariffIdr: 15_000_000, description: "Rabies, w/o CC" },
   { icdCode: "A91", cbgGroup: "I12A", tariffIdr: 7_200_000, description: "Dengue hemorrhagic fever" },
-  { icdCode: "B20", cbgGroup: "I20A", tariffIdr: 9_500_000, description: "HIV disease w opportunistic infections" },
+  { icdCode: "B20", cbgGroup: "I20B", tariffIdr: 9_500_000, description: "HIV disease w opportunistic infections", severity: "II" },
   { icdCode: "B50", cbgGroup: "I08A", tariffIdr: 5_500_000, description: "Malaria, severe" },
   { icdCode: "B86", cbgGroup: "I22A", tariffIdr: 2_800_000, description: "Scabies, w/o CC" },
 
@@ -62,7 +164,7 @@ export const INA_CBG: CbgEntry[] = [
   { icdCode: "I21", cbgGroup: "B03A", tariffIdr: 18_000_000, description: "Acute myocardial infarction" },
   { icdCode: "I48", cbgGroup: "B04A", tariffIdr: 8_500_000, description: "Atrial fibrillation, w/o CC" },
   { icdCode: "I50", cbgGroup: "B05A", tariffIdr: 10_500_000, description: "Heart failure, w/o CC" },
-  { icdCode: "I05", cbgGroup: "B06A", tariffIdr: 22_000_000, description: "Rheumatic heart disease, w CC" },
+  { icdCode: "I05", cbgGroup: "B06B", tariffIdr: 22_000_000, description: "Rheumatic heart disease, w CC", severity: "II" },
   { icdCode: "I83", cbgGroup: "B07A", tariffIdr: 3_200_000, description: "Varicose veins, w/o CC" },
 
   // === Respiratory ===
@@ -80,7 +182,7 @@ export const INA_CBG: CbgEntry[] = [
   { icdCode: "K29", cbgGroup: "D02A", tariffIdr: 3_200_000, description: "Gastritis, w/o CC" },
   { icdCode: "K35", cbgGroup: "D03A", tariffIdr: 10_500_000, description: "Acute appendicitis, w/o CC" },
   { icdCode: "K56", cbgGroup: "D04A", tariffIdr: 8_500_000, description: "Paralytic ileus, w/o CC" },
-  { icdCode: "K80", cbgGroup: "D05A", tariffIdr: 12_000_000, description: "Cholelithiasis, w CC" },
+  { icdCode: "K80", cbgGroup: "D05B", tariffIdr: 12_000_000, description: "Cholelithiasis, w CC", severity: "II" },
 
   // === Musculoskeletal ===
   { icdCode: "M06", cbgGroup: "J01A", tariffIdr: 5_200_000, description: "Rheumatoid arthritis, w/o CC" },
@@ -125,12 +227,56 @@ export const INA_CBG: CbgEntry[] = [
   { icdCode: "E11.5", cbgGroup: "E03B", tariffIdr: 7_500_000, description: "Type 2 diabetes w diabetic foot" },
 ];
 
+// Severity tariff multipliers (approximate based on PMK 3/2023 patterns)
+// Level II (w CC): ~35% above base
+// Level III (w MCC): ~70% above base
+const SEVERITY_MULTIPLIER: Record<SeverityLevel, number> = {
+  I: 1.0,
+  II: 1.35,
+  III: 1.70,
+};
+
 /**
- * Look up INA-CBG tariff for an ICD code.
+ * Look up INA-CBG tariff for an ICD code at a given severity level.
+ * Returns Level I tariff by default. Computes II/III tariff via multiplier
+ * when the base entry is Level I. Entries already tagged with II/III use their tariff as-is.
  * Returns undefined if code not found.
  */
-export function lookupCbgTariff(icdCode: string): CbgEntry | undefined {
-  return INA_CBG.find(e => e.icdCode === icdCode);
+export function lookupCbgTariff(icdCode: string, severity: SeverityLevel = "I"): CbgEntry | undefined {
+  const base = INA_CBG.find(e => e.icdCode === icdCode);
+  if (!base) return undefined;
+  const baseSeverity = base.severity ?? "I";
+  // If entry already has this severity, return as-is
+  if (severity === baseSeverity) return base;
+  // If entry is lower severity, compute up
+  if (severity !== "I") {
+    const multiplier = SEVERITY_MULTIPLIER[severity] / SEVERITY_MULTIPLIER[baseSeverity];
+    return {
+      ...base,
+      tariffIdr: Math.round(base.tariffIdr * multiplier),
+      severity,
+      description: `${base.description.replace(/, (w\/o CC|w CC|w MCC)$/i, "")}, ${severity === "II" ? "w CC" : "w MCC"}`,
+    };
+  }
+  // Requested severity I but entry is higher — shouldn't normally happen, return as-is
+  return base;
+}
+
+/**
+ * Get severity-specific CBG code suffix (A/B/C).
+ */
+export function getCbgSuffix(severity: SeverityLevel): string {
+  if (severity === "I") return "A";
+  if (severity === "II") return "B";
+  return "C";
+}
+
+/**
+ * Compute severity-adjusted CBG group code.
+ * E.g., "B02A" + Level III → "B02C"
+ */
+export function getSeverityCbgGroup(cbgGroup: string, severity: SeverityLevel): string {
+  return cbgGroup.slice(0, -1) + getCbgSuffix(severity);
 }
 
 /**

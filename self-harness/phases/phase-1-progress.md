@@ -3,7 +3,7 @@
 **Last updated:** 2026-07-02
 
 ## Counts
-- **Traces recorded:** 29
+- **Traces recorded:** 31
 - **Failures recorded:** 2
 - **Proposals submitted:** 0
 
@@ -38,3 +38,5 @@
 | 26 | 2026-07-02T10:39:00 | platform | Phase 2 Task 4: Jasa Raharja claim workflow (30-day cap, auto-approve) | pass |
 | 27 | 2026-07-02T10:39:30 | platform | Phase 2 Task 5: Real cost vs BPJS tariff efficiency ratio | pass |
 | 28 | 2026-07-02T10:40:00 | platform | Phase 2 Task 6: AI Coder agent (specialty coders, accuracy, variable delay) | pass |
+| 29 | 2026-07-02T11:06:01 | general | Research OC: E1 re-run (new LOS + Phase 2) — diagnosed random discharge override | pass |
+| 30 | 2026-07-02T11:14:00 | platform | ICD-9-CM procedure pool (23 codes), CC list (13), severity inference (3-tier), severity-aware tariff, chart procedures wiring, severity in BPJS billing | pass |
