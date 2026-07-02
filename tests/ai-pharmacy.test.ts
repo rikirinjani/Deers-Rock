@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aiPharmacyHandler } from "../src/engine/ai-pharmacy.js";
+import { aiClinicalPharmacyHandler as aiPharmacyHandler } from "../src/engine/ai-pharmacy.js";
 import { EventQueue } from "../src/engine/event-queue.js";
 import type { HospitalState } from "../src/engine/state-store.js";
 import type { Patient, Encounter, MedicationOrder, HospitalAgent, AgentPool } from "../src/patient/schema.js";
