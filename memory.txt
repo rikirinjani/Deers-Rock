@@ -1,5 +1,20 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-02 10:45] Platform OC — INA-CBG Severity Level Analysis
+
+**Context:** Inventory of 68 INA-CBG entries vs real PMK 3/2023 (1,075 groups, 3 severity levels).
+
+**Finding:** All current entries are Level I (w/o CC). Real tariffs increase 30-60% for Level II and 80-200% for Level III.
+
+**Implementation proposal (5 steps):**
+1. Add `severityLevel` to `CbgEntry` schema
+2. Expand each CBG with B/C tariff variants (~200 entries)
+3. Infer severity from diagnosis count (1=Ⅰ, 2=Ⅱ, 3+=Ⅲ)
+4. Update `lookupCbgTariff` with severity parameter
+5. Wire into BPJS billing
+
+**Status:** Pending user approval to implement.
+
 ## [2026-07-01 18:18] Platform OC — Phase 1 Tasks 1/2/4/6 Complete
 
 **Commit:** `3c2ed24`

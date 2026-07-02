@@ -1,0 +1,10 @@
+{
+  "trace_id": "trc-cbg-severity-007",
+  "timestamp": "2026-07-02T10:45:00",
+  "agent": "platform",
+  "task_description": "INA-CBG severity level analysis — current 68 entries all Level I vs real PMK 3/2023 with 3 severity levels. Proposed 5-step implementation to add severity-aware tariff lookup.",
+  "outcome": "pass",
+  "duration_s": 300,
+  "tool_calls": 6,
+  "key_files": ["src/engine/ina-cbg.ts", "memory.txt"]
+}
