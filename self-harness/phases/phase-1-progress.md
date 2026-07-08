@@ -3,7 +3,7 @@
 **Last updated:** 2026-07-02
 
 ## Counts
-- **Traces recorded:** 34
+- **Traces recorded:** 35
 - **Failures recorded:** 2
 - **Proposals submitted:** 0
 
@@ -41,3 +41,5 @@
 | 29 | 2026-07-02T11:06:01 | general | Research OC: E1 re-run (new LOS + Phase 2) — diagnosed random discharge override | pass |
 | 30 | 2026-07-02T11:14:00 | platform | ICD-9-CM procedure pool (23 codes), CC list (13), severity inference (3-tier), severity-aware tariff, chart procedures wiring, severity in BPJS billing | pass |
 | 31 | 2026-07-02T18:50:00 | platform | Remove random dischargeHandler (Option C). Fix world test invariant: activeInpatient ≤ beds. All 66 tests pass. | pass |
+| 32 | 2026-07-02T19:15:00 | platform | RULES.md compliance — trace recorded, SIGNAL.md updated | pass |
+| 32 | 2026-07-02T12:50:00 | general | Research OC: E1 post-fix — verified realistic occupancy/LOS, 0-death issue at 1000 ticks documented | pass |
