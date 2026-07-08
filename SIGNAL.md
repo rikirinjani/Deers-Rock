@@ -159,5 +159,5 @@ Waiting for Coordinator final confirmation before archiving.
 
 ---
 
-*Last updated: 2026-07-02 14:00 Coordinator (ADR-003 pushed to Platform OC)*
+*Last updated: 2026-07-02 19:15 Platform OC (RULES.md compliance — trace recorded)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
