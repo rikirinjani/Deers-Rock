@@ -110,7 +110,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🔴 ~~only remaining blocker. Fill author info and hit submit.~~ Author info filled. Awaiting Paper OC to verify and submit.
+- **Submit SoftwareX** — 🔴 ~~author info blocker resolved~~ → Draft Detective review 12 issues fixed → awaiting Paper OC PDF re-render + final submit
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -211,9 +211,12 @@ Waiting for Coordinator final confirmation before archiving.
 ## → Paper OC
 - **Manuscript edits**: ✅ Complete — mortality removed from SoftwareX per Option 2 decision
 - **Author info**: ✅ Added by Coordinator — Riki Rinjani, PharmD (ORCID: 0009-0002-9364-2637)
-- **SoftwareX**: 🟢 **Ready to submit.** Author info filled, mortality removed, architecture evidence complete. Paper OC: verify manuscript renders correctly, then proceed to SoftwareX submission portal.
+- **PDF verification**: ✅ Done (before Draft Detective fixes)
+- **Draft Detective review**: 🛠️ **12 issues fixed** (commit 517f2c9) — see memory.txt for full mapping. **Paper OC: PDF needs re-render after these fixes.**
+  - Table 1 FHIR: Partial^, HOE framing dropped, Fig1 rendered SVG, LOS censoring admitted, mortality framing toned down, metadata filled, cultural multipliers sourced, performance scaling caveated, N=10 labeled, test coverage added, "clinical constitution" defined, "self-critique" rhetoric replaced
+- **SoftwareX**: 🟢 **Ready to submit** (after PDF re-render). Coordinator: fix complete. Paper OC: regenerate PDF, final visual check, then submit.
 
 ---
 
-*Last updated: 2026-07-09 13:30 Coordinator (author info — paper unblocked for submission)*
+*Last updated: 2026-07-09 14:15 Coordinator (Draft Detective 12 issues fixed — paper updated, needs PDF re-render)*
 *Maintainer: Whoever modifies it last updates the timestamp.*

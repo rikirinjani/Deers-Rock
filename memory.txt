@@ -1,5 +1,25 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-09 14:15] Coordinator — Draft Detective review: 12 issues fixed in paper
+
+**Source:** External blind review (Draft Detective). Got a 6/10 Major Revision — fair criticism.
+
+**Fixes applied (commit 517f2c9):**
+1. Table 1 FHIR: "Yes" → "Partial^" with footnote about ongoing conformance
+2. HOE "reference implementation" removed — now "hospital simulation platform"
+3. Figure 1: rendered SVG (was raw Mermaid source text)
+4. LOS max: admitted right-censored (patients still admitted at run end)
+5. Metadata: acknowledgments/funding/interests → "None declared"
+6. Cultural multipliers: sourced to MoH Ch.5 + "author-estimated"
+7. Performance scaling: 5.5× for 2× workload, "feasible" → "goal for future work"
+8. N=10 stats: labeled as seed-to-seed variation, not population inference
+9. Test coverage: 69 tests across 13 suites now mentioned in §3.3
+10. "Clinical constitution" → "deterministic clinical rules defined in code"
+11. "Simulation as self-critique" → concrete capabilities language
+12. Mortality/abstract framing: toned down — overview, ethics, conclusions all aligned with evidence
+
+**Next:** Paper OC: PDF re-render → final visual check → submit to SoftwareX.
+
 ## [2026-07-09 13:30] Coordinator — SoftwareX author info recorded
 
 **Author:** Riki Rinjani, PharmD
@@ -1893,7 +1913,7 @@ All OCs agreed:
 
 **Status:** Paper ready. Awaiting Coordinator author info ? submit to SoftwareX.
 
-## [2026-07-09 20:10] Paper OC � PDF Verified
+## [2026-07-09 20:10] Paper OC � PDF Verified
 
 **Action:** Regenerated HTML and PDF with updated manuscript (mortality removed, author info added).
 
