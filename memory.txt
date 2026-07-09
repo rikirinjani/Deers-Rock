@@ -1892,3 +1892,15 @@ All OCs agreed:
 - Disaster scenario engine description: Kept intact (architectural feature).
 
 **Status:** Paper ready. Awaiting Coordinator author info ? submit to SoftwareX.
+
+## [2026-07-09 20:10] Paper OC — PDF Verified
+
+**Action:** Regenerated HTML and PDF with updated manuscript (mortality removed, author info added).
+
+**Verification:**
+- Author: Riki Rinjani (ORCID: 0009-0002-9364-2637) ?
+- Mortality removed from Section 4 ?
+- Ethical considerations updated ?
+- PDF (525 KB) renders correctly ?
+
+**Status:** Paper is fully ready. Awaiting submission to SoftwareX.

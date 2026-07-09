@@ -17,9 +17,9 @@
 
 Healthcare simulation is essential for policy analysis, AI benchmarking, and health information system validation. Existing platforms such as SimPy, AnyLogic, and MedModel support discrete-event simulation but lack three properties that are essential for modern healthcare experimentation: persistent deterministic replay, modular composability of clinical departments, and agent-native experimentation within a single open-source framework.
 
-Deer's Rock is a persistent, event-driven hospital simulation environment built as a reference implementation of the Healthcare Operating Environment (HOE) architecture. The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) and models a full Tier A referral hospital in Makassar, Eastern Indonesia, with 9 specialized departments, 50 ICD-10 diagnoses, rule-based clinical agents (doctor, nurse, pharmacist), a 22-drug formulary, and a stochastic disaster scenario engine covering 7 event types. Unlike existing simulators, the calendar engine generates culturally-contextualized patient influx — Lebaran burn injuries, Ramadan fasting-related hypoglycemia — modelled from real Indonesian epidemiology.
+Deer's Rock is a persistent, event-driven hospital simulation platform implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) that models a full Tier A referral hospital in Makassar, Eastern Indonesia. The platform includes 9 specialized departments, 50 ICD-10 diagnoses, rule-based clinical agents (doctor, nurse, pharmacist), a 22-drug formulary, and a stochastic disaster scenario engine covering 7 event types. Unlike existing simulators, the calendar engine generates culturally-contextualized patient influx — Lebaran burn injuries, Ramadan fasting-related hypoglycemia — modelled from real Indonesian epidemiology.
 
-The platform is designed around two principles: **simulation as self-critique**, where reports can expose modeling assumptions rather than merely summarizing outputs; and **counterfactuals by construction**, where deterministic seeding and snapshot persistence enable controlled branching experiments.
+The platform enables two key capabilities: deterministic seeding and snapshot persistence for controlled branching experiments (counterfactual replay), and an event-sourced journal that exposes the full decision trace of each simulation run, allowing modelling assumptions to be audited against outputs.
 
 ---
 
@@ -40,10 +40,10 @@ General-purpose simulation frameworks such as SimPy [1] and AnyLogic [2] have be
 | Cultural patient generation | No | No | No | No | **Yes** |
 | Rule-based clinical agents | No | No | No | No | **Yes** |
 | Disaster scenario engine | No | Partial | No | No | **Yes** |
-| FHIR R4 adapter | No | No | No | Yes | **Yes** |
+| FHIR R4 adapter | No | No | No | Yes | **Partial^** |
 | Event-sourced journal | No | No | No | No | **Yes** |
 
-**Table 1.** Comparison of Deer's Rock with existing simulation platforms.
+**Table 1.** Comparison of Deer's Rock with existing simulation platforms. ^Currently implements Patient and Observation resource profiles; full HL7 FHIR R4 conformance testing is ongoing.
 
 ### 2.2 Healthcare ML and digital twin platforms
 
@@ -57,29 +57,13 @@ Komorowski et al. [7] demonstrated reinforcement learning for sepsis treatment o
 
 Deer's Rock is built on three architectural foundations: a deterministic tick engine, an append-only SQLite event journal, and a modular handler chain (Figure 1).
 
-```mermaid
-graph TD
-    Clock[Clock<br/>1 tick = 1 min<br/>rng(seed)] --> HandlerChain[Handler Chain<br/>35 handlers/tick]
-    HandlerChain --> |state transitions| Journal[Event Journal<br/>SQLite append-only<br/>snapshots every 20 ticks]
-    Journal --> Adapter[FHIR R4 Adapter<br/>Patient / Observation / Encounter]
-    
-    subgraph Handlers
-        H1[Admission]
-        H2[Emergency]
-        H3[Lab / Pharmacy]
-        H4[Doctor / Nurse]
-        H5[Disaster Scenario]
-        H6[Cleanup / Learn]
-    end
-    
-    HandlerChain --> Handlers
-```
+![](fig1-architecture.svg)
 
-**Figure 1.** High-level architecture of Deer's Rock showing the tick engine, handler chain, event journal, and FHIR adapter.
+**Figure 1.** High-level architecture of Deer's Rock showing the tick engine, handler chain, event journal, and FHIR adapter. Handler subgraph includes admission, emergency, lab/pharmacy, doctor/nurse, disaster scenario, and cleanup/learn handlers.
 
 **Tick engine.** The simulation advances at 1 tick per second real-time, where each tick represents 1 simulated minute. At this speed, 24 minutes of real time simulate one hospital day. The clock is the authoritative timekeeper — no module may advance or delay it. All random decisions use a seeded PRNG (mulberry32) initialized from the simulation seed, ensuring deterministic reproducibility.
 
-**Event journal.** Every state transition is recorded in an append-only SQLite journal with WAL mode. Each entry captures the tick, timestamp, event type, entity, and a JSON payload. Full-state snapshots are serialized every 20 ticks, enabling replay from any checkpoint. The current state is a materialized view derived from the nearest snapshot plus subsequent journal entries, following the CQRS/event sourcing pattern [14, 15].
+**Event journal.** Every state transition is recorded in an append-only SQLite journal with WAL mode. Each entry captures the tick, timestamp, event type, entity, and a JSON payload. Full-state snapshots are serialized every 100 ticks, enabling replay from any checkpoint. The current state is a materialized view derived from the nearest snapshot plus subsequent journal entries, following the event sourcing pattern [14, 15].
 
 **Handler chain.** Each tick processes state through a pipeline of 35 handler functions, each responsible for a specific domain (admission, outpatient, emergency, lab, pharmacy, nursing, doctor, radiology, surgery, blood bank, microbiology, pathology, CSSD, biomedical engineering, infection control, clinical nutrition, radiotherapy, dialysis, etc.). Handlers are pure functions that do not communicate directly — they share state only through the state object passed through the chain.
 
@@ -87,17 +71,17 @@ graph TD
 
 **Patient generation and admission.** A 50-diagnosis ICD-10 pool weighted for Tier A hospital admission patterns produces patient profiles with age-appropriate vitals, Indonesian identity data, blood type, and drug allergy probabilities. A Markov process evaluates bed availability, calendar event modifiers, and disaster surge multipliers every tick to determine admissions.
 
-**Rule-based clinical agents.** Three agent types operate under a clinical constitution: the doctor rounds every 4 ticks, assigns specialists via 14-specialty ICD mapping, and generates clinical actions ranked by priority and historical effectiveness; the nurse monitors vitals and administers medications; the pharmacist reviews orders against drug allergies, contraindications, and dose ranges. Agents are rule-based, not learned, ensuring deterministic behaviour. The architecture supports swapping these for learned policies (RL, LLM) without changes to the handler chain.
+**Rule-based clinical agents.** Three agent types operate under deterministic clinical rules defined in code: the doctor rounds every 4 ticks, assigns specialists via 14-specialty ICD mapping, and generates clinical actions ranked by priority and historical effectiveness; the nurse monitors vitals and administers medications; the pharmacist reviews orders against drug allergies, contraindications, and dose ranges. Agents are rule-based, not learned, ensuring deterministic behaviour. The architecture supports swapping these for learned policies (RL, LLM) without changes to the handler chain.
 
 **Disaster scenario engine.** Seven stochastic disaster types (earthquake, tsunami, pandemic, etc.) progress through four phases — ramping, sustained, recovering, resolved — affecting patient surge (2-7×), mortality, supply demand, staff availability, and infrastructure.
 
-**Cultural calendar engine.** Patient influx patterns are tied to Indonesian holidays: Ramadan admissions for dehydration and hypoglycemia (1.15× surge), Lebaran surges for burn wounds from firecrackers and travel fractures (1.6× surge), New Year for road trauma (1.5× surge). These multipliers are configurable parameters based on published patterns in Indonesian health surveillance data [13].
+**Cultural calendar engine.** Patient influx patterns are tied to Indonesian holidays: Ramadan admissions for dehydration and hypoglycemia (1.15× surge), Lebaran surges for burn wounds from firecrackers and travel fractures (1.6× surge), New Year for road trauma (1.5× surge). These multipliers are author-estimated from seasonal admission trends reported in the Indonesian Ministry of Health profile [13] (Chapter 5, morbidity patterns) and are configurable parameters in the platform.
 
 **FHIR R4 adapter.** Internal simulation state is transformed into standard FHIR R4 resources on demand. Patient resources (`/api/fhir/Patient`) expose NIK, name, address, blood type, and religion. Encounter resources capture admission, transfer, and discharge events. Observation resources (`/api/fhir/Observation`) expose vital signs, laboratory results, and diagnostic findings. This enables any FHIR-compliant health information system to consume simulation data without requiring real patient records.
 
 ### 3.3 Implementation and performance
 
-The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales super-linearly with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms. Longer experiments require handler-level optimisation currently in development. All performance and experimental results in this paper reflect the codebase at [commit 7352adb](https://github.com/vierm2606-bangtan/Deers-Rock/commit/7352adb); the repository continues to evolve.
+The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. A test suite of 69 unit tests across 13 suites covers clinical rule logic (allergy checking, dose-range validation, ICD-to-specialty mapping), FHIR export, finance workflows (INA-CBG tariff lookup, BPJS adjudication, Jasa Raharja claims), and snapshot round-trip persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms (5.5× increase for 2× the tick count). Scaling to longer horizons (50,000+ ticks) will require handler-level optimisation that has been scoped but not yet implemented. All performance and experimental results in this paper reflect the codebase at [commit 7352adb](https://github.com/vierm2606-bangtan/Deers-Rock/commit/7352adb); the repository continues to evolve.
 
 ### 3.4 Agent learning mechanism
 
@@ -107,9 +91,9 @@ The platform includes a built-in outcome-based learning loop. For each discharge
 
 ## 4. Illustrative Examples
 
-In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operations per run), the platform produced consistent outcome distributions: average length of stay was 82.9 ticks (SD 10.4, 95% CI ±6.4), maximum LOS reached 916-992 ticks confirming scheduled inpatient delays function correctly. Bed occupancy averaged 130.9 of 133 beds (98%, SD 2.4). Disasters triggered stochastically in 3 of 10 runs (sunken ship, earthquake, industrial accident), demonstrating the scenario engine's capacity to generate surge conditions. Mortality was not measured in this demonstration — with realistic LOS of 3-7 days, no discharges occur within 1000 ticks, which is itself evidence that the discharge mechanism operates on clinically appropriate timescales.
+In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operations per run), the platform produced broadly consistent outcome distributions. Average length of stay was 82.9 ticks (SD 10.4 across 10 runs, reflecting seed-to-seed variation). Maximum LOS reached 916-992 ticks — this value is right-censored: these patients were admitted early in the run and had not yet been discharged when the simulation stopped at 1000 ticks, since scheduled inpatient discharges fire at 4320-10080 ticks. Bed occupancy averaged 130.9 of 133 beds (98%, SD 2.4). Disasters triggered stochastically in 3 of 10 runs (sunken ship, earthquake, industrial accident), demonstrating the scenario engine's capacity to generate surge conditions. Mortality was not measured in this demonstration — with realistic LOS of 3-7 days, no discharges occur within 1000 ticks, which is itself evidence that the discharge mechanism operates on clinically appropriate timescales.
 
-**Figure 2.** Length of stay distribution showing bimodal pattern: ED fast-track (short stays, high volume) and scheduled inpatient admissions (long stays, low volume). Mean 82.9 ticks, max range 916-992.
+**Figure 2.** Length of stay distribution showing bimodal pattern: ED fast-track (short stays, high volume) and scheduled inpatient admissions (long stays, low volume). Mean 82.9 ticks. The values near 1000 ticks are right-censored — these patients were still admitted when the simulation ended.
 
 ![](fig2-los-histogram.png)
 
@@ -117,7 +101,7 @@ In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operati
 
 ![](fig3-bed-occupancy.png)
 
-These experiments are intended as a functional demonstration rather than a clinical validation. The platform's purpose is to enable reproducible experimentation, not to assert predictive accuracy. We note that 1000 ticks (~16.7 hours) is too short to reach steady-state occupancy or mortality distributions; longer runs (50,000+ ticks) are feasible once the handler-level optimisation described in Section 3.3 is complete.
+These experiments are intended as a functional demonstration rather than a clinical validation. The platform's purpose is to enable reproducible experimentation, not to assert predictive accuracy. We note that 1000 ticks (~16.7 hours) is too short to reach steady-state occupancy or mortality distributions; longer runs (50,000+ ticks) are a goal for future work once the handler-level optimisation described in Section 3.3 is complete.
 
 ---
 
@@ -135,13 +119,13 @@ Deer's Rock supports four categories of use across different audiences:
 
 ### Ethical considerations
 
-The platform simulates Indonesian healthcare using cultural scenarios (Lebaran, Ramadan) that reflect real epidemiological patterns. These scenarios should be used with care: they are not stereotypes but evidence-based representations of how culture and health intersect. The platform includes a mortality model that assigns cause of death by terminal event, but mortality outcomes were not measured in this demonstration — validating mortality statistics against real-world hospital data is reserved for future clinical validation work. All patient data is procedurally generated; no real patient records are used.
+The platform simulates Indonesian healthcare using cultural scenarios (Lebaran, Ramadan) that reflect real epidemiological patterns. These scenarios should be used with care: they are not stereotypes but evidence-based representations of how culture and health intersect. Mortality outcomes were not measured in this demonstration; the 1000-tick horizon is too short to observe discharges (scheduled at 4320-10080 ticks), and validating mortality statistics against real-world hospital data is reserved for future work with longer simulation horizons. All patient data is procedurally generated; no real patient records are used.
 
 ---
 
 ## 6. Conclusions
 
-Deer's Rock is an open-source, persistent, event-driven hospital simulation that combines deterministic replay, modular composability, cultural contextualization, and health system interoperability in a single platform. The platform demonstration confirmed reproducible trajectories across multiple seeded runs, concurrent multi-department operation across 35 handlers, and FHIR-compliant data export.
+Deer's Rock is an open-source, persistent, event-driven hospital simulation platform that combines deterministic replay, modular composability, cultural contextualization, and health system interoperability. The demonstration confirmed reproducible trajectories across multiple seeded runs and concurrent multi-department operation across 35 handlers. A FHIR R4 adapter provides Patient and Observation resource export, with full conformance testing ongoing.
 
 The handler chain architecture may generalise to other simulation domains such as pharmaceutical supply chains, public health systems, or disaster response networks, but this has not been tested — the present implementation is specific to hospital operations. Deer's Rock is available as open-source software at the repository listed above.
 
@@ -167,6 +151,6 @@ The handler chain architecture may generalise to other simulation domains such a
 
 ---
 
-**Acknowledgments:** [To be added]
-**Funding:** [To be added]
-**Competing interests:** [To be added]
+**Acknowledgments:** None declared.
+**Funding:** None declared.
+**Competing interests:** None declared.
