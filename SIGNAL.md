@@ -6,7 +6,7 @@
 
 ## → Platform OC
 - **ADR-003**: Agent state persistence in snapshots — **⚠️ BUMPED** (approved 7 days ago, see below)
-- **verify:facts CI gate**: ✅ Phase 1 done (commit ac414e0). CLI gate works, CI file needs token update.
+- **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50). CI workflow live.
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
@@ -77,7 +77,7 @@ _referralState: {
 - Cross-surface fact audit (memory.txt claims vs source truth)
 - Receipts law: badge numbers auto-verified against test output
 
-**Status:** Phase 1 implemented ✅ (commit ac414e0). CLI gate works — `npm run verify:facts` passes 19 checks, exits non-zero on mismatch. CI workflow file (`.github/workflows/ci.yml`) needs GitHub token with `workflow` scope to push.
+**Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
 - **Submit SoftwareX** — 🔴 only remaining blocker. Fill author info and hit submit.
@@ -184,5 +184,5 @@ Waiting for Coordinator final confirmation before archiving.
 
 ---
 
-*Last updated: 2026-07-09 11:58 Platform OC (verify:facts Phase 1 done, CI file needs token scope)*
+*Last updated: 2026-07-09 12:00 Platform OC (verify:facts CI live, session done — ADR-003 pending)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
