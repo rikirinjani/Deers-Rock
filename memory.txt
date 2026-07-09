@@ -1,5 +1,29 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-09 13:15] Coordinator — CosmoCQM Integration Depth Ledger complete
+
+**Done:** `docs/integration-depth-ledger.md` — 31 data sources catalogued by depth.
+
+**Top fenced items (ready for Platform OC when prioritized):**
+1. Severity Level II/III tariff expansion (PMK 3/2023)
+2. ICD-9-CM wired into clinical workflow
+3. Special CMG top-ups for high-cost items
+
+**Handoff:** Documented in SIGNAL.md for all OCs. Ready to proceed to next CosmoCQM item (module contracts or benchmarks).
+
+## [2026-07-09 12:30] Coordinator — CosmoCQM verify:facts handoff to Platform OC
+
+**Context:** Reviewed [cosmogonic-quantum-mechalogodrom](https://github.com/0thernes/cosmogonic-quantum-mechalogodrom) — a deterministic A-Life WebGL cosmos. Isomorphic vibe: deterministic simulation, constitution governance, ADR-driven, agent-assisted development, rigorous claim discipline.
+
+**Borrowed pattern:** `verify:facts` CI gate — cross-checks canonical facts across documentation surfaces and fails the build on drift. CQM's CI runs `verify:facts` as a hard gate after tests.
+
+**Proposal for Deer's Rock:**
+- Phase 1: `scripts/verify-facts.ts` reading a `facts.yaml`, gating in CI
+- Phase 2: Cross-surface audit (memory.txt claims vs source), receipts law for badge counts
+- Target: Paper OC claim drift caught automatically before it reaches reviewers
+
+**Pushed to Platform OC via SIGNAL.md.** Awaiting implementation.
+
 ## [2026-07-02 10:45] Platform OC — INA-CBG Severity Level Analysis
 
 **Context:** Inventory of 68 INA-CBG entries vs real PMK 3/2023 (1,075 groups, 3 severity levels).

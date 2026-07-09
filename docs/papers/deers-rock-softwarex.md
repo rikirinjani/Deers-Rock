@@ -107,7 +107,7 @@ The platform includes a built-in outcome-based learning loop. For each discharge
 
 ## 4. Illustrative Examples
 
-In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operations per run), the platform produced consistent outcome distributions: average length of stay was 82.9 ticks (SD 10.4, 95% CI ±6.4), maximum LOS reached 916-992 ticks confirming scheduled inpatient delays function correctly, and average deaths per run was 4.3 (SD 1.9, 95% CI ±1.2). Bed occupancy averaged 130.9 of 133 beds (98%, SD 2.4). Disasters triggered stochastically in 3 of 10 runs (sunken ship, earthquake, industrial accident); these runs showed 82% higher mortality (mean 6.0 vs 3.3 deaths), though with only 3 disaster runs this is a post-hoc observation rather than a controlled comparison.
+In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operations per run), the platform produced consistent outcome distributions: average length of stay was 82.9 ticks (SD 10.4, 95% CI ±6.4), maximum LOS reached 916-992 ticks confirming scheduled inpatient delays function correctly. Bed occupancy averaged 130.9 of 133 beds (98%, SD 2.4). Disasters triggered stochastically in 3 of 10 runs (sunken ship, earthquake, industrial accident), demonstrating the scenario engine's capacity to generate surge conditions. Mortality was not measured in this demonstration — with realistic LOS of 3-7 days, no discharges occur within 1000 ticks, which is itself evidence that the discharge mechanism operates on clinically appropriate timescales.
 
 **Figure 2.** Length of stay distribution showing bimodal pattern: ED fast-track (short stays, high volume) and scheduled inpatient admissions (long stays, low volume). Mean 82.9 ticks, max range 916-992.
 
@@ -135,7 +135,7 @@ Deer's Rock supports four categories of use across different audiences:
 
 ### Ethical considerations
 
-The platform simulates Indonesian healthcare using cultural scenarios (Lebaran, Ramadan) that reflect real epidemiological patterns. These scenarios should be used with care: they are not stereotypes but evidence-based representations of how culture and health intersect. The mortality model assigns cause of death by terminal event, but 19% of deaths remain attributable to indirect causes — documented as a known limitation. All patient data is procedurally generated; no real patient records are used.
+The platform simulates Indonesian healthcare using cultural scenarios (Lebaran, Ramadan) that reflect real epidemiological patterns. These scenarios should be used with care: they are not stereotypes but evidence-based representations of how culture and health intersect. The platform includes a mortality model that assigns cause of death by terminal event, but mortality outcomes were not measured in this demonstration — validating mortality statistics against real-world hospital data is reserved for future clinical validation work. All patient data is procedurally generated; no real patient records are used.
 
 ---
 
