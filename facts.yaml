@@ -1,0 +1,113 @@
+# verify:facts — canonical truth checks
+# Run via: npx tsx scripts/verify-facts.ts
+# Edit this file when facts change (new tests, new exports, etc.)
+
+checks:
+
+  - id: test-count
+    description: "Total test count matches badge"
+    type: test-count
+    expected: 66
+
+  - id: test-files
+    description: "Total test file count"
+    type: count
+    file: tests
+    pattern: "\\.test\\.ts$"
+    expected: 13
+
+  - id: buildHandlers-exported
+    description: "buildHandlers exported from world"
+    type: export-exists
+    file: src/engine/world.ts
+    symbol: buildHandlers
+
+  - id: src-ina-cbg
+    description: "INA-CBG mapping file exists"
+    type: file-exists
+    path: src/engine/ina-cbg.ts
+
+  - id: src-markov
+    description: "Markov engine file exists"
+    type: file-exists
+    path: src/engine/markov.ts
+
+  - id: src-world
+    description: "World file exists"
+    type: file-exists
+    path: src/engine/world.ts
+
+  - id: src-finance
+    description: "Finance engine file exists"
+    type: file-exists
+    path: src/engine/finance.ts
+
+  - id: src-patient
+    description: "Patient schema exists"
+    type: file-exists
+    path: src/patient/schema.ts
+
+  - id: export-inferSeverity
+    description: "inferSeverity exported from ina-cbg"
+    type: export-exists
+    file: src/engine/ina-cbg.ts
+    symbol: inferSeverity
+
+  - id: export-lookupCbgTariff
+    description: "lookupCbgTariff exported from ina-cbg"
+    type: export-exists
+    file: src/engine/ina-cbg.ts
+    symbol: lookupCbgTariff
+
+  - id: export-INA_CBG
+    description: "INA_CBG exported from ina-cbg"
+    type: export-exists
+    file: src/engine/ina-cbg.ts
+    symbol: INA_CBG
+
+  - id: export-assignPayer
+    description: "assignPayer exported from finance"
+    type: export-exists
+    file: src/engine/finance.ts
+    symbol: assignPayer
+
+  - id: export-billingHandler
+    description: "billingHandler exported from finance"
+    type: export-exists
+    file: src/engine/finance.ts
+    symbol: billingHandler
+
+  - id: export-admissionHandler
+    description: "admissionHandler exported from markov"
+    type: export-exists
+    file: src/engine/markov.ts
+    symbol: admissionHandler
+
+  - id: export-dischargeScheduledPatients
+    description: "dischargeScheduledPatients exported from markov"
+    type: export-exists
+    file: src/engine/markov.ts
+    symbol: dischargeScheduledPatients
+
+  - id: export-createWorld
+    description: "createWorld exported from world"
+    type: export-exists
+    file: src/engine/world.ts
+    symbol: createWorld
+
+  - id: no-dischargeHandler-import
+    description: "dischargeHandler not imported in world.ts (Option C confirmed)"
+    type: no-export-exists
+    file: src/engine/world.ts
+    symbol: dischargeHandler
+
+  - id: building-layout-exists
+    description: "BUILDING_LAYOUT defined in state-store"
+    type: regex-match
+    file: src/engine/state-store.ts
+    regex: "BUILDING_LAYOUT"
+
+  - id: ci-workflow-exists
+    description: "CI workflow file exists"
+    type: file-exists
+    path: .github/workflows/ci.yml
