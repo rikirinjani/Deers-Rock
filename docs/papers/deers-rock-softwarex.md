@@ -1,6 +1,6 @@
 # Deer's Rock: A Persistent, Event-Driven Healthcare Simulation Platform
 
-**Authors:** [To be added by Coordinator]
+**Authors:** Riki Rinjani (Independent, ORCID: 0009-0002-9364-2637)
 
 **SoftwareX metadata**
 - **Current version:** 0.1.0

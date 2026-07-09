@@ -1,5 +1,12 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-09 13:30] Coordinator — SoftwareX author info recorded
+
+**Author:** Riki Rinjani, PharmD
+**Affiliation:** Independent
+**ORCID:** https://orcid.org/0009-0002-9364-2637
+**Paper ready for submission.** Platform OC should verify paper compiles/looks right before submit.
+
 ## [2026-07-09 13:15] Coordinator — CosmoCQM Integration Depth Ledger complete
 
 **Done:** `docs/integration-depth-ledger.md` — 31 data sources catalogued by depth.
