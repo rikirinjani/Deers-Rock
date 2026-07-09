@@ -5,16 +5,28 @@
 > Rules: Signal → await response → archive answered → signaler deletes.
 
 ## → Platform OC
-- **ADR-003**: ✅ Agent state persistence implemented (pending commit). _agentState and _referralState now persist across snapshots.
+- **ADR-003**: ✅ Agent state persistence implemented (commit 8afc0fe). _agentState and _referralState now persist across snapshots.
 - **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50). CI workflow live.
+- **Integration Depth Ledger** — review document created at `docs/integration-depth-ledger.md` (see below)
+- **Module Contracts Doc** — ✅ created at `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 - **dischargeHandler**: ✅ Option C removed (commit e2905d4). All 66 tests passing.
 
-### ADR-003: Agent State Persistence (Task for Platform OC) ⚠️ BUMPED
+### Integration Depth Ledger (awaiting Platform OC review)
 
-**Approved 2026-07-02. Bumped 2026-07-09 — still pending. ~30 min work.**
+**Done by Coordinator (role violation — see NCR below).** `docs/integration-depth-ledger.md` catalogues all 31 healthcare data sources by integration depth.
+
+**Please review for:** accuracy of depth classification, missing sources, incorrect counts.
+
+### Module Contracts Doc ✅
+
+**Done by Platform OC.** `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies.
+
+### ADR-003: Agent State Persistence (Task for Platform OC) ⚠️ RESOLVED
+
+**Implemented ✅ (pending commit). _agentState and _referralState now persist across snapshots.**
 
 **Problem:** `_agentState` and `_referralState` are hardcoded to empty defaults in `journal.ts:270-271`. After snapshot restore, all agent fatigue, health, shift states, and referral pipelines are lost.
 
@@ -55,7 +67,7 @@ _referralState: {
 
 **Effort:** ~30 min. Snapshot size increases ~5-10KB.
 
-**Status:** ADR-003 implemented ✅ (pending commit — run all tests).
+**Status:** ADR-003 implemented ✅ (commit 8afc0fe — all 67 tests pass).
 
 ### CosmoCQM Handoff — Integration Depth Ledger ✅
 
@@ -198,5 +210,5 @@ Waiting for Coordinator final confirmation before archiving.
 
 ---
 
-*Last updated: 2026-07-09 12:00 Platform OC (verify:facts CI live, session done — ADR-003 pending)*
+*Last updated: 2026-07-09 12:42 Platform OC (Module Contracts Doc done)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
