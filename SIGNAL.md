@@ -110,7 +110,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🔴 ~~author info blocker resolved~~ → Draft Detective review 12 issues fixed → awaiting Paper OC PDF re-render + final submit
+- **Submit SoftwareX** — 🔴 ~~author info resolved~~ → ~~Draft Detective fixed~~ → Paper OC: 4 polish items remaining (Table 1 footnotes, N=10 framing, snapshot interval, §6 generalization). Waiting on Paper OC.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -211,12 +211,15 @@ Waiting for Coordinator final confirmation before archiving.
 ## → Paper OC
 - **Manuscript edits**: ✅ Complete — mortality removed from SoftwareX per Option 2 decision
 - **Author info**: ✅ Added by Coordinator — Riki Rinjani, PharmD (ORCID: 0009-0002-9364-2637)
-- **PDF verification**: ✅ Done (before Draft Detective fixes)
-- **Draft Detective review**: 🛠️ **12 issues fixed** (commit 517f2c9) — see memory.txt for full mapping. **Paper OC: PDF needs re-render after these fixes.**
-  - Table 1 FHIR: Partial^, HOE framing dropped, Fig1 rendered SVG, LOS censoring admitted, mortality framing toned down, metadata filled, cultural multipliers sourced, performance scaling caveated, N=10 labeled, test coverage added, "clinical constitution" defined, "self-critique" rhetoric replaced
-- **SoftwareX**: 🟢 **Ready to submit** (after PDF re-render). Coordinator: fix complete. Paper OC: regenerate PDF, final visual check, then submit.
+- **Draft Detective 12 fixes**: ✅ Done (commit 517f2c9)
+- **Round 4 review — 4 polish items remaining** (all <5 min each, Paper OC's job):
+  1. **Table 1 footnotes** — Add footnotes to AnyLogic "Partial" rows (modular handler chain, disaster scenario engine) to match the FHIR footnote pattern. Suggested text: "AnyLogic supports user-defined modular agent types and parameterized disaster inputs [2]; Deer's Rock provides these as built-in, prescripted modules."
+  2. **N=10 framing** — Tighten: "N=10 is a functional demonstration; distributional claims require larger seed ensembles."
+  3. **Snapshot interval** — Verify & align: Figure 1 says "100 ticks," verify text in §3.1 Event journal matches. Fix whichever is wrong.
+  4. **§6 generalization** — Optional: cut or move "pharma supply chains, public health systems, disaster response" claim to a Future Directions subsection.
+- **SoftwareX**: 🟢 **One short polish pass away from submission.** Do the 4 items above, PDF re-render, final visual check, then submit.
 
 ---
 
-*Last updated: 2026-07-09 14:15 Coordinator (Draft Detective 12 issues fixed — paper updated, needs PDF re-render)*
+*Last updated: 2026-07-09 14:25 Coordinator — Round 4 polish items delegated to Paper OC*
 *Maintainer: Whoever modifies it last updates the timestamp.*
