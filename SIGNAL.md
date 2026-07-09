@@ -5,13 +5,16 @@
 > Rules: Signal → await response → archive answered → signaler deletes.
 
 ## → Platform OC
-- **ADR-003**: Agent state persistence in snapshots — **NOW** (see below)
+- **ADR-003**: Agent state persistence in snapshots — **⚠️ BUMPED** (approved 7 days ago, see below)
+- **verify:facts CI gate**: ✅ Phase 1 done (commit ac414e0). CLI gate works, CI file needs token update.
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 - **dischargeHandler**: ✅ Option C removed (commit e2905d4). All 66 tests passing.
 
-### ADR-003: Agent State Persistence (Task for Platform OC)
+### ADR-003: Agent State Persistence (Task for Platform OC) ⚠️ BUMPED
+
+**Approved 2026-07-02. Bumped 2026-07-09 — still pending. ~30 min work.**
 
 **Problem:** `_agentState` and `_referralState` are hardcoded to empty defaults in `journal.ts:270-271`. After snapshot restore, all agent fatigue, health, shift states, and referral pipelines are lost.
 
@@ -52,7 +55,29 @@ _referralState: {
 
 **Effort:** ~30 min. Snapshot size increases ~5-10KB.
 
-**Status:** ADR-003 is Proposed → needs Coordinator approval to implement.
+**Status:** ADR-003 Approved (2026-07-02) — awaiting Platform OC implementation.
+
+### CosmoCQM Handoff — verify:facts CI gate
+
+**Source:** Review of [cosmogonic-quantum-mechalogodrom](https://github.com/0thernes/cosmogonic-quantum-mechalogodrom) — isomorphic project.
+
+**Problem:** Paper OC manually catches claim drift (memory.txt vs code vs docs). This is slow and error-prone.
+
+**Proposal:** Build a `verify:facts` CI script that cross-checks canonical facts across surfaces:
+- Test count badge (currently "66") vs actual `vitest run` output
+- Key invariants stated in memory.txt vs current code state
+- Feature claims in docs/papers/ vs actual source exports
+
+**Phase 1 (MVP, ~2 hr):**
+1. Create `scripts/verify-facts.ts` — reads a `facts.yaml` with expected values, runs checks, exits non-zero on mismatch
+2. Add `"verify:facts": "tsx scripts/verify-facts.ts"` to package.json
+3. Create `.github/workflows/ci.yml` with a simple gate job (tsc → vitest → verify:facts)
+
+**Phase 2 (later):**
+- Cross-surface fact audit (memory.txt claims vs source truth)
+- Receipts law: badge numbers auto-verified against test output
+
+**Status:** Phase 1 implemented ✅ (commit ac414e0). CLI gate works — `npm run verify:facts` passes 19 checks, exits non-zero on mismatch. CI workflow file (`.github/workflows/ci.yml`) needs GitHub token with `workflow` scope to push.
 
 ## → Coordinator
 - **Submit SoftwareX** — 🔴 only remaining blocker. Fill author info and hit submit.
@@ -159,5 +184,5 @@ Waiting for Coordinator final confirmation before archiving.
 
 ---
 
-*Last updated: 2026-07-02 19:15 Platform OC (RULES.md compliance — trace recorded)*
+*Last updated: 2026-07-09 11:58 Platform OC (verify:facts Phase 1 done, CI file needs token scope)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
