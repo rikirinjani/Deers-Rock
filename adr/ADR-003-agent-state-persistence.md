@@ -1,6 +1,6 @@
 # ADR-003: Agent State Persistence Contract
 
-**Status:** Approved (2026-07-02) — awaiting Platform OC implementation
+**Status:** Approved (2026-07-02) — implemented by Platform OC (commit 8afc0fe)
 **Date:** 2026-06-28
 **Author:** Coordinator OC
 
