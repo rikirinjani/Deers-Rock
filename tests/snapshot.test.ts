@@ -2,8 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { existsSync, unlinkSync } from "fs";
 import { createWorld, runWorld } from "../src/engine/world.js";
 import { closeJournal, initJournal, listSnapshots, loadNearestSnapshot, saveSnapshot } from "../src/engine/journal.js";
-import { createState } from "../src/engine/state-store.js";
+import { createState, type HospitalState } from "../src/engine/state-store.js";
 import { generatePatientPool } from "../src/patient/generator.js";
+import { initAgentState } from "../src/agent/system.js";
+import { initReferralState } from "../src/referral/system.js";
 
 const DB = "test-snapshot.db";
 
@@ -50,6 +52,10 @@ describe("Snapshots", () => {
     expect(s.beds.size).toBeGreaterThan(0);
     expect(s.wardCapacity).toBeDefined();
     expect(typeof s.waitingRoom).toBe("number");
+    expect(s._agentState.pool.agents.size).toBeGreaterThanOrEqual(0);
+    expect(s._agentState.pool.assignments.size).toBeGreaterThanOrEqual(0);
+    expect(s._referralState.facilities.size).toBeGreaterThanOrEqual(0);
+    expect(s._referralState.incomingQueue).toBeDefined();
   });
 
   it("returns null state when no snapshot exists before tick", () => {
@@ -71,5 +77,44 @@ describe("Snapshots", () => {
     expect(snap.state).not.toBeNull();
     expect(snap.state!.patients.size).toBe(5);
     expect(snap.state!.beds.size).toBeGreaterThan(0);
+  });
+
+  it("preserves agent state and referral state across save/load round-trip", () => {
+    closeJournal();
+    if (existsSync(DB)) unlinkSync(DB);
+    initJournal(DB);
+    const patients = generatePatientPool(3);
+    const state = createState(patients);
+    const agent = initAgentState();
+    agent.pool.agents.set("dr-001", {
+      id: "dr-001", identity: { name: "Dr. Test", gender: "male", age: 35 },
+      specialty: "umum", license: { str: "123", sip: "456", skp: "789" },
+      status: { shift: "pagi", inShift: true, shiftStartTick: 0, totalShiftTicks: 10,
+        consecutiveTicks: 5, kelelahan: 5, kesehatan: "sehat", sakitTerhitung: 0,
+        isHaids: false, haidCycleDay: 0, isHamil: false, hamilWeeks: 0,
+        fatigue: 5, stressLevel: 10, performance: 90 },
+      schedule: [], metrics: { totalCases: 5, avgOutcome: 0.8 },
+    });
+    agent.pool.assignments.set("enc-001", "dr-001");
+    const ref = initReferralState();
+    ref.incomingQueue.push({ letterId: "ltr-001", patientId: "pat-001", fromFacility: "puskesmas-a", tickArrived: 50 });
+    const populated: HospitalState = {
+      ...state,
+      _agentState: agent,
+      _referralState: ref,
+    };
+    saveSnapshot(50, populated);
+    const snap = loadNearestSnapshot(50);
+    expect(snap.state).not.toBeNull();
+    const s = snap.state!;
+    expect(s._agentState.pool.agents.size).toBe(1);
+    expect(s._agentState.pool.agents.get("dr-001")).toBeDefined();
+    expect(s._agentState.pool.agents.get("dr-001")!.identity.name).toBe("Dr. Test");
+    expect(s._agentState.pool.assignments.size).toBe(1);
+    expect(s._agentState.pool.assignments.get("enc-001")).toBe("dr-001");
+    expect(s._referralState.facilities.size).toBe(35);
+    expect(s._referralState.incomingQueue.length).toBe(1);
+    expect(s._referralState.incomingQueue[0].letterId).toBe("ltr-001");
+    expect(s._referralState.incomingQueue[0].fromFacility).toBe("puskesmas-a");
   });
 });

@@ -285,6 +285,17 @@ export function saveSnapshot(tick: number, state: HospitalState): void {
     calTicks: state._calendarTicks,
     icdTop: state._icdTop10,
     rngSeed: state._rngSeed ?? 0,
+    agentState: {
+      pool: {
+        agents: mapToArr(state._agentState.pool.agents),
+        assignments: mapToArr(state._agentState.pool.assignments),
+      }
+    },
+    referralState: {
+      facilities: mapToArr(state._referralState.facilities),
+      letters: mapToArr(state._referralState.letters),
+      incomingQueue: state._referralState.incomingQueue,
+    },
   };
   saveSnapStmt.run(tick, JSON.stringify(data));
 }
@@ -324,8 +335,17 @@ function deserializeState(json: string): HospitalState {
     insuranceClaims: arrToMap(d.ic), payments: arrToMap(d.py),
     inventory: arrToMap(d.inv), stockTransactions: arrToMap(d.st),
     specialtyOrders: arrToMap(d.spec ?? []),
-    _agentState: { pool: { agents: new Map(), assignments: new Map() } },
-    _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
+    _agentState: {
+      pool: {
+        agents: arrToMap(d.agentState?.pool?.agents ?? []),
+        assignments: arrToMap(d.agentState?.pool?.assignments ?? []),
+      }
+    },
+    _referralState: {
+      facilities: arrToMap(d.referralState?.facilities ?? []),
+      letters: arrToMap(d.referralState?.letters ?? []),
+      incomingQueue: d.referralState?.incomingQueue ?? [],
+    },
     _icdTop10: d.icdTop ?? null,
     _doctorCaseMemory: arrToMap(d.docMem ?? []),
     _nurseCaseMemory: arrToMap(d.nurseMem ?? []),

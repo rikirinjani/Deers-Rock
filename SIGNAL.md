@@ -5,7 +5,7 @@
 > Rules: Signal → await response → archive answered → signaler deletes.
 
 ## → Platform OC
-- **ADR-003**: Agent state persistence in snapshots — **⚠️ BUMPED** (approved 7 days ago, see below)
+- **ADR-003**: ✅ Agent state persistence implemented (pending commit). _agentState and _referralState now persist across snapshots.
 - **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50). CI workflow live.
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
@@ -55,7 +55,21 @@ _referralState: {
 
 **Effort:** ~30 min. Snapshot size increases ~5-10KB.
 
-**Status:** ADR-003 Approved (2026-07-02) — awaiting Platform OC implementation.
+**Status:** ADR-003 implemented ✅ (pending commit — run all tests).
+
+### CosmoCQM Handoff — Integration Depth Ledger ✅
+
+**Source:** Review of cosmogonic-quantum-mechalogodrom Tsotchke integration map.
+
+**Done:** `docs/integration-depth-ledger.md` — 31 healthcare data sources catalogued:
+- **Deep (14):** INA-CBG, ICD protocols, payer rules, BPJS adjudication, Jasa Raharja, building layout, drug costs, charge rates, room classes, LOS, cultural calendar, agent roles, specialty mapping, nursing protocols
+- **Wired (8):** Referral facilities, contra-indications, dose ranges, allergens, departments, AI Coder, procedure fees, service catalog
+- **Harvest (3):** Province data, SIRS identity, SIRS templates
+- **Fenced (6):** Severity II/III, full INA-CBG (1,075 groups), Special CMG, ICD-9-CM in workflow, proper CC inference, mortality calibration
+
+**Wired fraction:** 25/31 = 0.81
+
+**Status:** ✅ Complete. Ready for reference by all OCs.
 
 ### CosmoCQM Handoff — verify:facts CI gate
 
