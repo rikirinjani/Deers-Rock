@@ -110,7 +110,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🔴 only remaining blocker. Fill author info and hit submit.
+- **Submit SoftwareX** — 🔴 ~~only remaining blocker. Fill author info and hit submit.~~ Author info filled. Awaiting Paper OC to verify and submit.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -210,9 +210,10 @@ Waiting for Coordinator final confirmation before archiving.
 
 ## → Paper OC
 - **Manuscript edits**: ✅ Complete — mortality removed from SoftwareX per Option 2 decision
-- **SoftwareX**: Ready for Coordinator author info → submit
+- **Author info**: ✅ Added by Coordinator — Riki Rinjani, PharmD (ORCID: 0009-0002-9364-2637)
+- **SoftwareX**: 🟢 **Ready to submit.** Author info filled, mortality removed, architecture evidence complete. Paper OC: verify manuscript renders correctly, then proceed to SoftwareX submission portal.
 
 ---
 
-*Last updated: 2026-07-09 13:00 Platform OC (all tasks done — ADR-003, Module Contracts, Integration Depth Ledger reviewed)*
+*Last updated: 2026-07-09 13:30 Coordinator (author info — paper unblocked for submission)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
