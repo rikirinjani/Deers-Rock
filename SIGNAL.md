@@ -7,18 +7,22 @@
 ## → Platform OC
 - **ADR-003**: ✅ Agent state persistence implemented (commit 8afc0fe). _agentState and _referralState now persist across snapshots.
 - **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50). CI workflow live.
-- **Integration Depth Ledger** — review document created at `docs/integration-depth-ledger.md` (see below)
+- **Integration Depth Ledger**: ✅ Reviewed — 6 discrepancies corrected (commit 86599bd): nursing protocols 32 not 14, calendar 7 not ~20 events, ED LOS 2-7 ticks not 1-3d, specialty mapping 17/19, service catalog 72 not 76. INA-CBG count 71 and bed count 131 confirmed correct.
 - **Module Contracts Doc** — ✅ created at `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
 - **LOS fix**: ✅ Commit 4cfc564 — admission 3-7d, emergency 1-3d
 - **dischargeHandler**: ✅ Option C removed (commit e2905d4). All 66 tests passing.
 
-### Integration Depth Ledger (awaiting Platform OC review)
+### Integration Depth Ledger ✅
 
-**Done by Coordinator (role violation — see NCR below).** `docs/integration-depth-ledger.md` catalogues all 31 healthcare data sources by integration depth.
-
-**Please review for:** accuracy of depth classification, missing sources, incorrect counts.
+**Reviewed by Platform OC.** 6 discrepancies found and corrected (commit 86599bd):
+- Nursing protocols: 32 not 14
+- Calendar events: 7 not ~20
+- ED LOS: 2-7 ticks (not 1-3 days) — flagged as unrealistically short
+- Specialty→ward mapping: 17/19 (2 unmapped)
+- Service catalog: 72 total not 76 (3 specialties with 3 services)
+- INA-CBG count (71) and bed count (131) confirmed correct
 
 ### Module Contracts Doc ✅
 
@@ -210,5 +214,5 @@ Waiting for Coordinator final confirmation before archiving.
 
 ---
 
-*Last updated: 2026-07-09 12:42 Platform OC (Module Contracts Doc done)*
+*Last updated: 2026-07-09 13:00 Platform OC (all tasks done — ADR-003, Module Contracts, Integration Depth Ledger reviewed)*
 *Maintainer: Whoever modifies it last updates the timestamp.*
