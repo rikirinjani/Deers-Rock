@@ -16,35 +16,15 @@ Root cause: `generatePatient` in `newPatientHandler` was using unseeded Math.ran
 
 **Verification:** two seed=0 × 100 tick runs → byte-identical JSON.
 
-### 🔴 Pre-submission audit — remaining issues
+### 🔴 Pre-submission audit — ✅ ALL RESOLVED (commit 7f7c563)
 
-Coordinator + Platform joint sweep found additional problems:
+Platform OC fixed everything:
+- tsconfig: `scripts/` excluded → tsc rootDir ✅
+- facts.yaml: test count 66→67 ✅
+- 8 Math.random() leaks → all migrated to seeded rng ✅
+- snapshot.test.ts: EBUSY → try/catch cleanup ✅
 
-**P0 — CI gate broken:**
-- `tsc --noEmit` fails: `scripts/verify-facts.ts` is outside `rootDir` (`src/`). CI workflow (`ci.yml` step 1) will fail.
-- `verify:facts` hangs — timed out at 60s with no output.
-
-**P0 — 5 more Math.random() leaks in tick loop:**
-
-| File | Line | Context | Count |
-|------|------|---------|-------|
-| `nursing-knowledge.ts` | 143,146,149,157 | Nursing assessments, patient notes, interventions | 4 |
-| `ipc.ts` | 28 | handHygieneCompliance | 1 |
-
-**P1 — `getRandomPostalCode` uses Math.random() 3×:**
-- `src/identity/data.ts:240-241` — 3 Math.random() calls
-- Function has NO rng parameter at all — can't be seeded
-- Called during patient NIK generation. Not currently affecting seed=0 test path but will leak with different seeds or longer runs.
-
-**P1 — biomedical serial numbers:**
-- `biomedical-engineering.ts:54` — Math.random() for SN generation
-
-**P2 — test isolation:**
-- 3 snapshot tests fail with `EBUSY` when `test-snapshot.db` from a prior run is still locked. Needs cleanup in test setup.
-
-**Total remaining Math.random() leaks: 8** (5 in tick loop + 3 in identity)
-
-**Action for Platform OC:** Fix rootDir in tsconfig, unblock verify:facts, migrate all 8 Math.random() calls to clock.rng(). Then re-run: `tsc --noEmit && vitest run && tsx scripts/verify-facts.ts` — all three must pass.
+**Gate verification:** tsc ✓ | vitest 69/69 ✓ | verify:facts 19/19 ✓ | 2× seed=0 identical ✓
 - **Module Contracts Doc** — ✅ created at `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
@@ -147,7 +127,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🟡 **On hold.** Paper OC edits complete. Blocked: Platform OC needs to fix CI gate (tsc rootDir + verify:facts hang) + 8 Math.random() leaks before final reproducibility verification.
+- **Submit SoftwareX** — 🟢 **Unblocked.** All gates green. Paper OC: final reproducibility demo + PDF render + submit.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -259,9 +239,9 @@ Running experiments and updating §4 data is **Research OC's** domain (validatio
 
 Platform OC fixed (commit 5e63807). Two seed=0 runs now byte-identical. Reproducibility demo can proceed.
 
-- **SoftwareX**: 🟡 **Wait.** Paper ready, but Platform OC needs to fix CI gate + 8 Math.random() leaks before reproducibility demo can be substantiated.
+- **SoftwareX**: 🟢 **Unblocked.** All gates pass (tsc, vitest 69/69, verify:facts 19/19, deterministic replay confirmed). Paper OC: add reproducibility demo (§4), render PDF, submit.
 
 ---
 
-*Last updated: 2026-07-10 08:35 Coordinator — pre-submission audit: CI broken + 8 Math.random() leaks. Platform OC signaled.*
+*Last updated: 2026-07-10 09:05 Coordinator — all gates green, Paper OC unblocked*
 *Maintainer: Whoever modifies it last updates the timestamp.*
