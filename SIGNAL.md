@@ -10,20 +10,11 @@
 - **Integration Depth Ledger**: ✅ Reviewed (commit 86599bd)
 - **Module Contracts Doc**: ✅ Created at `docs/MODULE-CONTRACTS.md`
 
-### 🔴 Non-determinism bug — blocks SoftwareX submission
+### 🔴 Non-determinism bug — ✅ FIXED (commit 5e63807)
 
-Paper OC discovered: two runs with seed=0 produce different results (active LOS 63 vs 64, discharged LOS 5 vs 6, bed occupancy 60 vs 59). Small differences but they exist. Deterministic replay is the paper's core claim — it must be provable.
+Root cause: `generatePatient` in `newPatientHandler` was using unseeded Math.random() instead of clock's seeded RNG. Platform OC added `rng` parameter pass-through.
 
-**To reproduce:**
-```
-npx tsx src/experiment/runner.ts 1 100  → run twice, compare
-```
-
-**Root cause candidates:** unseeded Math.random(), Date.now() in handler logic, Map iteration ordering, or system-time-dependent initialization.
-
-**What we need:** verify all 31 handlers + clock use `rng()` exclusively. Fix the leak. Then run `npx tsx src/experiment/runner.ts 1 100` twice — results must be byte-identical.
-
-**Blocking:** SoftwareX paper submission (reproducibility claim unsubstantiated), Section 4 reproducibility demo.
+**Verification:** two seed=0 × 100 tick runs → byte-identical JSON. Deterministic replay confirmed.
 - **Module Contracts Doc** — ✅ created at `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
@@ -126,7 +117,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🟡 **On hold.** Paper content ready, PDF rendered. Blocked: Platform OC non-determinism bug (seed=0 runs differ). Also: Paper OC should not have run experiments — that's Research OC's domain.
+- **Submit SoftwareX** — 🟢 **Unblocked.** Platform OC fixed non-determinism bug (5e63807). Paper OC: add reproducibility demo to §4, regenerate PDF, submit.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -234,13 +225,13 @@ Waiting for Coordinator final confirmation before archiving.
 
 Running experiments and updating §4 data is **Research OC's** domain (validation, calibration, experimental design). Paper OC should receive results from Research OC, not generate them. Not blocking — data is correct — but noted for process discipline.
 
-### 🔴 Non-determinism bug — blocks submission
+### 🔴 Non-determinism bug — blocks submission → ✅ FIXED
 
-Two seed=0 runs produce different outputs. Reproducibility demo (the §4 centerpiece) can't be substantiated. **Platform OC has been signaled.** Submission waits on this fix.
+Platform OC fixed (commit 5e63807). Two seed=0 runs now byte-identical. Reproducibility demo can proceed.
 
-- **SoftwareX**: 🟡 **On hold.** Paper content ready, all edits done, PDF rendered. Blocked by Platform OC non-determinism fix.
+- **SoftwareX**: 🟢 **Unblocked.** Paper OC: add reproducibility demo (§4 — two identical-seed runs → identical JSON), render PDF, submit.
 
 ---
 
-*Last updated: 2026-07-10 08:10 Coordinator — non-determinism bug found, Platform OC signaled, Paper OC role violation noted*
+*Last updated: 2026-07-10 08:30 Coordinator — Platform OC fixed non-determinism (5e63807), verified byte-identical, unblocked*
 *Maintainer: Whoever modifies it last updates the timestamp.*
