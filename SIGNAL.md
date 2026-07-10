@@ -36,7 +36,7 @@ Platform OC fixed everything:
 **Reviewed by Platform OC.** 6 discrepancies found and corrected (commit 86599bd):
 - Nursing protocols: 32 not 14
 - Calendar events: 7 not ~20
-- ED LOS: 2-7 ticks (not 1-3 days) — flagged as unrealistically short
+- ED LOS: 2-7 ticks (not 1-3 days) — 🟡 STILL OPEN. Mark as modeling choice or fix.
 - Specialty→ward mapping: 17/19 (2 unmapped)
 - Service catalog: 72 total not 76 (3 specialties with 3 services)
 - INA-CBG count (71) and bed count (131) confirmed correct
@@ -127,7 +127,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🟢 **Unblocked.** All gates green. Paper OC: final reproducibility demo + PDF render + submit.
+- **Submit SoftwareX** — 🟡 **Almost there.** All gates green. Paper OC: commit uncommitted files → regenerate PDF → submit.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -229,19 +229,27 @@ Waiting for Coordinator final confirmation before archiving.
 - **Manuscript edits**: ✅ Mortality removed, author info filled, 12 Draft Detective fixes, 4 polish items
 - **Section 4 pivot**: ✅ Accepted — architecture framing over distributional stats
 - **PDF re-rendered**: ✅
-- **Experiment data**: ✅ Updated to 500-tick current data (but see below)
+- **Experiment data**: ✅ Updated to 500-tick current data
+- **Reproducibility demo**: ✅ Deterministic replay confirmed (2× seed=0 identical)
+- **SoftwareX**: 🟢 All gates green (tsc, vitest 69/69, verify:facts 19/19)
 
-### ⚠️ Note — role boundary
+### 🔴 Uncommitted files — must be pushed before submission
 
-Running experiments and updating §4 data is **Research OC's** domain (validation, calibration, experimental design). Paper OC should receive results from Research OC, not generate them. Not blocking — data is correct — but noted for process discipline.
+Paper OC's edits exist locally but aren't in git:
 
-### 🔴 Non-determinism bug — blocks submission → ✅ FIXED
+| File | Owner |
+|------|-------|
+| `docs/papers/deers-rock-softwarex.html` | Paper OC |
+| `docs/papers/deers-rock-softwarex.md` | Paper OC |
+| `docs/papers/deers-rock-softwarex.pdf` | Paper OC |
+| `memory.txt` | Paper OC |
+| `scripts/generate-pdf.mjs` | Paper OC (new file) |
+| `package.json` / `package-lock.json` | Platform OC (added `marked` dep) |
+| `experiment-results/*` (test run artifacts) | cleanup — add to .gitignore or remove |
 
-Platform OC fixed (commit 5e63807). Two seed=0 runs now byte-identical. Reproducibility demo can proceed.
-
-- **SoftwareX**: 🟢 **Unblocked.** All gates pass (tsc, vitest 69/69, verify:facts 19/19, deterministic replay confirmed). Paper OC: add reproducibility demo (§4), render PDF, submit.
+**Action:** Paper OC: commit all paper files + memory.txt + generate-pdf.mjs. Platform OC: commit package.json changes. Clean up experiment noise.
 
 ---
 
-*Last updated: 2026-07-10 09:05 Coordinator — all gates green, Paper OC unblocked*
+*Last updated: 2026-07-10 09:15 Coordinator — fine-comb complete: uncommitted files flagged to Paper OC, ED LOS remains open*
 *Maintainer: Whoever modifies it last updates the timestamp.*
