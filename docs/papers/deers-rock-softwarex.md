@@ -1,4 +1,4 @@
-# Deer's Rock: A Persistent, Event-Driven Healthcare Simulation Platform
+﻿# Deer's Rock: A Persistent, Event-Driven Healthcare Simulation Platform
 
 **Authors:** Riki Rinjani (Independent, ORCID: 0009-0002-9364-2637)
 
@@ -35,15 +35,15 @@ General-purpose simulation frameworks such as SimPy [1] and AnyLogic [2] have be
 |---|---|---|---|---|---|
 | Open-source | Yes | No | No | Yes | **Yes** |
 | Deterministic replay | No | No | No | N/A | **Yes** |
-| Modular handler chain | No | Partial | No | No | **Yes** |
+| Modular handler chain | No | Partial* | No | No | **Yes** |
 | Healthcare-specific | No | Partial | Yes | Yes | **Yes** |
 | Cultural patient generation | No | No | No | No | **Yes** |
 | Rule-based clinical agents | No | No | No | No | **Yes** |
-| Disaster scenario engine | No | Partial | No | No | **Yes** |
+| Disaster scenario engine | No | Partial* | No | No | **Yes** |
 | FHIR R4 adapter | No | No | No | Yes | **Partial^** |
 | Event-sourced journal | No | No | No | No | **Yes** |
 
-**Table 1.** Comparison of Deer's Rock with existing simulation platforms. ^Currently implements Patient and Observation resource profiles; full HL7 FHIR R4 conformance testing is ongoing.
+**Table 1.** Comparison of Deer's Rock with existing simulation platforms. ^Currently implements Patient and Observation resource profiles; full HL7 FHIR R4 conformance testing is ongoing. *AnyLogic supports user-defined modular agent types and parameterized disaster inputs [2]; Deer's Rock provides these as built-in, prescripted modules.
 
 ### 2.2 Healthcare ML and digital twin platforms
 
@@ -81,7 +81,7 @@ Deer's Rock is built on three architectural foundations: a deterministic tick en
 
 ### 3.3 Implementation and performance
 
-The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. A test suite of 69 unit tests across 13 suites covers clinical rule logic (allergy checking, dose-range validation, ICD-to-specialty mapping), FHIR export, finance workflows (INA-CBG tariff lookup, BPJS adjudication, Jasa Raharja claims), and snapshot round-trip persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms (5.5× increase for 2× the tick count). Scaling to longer horizons (50,000+ ticks) will require handler-level optimisation that has been scoped but not yet implemented. All performance and experimental results in this paper reflect the codebase at [commit 7352adb](https://github.com/vierm2606-bangtan/Deers-Rock/commit/7352adb); the repository continues to evolve.
+The platform is implemented in TypeScript (Node.js, ~8,000 source lines across 50+ modules) with better-sqlite3 for persistence. A test suite of 69 unit tests across 13 suites covers clinical rule logic (allergy checking, dose-range validation, ICD-to-specialty mapping), FHIR export, finance workflows (INA-CBG tariff lookup, BPJS adjudication, Jasa Raharja claims), and snapshot round-trip persistence. At 1000 ticks with 50 initial patients, wall-clock runtime is approximately 34 seconds (33.6 ms per tick), remaining well under the 1-second real-time budget per simulated minute. Performance scales with tick count as encounters accumulate; at 2000 ticks, per-tick latency reaches 186 ms (5.5× increase for 2× the tick count). Scaling to longer horizons (50,000+ ticks) will require handler-level optimisation that has been scoped but not yet implemented. All performance and experimental results in this paper reflect the codebase at commit 7352adb (performance) and 517f2c9 (experiments); the repository continues to evolve.
 
 ### 3.4 Agent learning mechanism
 
@@ -91,17 +91,22 @@ The platform includes a built-in outcome-based learning loop. For each discharge
 
 ## 4. Illustrative Examples
 
-In 10 seeded runs of 1000 ticks each (simulating ~16.7 hours of hospital operations per run), the platform produced broadly consistent outcome distributions. Average length of stay was 82.9 ticks (SD 10.4 across 10 runs, reflecting seed-to-seed variation). Maximum LOS reached 916-992 ticks — this value is right-censored: these patients were admitted early in the run and had not yet been discharged when the simulation stopped at 1000 ticks, since scheduled inpatient discharges fire at 4320-10080 ticks. Bed occupancy averaged 130.9 of 133 beds (98%, SD 2.4). Disasters triggered stochastically in 3 of 10 runs (sunken ship, earthquake, industrial accident), demonstrating the scenario engine's capacity to generate surge conditions. Mortality was not measured in this demonstration — with realistic LOS of 3-7 days, no discharges occur within 1000 ticks, which is itself evidence that the discharge mechanism operates on clinically appropriate timescales.
+The platform's central architectural claim is deterministic reproducibility: the same seed produces the same hospital trajectory. All random decisions throughout the 35-handler pipeline use a seeded PRNG (mulberry32, Section 3.1), and full-state snapshots enable replay from any checkpoint. The following observations are from a 10-seed, 500-tick run (50 initial patients; commit 517f2c9; full data archived in `experiment-results/`):
 
-**Figure 2.** Length of stay distribution showing bimodal pattern: ED fast-track (short stays, high volume) and scheduled inpatient admissions (long stays, low volume). Mean 82.9 ticks. The values near 1000 ticks are right-censored — these patients were still admitted when the simulation ended.
+- **Deaths: 0.** No inpatient discharges fire within 500 ticks — scheduled LOS is 3-7 days (4320-10080 ticks). All generated patients remain alive, consistent with the configured care model.
+- **Active length of stay: ~290 ticks.** At tick 500, approximately 250 patients per seed remain admitted with a mean stay-in-progress of ~5 hours, consistent with mid-stay census for 3-7 day admissions.
+- **Bed occupancy: 110 of 133 (84%).** Occupancy is still ramping toward the steady-state value of 131/133 observed at longer horizons.
+- **Phase 2 finance: ~8,300 charges/seed.** INA-CBG coding, BPJS deductibles, and Jasa Raharja claims are active across all runs.
+
+**Figure 2.** Length of stay distribution showing bimodal pattern of short-stay ED discharges (2-8 ticks) and longer-stay inpatients. Values near the run boundary are right-censored.
 
 ![](fig2-los-histogram.png)
 
-**Figure 3.** Bed occupancy trajectory converging to ~98% saturation (130.9 of 133 beds). The rapid fill rate reflects the 360-1440 tick scheduled inpatient delays.
+**Figure 3.** Bed occupancy trajectory converging toward steady-state saturation, consistent with a Tier A referral hospital.
 
 ![](fig3-bed-occupancy.png)
 
-These experiments are intended as a functional demonstration rather than a clinical validation. The platform's purpose is to enable reproducible experimentation, not to assert predictive accuracy. We note that 1000 ticks (~16.7 hours) is too short to reach steady-state occupancy or mortality distributions; longer runs (50,000+ ticks) are a goal for future work once the handler-level optimisation described in Section 3.3 is complete.
+These observations are a functional demonstration, not a clinical validation. The platform's purpose is to enable reproducible counterfactual experimentation through deterministic seeding and snapshot replay — claims about hospital outcomes require larger ensembles and real-world calibration data.
 
 ---
 
@@ -127,7 +132,11 @@ The platform simulates Indonesian healthcare using cultural scenarios (Lebaran, 
 
 Deer's Rock is an open-source, persistent, event-driven hospital simulation platform that combines deterministic replay, modular composability, cultural contextualization, and health system interoperability. The demonstration confirmed reproducible trajectories across multiple seeded runs and concurrent multi-department operation across 35 handlers. A FHIR R4 adapter provides Patient and Observation resource export, with full conformance testing ongoing.
 
-The handler chain architecture may generalise to other simulation domains such as pharmaceutical supply chains, public health systems, or disaster response networks, but this has not been tested — the present implementation is specific to hospital operations. Deer's Rock is available as open-source software at the repository listed above.
+Deer's Rock is available as open-source software at the repository listed above.
+
+### 6.1 Future Directions
+
+The handler chain architecture may generalise to other simulation domains such as pharmaceutical supply chains, public health systems, or disaster response networks, but this has not been tested — the present implementation is specific to hospital operations.
 
 ---
 

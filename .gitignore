@@ -4,4 +4,4 @@ dist/
 *.db-wal
 *.db-shm
 
-exports/
+exports/experiment-results/
