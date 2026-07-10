@@ -1996,3 +1996,12 @@ All OCs agreed:
 
 **Status:** Paper ready for submission.
 
+
+## [2026-07-10 09:20] Paper OC — Files Committed
+
+**Commit:** 5e8cf6c — all paper files + generate-pdf.mjs + .gitignore
+
+Files: docs/papers/*.html, *.md, *.pdf, memory.txt, scripts/generate-pdf.mjs, .gitignore (experiment-results/ added)
+
+**Status:** Paper fully ready. Platform OC pending: package.json/package-lock.json.
+

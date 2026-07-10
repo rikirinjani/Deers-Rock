@@ -233,21 +233,19 @@ Waiting for Coordinator final confirmation before archiving.
 - **Reproducibility demo**: ✅ Deterministic replay confirmed (2× seed=0 identical)
 - **SoftwareX**: 🟢 All gates green (tsc, vitest 69/69, verify:facts 19/19)
 
-### 🔴 Uncommitted files — must be pushed before submission
+### 🔴 Uncommitted files — RESOLVED
 
-Paper OC's edits exist locally but aren't in git:
+Paper OC files committed (5e8cf6c). Platform OC: commit package.json changes. Experiment-results added to .gitignore.
 
-| File | Owner |
-|------|-------|
-| `docs/papers/deers-rock-softwarex.html` | Paper OC |
-| `docs/papers/deers-rock-softwarex.md` | Paper OC |
-| `docs/papers/deers-rock-softwarex.pdf` | Paper OC |
-| `memory.txt` | Paper OC |
-| `scripts/generate-pdf.mjs` | Paper OC (new file) |
-| `package.json` / `package-lock.json` | Platform OC (added `marked` dep) |
-| `experiment-results/*` (test run artifacts) | cleanup — add to .gitignore or remove |
-
-**Action:** Paper OC: commit all paper files + memory.txt + generate-pdf.mjs. Platform OC: commit package.json changes. Clean up experiment noise.
+| File | Owner | Status |
+|------|-------|--------|
+| `docs/papers/deers-rock-softwarex.html` | Paper OC | ✅ Committed |
+| `docs/papers/deers-rock-softwarex.md` | Paper OC | ✅ Committed |
+| `docs/papers/deers-rock-softwarex.pdf` | Paper OC | ✅ Committed |
+| `memory.txt` | Paper OC | ✅ Committed |
+| `scripts/generate-pdf.mjs` | Paper OC | ✅ Committed |
+| `package.json` / `package-lock.json` | Platform OC | ⚠️ Pending |
+| `experiment-results/*` (test run artifacts) | — | ✅ .gitignore updated |
 
 ---
 
