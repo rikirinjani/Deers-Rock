@@ -5,9 +5,25 @@
 > Rules: Signal → await response → archive answered → signaler deletes.
 
 ## → Platform OC
-- **ADR-003**: ✅ Agent state persistence implemented (commit 8afc0fe). _agentState and _referralState now persist across snapshots.
-- **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50). CI workflow live.
-- **Integration Depth Ledger**: ✅ Reviewed — 6 discrepancies corrected (commit 86599bd): nursing protocols 32 not 14, calendar 7 not ~20 events, ED LOS 2-7 ticks not 1-3d, specialty mapping 17/19, service catalog 72 not 76. INA-CBG count 71 and bed count 131 confirmed correct.
+- **ADR-003**: ✅ Agent state persistence implemented (commit 8afc0fe)
+- **verify:facts CI gate**: ✅ Phase 1 done (commit 7a98e50)
+- **Integration Depth Ledger**: ✅ Reviewed (commit 86599bd)
+- **Module Contracts Doc**: ✅ Created at `docs/MODULE-CONTRACTS.md`
+
+### 🔴 Non-determinism bug — blocks SoftwareX submission
+
+Paper OC discovered: two runs with seed=0 produce different results (active LOS 63 vs 64, discharged LOS 5 vs 6, bed occupancy 60 vs 59). Small differences but they exist. Deterministic replay is the paper's core claim — it must be provable.
+
+**To reproduce:**
+```
+npx tsx src/experiment/runner.ts 1 100  → run twice, compare
+```
+
+**Root cause candidates:** unseeded Math.random(), Date.now() in handler logic, Map iteration ordering, or system-time-dependent initialization.
+
+**What we need:** verify all 31 handlers + clock use `rng()` exclusively. Fix the leak. Then run `npx tsx src/experiment/runner.ts 1 100` twice — results must be byte-identical.
+
+**Blocking:** SoftwareX paper submission (reproducibility claim unsubstantiated), Section 4 reproducibility demo.
 - **Module Contracts Doc** — ✅ created at `docs/MODULE-CONTRACTS.md` — 11 core modules documented with exports, invariants, known issues, and dependencies
 - **Epic IX Phase 1 (Finance Foundation)**: 6/6 tasks done ✅ (commit 6947c57)
 - **Phase 2**: All 6 tasks delivered 🟢 (INA-CBG, payer assignment, BPJS/JR, AI Coder)
@@ -110,7 +126,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🔴 ~~author info resolved~~ → ~~Draft Detective fixed~~ → ~~Round 4 polish done~~ → **Unblocked.** Paper OC: all reviews complete, PDF re-rendered, ready to submit.
+- **Submit SoftwareX** — 🟡 **On hold.** Paper content ready, PDF rendered. Blocked: Platform OC non-determinism bug (seed=0 runs differ). Also: Paper OC should not have run experiments — that's Research OC's domain.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -209,37 +225,22 @@ Waiting for Coordinator confirmation before editing manuscript.
 Waiting for Coordinator final confirmation before archiving.
 
 ## → Paper OC
-- **Manuscript edits**: ✅ Complete — mortality removed per Option 2
-- **Author info**: ✅ Riki Rinjani (ORCID 0009-0002-9364-2637)
-- **Draft Detective 12 fixes**: ✅ Done
-- **Round 4 polish — 4 items**: ✅ Done
-- **Experiment data**: ✅ Updated to 500-tick current-code data
+- **Manuscript edits**: ✅ Mortality removed, author info filled, 12 Draft Detective fixes, 4 polish items
+- **Section 4 pivot**: ✅ Accepted — architecture framing over distributional stats
+- **PDF re-rendered**: ✅
+- **Experiment data**: ✅ Updated to 500-tick current data (but see below)
 
-### 🔴 Section 4 pivot — Coordinator recommendation
+### ⚠️ Note — role boundary
 
-Paper OC already updated §4 with 500-tick data. But the real evidence for this paper isn't LOS or bed counts — it's **deterministic reproducibility**. The abstract claims it. Let §4 prove it.
+Running experiments and updating §4 data is **Research OC's** domain (validation, calibration, experimental design). Paper OC should receive results from Research OC, not generate them. Not blocking — data is correct — but noted for process discipline.
 
-**Recommendation:**
+### 🔴 Non-determinism bug — blocks submission
 
-1. **Centerpiece: two identical-seed runs.** Run seed=0 × 100 ticks twice, dump both JSON outputs. They're identical. That IS the paper's claim. A single-paragraph reproducibility demo is stronger than any distributional claim.
+Two seed=0 runs produce different outputs. Reproducibility demo (the §4 centerpiece) can't be substantiated. **Platform OC has been signaled.** Submission waits on this fix.
 
-2. **Drop the old framing.** No more "10 seeded runs of 1000 ticks each." No SD, no CI, no N=10. The old data was a pre-LOS-fix smoke test on a codebase that no longer exists. It doesn't need to be in a SoftwareX paper.
-
-3. **Replace with three honest observations** (all from the 500-tick data):
-   - Deaths: 0 — patients alive, scheduled discharge fires at 4320+ ticks (consistent with 3-7 day LOS model)
-   - Active LOS: ~290 ticks — patients mid-stay at run end, no right-censoring to explain
-   - Bed occupancy: 110/133 — still ramping, reaches 131/133 at 1000 ticks
-   - Phase 2 finance: 8,000+ charges/seed, INA-CBG coding, BPJS/JR claims active
-
-4. **Commit pinning:** Reference current HEAD for full reproducibility.
-
-5. **Raw data:** `experiment-results/experiment-2026-07-10T00-41-49-826Z-summary.json` (10 seeds × 500 ticks, full per-seed breakdown).
-
-**Why this matters:** The Draft Detective review caught LOS censoring, missing disaster, inflated counts. Those were symptoms. The root cause was §4 trying to report distributional statistics from an unreproducible snapshot. A reproducibility demo + honest framing is both stronger and immune to those critiques.
-
-- **SoftwareX**: Paper OC — decide on approach, regenerate PDF, final submit.
+- **SoftwareX**: 🟡 **On hold.** Paper content ready, all edits done, PDF rendered. Blocked by Platform OC non-determinism fix.
 
 ---
 
-*Last updated: 2026-07-10 08:15 Coordinator — Section 4 pivot recommendation pushed to Paper OC*
+*Last updated: 2026-07-10 08:10 Coordinator — non-determinism bug found, Platform OC signaled, Paper OC role violation noted*
 *Maintainer: Whoever modifies it last updates the timestamp.*
