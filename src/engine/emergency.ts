@@ -64,6 +64,11 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
   newTriages.set(triage.id, triage);
 
   const edStay = 2 + Math.floor(clock.rng() * 6);
+  // KNOWN MODELING CHOICE: 2-7 tick ED LOS is unrealistically short (real ED: 1-6 hours).
+  // This 2-7 tick window abstracts triage+treatment as a quick disposal step,
+  // not a full ED simulation. Escalation to realistic 60-180 tick LOS requires
+  // an ED capacity model (beds, nurse staffing, waiting room queue).
+  // See: docs/integration-depth-ledger.md § Emergency Department, docs/MODULE-CONTRACTS.md § emergency.ts
   _queue.schedule("ed_discharge", clock.tick + edStay, { encounterId, triageId: triage.id, patientId: patient.id });
 
   return { ...state, encounters: newEncounters, edTriages: newTriages };

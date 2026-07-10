@@ -5,3 +5,4 @@ dist/
 *.db-shm
 
 exports/experiment-results/
+experiment-results/
