@@ -201,7 +201,7 @@ export interface PharmacistCaseRecord {
   lastReviewTick: number;
 }
 
-export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}): HospitalState {
+export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}, rng?: () => number): HospitalState {
   const patientMap = new Map<string, Patient>();
   for (const p of patients) patientMap.set(p.id, p);
 
@@ -269,8 +269,8 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _microbiology: initMicroState(),
     _pathology: initPathoState(),
     _cssd: initCssdState(),
-    _biomed: initBiomedState(),
-    _ipc: initIpcState(),
+    _biomed: initBiomedState(rng),
+    _ipc: initIpcState(rng),
     _clinicalNutrition: initNutritionState(),
     _radiotherapy: initRtState(),
     _dialysis: initDialysisState(),

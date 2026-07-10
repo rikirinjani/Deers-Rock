@@ -135,18 +135,19 @@ export function getNursingInterventions(diagnoses: Diagnosis[]): string[] {
   return p.interventions;
 }
 
-export function generateNurseNote(diagnoses: Diagnosis[], vitals: Vitals, noteType: string): string {
+export function generateNurseNote(diagnoses: Diagnosis[], vitals: Vitals, noteType: string, rng?: () => number): string {
+  const rand = rng ?? Math.random;
   const p = getNursingProtocols(diagnoses);
   const focus = p?.assessmentFocus ?? ["General nursing assessment", "VS monitoring"];
 
   const vitalsNote = formatVitals(vitals);
-  const assessment = focus[Math.floor(Math.random() * focus.length)]!;
+  const assessment = focus[Math.floor(rand() * focus.length)]!;
 
   if (noteType === "assessment") {
-    return `Nursing assessment: ${assessment}. ${vitalsNote}. Patient appears ${Math.random() > 0.3 ? "stable" : "in mild distress"}. Care plan initiated per ${p?.monitoringFrequency ?? "protocol"}.`;
+    return `Nursing assessment: ${assessment}. ${vitalsNote}. Patient appears ${rand() > 0.3 ? "stable" : "in mild distress"}. Care plan initiated per ${p?.monitoringFrequency ?? "protocol"}.`;
   }
   if (noteType === "procedure") {
-    const proc = ["Wound dressing changed, wound clean and dry", "IV line inserted, site clean and intact", "Foley catheter inserted, draining clear urine", "NGT placed, position confirmed", "Blood draw from peripheral line, specimen sent"][Math.floor(Math.random() * 5)]!;
+    const proc = ["Wound dressing changed, wound clean and dry", "IV line inserted, site clean and intact", "Foley catheter inserted, draining clear urine", "NGT placed, position confirmed", "Blood draw from peripheral line, specimen sent"][Math.floor(rand() * 5)]!;
     return `Procedure: ${proc}. Patient tolerated well. ${vitalsNote}`;
   }
   if (noteType === "observation") {
@@ -154,7 +155,7 @@ export function generateNurseNote(diagnoses: Diagnosis[], vitals: Vitals, noteTy
     if (obs) return `⚠️ ${obs.concern}. ${obs.action}. ${vitalsNote}`;
     return `Routine observation: ${assessment}. ${vitalsNote}. No acute changes noted.`;
   }
-  const intervention = p?.interventions[Math.floor(Math.random() * (p?.interventions.length ?? 1))];
+  const intervention = p?.interventions[Math.floor(rand() * (p?.interventions.length ?? 1))];
   return `Nursing round: ${assessment}. ${intervention ?? "Comfort measures provided"}. ${vitalsNote}. Patient resting comfortably.`;
 }
 

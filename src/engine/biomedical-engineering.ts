@@ -47,11 +47,12 @@ const EQUIPMENT_TEMPLATES: { name: string; category: string; interval: number; l
 
 let maintCounter = 0;
 
-export function initBiomedState(): BiomedState {
+export function initBiomedState(rng?: () => number): BiomedState {
+  const rand = rng ?? Math.random;
   const equipment: BiomedEquipment[] = EQUIPMENT_TEMPLATES.map((t, i) => ({
     id: `EQ-${String(i + 1).padStart(3, "0")}`,
     name: t.name, category: t.category,
-    serialNumber: `SN-${String(Math.floor(Math.random() * 99999)).padStart(5, "0")}`,
+    serialNumber: `SN-${String(Math.floor(rand() * 99999)).padStart(5, "0")}`,
     location: t.category,
     status: "operational", lastMaintenanceTick: 0,
     nextMaintenanceTick: t.interval,

@@ -65,7 +65,7 @@ function generateAddress(provinceCode: string, regencyCode: string, districtCode
     provinceCode: province.code,
     regencyCode: regency.code,
     districtCode: dc,
-    postalCode: getRandomPostalCode(province.code),
+    postalCode: getRandomPostalCode(province.code, rng),
     isDomisili,
   };
 }

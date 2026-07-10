@@ -65,14 +65,14 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
       mem.assessmentsDone++;
     } else if (isAssessmentTick) {
       noteType = "assessment";
-      content = generateNurseNote(diagnoses, vitals, "assessment");
+      content = generateNurseNote(diagnoses, vitals, "assessment", clock.rng);
       mem.assessmentsDone++;
     } else if (isProcedureTick) {
       noteType = "procedure";
-      content = generateNurseNote(diagnoses, vitals, "procedure");
+      content = generateNurseNote(diagnoses, vitals, "procedure", clock.rng);
       mem.proceduresDone++;
     } else {
-      const obs = generateNurseNote(diagnoses, vitals, "observation");
+      const obs = generateNurseNote(diagnoses, vitals, "observation", clock.rng);
       if (obs.startsWith("⚠️")) {
         noteType = "observation";
         content = obs;

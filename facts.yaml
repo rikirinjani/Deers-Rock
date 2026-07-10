@@ -7,7 +7,7 @@ checks:
   - id: test-count
     description: "Total test count matches badge"
     type: test-count
-    expected: 66
+    expected: 67
 
   - id: test-files
     description: "Total test file count"

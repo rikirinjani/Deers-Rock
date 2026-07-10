@@ -235,10 +235,11 @@ export const POSTAL_CODES: Record<string, string[]> = {
   "51": ["80111", "80112", "80113"],
 };
 
-export function getRandomPostalCode(provinceCode: string): string {
+export function getRandomPostalCode(provinceCode: string, rng?: () => number): string {
+  const rand = rng ?? Math.random;
   const codes = POSTAL_CODES[provinceCode];
-  if (codes && codes.length > 0) return codes[Math.floor(Math.random() * codes.length)];
-  return `${provinceCode}${String(Math.floor(100 + Math.random() * 899))}${String(Math.floor(10 + Math.random() * 89))}`;
+  if (codes && codes.length > 0) return codes[Math.floor(rand() * codes.length)];
+  return `${provinceCode}${String(Math.floor(100 + rand() * 899))}${String(Math.floor(10 + rand() * 89))}`;
 }
 
 export const REFERRAL_FACILITIES: ReferralFacility[] = [

@@ -24,8 +24,9 @@ const OUTBREAK_ORGANISMS = ["MRSA", "VRE", "CRE", "ESBL", "C. difficile", "Carba
 
 let caseCounter = 0;
 
-export function initIpcState(): IpcState {
-  return { cases: [], handHygieneCompliance: 70 + Math.floor(Math.random() * 20), isolationBedsInUse: 0 };
+export function initIpcState(rng?: () => number): IpcState {
+  const rand = rng ?? Math.random;
+  return { cases: [], handHygieneCompliance: 70 + Math.floor(rand() * 20), isolationBedsInUse: 0 };
 }
 
 export function ipcHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {

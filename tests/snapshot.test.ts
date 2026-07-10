@@ -22,7 +22,7 @@ describe("Snapshots", () => {
 
   it("saves snapshots every 100 ticks during simulation", { timeout: 15000 }, () => {
     closeJournal();
-    if (existsSync(DB)) unlinkSync(DB);
+    if (existsSync(DB)) { try { unlinkSync(DB); } catch { /* ebusy */ } }
     const w = createWorld(10, DB);
     runWorld(w, 210);
     const snaps = listSnapshots();
@@ -60,7 +60,7 @@ describe("Snapshots", () => {
 
   it("returns null state when no snapshot exists before tick", () => {
     closeJournal();
-    if (existsSync(DB)) unlinkSync(DB);
+    if (existsSync(DB)) { try { unlinkSync(DB); } catch { /* ebusy */ } }
     const snap = loadNearestSnapshot(5);
     expect(snap.state).toBeNull();
     expect(snap.tick).toBe(5);
@@ -68,7 +68,7 @@ describe("Snapshots", () => {
 
   it("can save and reload a manually created snapshot", () => {
     closeJournal();
-    if (existsSync(DB)) unlinkSync(DB);
+    if (existsSync(DB)) { try { unlinkSync(DB); } catch { /* ebusy */ } }
     initJournal(DB);
     const state = createState(generatePatientPool(5));
     saveSnapshot(99, state);
@@ -81,7 +81,7 @@ describe("Snapshots", () => {
 
   it("preserves agent state and referral state across save/load round-trip", () => {
     closeJournal();
-    if (existsSync(DB)) unlinkSync(DB);
+    if (existsSync(DB)) { try { unlinkSync(DB); } catch { /* ebusy */ } }
     initJournal(DB);
     const patients = generatePatientPool(3);
     const state = createState(patients);

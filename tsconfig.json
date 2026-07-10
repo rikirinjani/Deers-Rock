@@ -13,5 +13,6 @@
     "isolatedModules": true,
     "moduleDetection": "force",
   },
-  "exclude": ["tests", "bin", "dist"]
+  "include": ["src"],
+  "exclude": ["tests", "bin", "dist", "scripts"]
 }
