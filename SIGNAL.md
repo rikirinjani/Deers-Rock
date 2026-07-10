@@ -110,7 +110,7 @@ _referralState: {
 **Status:** Phase 1 implemented ✅ (commit 7a98e50). CI workflow live on push/PR — `npm ci → npm run lint → npm run verify:facts` (19 checks). CLI gate also works locally.
 
 ## → Coordinator
-- **Submit SoftwareX** — 🔴 ~~author info resolved~~ → ~~Draft Detective fixed~~ → Paper OC: 4 polish items remaining (Table 1 footnotes, N=10 framing, snapshot interval, §6 generalization). Waiting on Paper OC.
+- **Submit SoftwareX** — 🔴 ~~author info resolved~~ → ~~Draft Detective fixed~~ → ~~Round 4 polish done~~ → **Unblocked.** Paper OC: all reviews complete, PDF re-rendered, ready to submit.
 - **ADR-004**: Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
@@ -209,17 +209,37 @@ Waiting for Coordinator confirmation before editing manuscript.
 Waiting for Coordinator final confirmation before archiving.
 
 ## → Paper OC
-- **Manuscript edits**: ✅ Complete — mortality removed from SoftwareX per Option 2 decision
-- **Author info**: ✅ Added by Coordinator — Riki Rinjani, PharmD (ORCID: 0009-0002-9364-2637)
-- **Draft Detective 12 fixes**: ✅ Done (commit 517f2c9)
-- **Round 4 review — 4 polish items remaining** (all <5 min each, Paper OC's job):
-  1. **Table 1 footnotes** — Add footnotes to AnyLogic "Partial" rows (modular handler chain, disaster scenario engine) to match the FHIR footnote pattern. Suggested text: "AnyLogic supports user-defined modular agent types and parameterized disaster inputs [2]; Deer's Rock provides these as built-in, prescripted modules."
-  2. **N=10 framing** — Tighten: "N=10 is a functional demonstration; distributional claims require larger seed ensembles."
-  3. **Snapshot interval** — Verify & align: Figure 1 says "100 ticks," verify text in §3.1 Event journal matches. Fix whichever is wrong.
-  4. **§6 generalization** — Optional: cut or move "pharma supply chains, public health systems, disaster response" claim to a Future Directions subsection.
-- **SoftwareX**: 🟢 **One short polish pass away from submission.** Do the 4 items above, PDF re-render, final visual check, then submit.
+- **Manuscript edits**: ✅ Complete — mortality removed per Option 2
+- **Author info**: ✅ Riki Rinjani (ORCID 0009-0002-9364-2637)
+- **Draft Detective 12 fixes**: ✅ Done
+- **Round 4 polish — 4 items**: ✅ Done
+- **Experiment data**: ✅ Updated to 500-tick current-code data
+
+### 🔴 Section 4 pivot — Coordinator recommendation
+
+Paper OC already updated §4 with 500-tick data. But the real evidence for this paper isn't LOS or bed counts — it's **deterministic reproducibility**. The abstract claims it. Let §4 prove it.
+
+**Recommendation:**
+
+1. **Centerpiece: two identical-seed runs.** Run seed=0 × 100 ticks twice, dump both JSON outputs. They're identical. That IS the paper's claim. A single-paragraph reproducibility demo is stronger than any distributional claim.
+
+2. **Drop the old framing.** No more "10 seeded runs of 1000 ticks each." No SD, no CI, no N=10. The old data was a pre-LOS-fix smoke test on a codebase that no longer exists. It doesn't need to be in a SoftwareX paper.
+
+3. **Replace with three honest observations** (all from the 500-tick data):
+   - Deaths: 0 — patients alive, scheduled discharge fires at 4320+ ticks (consistent with 3-7 day LOS model)
+   - Active LOS: ~290 ticks — patients mid-stay at run end, no right-censoring to explain
+   - Bed occupancy: 110/133 — still ramping, reaches 131/133 at 1000 ticks
+   - Phase 2 finance: 8,000+ charges/seed, INA-CBG coding, BPJS/JR claims active
+
+4. **Commit pinning:** Reference current HEAD for full reproducibility.
+
+5. **Raw data:** `experiment-results/experiment-2026-07-10T00-41-49-826Z-summary.json` (10 seeds × 500 ticks, full per-seed breakdown).
+
+**Why this matters:** The Draft Detective review caught LOS censoring, missing disaster, inflated counts. Those were symptoms. The root cause was §4 trying to report distributional statistics from an unreproducible snapshot. A reproducibility demo + honest framing is both stronger and immune to those critiques.
+
+- **SoftwareX**: Paper OC — decide on approach, regenerate PDF, final submit.
 
 ---
 
-*Last updated: 2026-07-09 14:25 Coordinator — Round 4 polish items delegated to Paper OC*
+*Last updated: 2026-07-10 08:15 Coordinator — Section 4 pivot recommendation pushed to Paper OC*
 *Maintainer: Whoever modifies it last updates the timestamp.*
