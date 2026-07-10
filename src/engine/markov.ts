@@ -144,7 +144,7 @@ export function newPatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     const newCount = 1 + Math.floor(clock.rng() * 3);
     let newPatients = new Map(state.patients);
     for (let i = 0; i < newCount; i++) {
-      const fresh = generatePatient();
+      const fresh = generatePatient(clock.rng);
       fresh.id = `PAT-${clock.tick}-${String(Math.floor(clock.rng() * 9999)).padStart(4, "0")}`;
       newPatients.set(fresh.id, fresh);
     }
