@@ -1,5 +1,22 @@
 # Deer's Rock HOE — Memory File
 
+## [2026-07-10 09:40] Coordinator — Kaggle calibration dataset (future consideration)
+
+**Source:** [prasad22/healthcare-dataset](https://www.kaggle.com/datasets/prasad22/healthcare-dataset) — 55,500 synthetic patient records
+
+**Columns:** Age, Gender, Blood Type, Medical Condition (Cancer/Diabetes/Obesity/Asthma/Hypertension/Arthritis), Date of Admission, Doctor, Hospital, Insurance Provider, Billing Amount ($1K-$50K), Admission Type (Emergency/Elective/Urgent), Discharge Date, Medication, Test Results
+
+**Potential uses for Deer's Rock (Research OC task, when prioritized):**
+1. **LOS distributions** per condition — replace author-estimated 3-7d with data-driven ranges
+2. **Condition prevalence** — weight ICD-10 admission pool by real frequencies (Cancer 17%, Asthma 17%, etc.)
+3. **Admission mix** — Emergency/Elective/Urgent ratios for admissionHandler
+4. **Medication patterns** — per-condition drug frequencies for AI Doctor/AI Pharmacy
+5. **Lab result distributions** — Normal/Abnormal/Inconclusive ratios for labHandler
+
+**Caveat:** Synthetic data (not real hospital records). Two simulations may agree without matching reality. Use for LOS and prevalence (weakest-calibrated parts) but not for billing validation or mortality — those need real-world data.
+
+**Deferred.** No action until explicitly prioritized by Coordinator.
+
 ## [2026-07-09 14:15] Coordinator — Draft Detective review: 12 issues fixed in paper
 
 **Source:** External blind review (Draft Detective). Got a 6/10 Major Revision — fair criticism.
@@ -1925,7 +1942,7 @@ All OCs agreed:
 
 **Status:** Paper is fully ready. Awaiting submission to SoftwareX.
 
-## [2026-07-09 21:20] Paper OC � Draft Detective PDF Re-render
+## [2026-07-09 21:20] Paper OC � Draft Detective PDF Re-render
 
 **Action:** Re-rendered HTML and PDF after Coordinator's Draft Detective review (12 fixes, commit 517f2c9).
 
