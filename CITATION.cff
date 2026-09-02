@@ -22,7 +22,7 @@ license: Apache-2.0
 version: 0.5.0
 date-released: "2026-08-31"
 repository-code: "https://github.com/rikirinjani/Deers-Rock"
-commit: "c8dde6f"
+commit: "187d396"
 keywords:
   - healthcare simulation
   - microsimulation
