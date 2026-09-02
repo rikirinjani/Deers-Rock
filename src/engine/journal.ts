@@ -132,9 +132,11 @@ const SNAPSHOT_RETENTION_COUNT = 5;
 
 const PURGE_INTERVAL = 50;
 let lastPurgeTick = 0;
+export function resetJournalPurgeTick(): void { lastPurgeTick = 0; }
 
 const EXPORT_INTERVAL = 500;
 let lastExportTick = 0;
+export function resetJournalExportTick(): void { lastExportTick = 0; }
 let exportDir = "exports";
 
 export function setExportDir(dir: string): void {

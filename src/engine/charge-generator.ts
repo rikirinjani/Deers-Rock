@@ -3,6 +3,7 @@ import type { Clock } from "./clock.js";
 import type { Charge, ChargeCategory, RoomClass } from "../patient/schema.js";
 
 let chargeCounter = 0;
+export function resetChargeCounter(): void { chargeCounter = 0; }
 
 const CHARGE_RATES: Record<ChargeCategory, number> = {
   lab: 250000, radiology: 500000, pharmacy: 75000, surgery: 5000000,

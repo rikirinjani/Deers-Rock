@@ -2,6 +2,7 @@ import type { Identity, NIK, Address, Gender, Religion, MaritalStatus } from "./
 import { PROVINCES, STREET_NAMES, getRandomPostalCode } from "./data.js";
 
 let nikCounter = 0;
+export function resetNikCounter(): void { nikCounter = 0; }
 
 function pickRandom<T>(arr: T[], rng?: () => number): T {
   const rand = rng ?? Math.random;

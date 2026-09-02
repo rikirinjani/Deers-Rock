@@ -39,6 +39,7 @@ export interface MmConference {
 }
 
 let conferenceIdCounter = 0;
+export function resetMmConferenceCounter(): void { conferenceIdCounter = 0; }
 
 function assessPreventability(
   morgueRecord: MorgueRecord,

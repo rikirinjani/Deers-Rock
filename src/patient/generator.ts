@@ -124,6 +124,7 @@ const RHESUS: Rhesus[] = ["+", "-"];
 const ALLERGIES_POOL = ["None", "None", "None", "Penicillin", "Sulfa", "NSAIDs", "Aspirin", "Codeine", "Iodine contrast", "Latex", "Seafood", "Dust", "None", "None"];
 
 let patientCounter = 0;
+export function resetPatientCounter(): void { patientCounter = 0; }
 
 export function generatePatient(rng?: () => number): Patient {
   const rand = rng ?? Math.random;

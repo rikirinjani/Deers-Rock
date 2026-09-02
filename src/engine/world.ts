@@ -38,8 +38,23 @@ import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAn
 import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
-import { generateAgentPool } from "../agent/generator.js";
+import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
+import { resetPatientCounter } from "../patient/generator.js";
+import { resetNikCounter } from "../identity/generator.js";
+import { resetChargeCounter } from "./charge-generator.js";
+import { resetCssdCounters } from "./cssd.js";
+import { resetDialysisCounters } from "./dialysis.js";
+import { resetScenarioCounter } from "./scenario.js";
+import { resetBloodBankCounters } from "./blood-bank.js";
+import { resetClinicalNutritionCounters } from "./clinical-nutrition.js";
+import { resetIpcCounter } from "./ipc.js";
+import { resetMicrobiologyCounter } from "./microbiology.js";
+import { resetPathologyCounter } from "./pathology.js";
+import { resetMmConferenceCounter } from "./mm-conference.js";
+import { resetRadiotherapyCounters } from "./radiotherapy.js";
+import { resetBiomedCounter } from "./biomedical-engineering.js";
+import { resetJournalPurgeTick, resetJournalExportTick } from "./journal.js";
 
 export interface World {
   clock: Clock;
@@ -50,6 +65,14 @@ export interface World {
 }
 
 export function createWorld(patientCount: number = 100, journalPath?: string, seed?: number): World {
+  // Phase B: reset all module-global ID counters for same-process determinism
+  resetPatientCounter(); resetNikCounter(); resetAgentCounter();
+  resetChargeCounter(); resetCssdCounters(); resetDialysisCounters();
+  resetScenarioCounter(); resetBloodBankCounters(); resetClinicalNutritionCounters();
+  resetIpcCounter(); resetMicrobiologyCounter(); resetPathologyCounter();
+  resetMmConferenceCounter(); resetRadiotherapyCounters(); resetBiomedCounter();
+  resetJournalPurgeTick(); resetJournalExportTick();
+
   const worldRng = seed !== undefined ? createRng(seed).next : undefined;
   const effectiveRng = worldRng;
   const patients = effectiveRng ? generatePatientPool(patientCount, effectiveRng) : generatePatientPool(patientCount);

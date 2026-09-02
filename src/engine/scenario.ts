@@ -100,6 +100,7 @@ const SCENARIO_DEFS: ScenarioDefinition[] = [
 ];
 
 let scenarioCounter = 0;
+export function resetScenarioCounter(): void { scenarioCounter = 0; }
 
 export function initScenarioState(): ScenarioState {
   return { active: null, history: [], cooldownTicks: 0 };

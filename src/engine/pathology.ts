@@ -39,6 +39,7 @@ const PATHO_DIAGNOSES: Record<string, { benign: string[]; malignant: string[] }>
 };
 
 let orderCounter = 0;
+export function resetPathologyCounter(): void { orderCounter = 0; }
 
 export function initPathoState(): PathoState {
   return { orders: new Map() };

@@ -38,6 +38,7 @@ export interface ClinicalNutritionState {
 let assessCounter = 0;
 let tubeCounter = 0;
 let tpnCounter = 0;
+export function resetClinicalNutritionCounters(): void { assessCounter = 0; tubeCounter = 0; tpnCounter = 0; }
 
 const FEEDING_FORMULAS = ["Nutrison Standard", "Nutrison Energy", "Diason", "Nepro", "Ensure Plus", "Peptamen"];
 

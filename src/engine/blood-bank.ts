@@ -40,6 +40,7 @@ const UNITS_PER_RESTOCK = 4;
 
 let unitCounter = 0;
 let txCounter = 0;
+export function resetBloodBankCounters(): void { unitCounter = 0; txCounter = 0; }
 
 export function initBloodBank(): BloodBankState {
   const units: BloodUnit[] = [];

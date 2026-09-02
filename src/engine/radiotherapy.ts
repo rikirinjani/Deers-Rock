@@ -39,6 +39,7 @@ export interface RadiotherapyState {
 
 let planCounter = 0;
 let fracCounter = 0;
+export function resetRadiotherapyCounters(): void { planCounter = 0; fracCounter = 0; }
 
 const MODALITY_BY_DX: Record<string, RadiotherapyModality> = {
   C50: "external_beam", C18: "imrt", C22: "external_beam",

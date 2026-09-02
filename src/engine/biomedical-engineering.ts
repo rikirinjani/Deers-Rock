@@ -46,6 +46,7 @@ const EQUIPMENT_TEMPLATES: { name: string; category: string; interval: number; l
 ];
 
 let maintCounter = 0;
+export function resetBiomedCounter(): void { maintCounter = 0; }
 
 export function initBiomedState(rng?: () => number): BiomedState {
   const rand = rng ?? Math.random;

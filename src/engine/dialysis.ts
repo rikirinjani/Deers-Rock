@@ -24,6 +24,7 @@ export interface DialysisState {
 }
 
 let sessionCounter = 0;
+export function resetDialysisCounters(): void { sessionCounter = 0; }
 
 const DIALYSIS_DX = ["N18", "N17", "N19", "E10", "E11", "I12", "M10"];
 

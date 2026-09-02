@@ -43,6 +43,7 @@ const SENSITIVITY_PANEL: Record<string, string[]> = {
 };
 
 let orderCounter = 0;
+export function resetMicrobiologyCounter(): void { orderCounter = 0; }
 
 export function initMicroState(): MicroState {
   return { orders: new Map() };

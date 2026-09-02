@@ -23,6 +23,7 @@ const INFECTION_TYPES = [
 const OUTBREAK_ORGANISMS = ["MRSA", "VRE", "CRE", "ESBL", "C. difficile", "Carbapenemase producer"];
 
 let caseCounter = 0;
+export function resetIpcCounter(): void { caseCounter = 0; }
 
 export function initIpcState(rng?: () => number): IpcState {
   const rand = rng ?? Math.random;

@@ -66,6 +66,7 @@ function pickRandom<T>(arr: T[], rng?: () => number): T {
 }
 
 let agentCounter = 0;
+export function resetAgentCounter(): void { agentCounter = 0; }
 
 export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgent {
   const rand = rng ?? Math.random;

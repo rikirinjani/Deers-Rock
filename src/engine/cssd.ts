@@ -47,6 +47,7 @@ const STERILIZATION_DURATION: Record<SterilizationMethod, number> = {
 
 let cycleCounter = 0;
 let trayCounter = 0;
+export function resetCssdCounters(): void { cycleCounter = 0; trayCounter = 0; }
 
 export function initCssdState(): CssdState {
   const trays: InstrumentTray[] = TRAY_TEMPLATES.map((t, i) => ({
