@@ -1,0 +1,25 @@
+{
+  "title": "Deers Rock — Deterministic Healthcare Microsimulation (Reopening Audit Artifact)",
+  "description": "A standalone, deterministic micro-scale healthcare simulation (1 tick = 1 minute, 1440 ticks = 1 day) designed to function as an independent sentinel within a macro-scale world simulation through an explicit adapter boundary. This release accompanies a formal reopening audit establishing cross-process determinism, per-sentinel seeded RNG, sentinel independence, and boundary isolation, while honestly reporting that the documented coupling channels (macro-to-micro and micro-to-macro) are currently inert/dead and the committed counterfactual results are unreproducible artifacts.",
+  "creators": [
+    {
+      "name": "Deers Rock Project"
+    }
+  ],
+  "keywords": [
+    "healthcare simulation",
+    "microsimulation",
+    "deterministic",
+    "agent-based simulation",
+    "multi-scale",
+    "sentinel",
+    "counterfactual",
+    "reproducibility"
+  ],
+  "license": {
+    "id": "Apache-2.0"
+  },
+  "upload_type": "software",
+  "version": "0.5.0",
+  "publication_date": "2026-08-31"
+}
