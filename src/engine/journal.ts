@@ -370,6 +370,8 @@ function deserializeState(json: string): HospitalState {
     _radiotherapy: d.rt ?? initRtState(),
     _dialysis: d.dialysis ?? initDialysisState(),
     _scenario: d.scenario ?? initScenarioState(),
+    _admissionMultiplier: d.admissionMultiplier ?? 1.0,
+    _staffAvailabilityModifier: d.staffAvailabilityModifier ?? 1.0,
     _rngSeed: d.rngSeed ?? 0,
   };
 }

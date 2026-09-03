@@ -119,6 +119,10 @@ export interface HospitalState {
   _radiotherapy: RadiotherapyState;
   _dialysis: DialysisState;
   _scenario: ScenarioState;
+  /** Phase E: macro→micro admission multiplier from adapter (default 1.0). */
+  _admissionMultiplier: number;
+  /** Phase E: macro→micro staff availability modifier from adapter (default 1.0). */
+  _staffAvailabilityModifier: number;
   _rngSeed: number;
 }
 
@@ -275,6 +279,8 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _radiotherapy: initRtState(),
     _dialysis: initDialysisState(),
     _scenario: initScenarioState(),
+    _admissionMultiplier: 1.0,
+    _staffAvailabilityModifier: 1.0,
     _rngSeed: 0,
   };
 }

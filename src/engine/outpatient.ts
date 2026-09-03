@@ -114,7 +114,9 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
 
   const waitingVisits = Array.from(visits.values()).filter(v => v.status === "waiting");
   const poliCapacity: Record<string, number> = {};
-  for (const p of POLIKLINIK) poliCapacity[p.id] = p.capacityPerTick;
+  // Phase E: macro→micro coupling — staff_shortage modifier from Kronos adapter
+  const staffModifier = state._staffAvailabilityModifier ?? 1.0;
+  for (const p of POLIKLINIK) poliCapacity[p.id] = Math.max(1, Math.floor(p.capacityPerTick * staffModifier));
 
   for (const visit of waitingVisits) {
     const cap = poliCapacity[visit.poli] ?? 1;

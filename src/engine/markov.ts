@@ -68,7 +68,10 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
 
   if (admitablePatients.length === 0) return state;
 
-  const toAdmit = Math.min(availableBeds.length, Math.max(1, Math.floor(clock.rng() * 3)));
+  // Phase E: macro→micro coupling — admission_surge multiplier from Kronos adapter
+  const baseAdmit = Math.floor(clock.rng() * 3);
+  const scaledAdmit = Math.floor(baseAdmit * state._admissionMultiplier);
+  const toAdmit = Math.min(availableBeds.length, Math.max(1, scaledAdmit));
   let newBeds = new Map(state.beds);
   let newEncounters = new Map(state.encounters);
 

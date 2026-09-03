@@ -286,6 +286,17 @@ export function step(world: World): World {
       case "rad_result": state = radResultHandler(state, newClock, world.queue); break;
       case "ed_discharge": state = edDischargeHandler(state, newClock, world.queue); break;
       case "surgery_done": state = surgeryResultHandler(state, newClock, world.queue); break;
+      // Phase E: macro→micro coupling — consume events from Kronos adapter
+      case "admission_surge": {
+        const multiplier = (evt.data as { multiplier?: number }).multiplier ?? 1.0;
+        state = { ...state, _admissionMultiplier: multiplier };
+        break;
+      }
+      case "staff_shortage": {
+        const modifier = (evt.data as { modifier?: number }).modifier ?? 1.0;
+        state = { ...state, _staffAvailabilityModifier: modifier };
+        break;
+      }
     }
   }
 
