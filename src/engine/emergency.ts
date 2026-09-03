@@ -4,6 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { EdTriage } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { assignPayer } from "./finance.js";
+import { selectPrimaryDiagnosisCode } from "./markov.js";
 
 const COMPLAINTS = [
   "Chest pain", "Abdominal pain", "Shortness of breath", "Headache", "Fever", "Trauma from fall",
@@ -43,6 +44,9 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
     endTime: null,
     status: "active" as const,
     payer: assignPayer(patient),
+    // Phase D: ED visits carry the patient's principal problem-list diagnosis
+    // (deterministic; no ED-complaint→ICD mapping exists in DR and none is invented).
+    primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
   };
 
   const triage: EdTriage = {

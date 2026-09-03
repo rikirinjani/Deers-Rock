@@ -55,6 +55,18 @@ export interface Encounter {
   payer: PayerType;
   attendingDoctorId?: string;
   assignedNurseId?: string;
+  /**
+   * Phase D: principal diagnosis for this encounter, as an ICD-10 CODE string.
+   * Selection rules (documented, deterministic, no RNG):
+   *  - inpatient + ED encounters: first ACTIVE diagnosis of the patient's
+   *    problem list (insertion order = generation order); falls back to the
+   *    first diagnosis; "UNKNOWN" only if the patient has none (generator
+   *    always assigns >= 1, so this is a safety net).
+   *  - outpatient encounters: the clinic-visit diagnosis selected by the
+   *    outpatient flow (referral-matched or walk-in pool draw) — the acute
+   *    reason for the visit, not the chronic problem list.
+   */
+  primaryDiagnosis?: string;
 }
 
 export type RoomClass = "vvip" | "vip" | "kelas-1" | "kelas-2" | "kelas-3" | "icu" | "hcu" | "nicu" | "picu";

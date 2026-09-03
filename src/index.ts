@@ -5,6 +5,9 @@ export { EventQueue } from "./engine/event-queue.js";
 export { createState } from "./engine/state-store.js";
 export { createWorld, step, runWorld } from "./engine/world.js";
 export type { World } from "./engine/world.js";
+// Phase D: deterministic sentinel-signal sources (for adapter wiring in Phase E)
+export { selectPrimaryDiagnosisCode } from "./engine/markov.js";
+export { computeSupplyStress } from "./engine/central-supply.js";
 export { createRestServer } from "./api/rest.js";
 export { createFhirEndpoints } from "./api/fhir.js";
 export { generateReport } from "./engine/report.js";

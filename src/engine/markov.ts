@@ -2,11 +2,26 @@ import type { HospitalState, MorgueRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
+import type { Patient } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
 import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
 import { assignPayer } from "./finance.js";
+
+/**
+ * Phase D: deterministic principal-diagnosis selection for an encounter.
+ * Rule: first ACTIVE diagnosis of the patient's problem list (insertion
+ * order = generation order); fallback first diagnosis; "UNKNOWN" only when
+ * the patient carries no diagnosis at all (the generator always assigns at
+ * least one, so that branch is a safety net). No RNG involved.
+ */
+export function selectPrimaryDiagnosisCode(patient: Patient | undefined): string {
+  if (!patient) return "UNKNOWN";
+  const active = patient.diagnoses.find(d => d.active);
+  const chosen = active ?? patient.diagnoses[0];
+  return chosen ? chosen.code : "UNKNOWN";
+}
 
 const SPECIALTY_TO_WARD: Record<string, string> = {
   cardiology: "Cardiology", neurology: "Neurology", pulmonology: "Pulmonology",
@@ -79,6 +94,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       endTime: null as number | null,
       status: "active" as const,
       payer: assignPayer(patient),
+      primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
     };
     newEncounters.set(encounter.id, encounter);
 

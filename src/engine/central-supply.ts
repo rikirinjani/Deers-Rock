@@ -116,3 +116,40 @@ export function dispenseItem(
 export function getStock(state: HospitalState, itemCode: string): number {
   return state.inventory.get(itemCode)?.stock ?? 0;
 }
+
+/**
+ * Phase D: deterministic supply-stress metric derived from ACTUAL simulated
+ * inventory state. Pure function of state.inventory — no RNG, no wall clock.
+ *
+ * Semantics: mean NORMALIZED BUFFER DEPLETION across the supply catalog.
+ *   per item: depletion = clamp01((maxStock - stock) / (maxStock - minStock))
+ *   supplyStress = mean(depletion) over items with a positive buffer range
+ *                 (min < max). 0.0 = every item at maximum stock;
+ *                 1.0 = every item at its minimum stock level.
+ * The initial state (stock = (min+max)/2 for every item) yields exactly 0.5.
+ *
+ * Dynamics (all existing DR behavior, unchanged): pharmacy/lab dispensing
+ * drains stock (dispenseItem); centralSupplyHandler restocks any item below
+ * min back to max every 50 ticks (runs at cadence 3). The metric therefore
+ * oscillates deterministically with consumption and restocking.
+ *
+ * SCIENTIFIC BOUNDARY: this is a SEMANTIC operational proxy from simulated
+ * state — NOT a clinically calibrated or logistics-validated measure.
+ * Note: the Kronos-side adapter still hardcodes supplyStress = 0.3; wiring
+ * this function into the sentinel output is Phase E work (Kronos repo).
+ */
+export function computeSupplyStress(state: HospitalState): number {
+  const items = Array.from(state.inventory.values());
+  if (items.length === 0) return 0;
+  let total = 0;
+  let counted = 0;
+  for (const item of items) {
+    const range = item.maxStock - item.minStock;
+    if (range <= 0) continue; // degenerate entries excluded from the mean
+    const depletion = Math.min(1, Math.max(0, (item.maxStock - item.stock) / range));
+    total += depletion;
+    counted++;
+  }
+  if (counted === 0) return 0;
+  return total / counted;
+}
