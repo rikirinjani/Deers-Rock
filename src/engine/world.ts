@@ -297,6 +297,16 @@ export function step(world: World): World {
         state = { ...state, _staffAvailabilityModifier: modifier };
         break;
       }
+      case "supply_chain_pressure": {
+        const pressure = (evt.data as { pressure?: number }).pressure ?? 0;
+        state = { ...state, _supplyChainPressure: Math.min(1, Math.max(0, pressure)) };
+        break;
+      }
+      case "active_disaster": {
+        const disasterType = (evt.data as { disasterType?: string }).disasterType;
+        state = { ...state, _activeMacroDisaster: disasterType };
+        break;
+      }
     }
   }
 

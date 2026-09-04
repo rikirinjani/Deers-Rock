@@ -123,6 +123,10 @@ export interface HospitalState {
   _admissionMultiplier: number;
   /** Phase E: macro→micro staff availability modifier from adapter (default 1.0). */
   _staffAvailabilityModifier: number;
+  /** Phase E: macro→micro supply chain pressure from adapter (0.0–1.0). */
+  _supplyChainPressure: number;
+  /** Phase E: macro→micro active disaster type from adapter (optional). */
+  _activeMacroDisaster: string | undefined;
   _rngSeed: number;
 }
 
@@ -281,6 +285,8 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _scenario: initScenarioState(),
     _admissionMultiplier: 1.0,
     _staffAvailabilityModifier: 1.0,
+    _supplyChainPressure: 0,
+    _activeMacroDisaster: undefined,
     _rngSeed: 0,
   };
 }

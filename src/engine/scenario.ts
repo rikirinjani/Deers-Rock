@@ -4,6 +4,15 @@ import { EventQueue } from "./event-queue.js";
 
 export type ScenarioType = "earthquake" | "forest_fire" | "sunken_ship" | "pandemic" | "industrial_accident" | "mass_casualty" | "tsunami";
 
+/** Phase E: map adapter macro-disaster strings to DR scenario types. */
+export function mapMacroDisasterToScenario(disasterType: string): ScenarioType | undefined {
+  switch (disasterType) {
+    case "natural-disaster": return "earthquake";  // physical infrastructure damage → closest match
+    case "mass-casualty": return "mass_casualty";   // trauma surge → direct match
+    default: return undefined;                       // unknown types: no activation (safe behavior)
+  }
+}
+
 export interface ScenarioDefinition {
   type: ScenarioType;
   name: string;
@@ -134,6 +143,7 @@ export function scenarioHandler(state: HospitalState, clock: Clock, _queue: Even
   let active = sc.active ? { ...sc.active } : null;
   const history = [...sc.history];
   let cooldown = sc.cooldownTicks;
+  const macroDisaster = state._activeMacroDisaster;
 
   if (active) {
     const phase = getPhase(active, clock.tick);
@@ -149,26 +159,52 @@ export function scenarioHandler(state: HospitalState, clock: Clock, _queue: Even
   }
 
   if (!active) {
-    cooldown++;
+    // Phase E: macro-disaster override — activate mapped DR scenario deterministically
+    if (macroDisaster) {
+      const mappedType = mapMacroDisasterToScenario(macroDisaster);
+      if (mappedType) {
+        const def = SCENARIO_DEFS.find(d => d.type === mappedType);
+        if (def) {
+          scenarioCounter++;
+          // Fixed severity for macro-disaster: deterministic, moderate (0.6)
+          const severity = 0.6;
+          const duration = def.minDuration + Math.floor((def.maxDuration - def.minDuration) * 0.5);
+          active = {
+            id: `SC-${scenarioCounter}`, type: def.type, name: def.name,
+            severity, startTick: clock.tick, durationTicks: duration,
+            phase: "ramping", currentSurge: 0, currentMortalityBoost: 0,
+          };
+          const p = getPhase(active, clock.tick);
+          active.phase = p;
+          active.currentSurge = surgeForPhase(def, p, severity);
+          active.currentMortalityBoost = mortalityForPhase(def, p);
+          cooldown = 0;
+        }
+      }
+      // Unknown macro disaster types: no activation, no spawning (safe behavior)
+    } else {
+      // No macro disaster — normal DR scenario spawning
+      cooldown++;
 
-    for (const def of SCENARIO_DEFS) {
-      if (clock.tick < def.minTick) continue;
-      const prob = def.baseProbability * (1 + cooldown / 500);
-      if (clock.rng() < prob) {
-        scenarioCounter++;
-        const severity = 0.3 + clock.rng() * 0.7;
-        const duration = def.minDuration + Math.floor(clock.rng() * (def.maxDuration - def.minDuration));
-        active = {
-          id: `SC-${scenarioCounter}`, type: def.type, name: def.name,
-          severity, startTick: clock.tick, durationTicks: duration,
-          phase: "ramping", currentSurge: 0, currentMortalityBoost: 0,
-        };
-        const p = getPhase(active, clock.tick);
-        active.phase = p;
-        active.currentSurge = surgeForPhase(def, p, severity);
-        active.currentMortalityBoost = mortalityForPhase(def, p);
-        cooldown = 0;
-        break;
+      for (const def of SCENARIO_DEFS) {
+        if (clock.tick < def.minTick) continue;
+        const prob = def.baseProbability * (1 + cooldown / 500);
+        if (clock.rng() < prob) {
+          scenarioCounter++;
+          const severity = 0.3 + clock.rng() * 0.7;
+          const duration = def.minDuration + Math.floor(clock.rng() * (def.maxDuration - def.minDuration));
+          active = {
+            id: `SC-${scenarioCounter}`, type: def.type, name: def.name,
+            severity, startTick: clock.tick, durationTicks: duration,
+            phase: "ramping", currentSurge: 0, currentMortalityBoost: 0,
+          };
+          const p = getPhase(active, clock.tick);
+          active.phase = p;
+          active.currentSurge = surgeForPhase(def, p, severity);
+          active.currentMortalityBoost = mortalityForPhase(def, p);
+          cooldown = 0;
+          break;
+        }
       }
     }
   }

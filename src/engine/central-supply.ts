@@ -58,14 +58,37 @@ export function centralSupplyInit(): Map<string, InventoryItem> {
   return items;
 }
 
+/**
+ * Phase E: adaptive restock threshold driven by macro supply-chain pressure.
+ *
+ * Semantic contract:
+ *   supplyChainPressure = 0.0 → restock at normal minStock (baseline behavior)
+ *   supplyChainPressure = 0.5 → restock at midpoint (more aggressive)
+ *   supplyChainPressure = 1.0 → restock at maxStock (always restock)
+ *
+ * Formula: effectiveMin = minStock + (maxStock − minStock) × supplyChainPressure
+ *
+ * Causal direction (defensible from adapter semantics):
+ *   EXTREME_WEATHER → supplyChainPressure = 0.4 → earlier restocking
+ *   WAR_START → supplyChainPressure = 0.5 → earlier restocking
+ *   WAR_CASUALTIES → supplyChainPressure += 0.1 → progressively earlier
+ *
+ * This is a supply-chain RESILIENCE response: when external pressure is high,
+ * the hospital restocks proactively to buffer against potential disruptions.
+ * The existing restock cadence (every 50 ticks) is preserved; only the
+ * trigger threshold changes.
+ */
 export function centralSupplyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newInventory = new Map(state.inventory);
   const newTransactions = new Map(state.stockTransactions);
 
-  // Auto-restock every 50 ticks for items below min
+  // Auto-restock every 50 ticks for items below effective minimum
   if (clock.tick > 0 && clock.tick % 50 === 0) {
+    const pressure = state._supplyChainPressure ?? 0;
     for (const [code, item] of newInventory) {
-      if (item.stock < item.minStock) {
+      // Adaptive threshold: higher pressure → higher effective minimum → earlier restocking
+      const effectiveMin = item.minStock + (item.maxStock - item.minStock) * pressure;
+      if (item.stock < effectiveMin) {
         const restockQty = item.maxStock - item.stock;
         newInventory.set(code, { ...item, stock: item.maxStock });
         const tx: StockTransaction = {

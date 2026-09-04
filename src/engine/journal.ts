@@ -372,6 +372,8 @@ function deserializeState(json: string): HospitalState {
     _scenario: d.scenario ?? initScenarioState(),
     _admissionMultiplier: d.admissionMultiplier ?? 1.0,
     _staffAvailabilityModifier: d.staffAvailabilityModifier ?? 1.0,
+    _supplyChainPressure: d.supplyChainPressure ?? 0,
+    _activeMacroDisaster: d.activeMacroDisaster ?? undefined,
     _rngSeed: d.rngSeed ?? 0,
   };
 }
