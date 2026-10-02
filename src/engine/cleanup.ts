@@ -2,6 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Charge, InsuranceClaim, Payment } from "../patient/schema.js";
+import { isBoundedStateEnabled } from "./config.js";
 
 const MAX_LAB = 500;
 const MAX_MED = 500;
@@ -36,7 +37,7 @@ function pruneOldest<K, V>(map: Map<K, V>, max: number, predicate: (v: V) => boo
 
 export function cleanupHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   if (clock.tick > 0 && clock.tick % 10 !== 0) return state;
-  return {
+  const pruned: HospitalState = {
     ...state,
     labOrders: pruneOldest(state.labOrders, MAX_LAB, o => o.status === "resulted", o => o.orderedAt),
     medicationOrders: pruneOldest(state.medicationOrders, MAX_MED, o => o.status === "administered" || o.status === "discontinued", o => o.orderedAt),
@@ -56,4 +57,72 @@ export function cleanupHandler(state: HospitalState, clock: Clock, _queue: Event
     payments: pruneOldest(state.payments, MAX_PAYMENTS, () => true, o => o.paidAt),
     encounters: pruneOldest(state.encounters, MAX_ENCOUNTERS, o => o.status !== "active" && o.endTime !== null, o => o.endTime ?? o.startTime),
   };
+  // ADR-004 D2 — bounded growth: TTL pruning for the two slow-growing
+  // clinical collections (flag-gated; no-op when OFF or off-cadence).
+  // Charges are pruned in finance.ts, NOT here; every other collection keeps
+  // exactly the MAX-cap behavior above (scope rule: encounters/charts/patients
+  // and the already-capped notes/orders are excluded).
+  return pruneAgedOrders(pruned, clock);
+}
+
+/**
+ * ADR-004 D2 — bounded growth: prune physicianOrders + socialWorkNotes older
+ * than TTL ticks (pure age rule — no status gate; socialWorkNotes have no
+ * status, and aged active orders are stale documentation, not live work).
+ *
+ * Age is derived deterministically from `clock` (orderedAt/timestamp are
+ * hospital-time ms; 1 tick = tickIntervalMs * speedMultiplier ms) — never
+ * wall-clock. No rng() is consumed, none reordered. Flags OFF (or an
+ * off-cadence tick) returns the input state UNTOUCHED (same reference).
+ *
+ * PERFORMANCE: these scans run at most every PRUNE_EVERY_TICKS ticks — never
+ * an O(n) scan per tick (cleanupHandler itself already runs every 10 ticks;
+ * the bounded pass inside it is further gated to every 100).
+ *
+ * Steady-state sizing: physicianOrders grow sub-linearly (~330 over 5k ticks
+ * in the seed-42 pilot) and socialWorkNotes ~80 over 5k ticks; TTL 5000 ticks
+ * bounds each collection near one TTL window of arrivals.
+ */
+const PRUNE_EVERY_TICKS = 100;
+const DEFAULT_ORDERS_TTL_TICKS = 5000;
+
+function ordersTtlTicks(): number {
+  const raw = Number(process.env.DR_PRUNE_TTL_ORDERS);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_ORDERS_TTL_TICKS;
+}
+
+/** Hospital-time ms → tick, same convention as respiratory.ts/dietary.ts. */
+function ticksFromMs(hospitalTimeMs: number, msPerTick: number): number {
+  return Math.floor(hospitalTimeMs / msPerTick);
+}
+
+function pruneAgedOrders(state: HospitalState, clock: Clock): HospitalState {
+  if (!isBoundedStateEnabled()) return state;
+  if (clock.tick <= 0 || clock.tick % PRUNE_EVERY_TICKS !== 0) return state;
+  if (state.physicianOrders.size === 0 && state.socialWorkNotes.size === 0) return state;
+
+  const ttl = ordersTtlTicks();
+  const msPerTick = clock.tickIntervalMs * clock.speedMultiplier;
+  if (!(msPerTick > 0)) return state;
+  const nowTick = ticksFromMs(clock.hospitalTimeMs, msPerTick);
+
+  let physicianOrders = state.physicianOrders;
+  let socialWorkNotes = state.socialWorkNotes;
+
+  const agedPhys = Array.from(physicianOrders.entries())
+    .filter(([, o]) => nowTick - ticksFromMs(o.orderedAt, msPerTick) > ttl);
+  if (agedPhys.length > 0) {
+    physicianOrders = new Map(physicianOrders);
+    for (const [id] of agedPhys) physicianOrders.delete(id);
+  }
+
+  const agedSocial = Array.from(socialWorkNotes.entries())
+    .filter(([, n]) => nowTick - ticksFromMs(n.timestamp, msPerTick) > ttl);
+  if (agedSocial.length > 0) {
+    socialWorkNotes = new Map(socialWorkNotes);
+    for (const [id] of agedSocial) socialWorkNotes.delete(id);
+  }
+
+  if (physicianOrders === state.physicianOrders && socialWorkNotes === state.socialWorkNotes) return state;
+  return { ...state, physicianOrders, socialWorkNotes };
 }

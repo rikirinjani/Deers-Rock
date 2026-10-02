@@ -1,9 +1,10 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
+import type { Charge, InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
 import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
+import { isBoundedStateEnabled } from "./config.js";
 
 const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
@@ -204,7 +205,92 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     }
   }
 
+  // ADR-004 D2 — bounded growth: charges pruning (flag-gated, in-handler).
+  newCharges = pruneAgedCharges(state, newCharges, newClaims, clock);
+
   return { ...state, charges: newCharges, insuranceClaims: newClaims };
+}
+
+/**
+ * ADR-004 D2 — bounded growth: prune settled, aged charges.
+ *
+ * A charge is pruned only when ALL hold:
+ *   1. its encounter is discharged (a MISSING encounter counts as discharged:
+ *      cleanup.ts only ever prunes non-active encounters, so a missing record
+ *      was necessarily non-active; retaining its charges would leak orphans);
+ *   2. every linked claim (same encounterId) is terminal (paid/denied);
+ *      an encounter with NO claim yet is always retained — claim creation
+ *      above sums live charges into actualCost/totalCharges, and claims carry
+ *      no charge IDs (reference audit: no reader dereferences charge.id or
+ *      looks charges up by ID; finance aggregates by encounterId, reports
+ *      sum amounts, producers are append-only);
+ *   3. charge age exceeds the TTL (strictly greater; age == TTL is retained).
+ *
+ * Age is derived deterministically from `clock` (billedAt is hospital-time ms;
+ * 1 tick = tickIntervalMs * speedMultiplier ms) — never wall-clock. No rng()
+ * is consumed, none reordered. Flags OFF (or an off-cadence tick) returns the
+ * input map UNTOUCHED (same reference), so OFF-mode behavior is byte-identical.
+ *
+ * PERFORMANCE: this pass scans the charges map, so it runs at most every
+ * PRUNE_EVERY_TICKS ticks — never an O(n) scan per tick.
+ *
+ * Steady-state sizing: charges grow ~28/tick (local pilot, seed 42), so
+ * TTL 2000 ticks bounds the map at ~56k entries.
+ */
+const PRUNE_EVERY_TICKS = 100;
+const DEFAULT_CHARGES_TTL_TICKS = 2000;
+
+function chargesTtlTicks(): number {
+  const raw = Number(process.env.DR_PRUNE_TTL_CHARGES);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_CHARGES_TTL_TICKS;
+}
+
+/** Hospital-time ms → tick, same convention as respiratory.ts/dietary.ts. */
+function ticksFromMs(hospitalTimeMs: number, msPerTick: number): number {
+  return Math.floor(hospitalTimeMs / msPerTick);
+}
+
+function pruneAgedCharges(
+  state: HospitalState,
+  charges: Map<string, Charge>,
+  claims: Map<string, InsuranceClaim>,
+  clock: Clock,
+): Map<string, Charge> {
+  if (!isBoundedStateEnabled()) return charges;
+  if (clock.tick <= 0 || clock.tick % PRUNE_EVERY_TICKS !== 0) return charges;
+  if (charges.size === 0) return charges;
+
+  const ttl = chargesTtlTicks();
+  const msPerTick = clock.tickIntervalMs * clock.speedMultiplier;
+  if (!(msPerTick > 0)) return charges;
+  const nowTick = ticksFromMs(clock.hospitalTimeMs, msPerTick);
+
+  // Index linked claims by encounterId (one claim per encounter in practice:
+  // `CLM-${enc.id}` — but handle multiples; ALL must be terminal).
+  const claimsByEncounter = new Map<string, InsuranceClaim[]>();
+  for (const claim of claims.values()) {
+    const list = claimsByEncounter.get(claim.encounterId);
+    if (list) list.push(claim);
+    else claimsByEncounter.set(claim.encounterId, [claim]);
+  }
+
+  let pruned: Map<string, Charge> | null = null;
+  for (const [id, charge] of charges) {
+    if (nowTick - ticksFromMs(charge.billedAt, msPerTick) <= ttl) continue;
+    const enc = state.encounters.get(charge.encounterId);
+    if (enc !== undefined && enc.status !== "discharged") continue;
+    const linked = claimsByEncounter.get(charge.encounterId);
+    if (linked === undefined || linked.length === 0) {
+      // No claim yet: charges are still needed for claim totals — retain,
+      // unless the encounter record itself is already gone (fully orphaned).
+      if (enc !== undefined) continue;
+    } else if (!linked.every(c => c.status === "paid" || c.status === "denied")) {
+      continue;
+    }
+    if (pruned === null) pruned = new Map(charges);
+    pruned.delete(id);
+  }
+  return pruned ?? charges;
 }
 
 function processCashier(state: HospitalState, clock: Clock, encounterType: string): HospitalState {
