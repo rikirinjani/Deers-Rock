@@ -99,11 +99,14 @@ describe("ADR-004 D2 orders pruning (cleanup.ts)", () => {
     expect(result.socialWorkNotes.has("SW-young")).toBe(true);
   });
 
-  it("ON mode: aged ACTIVE physicianOrders are pruned (pure age rule, no status gate)", () => {
+  it("ON mode: aged ACTIVE physicianOrders are retained (completed-only status gate)", () => {
+    // Verifier finding 5: the age-TTL pruner requires status === "completed",
+    // matching the pre-existing MAX_PHYSICIAN completed-only pattern. Active
+    // orders survive regardless of age (the MAX-cap still bounds count).
     process.env.DR_BOUNDED_STATE = "1";
     const state = setupState([makeOrder("DR-active-old", 9000, PRUNE_TICK, "active")], []);
     const result = cleanupHandler(state, tickClock(PRUNE_TICK), new EventQueue());
-    expect(result.physicianOrders.has("DR-active-old")).toBe(false);
+    expect(result.physicianOrders.has("DR-active-old")).toBe(true);
   });
 
   it("TTL boundary: age == TTL retained, age == TTL+1 pruned (per collection)", () => {

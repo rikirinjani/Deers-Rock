@@ -45,6 +45,7 @@ Incident triage surfaced a second, deeper defect: **scheduled future events do n
   - **Claims/payments:** terminal status plus age threshold; journaled summaries retained.
   - **Journal rows / snapshots:** unchanged (F2 — working).
 - TTL magnitudes are NOT set here (open question OQ1): they come from pilot growth-rate measurements, not guesses.
+- **Reporting semantics (ON mode, BY DESIGN):** live-report totals that sum over live charges (`report.ts` / `bi.ts` / `sirs-report` finance sections) undercount the frozen per-claim totals (`actualCost` / `totalCharges`, fixed at claim creation) by exactly the pruned-charges sum. The drift is bounded and explainable — never arbitrary. Per-claim `coveredAmount + patientResponsibility == totalCharges` is unaffected (pruning never rewrites claims).
 
 ### D3 — ADR-003 closure.
 - Completeness audit of every `_`-prefixed state field against the save/deserialize pair; add what's missing (queue per D1; round-trip test for learning/case memories).

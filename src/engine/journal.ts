@@ -372,7 +372,38 @@ export function loadNearestSnapshot(tick: number): SnapshotInfo {
   if (!loadSnapStmt) return { tick, state: null };
   const row = loadSnapStmt.get(tick) as { tick: number; state: string } | undefined;
   if (!row) return { tick, state: null };
-  return { tick: row.tick, state: deserializeState(row.state) };
+  const state = deserializeState(row.state);
+  // ADR-004 review follow-up: strip the transient durable-queue props here
+  // (right after deserialize) so NO reader except the resume path ever sees
+  // them (API/export/snapshot readers get a clean HospitalState). The payload
+  // is stashed in a WeakMap keyed by the state object for resumeWorld to
+  // consume; resumeWorld keeps its own stripping as belt-and-braces.
+  const rec = state as unknown as Record<string, unknown>;
+  const queued = rec.__durableQueue as SnapshotQueueEvent[] | undefined;
+  const version = rec.__snapshotV;
+  delete rec.__durableQueue;
+  delete rec.__snapshotV;
+  if (Array.isArray(queued)) stashedQueueByState.set(state, queued);
+  stashedVersionByState.set(state, version);
+  return { tick: row.tick, state };
+}
+
+// Transient durable-queue payload stashed by loadNearestSnapshot for the
+// resume path (see above). WeakMap: no lifetime impact, invisible to
+// enumeration/spread/JSON — only an explicit accessor can retrieve it.
+const stashedQueueByState = new WeakMap<object, SnapshotQueueEvent[]>();
+const stashedVersionByState = new WeakMap<object, unknown>();
+
+/**
+ * Retrieve the stashed durable-queue payload for a state object returned by
+ * loadNearestSnapshot. Returns null when the state did not come from
+ * loadNearestSnapshot. Never throws. Idempotent (entry is kept, so repeated
+ * resumes of the same snapshot behave identically).
+ */
+export function getStashedSnapshotQueue(state: HospitalState): { queue: SnapshotQueueEvent[]; version: unknown } | null {
+  const q = stashedQueueByState.get(state);
+  if (q === undefined) return null;
+  return { queue: q, version: stashedVersionByState.get(state) };
 }
 
 export function listSnapshots(): { tick: number; createdAt: string }[] {

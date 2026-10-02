@@ -61,7 +61,7 @@ for (let t = 1; t <= TICKS; t++) {
   if (t === CRASH_AT) {
     // Simulated crash: persist snapshot through the real save path, then
     // resume exactly as the server boot path does (snapshot + journal replay).
-    saveSnapshot(w.clock.tick, w.state);
+    saveSnapshot(w.clock.tick, w.state, w.queue);
     const snap = loadNearestSnapshot(w.clock.tick);
     if (snap === null || snap === undefined) throw new Error("no snapshot at crash point");
     w = resumeWorld(snap.state, snap.tick, journalPath);
@@ -81,7 +81,7 @@ for (let t = 1; t <= TICKS; t++) {
       charges: w.state.charges.size,
       encounters: w.state.encounters.size,
       statusDist: dist,
-      queueLen: w.queue !== undefined && typeof w.queue.size === "function" ? w.queue.size() : null,
+      queueLen: w.queue !== undefined && typeof w.queue.pending === "function" ? w.queue.pending() : null,
     });
   }
 }

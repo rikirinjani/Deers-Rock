@@ -66,9 +66,11 @@ export function cleanupHandler(state: HospitalState, clock: Clock, _queue: Event
 }
 
 /**
- * ADR-004 D2 — bounded growth: prune physicianOrders + socialWorkNotes older
- * than TTL ticks (pure age rule — no status gate; socialWorkNotes have no
- * status, and aged active orders are stale documentation, not live work).
+ * ADR-004 D2 — bounded growth: prune COMPLETED physicianOrders + any
+ * socialWorkNotes older than TTL ticks (socialWorkNotes have no status).
+ * The completed-only gate matches this file's own pre-existing MAX_PHYSICIAN
+ * completed-only pattern: active orders are retained regardless of age
+ * (affordable: ~0.08/tick growth; the MAX-cap still bounds count).
  *
  * Age is derived deterministically from `clock` (orderedAt/timestamp are
  * hospital-time ms; 1 tick = tickIntervalMs * speedMultiplier ms) — never
@@ -110,7 +112,7 @@ function pruneAgedOrders(state: HospitalState, clock: Clock): HospitalState {
   let socialWorkNotes = state.socialWorkNotes;
 
   const agedPhys = Array.from(physicianOrders.entries())
-    .filter(([, o]) => nowTick - ticksFromMs(o.orderedAt, msPerTick) > ttl);
+    .filter(([, o]) => o.status === "completed" && nowTick - ticksFromMs(o.orderedAt, msPerTick) > ttl);
   if (agedPhys.length > 0) {
     physicianOrders = new Map(physicianOrders);
     for (const [id] of agedPhys) physicianOrders.delete(id);

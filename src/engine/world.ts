@@ -34,7 +34,7 @@ import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { specialtyHandler } from "./specialty.js";
 import { edCashierHandler, inpatientCashierHandler, outpatientCashierHandler, billingHandler } from "./finance.js";
-import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge, journalBeginTransaction, journalCommitTransaction, type SnapshotQueueEvent } from "./journal.js";
+import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge, journalBeginTransaction, journalCommitTransaction, getStashedSnapshotQueue, type SnapshotQueueEvent } from "./journal.js";
 import { isDurableQueueEnabled } from "./config.js";
 import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
@@ -391,20 +391,41 @@ export function resumeWorld(state: HospitalState, startTick: number, journalPath
   // deserializeState (stripped here so HospitalState shape is unchanged).
   const queue = new EventQueue();
   const stored = (state as unknown as { __durableQueue?: SnapshotQueueEvent[] }).__durableQueue;
-  const snapshotV = (state as unknown as { __snapshotV?: unknown }).__snapshotV;
+  let snapshotV = (state as unknown as { __snapshotV?: unknown }).__snapshotV;
   delete (state as unknown as Record<string, unknown>).__durableQueue;
   delete (state as unknown as Record<string, unknown>).__snapshotV;
-  if (snapshotV !== 2 || !Array.isArray(stored)) {
+  // Load-path stripping (loadNearestSnapshot) stashes the payload for the
+  // resume path — fall back to it when the props are already stripped.
+  let storedQueue = stored;
+  if (storedQueue === undefined) {
+    const stashed = getStashedSnapshotQueue(state);
+    if (stashed !== null) {
+      storedQueue = stashed.queue;
+      if (snapshotV === undefined) snapshotV = stashed.version;
+    }
+  }
+  if (!isDurableQueueEnabled()) {
+    // Flag OFF: today's behavior exactly (empty queue) — and exactly as quiet
+    // as before: no legacy-snapshot warning on OFF resumes.
+  } else if (snapshotV !== 2 || !Array.isArray(storedQueue)) {
     // Old-snapshot compat: today's behavior (empty queue), made explicit
     // with exactly ONE stderr warning line — never throw.
     console.warn("[deers-rock] snapshot has no durable queue (missing v/queue); resuming with empty queue");
-  } else if (isDurableQueueEnabled()) {
+  } else {
     // Insertion order preserved exactly; no re-sorting, no dedup.
     // No rng() consumed here; scheduling is tick-absolute, no Date.now.
-    for (const e of stored) {
+    // A malformed entry can never abort a resume: count drops and emit ONE
+    // summary warning (never per-event spam, never throw).
+    let dropped = 0;
+    for (const e of storedQueue) {
       try {
         queue.schedule(e.type, e.scheduledTick, e.data ?? {});
-      } catch { /* never throw on resume */ }
+      } catch {
+        dropped++;
+      }
+    }
+    if (dropped > 0) {
+      console.warn(`[deers-rock] dropped ${dropped} durable queue event(s) on resume; resuming with the remainder`);
     }
   }
   // Flag OFF + v2 snapshot: intentionally empty (byte-identical behavior).
