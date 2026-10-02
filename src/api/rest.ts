@@ -27,7 +27,7 @@ import { createFhirEndpoints } from "./fhir.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
 
-export interface RestServer { listen(port: number): void; close(): void; }
+export interface RestServer { listen(port: number, host?: string): void; close(): void; }
 
 const MIME: Record<string, string> = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
 
@@ -401,5 +401,17 @@ export function createRestServer(world: () => World): RestServer {
       res.end(JSON.stringify({ error: String(e) }));
     }
   });
-  return { listen(port: number) { server.listen(port); }, close() { server.close(); } };
+  return {
+    listen(port: number, host?: string) {
+      // BIND_HOST (co-host deployments): bind an explicit address, e.g.
+      // 127.0.0.1, so the server never listens on a public interface.
+      // Unset = today's behavior (all interfaces) — local dev, tests and
+      // the Docker image are unchanged. No cli change needed: the
+      // deployment sets BIND_HOST in the service environment.
+      const h = host ?? process.env.BIND_HOST;
+      if (h) server.listen(port, h);
+      else server.listen(port);
+    },
+    close() { server.close(); },
+  };
 }
