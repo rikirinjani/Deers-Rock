@@ -45,6 +45,13 @@ describe("Finance", () => {
 
   it("creates insurance claims on discharge when charges exist", () => {
     const patients = generatePatientPool(1);
+    // Pin the primary diagnosis to a code with a guaranteed INA-CBG mapping:
+    // the claim's tariff lookup uses the PATIENT's active diagnosis
+    // (finance.ts), while generatePatientPool draws diagnosis codes at
+    // random. An unmapped code created the claim as denied
+    // ("mismatched_icd_cbg") at submission, so the submitted/sepNumber
+    // assertions below failed probabilistically (observed as CI flake).
+    patients[0]!.diagnoses = [{ code: "A09", name: "Infectious gastroenteritis", active: true }];
     const pid = patients[0]!.id;
     const encId = `ENC-${pid}`;
     let state = createState(patients);
@@ -82,6 +89,11 @@ describe("Finance", () => {
 
   it("processes submitted claims every 15 ticks", () => {
     const patients = generatePatientPool(1);
+    // Same INA-CBG pin as above: an unmapped patient diagnosis denied the
+    // claim at creation, which made this test pass vacuously (no submitted
+    // claim was ever adjudicated). Pinning guarantees the adjudication path
+    // is actually exercised.
+    patients[0]!.diagnoses = [{ code: "A09", name: "Infectious gastroenteritis", active: true }];
     const pid = patients[0]!.id;
     const encId = `ENC-${pid}`;
     let state = createState(patients);
@@ -107,8 +119,32 @@ describe("Finance", () => {
     clock15.tick = 15;
     state = billingHandler(state, clock15, new EventQueue());
 
-    const claim = Array.from(state.insuranceClaims.values())[0]!;
-    expect(["paid", "returned", "denied"]).toContain(claim.status);
+    // Adjudication outcome is rolled (finance.ts: 85% paid, 10% returned for
+    // coding issues, 5% denied). A "returned" roll is immediately
+    // auto-resubmitted in the same pass when the chart is coded
+    // (returned-processing loop), leaving status "submitted" with
+    // resolvedAt null — indistinguishable from an unadjudicated claim and
+    // unreachable as a final state. Asserting only the first pass's outcome
+    // therefore failed ~10% of runs (observed red on CI run 36945203014).
+    // The contract under test is that tick-%-15 passes adjudicate submitted
+    // claims until they reach a terminal state, so keep driving 15-tick
+    // passes; each re-rolls with p(terminal) = 0.9, and
+    // P(still unresolved after 20 passes) <= 0.1^20 ~ 1e-20.
+    let claim = Array.from(state.insuranceClaims.values())[0]!;
+    // One clock, advanced tick-by-tick: the rng STATE persists across passes,
+    // so every adjudication re-rolls independently. (A fresh createClock per
+    // pass would re-seed from Date.now() — the whole loop finishes within one
+    // millisecond, so every pass would draw the identical roll and P(fail)
+    // would remain ~10%, the very flake this guards against. Verified
+    // empirically: 2/30 runs failed before hoisting the clock.)
+    const adjudicationClock = createClock(60);
+    for (let tick = 30; claim.status !== "paid" && claim.status !== "denied" && tick <= 300; tick += 15) {
+      adjudicationClock.tick = tick;
+      state = billingHandler(state, adjudicationClock, new EventQueue());
+      claim = Array.from(state.insuranceClaims.values())[0]!;
+    }
+
+    expect(["paid", "denied"]).toContain(claim.status);
     expect(claim.resolvedAt).not.toBeNull();
   });
 

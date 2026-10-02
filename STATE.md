@@ -36,6 +36,7 @@ Option B/C/D; `cleanup.ts` dead prune predicate; denylisted paths (`src/api/rest
 - Full gate run by orchestrator: **19 files / 152 tests / exit 0** (multiple runs, incl. post-delivery).
 - Pushed as `5884ba3..3e4ac0a` on `main`: test-infra hardening (P0-1/P0-2), medical-records flake fix + CI gate (P0-2/P0-3), FHIR mount + JSON errors + opt-in auth/CORS (P0-4/P1-5), `appendCharge` perf fix (P1-6, commit `06a0ee2`), Docker packaging (P1-7), this governance record.
 - **CI Gate green on `3e4ac0a`** — first gated run exposed Phase-C-era exact-match fact counts (red since Phase E); fixed in `3e4ac0a` with floor semantics (`min`) in `scripts/verify-facts.ts` + `facts.yaml`.
+- Post-delivery gate hardening: a **second CI flake** (finance claim tests, ~10%) root-caused and fixed deterministically — bounded adjudication passes with a deliberately hoisted clock (a fresh `createClock` per pass re-seeds from `Date.now()` within one millisecond and draws the identical roll; empirically 2/30 failures before hoisting, 0/50 after), plus an INA-CBG diagnosis pin (unmapped patient dx created claims as denied at submission).
 - Resolution summaries posted on GH issue #1 (P0+P1 complete; honest gaps listed there).
 
 ### Open items
