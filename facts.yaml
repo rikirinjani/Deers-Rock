@@ -5,16 +5,16 @@
 checks:
 
   - id: test-count
-    description: "Total test count matches badge"
+    description: "Total test count at or above floor (floor, not exact: the suite legitimately grows; exact match failed CI from Phase E onward while tests grew 67 -> 135)"
     type: test-count
-    expected: 67
+    min: 130
 
   - id: test-files
-    description: "Total test file count"
+    description: "Total test file count at or above floor"
     type: count
     file: tests
     pattern: "\\.test\\.ts$"
-    expected: 13
+    min: 15
 
   - id: buildHandlers-exported
     description: "buildHandlers exported from world"

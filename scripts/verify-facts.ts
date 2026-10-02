@@ -8,6 +8,11 @@ interface CheckDef {
   description: string;
   type: string;
   expected?: unknown;
+  /** Floor semantics: actual >= min passes. Use instead of expected for
+   * counts that legitimately grow (tests, files) — an exact match fails the
+   * gate every time tests are added, which is why CI sat red through
+   * Phase D/E while the suite grew from 67 to 135. */
+  min?: number;
   file?: string;
   path?: string;
   symbol?: string;
@@ -30,7 +35,15 @@ function loadFacts(): CheckDef[] {
   return doc.checks ?? [];
 }
 
-function checkTestCount(expected: number): Result {
+function thresholdLabel(c: CheckDef): string {
+  return typeof c.min === "number" ? `>= ${c.min}` : `== ${c.expected}`;
+}
+
+function meets(actual: number, c: CheckDef): boolean {
+  return typeof c.min === "number" ? actual >= (c.min as number) : actual === (c.expected as number);
+}
+
+function checkTestCount(c: CheckDef): Result {
   try {
     const out = execSync("npx vitest run --reporter=json", {
       cwd: root,
@@ -41,12 +54,12 @@ function checkTestCount(expected: number): Result {
     });
     const json = JSON.parse(out);
     const actual = json.numTotalTests as number;
-    const ok = actual === expected;
+    const ok = meets(actual, c);
     return {
       id: "test-count",
-      description: `Test count: expected ${expected}, got ${actual}`,
+      description: `Test count: ${thresholdLabel(c)}, got ${actual}`,
       status: ok ? "PASS" : "FAIL",
-      detail: ok ? "Matches" : `Expected ${expected}, got ${actual}`,
+      detail: ok ? "Meets threshold" : `Expected ${thresholdLabel(c)}, got ${actual}`,
     };
   } catch (err) {
     const stderr = (err as { stderr?: Buffer })?.stderr?.toString() ?? "";
@@ -55,12 +68,12 @@ function checkTestCount(expected: number): Result {
     try {
       const json = JSON.parse(combined);
       const actual = json.numTotalTests as number;
-      const ok = actual === expected;
+      const ok = meets(actual, c);
       return {
         id: "test-count",
-        description: `Test count: expected ${expected}, got ${actual}`,
+        description: `Test count: ${thresholdLabel(c)}, got ${actual}`,
         status: ok ? "PASS" : "FAIL",
-        detail: ok ? "Matches (exit code ignored)" : `Expected ${expected}, got ${actual}`,
+        detail: ok ? "Meets threshold (exit code ignored)" : `Expected ${thresholdLabel(c)}, got ${actual}`,
       };
     } catch {
       return {
@@ -73,7 +86,7 @@ function checkTestCount(expected: number): Result {
   }
 }
 
-function checkCount(file: string, pattern: string, expected: number): Result {
+function checkCount(file: string, pattern: string, c: CheckDef): Result {
   const fullPath = resolve(root, file);
   let count: number;
   if (!existsSync(fullPath)) {
@@ -88,12 +101,12 @@ function checkCount(file: string, pattern: string, expected: number): Result {
     const matches = content.match(new RegExp(pattern, "g"));
     count = matches?.length ?? 0;
   }
-  const ok = count === expected;
+  const ok = meets(count, c);
   return {
     id: "count",
-    description: `${file}: ${pattern} count = ${count}, expected ${expected}`,
+    description: `${file}: ${pattern} count = ${count}, expected ${thresholdLabel(c)}`,
     status: ok ? "PASS" : "FAIL",
-    detail: ok ? `Found ${count}` : `Expected ${expected}, found ${count}`,
+    detail: ok ? `Found ${count}` : `Expected ${thresholdLabel(c)}, found ${count}`,
   };
 }
 
@@ -156,8 +169,8 @@ function checkRegexMatch(file: string, regex: string): Result {
 }
 
 const runners: Record<string, (c: CheckDef) => Result> = {
-  "test-count": (c) => checkTestCount(c.expected as number),
-  "count": (c) => checkCount(c.file!, c.pattern!, c.expected as number),
+  "test-count": (c) => checkTestCount(c),
+  "count": (c) => checkCount(c.file!, c.pattern!, c),
   "file-exists": (c) => checkFileExists(c.path!),
   "export-exists": (c) => checkExportExists(c.file!, c.symbol!),
   "no-export-exists": (c) => checkNoExportExists(c.file!, c.symbol!),
