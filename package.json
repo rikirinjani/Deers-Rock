@@ -12,6 +12,7 @@
     "start": "node dist/cli/index.js up",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run --pool=threads --poolOptions.threads.singleThread --sequence.shuffle=false",
     "lint": "tsc --noEmit",
     "verify:facts": "tsx scripts/verify-facts.ts"
   },
@@ -20,6 +21,9 @@
     "url": "git+https://github.com/rikirinjani/Deers-Rock.git"
   },
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/js-yaml": "^4.0.9",

@@ -28,6 +28,18 @@ function syntheticState(inventoryOverrides: Record<string, number> = {}): Hospit
   return { inventory } as unknown as HospitalState;
 }
 
+// Bounded live-run helpers (5 patients, seed 42, 200 DR ticks — the exact
+// construction every "live" test below already used).
+//
+// Load hardening (P0-2): `sharedRun()` memoizes ONE such run per file for the
+// tests that only need "a completed 200-tick run" and do not compare
+// independent runs. The run is seeded, so the memoized state is identical to
+// what each test previously constructed fresh. Determinism/interleaving tests
+// keep calling `runFresh()` — their meaning depends on independent worlds.
+const runFresh = (): HospitalState => runWorld(createWorld(5, undefined, 42), 200).state;
+let liveRun: HospitalState | undefined;
+const sharedRun = (): HospitalState => (liveRun ??= runFresh());
+
 // ==========================================================================
 // D1 — primaryDiagnosis
 // ==========================================================================
@@ -66,13 +78,13 @@ describe("D1 primaryDiagnosis — deterministic selection from patient state", (
 });
 
 describe("D1 primaryDiagnosis — live encounters (bounded 200-tick run)", () => {
-  const run = () => runWorld(createWorld(5, undefined, 42), 200).state;
+  const run = runFresh;
 
-  const diagnosisArray = (s: ReturnType<typeof run>) =>
+  const diagnosisArray = (s: HospitalState) =>
     Array.from(s.encounters.values()).map(e => e.primaryDiagnosis ?? "(none)").sort();
 
   it("every encounter carries a valid ICD-shaped, non-UNKNOWN primaryDiagnosis", () => {
-    const s = run();
+    const s = sharedRun();
     expect(s.encounters.size).toBeGreaterThan(0);
     for (const e of s.encounters.values()) {
       expect(e.primaryDiagnosis).toBeDefined();
@@ -82,7 +94,7 @@ describe("D1 primaryDiagnosis — live encounters (bounded 200-tick run)", () =>
   });
 
   it("distribution is not collapsed: multiple distinct codes appear", () => {
-    const s = run();
+    const s = sharedRun();
     const distinct = new Set(diagnosisArray(s));
     expect(distinct.size).toBeGreaterThanOrEqual(3);
   });
@@ -145,12 +157,12 @@ describe("D2 supplyStress — pure causal function of inventory state", () => {
 });
 
 describe("D2 supplyStress — live dynamics (bounded 200-tick run)", () => {
-  const run = () => runWorld(createWorld(5, undefined, 42), 200).state;
+  const run = runFresh;
 
   it("initial state yields exactly 0.5; after 200 ticks consumption has moved real stock", () => {
     const w = createWorld(5, undefined, 42);
     expect(computeSupplyStress(w.state)).toBe(0.5); // initial inventory is the midpoint state
-    const s = run();
+    const s = sharedRun();
     const moved = Array.from(s.inventory.values()).filter(i => i.stock !== (i.minStock + i.maxStock) / 2);
     expect(moved.length).toBeGreaterThan(0); // dispensing/restock genuinely acted on stock
   });
@@ -165,7 +177,7 @@ describe("D2 supplyStress — live dynamics (bounded 200-tick run)", () => {
   });
 
   it("is consistent with its own definition: recomputing from the run's inventory matches", () => {
-    const s = run();
+    const s = sharedRun();
     const items = Array.from(s.inventory.values()).filter(i => i.maxStock > i.minStock);
     const manual = items.reduce((acc, i) => acc + Math.min(1, Math.max(0, (i.maxStock - i.stock) / (i.maxStock - i.minStock))), 0) / items.length;
     expect(computeSupplyStress(s)).toBe(manual);
