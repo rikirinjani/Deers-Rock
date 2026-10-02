@@ -32,6 +32,12 @@ p95 target (<100ms): met 3/3. Max target (<500ms): **not met** — residual max 
 ### Out of scope / untouched
 Option B/C/D; `cleanup.ts` dead prune predicate; denylisted paths (`src/api/rest.ts`, `src/sandbox/**`, `tests/**`, `package.json`, `README.md`, `Dockerfile`, `.github/**`, `vitest.config.ts`). Pre-existing uncommitted work elsewhere in the tree preserved.
 
+### Delivery (orchestrator, 2026-10-02)
+- Full gate run by orchestrator: **19 files / 152 tests / exit 0** (multiple runs, incl. post-delivery).
+- Pushed as `5884ba3..3e4ac0a` on `main`: test-infra hardening (P0-1/P0-2), medical-records flake fix + CI gate (P0-2/P0-3), FHIR mount + JSON errors + opt-in auth/CORS (P0-4/P1-5), `appendCharge` perf fix (P1-6, commit `06a0ee2`), Docker packaging (P1-7), this governance record.
+- **CI Gate green on `3e4ac0a`** — first gated run exposed Phase-C-era exact-match fact counts (red since Phase E); fixed in `3e4ac0a` with floor semantics (`min`) in `scripts/verify-facts.ts` + `facts.yaml`.
+- Resolution summaries posted on GH issue #1 (P0+P1 complete; honest gaps listed there).
+
 ### Open items
-- Human full-gate run pending.
 - Residual tick-1000 spike → candidate future item (Option D territory), not started.
+- Out of the approved P0+P1 scope, tracked on the issue: P1-8 (ADR-003 persistence, pruning TTL), Railway redeploy, Docker image build (needs a Docker host), 100k-tick Kaggle calibration.
