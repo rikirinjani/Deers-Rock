@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
 import { formatHospitalTime } from "../engine/clock.js";
@@ -21,6 +22,7 @@ import { initDialysisState } from "../engine/dialysis.js";
 import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots, listExports } from "../engine/journal.js";
 import { SCENARIO_DEFS } from "../engine/scenario.js";
 import { buildBiData } from "./bi.js";
+import { createFhirEndpoints } from "./fhir.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -29,10 +31,24 @@ export interface RestServer { listen(port: number): void; close(): void; }
 
 const MIME: Record<string, string> = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
 
+// Per-response CORS state. Key present => DR_CORS_ALLOW_ORIGINS restricted mode handled this
+// response; value = origin to echo ("" when there was no/mismatched Origin header).
+const corsApplied = new WeakMap<http.ServerResponse, string>();
+
 function json(res: http.ServerResponse, data: unknown) {
   res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  if (corsApplied.has(res)) { const echoed = corsApplied.get(res); if (echoed) res.setHeader("Access-Control-Allow-Origin", echoed); }
+  else res.setHeader("Access-Control-Allow-Origin", "*");
   res.end(JSON.stringify(data));
+}
+
+// Constant-time credential check: hash both sides to fixed length, then timingSafeEqual.
+// Never logs either value.
+function keyMatches(provided: string | undefined, expected: string): boolean {
+  if (provided === undefined) return false;
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
 }
 
 function toArr<K, V>(map: Map<K, V>): V[] { return Array.from(map.values()).reverse(); }
@@ -152,10 +168,31 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     json(res, { visits, total: visits.length, waiting: visits.filter(v => v.status === "waiting").length, consulting: visits.filter(v => v.status === "in-consultation").length, completed: visits.filter(v => v.status === "completed").length });
     return true;
   }
+  if (p === "/api/fhir/Patient") {
+    const fhir = createFhirEndpoints(() => w);
+    const name = url.searchParams.get("name") ?? undefined;
+    const resources = fhir.patientSearch(name);
+    json(res, { resourceType: "Bundle", type: "searchset", total: resources.length, entry: resources.map(r => ({ resource: r })) });
+    return true;
+  }
+  if ((p.startsWith("/api/fhir/Patient/") || p.startsWith("/api/fhir/patient/")) && p.split("/").length === 5) {
+    const id = decodeURIComponent(p.split("/")[4] ?? "");
+    const r = createFhirEndpoints(() => w).patientLookup(id);
+    if (!r) { res.statusCode = 404; json(res, { error: `Patient/${id} not found` }); return true; }
+    json(res, r); return true;
+  }
+  if (p === "/api/fhir/Observation") {
+    const fhir = createFhirEndpoints(() => w);
+    const patient = url.searchParams.get("patient");
+    const patientIds = patient ? [patient] : Array.from(w.state.patients.keys());
+    const resources = patientIds.flatMap(id => fhir.observationList(id));
+    json(res, { resourceType: "Bundle", type: "searchset", total: resources.length, entry: resources.map(r => ({ resource: r })) });
+    return true;
+  }
   if (p.startsWith("/api/fhir/encounter/")) {
     const encId = p.replace("/api/fhir/encounter/", "");
     const bundle = buildFhirBundle(w.state, encId);
-    if (!bundle) { res.writeHead(404); res.end("Not found"); return true; }
+    if (!bundle) { res.statusCode = 404; json(res, { error: "Not found" }); return true; }
     json(res, bundle); return true;
   }
   if (p === "/api/mm-conference") {
@@ -306,16 +343,58 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
 }
 
 export function createRestServer(world: () => World): RestServer {
+  const apiKey = process.env.DR_API_KEY || "";
+  const allowedOrigins = (process.env.DR_CORS_ALLOW_ORIGINS ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  const corsRestricted = allowedOrigins.length > 0;
+  if (!apiKey) process.stderr.write("[dr-api] WARNING: DR_API_KEY is not set - API is unauthenticated\n");
   const server = http.createServer((req, res) => {
     try {
-      const w = world();
       const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+      // CORS gate — runs before auth and routing so FHIR, static and error routes are all covered.
+      if (corsRestricted) {
+        res.setHeader("Vary", "Origin");
+        corsApplied.set(res, "");
+        const origin = req.headers.origin;
+        if (origin) {
+          if (allowedOrigins.includes(origin)) { res.setHeader("Access-Control-Allow-Origin", origin); corsApplied.set(res, origin); }
+          else { res.statusCode = 403; json(res, { error: "Origin not allowed" }); return; }
+        }
+      }
+      // CORS preflight — never requires auth.
+      if (req.method === "OPTIONS") {
+        res.statusCode = 204;
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Authorization, X-API-Key, Content-Type");
+        if (!corsRestricted) res.setHeader("Access-Control-Allow-Origin", "*");
+        res.end(); return;
+      }
+      // Opt-in auth (DR_API_KEY) — checked before any body parsing or route work.
+      if (apiKey) {
+        const exempt = req.method === "GET" && (url.pathname === "/" || url.pathname === "/api/status");
+        if (!exempt) {
+          const authHeader = req.headers.authorization;
+          const bearer = typeof authHeader === "string" && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+          const xh = req.headers["x-api-key"];
+          const xApiKey = Array.isArray(xh) ? xh[0] : xh;
+          const okBearer = keyMatches(bearer, apiKey);
+          const okXApiKey = keyMatches(xApiKey, apiKey);
+          if (!(okBearer || okXApiKey)) {
+            res.statusCode = 401;
+            res.setHeader("WWW-Authenticate", "Bearer");
+            json(res, { error: "Unauthorized" }); return;
+          }
+        }
+      }
+      const w = world();
       if (apiRoutes(req, res, w, url)) return;
+      if (url.pathname.startsWith("/api/")) {
+        res.statusCode = 404; json(res, { error: `no route for ${req.method ?? "GET"} ${url.pathname}` }); return;
+      }
       let fp = path.join(publicDir, url.pathname === "/" ? "index.html" : url.pathname);
-      if (!fp.startsWith(publicDir)) { res.statusCode = 403; res.end("Forbidden"); return; }
+      if (!fp.startsWith(publicDir)) { res.statusCode = 403; json(res, { error: "Forbidden" }); return; }
       const ext = path.extname(fp);
       res.setHeader("Content-Type", MIME[ext] ?? "application/octet-stream");
-      fs.readFile(fp, (err, data) => { if (err) { res.statusCode = 404; res.end("Not found"); } else res.end(data); });
+      fs.readFile(fp, (err, data) => { if (err) { res.statusCode = 404; json(res, { error: "Not found" }); } else res.end(data); });
     } catch (e) {
       res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
