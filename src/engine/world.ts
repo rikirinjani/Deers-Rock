@@ -34,7 +34,8 @@ import { centralSupplyHandler } from "./central-supply.js";
 import { medicalRecordsHandler } from "./medical-records.js";
 import { specialtyHandler } from "./specialty.js";
 import { edCashierHandler, inpatientCashierHandler, outpatientCashierHandler, billingHandler } from "./finance.js";
-import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge, journalBeginTransaction, journalCommitTransaction } from "./journal.js";
+import { initJournal, journalAppend, saveSnapshot, journalPurge, journalExportAndPurge, journalBeginTransaction, journalCommitTransaction, type SnapshotQueueEvent } from "./journal.js";
+import { isDurableQueueEnabled } from "./config.js";
 import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
@@ -326,7 +327,10 @@ export function step(world: World): World {
     journalBeginTransaction();
     logStateDiff(snap, state, newClock.tick, newClock.hospitalTimeMs);
     if (newClock.tick > 0 && newClock.tick % 100 === 0) {
-      saveSnapshot(newClock.tick, state);
+      // ADR-004 D1 flag plumbing: thread the live queue through so the
+      // snapshot can persist pending events. saveSnapshot itself gates on
+      // DR_DURABLE_QUEUE, so OFF-mode bytes are unchanged.
+      saveSnapshot(newClock.tick, state, world.queue);
     }
     journalCommitTransaction();
     if (newClock.tick > 0 && newClock.tick % 500 === 0) {
@@ -382,10 +386,32 @@ export function resumeWorld(state: HospitalState, startTick: number, journalPath
   clock.tick = startTick;
   clock.hospitalTimeMs = startTick * 1000 * 60;
   clock.running = false;
+  // ADR-004 D1: rebuild the EventQueue in stored order on the resume path.
+  // The ordered pending-event list travels on transient props attached by
+  // deserializeState (stripped here so HospitalState shape is unchanged).
+  const queue = new EventQueue();
+  const stored = (state as unknown as { __durableQueue?: SnapshotQueueEvent[] }).__durableQueue;
+  const snapshotV = (state as unknown as { __snapshotV?: unknown }).__snapshotV;
+  delete (state as unknown as Record<string, unknown>).__durableQueue;
+  delete (state as unknown as Record<string, unknown>).__snapshotV;
+  if (snapshotV !== 2 || !Array.isArray(stored)) {
+    // Old-snapshot compat: today's behavior (empty queue), made explicit
+    // with exactly ONE stderr warning line — never throw.
+    console.warn("[deers-rock] snapshot has no durable queue (missing v/queue); resuming with empty queue");
+  } else if (isDurableQueueEnabled()) {
+    // Insertion order preserved exactly; no re-sorting, no dedup.
+    // No rng() consumed here; scheduling is tick-absolute, no Date.now.
+    for (const e of stored) {
+      try {
+        queue.schedule(e.type, e.scheduledTick, e.data ?? {});
+      } catch { /* never throw on resume */ }
+    }
+  }
+  // Flag OFF + v2 snapshot: intentionally empty (byte-identical behavior).
   return {
     clock,
     state,
-    queue: new EventQueue(),
+    queue,
     journalPath,
     handlers: buildHandlers(),
   };

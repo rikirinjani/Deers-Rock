@@ -2,6 +2,8 @@ import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
 import type { HospitalState, LearningMemory } from "./state-store.js";
+import type { EventQueue } from "./event-queue.js";
+import { isDurableQueueEnabled } from "./config.js";
 import { initBloodBank } from "./blood-bank.js";
 import { initMicroState } from "./microbiology.js";
 import { initPathoState } from "./pathology.js";
@@ -252,9 +254,10 @@ function deserializeLearning(d: { byDiagnosis?: [string, unknown][] } | null): L
   };
 }
 
-export function saveSnapshot(tick: number, state: HospitalState): void {
+export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQueue | SnapshotQueueEvent[]): void {
   if (!saveSnapStmt) return;
-  const data = {
+  const durable = isDurableQueueEnabled();
+  const data: Record<string, unknown> = {
     p: mapToArr(state.patients), b: mapToArr(state.beds), e: mapToArr(state.encounters),
     wc: state.wardCapacity, wr: state.waitingRoom,
     lo: mapToArr(state.labOrders), mo: mapToArr(state.medicationOrders),
@@ -299,7 +302,65 @@ export function saveSnapshot(tick: number, state: HospitalState): void {
       incomingQueue: state._referralState.incomingQueue,
     },
   };
+  if (durable) {
+    // ADR-004 D1: snapshot format version + ordered pending-event list.
+    // Insertion order preserved exactly; no re-sorting, no dedup.
+    data.v = 2;
+    data.queue = extractQueueEvents(queue);
+    // ADR-004 D3: plain-data Phase-E macro-coupling fields. Deserialize
+    // already reads these keys with defaults; they were simply never
+    // written. Scalars only — trivially safe, no semantics change.
+    data.admissionMultiplier = state._admissionMultiplier ?? 1.0;
+    data.staffAvailabilityModifier = state._staffAvailabilityModifier ?? 1.0;
+    data.supplyChainPressure = state._supplyChainPressure ?? 0;
+    if (state._activeMacroDisaster !== undefined) {
+      data.activeMacroDisaster = state._activeMacroDisaster;
+    }
+  }
   saveSnapStmt.run(tick, JSON.stringify(data));
+}
+
+/** Ordered pending-event entry persisted in v2 snapshots (no ids). */
+export interface SnapshotQueueEvent {
+  type: string;
+  scheduledTick: number;
+  data: Record<string, unknown>;
+}
+
+/**
+ * Read pending events in stored (insertion) order without consuming them.
+ * Works on the live EventQueue (via its runtime `events` array) or on a
+ * pre-extracted array (tests). Never re-sorts, never dedups, never throws.
+ */
+function extractQueueEvents(queue?: EventQueue | SnapshotQueueEvent[]): SnapshotQueueEvent[] {
+  if (!queue) return [];
+  const raw: unknown = Array.isArray(queue)
+    ? queue
+    : (queue as unknown as { events?: unknown }).events;
+  if (!Array.isArray(raw)) return [];
+  const out: SnapshotQueueEvent[] = [];
+  for (const e of raw as unknown[]) {
+    const evt = e as { type?: unknown; scheduledTick?: unknown; data?: unknown };
+    if (typeof evt?.type !== "string") continue;
+    if (typeof evt?.scheduledTick !== "number" || !Number.isFinite(evt.scheduledTick)) continue;
+    const data = (evt.data !== null && typeof evt.data === "object" && !Array.isArray(evt.data))
+      ? evt.data as Record<string, unknown>
+      : {};
+    out.push({ type: evt.type, scheduledTick: evt.scheduledTick, data });
+  }
+  return out;
+}
+
+/**
+ * Validate a deserialized queue payload. Returns the ordered event list
+ * (possibly empty). Never throws on missing/malformed input — old snapshots
+ * without `v`/`queue` yield an empty list.
+ */
+function extractStoredQueue(d: unknown): SnapshotQueueEvent[] {
+  if (!d || typeof d !== "object") return [];
+  const raw = (d as { queue?: unknown }).queue;
+  if (!Array.isArray(raw)) return [];
+  return extractQueueEvents(raw as SnapshotQueueEvent[]);
 }
 
 export interface SnapshotInfo {
@@ -325,7 +386,7 @@ export const SNAPSHOT_INTERVAL = 100;
 function deserializeState(json: string): HospitalState {
   const d = JSON.parse(json);
 
-  return {
+  const state = {
     patients: arrToMap(d.p), beds: arrToMap(d.b), encounters: arrToMap(d.e),
     wardCapacity: d.wc, waitingRoom: d.wr,
     labOrders: arrToMap(d.lo), medicationOrders: arrToMap(d.mo),
@@ -375,7 +436,15 @@ function deserializeState(json: string): HospitalState {
     _supplyChainPressure: d.supplyChainPressure ?? 0,
     _activeMacroDisaster: d.activeMacroDisaster ?? undefined,
     _rngSeed: d.rngSeed ?? 0,
-  };
+  } as HospitalState & { __durableQueue: SnapshotQueueEvent[]; __snapshotV: unknown };
+  // ADR-004 D1: carry the ordered pending-event list + format version on the
+  // deserialized state for the resume path (resumeWorld consumes and strips
+  // these transient props). Old snapshots without `v`/`queue` yield an empty
+  // list here — never throw. The ONE stderr warning fires in resumeWorld, so
+  // read-only snapshot loads (API/export) stay quiet.
+  (state as { __durableQueue: SnapshotQueueEvent[] }).__durableQueue = extractStoredQueue(d);
+  (state as { __snapshotV: unknown }).__snapshotV = (d as { v?: unknown }).v;
+  return state;
 }
 
 export function closeJournal(): void {
