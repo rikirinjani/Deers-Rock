@@ -1,9 +1,9 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { MedicationOrder } from "../patient/schema.js";
+import type { MedicationOrder, Charge } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
-import { generateCharge } from "./charge-generator.js";
+import { appendCharge } from "./charge-generator.js";
 import { checkDrugAllergy, checkDiagnosisContraindication, checkDrugInteraction, getDoseRange } from "./pharmacy-knowledge.js";
 import { getDeteriorationRate } from "./agent-learning.js";
 
@@ -45,6 +45,9 @@ function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpati
   const newMedOrders = new Map(state.medicationOrders);
   const pharmacyMemory = new Map(state._pharmacyCaseMemory ?? []);
   let stateMut = state;
+  // Handler-private charges map, copied lazily on first append so the previous
+  // state's map is never mutated (one copy per pass, not one per charge).
+  let chargesMut: Map<string, Charge> | null = null;
 
   const pharmacistAgents = Array.from(state._agentState?.pool?.agents?.values() ?? [])
     .filter(a => a.role === "apoteker" && a.status.inShift && a.status.kesehatan !== "sakit_berat");
@@ -124,7 +127,9 @@ function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpati
       if (supplyCode) {
         stateMut = dispenseItem(stateMut, supplyCode, 1, clock, order.id);
       }
-      stateMut = { ...stateMut, charges: generateCharge(stateMut.charges ?? new Map(), clock, order.encounterId, order.patientId, "pharmacy", `Dispensed: ${order.medication.name}`) };
+      if (chargesMut === null) chargesMut = new Map(stateMut.charges ?? new Map<string, Charge>());
+      appendCharge(chargesMut, clock, order.encounterId, order.patientId, "pharmacy", `Dispensed: ${order.medication.name}`);
+      stateMut = { ...stateMut, charges: chargesMut };
     }
 
     const caseKey = `PHARM-${order.encounterId}`;

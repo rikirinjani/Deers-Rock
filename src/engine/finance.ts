@@ -2,7 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
-import { generateCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
+import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 
 const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
@@ -67,7 +67,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
   for (const enc of state.encounters.values()) {
     if (enc.status !== "active") continue;
     if (billedAdmin.has(enc.id)) continue;
-    newCharges = generateCharge(newCharges, clock, enc.id, enc.patientId, "administration", "Administration fee");
+    newCharges = appendCharge(newCharges, clock, enc.id, enc.patientId, "administration", "Administration fee");
     billedAdmin.add(enc.id);
   }
 
@@ -78,7 +78,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       const bed = Array.from(state.beds.values()).find(b => b.patientId === enc.patientId);
       const rc: RoomClass = bed?.roomClass ?? "kelas-3";
       const rate = Math.round(CHARGE_RATES.room * (ROOM_CLASS_MULTIPLIER[rc] ?? 1));
-      newCharges = generateCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room (${rc}) - tick ${clock.tick}`, rate);
+      newCharges = appendCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room (${rc}) - tick ${clock.tick}`, rate);
     }
   }
 

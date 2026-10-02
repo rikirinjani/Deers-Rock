@@ -40,4 +40,30 @@ export function generateCharge(
   return newCharges;
 }
 
+/**
+ * Mutate-in-place variant of generateCharge for hot paths.
+ * Appends a single charge to the GIVEN map and returns the same map — no copy
+ * is made. The caller must already own a private copy of the charges map (one
+ * copy per handler pass, never the previous state's map). Charge ID sequence
+ * (chargeCounter), charge contents, and map insertion order are identical to
+ * generateCharge.
+ */
+export function appendCharge(
+  charges: Map<string, Charge>, clock: Clock,
+  encounterId: string, patientId: string,
+  category: ChargeCategory, description: string, amount?: number
+): Map<string, Charge> {
+  chargeCounter++;
+  charges.set(`CHG-${chargeCounter}-${patientId}`, {
+    id: `CHG-${chargeCounter}-${patientId}`,
+    encounterId, patientId,
+    category,
+    description,
+    amount: amount ?? CHARGE_RATES[category],
+    billedAt: clock.hospitalTimeMs,
+    paid: false,
+  });
+  return charges;
+}
+
 export { CHARGE_RATES, ROOM_CLASS_MULTIPLIER, ADMIN_TARIFF };

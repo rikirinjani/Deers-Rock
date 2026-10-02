@@ -2,7 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { RadiologyOrder } from "../patient/schema.js";
-import { generateCharge } from "./charge-generator.js";
+import { appendCharge } from "./charge-generator.js";
 
 export const RAD_STUDIES: { modality: RadiologyOrder["modality"]; studyType: string; findings: string[]; impressions: string[] }[] = [
   { modality: "X-ray", studyType: "Chest X-ray PA & Lateral", findings: ["Clear lung fields bilaterally", "Mild interstitial prominence", "Focal opacity right lower lobe", "Cardiomegaly with pulmonary congestion", "Small pleural effusion left base"], impressions: ["No acute cardiopulmonary abnormality", "Community-acquired pneumonia", "Congestive heart failure exacerbation", "Normal study"] },
@@ -54,7 +54,7 @@ export function radResultHandler(state: HospitalState, clock: Clock, _queue: Eve
         impression: study.impressions[Math.floor(clock.rng() * study.impressions.length)]!,
         resultedAt: clock.hospitalTimeMs,
       });
-      newCharges = generateCharge(newCharges, clock, order.encounterId, order.patientId, "radiology", `Imaging: ${order.studyType}`);
+      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "radiology", `Imaging: ${order.studyType}`);
     }
   }
   return { ...state, radiologyOrders: newOrders, charges: newCharges };
