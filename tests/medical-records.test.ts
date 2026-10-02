@@ -72,10 +72,27 @@ describe("Medical Records", () => {
     state = medicalRecordsHandler(state, clock, new EventQueue());
     expect(Array.from(state.medicalCharts.values())[0]!.status).toBe("incomplete");
 
-    // Third pass on tick 12: coder codes it
+    // Third pass on tick 12: the coder codes the chart.
+    //
+    // Coding is gated by an accuracy roll in medical-records.ts
+    // (`isAccurate = clock.rng() < coder.accuracy`, accuracy 0.85-0.92), and
+    // clock.rng() falls back to a Date.now() seed (clock.ts:31), so a single
+    // pass can legitimately leave the chart "incomplete". Asserting "coded"
+    // after exactly one pass made this test fail ~8% of runs (measured 1/12),
+    // which would have put `npm test` in CI at a ~1-in-12 false-red rate.
+    //
+    // The claim under test is "incomplete charts get coded", not "on the first
+    // roll", so retry a bounded number of passes. P(uncoded after 20 passes)
+    // <= 0.15^20 ~ 3e-17.
     clock.tick = 12;
-    state = medicalRecordsHandler(state, clock, new EventQueue());
-    const chart = Array.from(state.medicalCharts.values())[0]!;
+    let chart = Array.from(state.medicalCharts.values())[0]!;
+    let passes = 0;
+    while (chart.status !== "coded" && passes < 20) {
+      state = medicalRecordsHandler(state, clock, new EventQueue());
+      chart = Array.from(state.medicalCharts.values())[0]!;
+      passes++;
+    }
+    expect(passes).toBeGreaterThan(0); // the tick-12 pass really ran
     expect(chart.status).toBe("coded");
     expect(chart.coder).not.toBeNull();
   });
