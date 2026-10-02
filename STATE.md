@@ -39,6 +39,12 @@ Option B/C/D; `cleanup.ts` dead prune predicate; denylisted paths (`src/api/rest
 - Post-delivery gate hardening: a **second CI flake** (finance claim tests, ~10%) root-caused and fixed deterministically — bounded adjudication passes with a deliberately hoisted clock (a fresh `createClock` per pass re-seeds from `Date.now()` within one millisecond and draws the identical roll; empirically 2/30 failures before hoisting, 0/50 after), plus an INA-CBG diagnosis pin (unmapped patient dx created claims as denied at submission).
 - Resolution summaries posted on GH issue #1 (P0+P1 complete; honest gaps listed there).
 
+### Deployment + incident (2026-10-02, post-delivery)
+- Deployed live on Tencent 43.134.18.195 (co-hosted with cokro-api RAG): systemd `deers-rock.service`, user `deersrock`, `127.0.0.1:3000` (BIND_HOST), 512M cap, public via Cloudflare Tunnel + Access (`deers-rock.cokro-tech.my.id`).
+- **INCIDENT:** journal grew 3 MB → 980 MB in ~8 h (tick ~12k); boot-time snapshot `JSON.parse` exceeds the 512M cap → V8 OOM crash loop (17 restarts). **Service STOPPED by owner decision until the real fix** (P1-8). RAG unaffected throughout (cap did its job).
+- **New engine bug found via the incident:** `EventQueue` is not persisted — `resumeWorld` returns a fresh empty queue, so every restart loses all scheduled events (discharges at tick 4320+, lab/rad/surgery results). Post-restart sims never discharge anyone; encounters accumulate `active` forever (live evidence: 3422/3422 active at tick ~12k post-crash-loop). Frozen research unaffected (single-pass runs). Needs an ADR-level fix (persist queue or rebuild from journal) — folded into P1-8 review scope.
+- Adapter conformance review (codex-interpretum `DeersRockClient`): works against live DR (auth, 4 endpoints, exact wire-shape match, GrouperInput mapping verified incl. ICD-9-CM procedures). Findings for that repo: `transferred` status missing from its encounter type/mapper; live E2E test lacks API-key support; note LOS is 3–7 sim-days so discharged cases only exist from tick ~4320.
+
 ### Open items
 - Residual tick-1000 spike → candidate future item (Option D territory), not started.
 - Out of the approved P0+P1 scope, tracked on the issue: P1-8 (ADR-003 persistence, pruning TTL), Railway redeploy, Docker image build (needs a Docker host), 100k-tick Kaggle calibration.
