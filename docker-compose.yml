@@ -1,0 +1,19 @@
+# Deers-Rock — single-service compose.
+# Build & run: docker compose up --build
+# Dashboard:   http://localhost:3000/
+# API status:  http://localhost:3000/api/status
+services:
+  deers-rock:
+    build: .
+    image: deers-rock:phase-p1
+    ports:
+      - "3000:3000"
+    environment:
+      # Journal DB (world-journal.db) and exports/ are written here at runtime;
+      # backed by the named volume below so state survives restarts.
+      DATA_DIR: /data
+    volumes:
+      - deers-rock-data:/data
+
+volumes:
+  deers-rock-data:

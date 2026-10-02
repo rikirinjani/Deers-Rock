@@ -1,0 +1,44 @@
+# Keep the build context minimal: the image only needs
+# package.json, package-lock.json, tsconfig.json, src/, public/, LICENSE.
+
+# VCS / CI
+.git
+.github
+.gitignore
+.railway
+
+# Build artifacts (rebuilt inside the image)
+node_modules
+dist
+
+# Runtime state / local databases
+*.db
+*.db-wal
+*.db-shm
+exports/
+
+# Docs, tests, review material (not needed to build or run)
+docs
+tests
+zenodo-package
+redteam
+reopen-audit
+experiment-results
+adr
+*.md
+
+# Repo metadata / misc
+.zenodo.json
+CITATION.cff
+facts.yaml
+memory.txt
+TODO.md
+ROADMAP.md
+scripts
+bin
+
+# Local profiling / scratch scripts
+_*.mjs
+
+# Compose file itself is not needed in the image context
+docker-compose.yml
