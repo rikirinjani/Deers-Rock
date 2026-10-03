@@ -1,0 +1,12 @@
+{"tick":1000,"rssMb":238.6,"journalMb":34.6,"charges":21840,"encounters":500,"statusDist":{"active":410,"discharged":90},"queueLen":132}
+{"tick":2000,"rssMb":255.5,"journalMb":80.4,"charges":49552,"encounters":697,"statusDist":{"active":697},"queueLen":133}
+{"tick":3000,"rssMb":400.5,"journalMb":130.3,"charges":77097,"encounters":962,"statusDist":{"active":962},"queueLen":137}
+{"tick":4000,"rssMb":411.2,"journalMb":183.4,"charges":104568,"encounters":1234,"statusDist":{"active":1234},"queueLen":136}
+[longrun] CRASH-RESUME at tick 5000
+{"tick":5000,"rssMb":641.9,"journalMb":288.1,"charges":127407,"encounters":1511,"statusDist":{"active":1511},"queueLen":131}
+{"tick":6000,"rssMb":531.2,"journalMb":285,"charges":136493,"encounters":1782,"statusDist":{"active":1782},"queueLen":135}
+{"tick":7000,"rssMb":481.8,"journalMb":322.4,"charges":130628,"encounters":2060,"statusDist":{"active":2060},"queueLen":133}
+{"tick":8000,"rssMb":595,"journalMb":361.2,"charges":128152,"encounters":2323,"statusDist":{"active":2323},"queueLen":134}
+{"tick":9000,"rssMb":589,"journalMb":398.1,"charges":116373,"encounters":2594,"statusDist":{"active":2594},"queueLen":137}
+{"tick":10000,"rssMb":606.5,"journalMb":441.8,"charges":104530,"encounters":2876,"statusDist":{"active":2876},"queueLen":134}
+{"config":{"ticks":10000,"seed":42,"patients":50,"crashAt":5000},"ceilings":{"rssMb":450,"journalMb":300},"observed":{"maxRssMb":641.9,"finalJournalMb":441.8,"finalCharges":104530,"midCharges":136493,"dischargedSeen":true,"crashed":null,"lastTick":10000},"gates":{"rssCeiling":false,"journalCeiling":false,"dischargeContinuity":true,"pruningEvidence":true},"samples":"[10 samples]","verdict":"FAIL"}
