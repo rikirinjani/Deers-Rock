@@ -130,7 +130,20 @@ export function journalStats(): { total: number; byType: Record<string, number>;
 }
 
 const JOURNAL_RETENTION_TICKS = 100;
-const SNAPSHOT_RETENTION_COUNT = 5;
+const DEFAULT_SNAPSHOT_RETENTION_COUNT = 5;
+
+/**
+ * ADR-004 Amendment 1: snapshot retention is env-tunable for the 512 MB
+ * co-host target, where 5 retained full-state JSON snapshots dominate the
+ * journal file. `DR_SNAPSHOT_RETENTION` overrides the default of 5 when it
+ * parses as a finite positive number (floored); otherwise 5. Read at call
+ * time so tests can toggle it, and unset env is byte-identical to the
+ * previous hard-coded constant.
+ */
+export function snapshotRetentionCount(): number {
+  const raw = Number(process.env.DR_SNAPSHOT_RETENTION);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_SNAPSHOT_RETENTION_COUNT;
+}
 
 const PURGE_INTERVAL = 50;
 let lastPurgeTick = 0;
@@ -186,8 +199,9 @@ export function journalPurge(currentTick: number): void {
     try {
       const deleted = db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
       const allSnaps = db.prepare("SELECT tick FROM world_snapshots ORDER BY tick ASC").all() as { tick: number }[];
-      if (allSnaps.length > SNAPSHOT_RETENTION_COUNT) {
-        const toRemove = allSnaps.slice(0, allSnaps.length - SNAPSHOT_RETENTION_COUNT);
+      const retention = snapshotRetentionCount();
+      if (allSnaps.length > retention) {
+        const toRemove = allSnaps.slice(0, allSnaps.length - retention);
         for (const s of toRemove) {
           db.prepare("DELETE FROM world_snapshots WHERE tick = ?").run(s.tick);
         }

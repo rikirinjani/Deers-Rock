@@ -75,3 +75,23 @@ Incident triage surfaced a second, deeper defect: **scheduled future events do n
 ## 6. Decision requested
 
 Approve D1(A1) + D2–D4 as specified, with TTL values set from pilot measurements (OQ1). Implementation then proceeds under the world-semantics review cycle (implementer + independent verifier + determinism evidence, per standing rules).
+
+## Amendment 1 (2026-10-03)
+
+- **Trigger.** The first 10k-tick Kaggle validation (commit `16b0513`, flags ON) returned **FAIL 2/4 gates**: `rssCeiling` 641.9 MB vs the 450 MB ceiling and `journalCeiling` 441.8 MB vs the 300 MB ceiling. `dischargeContinuity` and `pruningEvidence` passed. This amendment records the measured root causes and the remediation (Option A, owner-approved): tune config, fix the validation gate, re-validate. No world-semantics change; engine behavior with the new env unset is byte-identical.
+
+- **Root causes (from the run's samples and file sizes).**
+  1. **Retained snapshots dominate the journal file.** `journalPurge` retained `SNAPSHOT_RETENTION_COUNT = 5` full-state snapshot rows. Each snapshot is a full-state JSON string; at tick 10000 the state JSON measured ~88 MB, so 5 retained snapshots ≈ 440 MB — essentially the entire `journalCeiling` overage. Per-tick journal rows were already bounded (100-tick retention).
+  2. **RSS peaks at the crash-resume JSON.parse.** The tick-5000 simulated crash-resume parses one full snapshot in memory; the observed peak (641.9 MB) occurred there. The post-resume baseline measured 481–606 MB, i.e. also above the 450 MB ceiling independent of the parse spike.
+  3. **Charges steady state exceeded the pre-run estimate.** Measured ~104k charges at tick 10000 versus the ~56k that motivated TTL 2000 in §4/D2. The TTL was therefore not bounding charges to the intended size.
+  4. **The `dischargeContinuity` gate was structurally weak.** The gate only inspected 1000-tick samples for `statusDist.discharged > 0`. `src/engine/cleanup.ts:58` prunes non-active encounters whenever the encounter map exceeds `MAX_ENCOUNTERS = 500`, so once active encounters alone exceed 500 (by tick ~2000) every discharged encounter is deleted within ≤10 ticks. A discharged encounter therefore exists for only a few ticks and a 1000-tick sample can never observe one after tick ~2000 — the gate could not test what it claimed, and its earlier PASS did not demonstrate discharge continuity.
+
+- **Tuning (env-driven; both consumed at call time).**
+  - Charges TTL **2000 → 1000** via `DR_PRUNE_TTL_CHARGES` (validator default; engine default in `finance.ts` unchanged). Halves the steady-state charge window toward the intended bound.
+  - Snapshot retention **5 → 3** via the new `DR_SNAPSHOT_RETENTION`, read by `snapshotRetentionCount()` in `journal.ts`. With env unset the function returns 5, so existing behavior (frozen evidence, other callers) is byte-identical; the validator sets 3.
+
+- **Discharge-gate fix.** `scripts/kaggle-longrun/validate-bounded.mjs` now counts discharges **every tick**, not only at samples: it tracks a `dischargedEver` set and increments `dischargedAfterResume` whenever a `status === "discharged"` encounter id first appears at a tick `> CRASH_AT`. The gate is `dischargeContinuity = crashed === null && dischargedAfterResume > 0`. Encounters already discharged in the resumed snapshot are marked seen at the crash tick without incrementing, so only genuinely new post-resume discharges satisfy the gate. `dischargedSeen` is retained in `observed` for compatibility.
+
+- **RSS ceiling is coupled, not free.** The 450 MB ceiling is deliberately below the hard 512 MB cgroup cap of the co-host and accounts for the non-heap footprint (V8, SQLite, Node baseline) that `process.memoryUsage().rss` reports but a heap-only budget would miss. It is not freely re-derivable from the heap numbers and was not raised here; the remediation reduces retained state rather than relaxing the cap. Re-validation on the same 10k profile will determine whether the tuned config meets the existing ceilings. The optional `PROFILE=1` (`node --expose-gc`) path adds heap fields to each sample for diagnosis without changing non-profiled output.
+
+- **Status.** Config, gate fix, and this record are implemented; suites and `tsc --noEmit` pass. A fresh 10k Kaggle run with the tuned defaults is required to confirm the two FAIled ceilings now pass and the corrected discharge gate reports true continuity. No claim of a passing 10k run is made here.

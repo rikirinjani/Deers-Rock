@@ -41,6 +41,10 @@ const RSS_CEIL_MB = Number(process.env.RSS_CEIL_MB ?? 450);
 const JOURNAL_CEIL_MB = Number(process.env.JOURNAL_CEIL_MB ?? 300);
 const CRASH_AT = Math.floor(TICKS / 2);
 const SAMPLE_EVERY = 1000;
+// Optional heap profiling (run with `node --expose-gc`): when PROFILE=1 the
+// extra heap fields are attached and gc() is invoked before each sample; when
+// unset, samples are byte-identical to the non-profiled run.
+const PROFILE = process.env.PROFILE === "1";
 
 const journalPath = path.join(repoRoot, "longrun-journal.db");
 for (const f of [journalPath, `${journalPath}-wal`, `${journalPath}-shm`]) {
@@ -49,11 +53,25 @@ for (const f of [journalPath, `${journalPath}-wal`, `${journalPath}-shm`]) {
 
 process.env.DR_BOUNDED_STATE = "1";
 process.env.DR_DURABLE_QUEUE = "1";
+// ADR-004 Amendment 1 tuned defaults (env-overridable). Must be set BEFORE
+// createWorld so the engine reads them at call time.
+process.env.DR_PRUNE_TTL_CHARGES ??= "1000";
+process.env.DR_SNAPSHOT_RETENTION ??= "3";
+const PRUNE_TTL_CHARGES = process.env.DR_PRUNE_TTL_CHARGES;
+const SNAPSHOT_RETENTION = process.env.DR_SNAPSHOT_RETENTION;
 
 const samples = [];
 let maxRssMb = 0;
 let w = createWorld(PATIENTS, journalPath, SEED);
 initJournal(journalPath);
+
+// Discharge-continuity tracking: counted EVERY tick, not only at 1000-tick
+// samples. cleanup.ts prunes non-active encounters once the map exceeds
+// MAX_ENCOUNTERS=500, so a discharged encounter can exist for only a few
+// ticks; sampling at 1000-tick intervals structurally can never observe it
+// after active encounters alone exceed the cap (tick ~2000).
+const dischargedEver = new Set();
+let dischargedAfterResume = 0;
 
 // Partial-report-on-crash: a mid-run death still yields the samples so far
 // plus the error — exit code 2 = crash, 1 = gate FAIL, 0 = pass.
@@ -72,7 +90,19 @@ try {
       w = resumeWorld(snap.state, snap.tick, journalPath);
     }
 
+    // Count discharges every tick. Encounter ids seen at/before the crash tick
+    // (including those already discharged in the resumed snapshot) are marked
+    // seen without incrementing, so only genuinely new post-resume discharges
+    // satisfy the continuity gate.
+    for (const enc of w.state.encounters.values()) {
+      if (enc.status !== "discharged") continue;
+      if (dischargedEver.has(enc.id)) continue;
+      dischargedEver.add(enc.id);
+      if (t > CRASH_AT) dischargedAfterResume++;
+    }
+
     if (t % SAMPLE_EVERY === 0 || t === TICKS) {
+      if (PROFILE && typeof global.gc === "function") global.gc();
       const rssMb = process.memoryUsage().rss / 1048576;
       maxRssMb = Math.max(maxRssMb, rssMb);
       let journalMb = 0;
@@ -88,6 +118,13 @@ try {
         statusDist: dist,
         queueLen: w.queue !== undefined && typeof w.queue.pending === "function" ? w.queue.pending() : null,
       };
+      if (PROFILE) {
+        const mu = process.memoryUsage();
+        sample.heapUsedMb = Math.round(mu.heapUsed / 1048576 * 10) / 10;
+        sample.heapTotalMb = Math.round(mu.heapTotal / 1048576 * 10) / 10;
+        sample.externalMb = Math.round(mu.external / 1048576 * 10) / 10;
+        sample.arrayBuffersMb = Math.round(mu.arrayBuffers / 1048576 * 10) / 10;
+      }
       samples.push(sample);
       console.log(JSON.stringify(sample)); // progress line (kernel log)
     }
@@ -103,13 +140,20 @@ const finalCharges = last !== undefined ? last.charges : -1;
 const midCharges = samples.length > 0 ? samples[Math.floor(samples.length / 2)].charges : -1;
 
 const report = {
-  config: { ticks: TICKS, seed: SEED, patients: PATIENTS, crashAt: CRASH_AT },
+  config: {
+    ticks: TICKS,
+    seed: SEED,
+    patients: PATIENTS,
+    crashAt: CRASH_AT,
+    pruneTtlCharges: PRUNE_TTL_CHARGES,
+    snapshotRetention: SNAPSHOT_RETENTION,
+  },
   ceilings: { rssMb: RSS_CEIL_MB, journalMb: JOURNAL_CEIL_MB },
-  observed: { maxRssMb: Math.round(maxRssMb * 10) / 10, finalJournalMb, finalCharges, midCharges, dischargedSeen, crashed, lastTick: last !== undefined ? last.tick : 0 },
+  observed: { maxRssMb: Math.round(maxRssMb * 10) / 10, finalJournalMb, finalCharges, midCharges, dischargedSeen, dischargedAfterResume, crashed, lastTick: last !== undefined ? last.tick : 0 },
   gates: {
     rssCeiling: crashed === null && maxRssMb <= RSS_CEIL_MB,
     journalCeiling: crashed === null && finalJournalMb >= 0 && finalJournalMb <= JOURNAL_CEIL_MB,
-    dischargeContinuity: dischargedSeen,
+    dischargeContinuity: crashed === null && dischargedAfterResume > 0,
     pruningEvidence: crashed === null && finalCharges >= 0 && finalCharges <= midCharges * 1.5,
   },
   samples,

@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import { existsSync, unlinkSync } from "fs";
 import { createWorld, runWorld } from "../src/engine/world.js";
-import { closeJournal, initJournal, listSnapshots, loadNearestSnapshot, saveSnapshot } from "../src/engine/journal.js";
+import { closeJournal, initJournal, listSnapshots, loadNearestSnapshot, saveSnapshot, snapshotRetentionCount } from "../src/engine/journal.js";
 import { createState, type HospitalState } from "../src/engine/state-store.js";
 import { generatePatientPool } from "../src/patient/generator.js";
 import { initAgentState } from "../src/agent/system.js";
@@ -116,5 +116,39 @@ describe("Snapshots", () => {
     expect(s._referralState.incomingQueue.length).toBe(1);
     expect(s._referralState.incomingQueue[0].letterId).toBe("ltr-001");
     expect(s._referralState.incomingQueue[0].fromFacility).toBe("puskesmas-a");
+  });
+});
+
+// ADR-004 Amendment 1: snapshot retention is env-tunable. Unset env must be
+// byte-identical to the previous hard-coded 5.
+describe("snapshotRetentionCount (ADR-004 Amendment 1)", () => {
+  const ORIG = process.env.DR_SNAPSHOT_RETENTION;
+
+  beforeEach(() => { delete process.env.DR_SNAPSHOT_RETENTION; });
+
+  afterEach(() => {
+    if (ORIG === undefined) delete process.env.DR_SNAPSHOT_RETENTION;
+    else process.env.DR_SNAPSHOT_RETENTION = ORIG;
+  });
+
+  it("defaults to 5 when DR_SNAPSHOT_RETENTION is unset", () => {
+    expect(snapshotRetentionCount()).toBe(5);
+  });
+
+  it("honours a finite positive env override", () => {
+    process.env.DR_SNAPSHOT_RETENTION = "3";
+    expect(snapshotRetentionCount()).toBe(3);
+  });
+
+  it("floors fractional env values", () => {
+    process.env.DR_SNAPSHOT_RETENTION = "3.9";
+    expect(snapshotRetentionCount()).toBe(3);
+  });
+
+  it("falls back to 5 for invalid or zero values", () => {
+    for (const bad of ["0", "-1", "abc", ""]) {
+      process.env.DR_SNAPSHOT_RETENTION = bad;
+      expect(snapshotRetentionCount()).toBe(5);
+    }
   });
 });
