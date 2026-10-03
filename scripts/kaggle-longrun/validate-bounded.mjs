@@ -2,6 +2,8 @@
 //
 // What it does (single deterministic run, flags ON):
 //   1. Builds a world (seed 42), enables DR_BOUNDED_STATE=1 + DR_DURABLE_QUEUE=1.
+//      Tuned defaults (Amendment 1): charges TTL 1000, snapshot retention 3
+//      (both env-overridable, recorded in the report config).
 //   2. Steps TICKS (default 100000; override with env). No wall-clock anywhere;
 //      all thresholds are tick-based, so the run is reproducible.
 //   3. Every 1000 ticks records: RSS (process.memoryUsage), journal file bytes,
@@ -14,7 +16,10 @@
 // Ceilings asserted at the end (tunable via env):
 //   - max RSS <= RSS_CEIL_MB (default 450 — must stay under the 512M co-host cap)
 //   - journal bytes <= JOURNAL_CEIL_MB (default 300)
-//   - discharged encounters observed after tick 5000 (LOS proof)
+//   - genuinely NEW discharges counted every tick after the crash-resume
+//     (continuity proof; sample-time statusDist cannot observe discharges
+//     once active encounters exceed MAX_ENCOUNTERS=500, because cleanup
+//     deletes non-active encounters within <=10 ticks)
 //   - charges size bounded in the final window (pruning proof)
 //
 // Usage (Kaggle CPU kernel, internet ON for one-time setup):
@@ -83,9 +88,18 @@ try {
     if (t === CRASH_AT) {
       // Simulated crash: persist snapshot through the real save path, then
       // resume exactly as the server boot path does (snapshot + journal replay).
+      // FIDELITY: a real restart is a FRESH process — the pre-crash world no
+      // longer exists when the boot parse begins. Release our reference first
+      // so the harness never measures the impossible coexistence of the dead
+      // world with the freshly parsed snapshot; V8 reclaims it under
+      // parse-allocation pressure (an explicit gc() when --expose-gc is
+      // available just makes the reclaim deterministic).
       console.error(`[longrun] CRASH-RESUME at tick ${t}`);
       saveSnapshot(w.clock.tick, w.state, w.queue);
-      const snap = loadNearestSnapshot(w.clock.tick);
+      const crashTick = w.clock.tick;
+      w = null;
+      if (typeof global.gc === "function") global.gc();
+      const snap = loadNearestSnapshot(crashTick);
       if (snap === null || snap === undefined) throw new Error("no snapshot at crash point");
       w = resumeWorld(snap.state, snap.tick, journalPath);
     }
