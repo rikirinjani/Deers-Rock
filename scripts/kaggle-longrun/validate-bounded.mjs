@@ -55,58 +55,70 @@ let maxRssMb = 0;
 let w = createWorld(PATIENTS, journalPath, SEED);
 initJournal(journalPath);
 
-for (let t = 1; t <= TICKS; t++) {
-  w = step(w);
+// Partial-report-on-crash: a mid-run death still yields the samples so far
+// plus the error — exit code 2 = crash, 1 = gate FAIL, 0 = pass.
+let crashed = null;
+try {
+  for (let t = 1; t <= TICKS; t++) {
+    w = step(w);
 
-  if (t === CRASH_AT) {
-    // Simulated crash: persist snapshot through the real save path, then
-    // resume exactly as the server boot path does (snapshot + journal replay).
-    saveSnapshot(w.clock.tick, w.state, w.queue);
-    const snap = loadNearestSnapshot(w.clock.tick);
-    if (snap === null || snap === undefined) throw new Error("no snapshot at crash point");
-    w = resumeWorld(snap.state, snap.tick, journalPath);
-  }
+    if (t === CRASH_AT) {
+      // Simulated crash: persist snapshot through the real save path, then
+      // resume exactly as the server boot path does (snapshot + journal replay).
+      console.error(`[longrun] CRASH-RESUME at tick ${t}`);
+      saveSnapshot(w.clock.tick, w.state, w.queue);
+      const snap = loadNearestSnapshot(w.clock.tick);
+      if (snap === null || snap === undefined) throw new Error("no snapshot at crash point");
+      w = resumeWorld(snap.state, snap.tick, journalPath);
+    }
 
-  if (t % SAMPLE_EVERY === 0 || t === TICKS) {
-    const rssMb = process.memoryUsage().rss / 1048576;
-    maxRssMb = Math.max(maxRssMb, rssMb);
-    let journalMb = 0;
-    try { journalMb = fs.statSync(journalPath).size / 1048576; } catch { journalMb = -1; }
-    const dist = {};
-    for (const e of w.state.encounters.values()) dist[e.status] = (dist[e.status] ?? 0) + 1;
-    samples.push({
-      tick: w.clock.tick,
-      rssMb: Math.round(rssMb * 10) / 10,
-      journalMb: Math.round(journalMb * 10) / 10,
-      charges: w.state.charges.size,
-      encounters: w.state.encounters.size,
-      statusDist: dist,
-      queueLen: w.queue !== undefined && typeof w.queue.pending === "function" ? w.queue.pending() : null,
-    });
+    if (t % SAMPLE_EVERY === 0 || t === TICKS) {
+      const rssMb = process.memoryUsage().rss / 1048576;
+      maxRssMb = Math.max(maxRssMb, rssMb);
+      let journalMb = 0;
+      try { journalMb = fs.statSync(journalPath).size / 1048576; } catch { journalMb = -1; }
+      const dist = {};
+      for (const e of w.state.encounters.values()) dist[e.status] = (dist[e.status] ?? 0) + 1;
+      const sample = {
+        tick: w.clock.tick,
+        rssMb: Math.round(rssMb * 10) / 10,
+        journalMb: Math.round(journalMb * 10) / 10,
+        charges: w.state.charges.size,
+        encounters: w.state.encounters.size,
+        statusDist: dist,
+        queueLen: w.queue !== undefined && typeof w.queue.pending === "function" ? w.queue.pending() : null,
+      };
+      samples.push(sample);
+      console.log(JSON.stringify(sample)); // progress line (kernel log)
+    }
   }
+} catch (e) {
+  crashed = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
 }
 
+const last = samples[samples.length - 1];
 const dischargedSeen = samples.some((s) => (s.statusDist.discharged ?? 0) > 0);
-const finalJournalMb = samples[samples.length - 1].journalMb;
-const finalCharges = samples[samples.length - 1].charges;
-const midCharges = samples[Math.floor(samples.length / 2)].charges;
+const finalJournalMb = last !== undefined ? last.journalMb : -1;
+const finalCharges = last !== undefined ? last.charges : -1;
+const midCharges = samples.length > 0 ? samples[Math.floor(samples.length / 2)].charges : -1;
 
 const report = {
   config: { ticks: TICKS, seed: SEED, patients: PATIENTS, crashAt: CRASH_AT },
   ceilings: { rssMb: RSS_CEIL_MB, journalMb: JOURNAL_CEIL_MB },
-  observed: { maxRssMb: Math.round(maxRssMb * 10) / 10, finalJournalMb, finalCharges, midCharges, dischargedSeen },
+  observed: { maxRssMb: Math.round(maxRssMb * 10) / 10, finalJournalMb, finalCharges, midCharges, dischargedSeen, crashed, lastTick: last !== undefined ? last.tick : 0 },
   gates: {
-    rssCeiling: maxRssMb <= RSS_CEIL_MB,
-    journalCeiling: finalJournalMb >= 0 && finalJournalMb <= JOURNAL_CEIL_MB,
+    rssCeiling: crashed === null && maxRssMb <= RSS_CEIL_MB,
+    journalCeiling: crashed === null && finalJournalMb >= 0 && finalJournalMb <= JOURNAL_CEIL_MB,
     dischargeContinuity: dischargedSeen,
-    pruningEvidence: finalCharges <= midCharges * 1.5,
+    pruningEvidence: crashed === null && finalCharges >= 0 && finalCharges <= midCharges * 1.5,
   },
   samples,
 };
 
-const pass = Object.values(report.gates).every(Boolean);
-report.verdict = pass ? "PASS" : "FAIL";
+const pass = crashed === null && Object.values(report.gates).every(Boolean);
+report.verdict = crashed !== null ? "CRASH" : pass ? "PASS" : "FAIL";
 
 fs.writeFileSync(path.join(repoRoot, "longrun-report.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ ...report, samples: `[${samples.length} samples]` }));
+if (crashed !== null) process.exit(2);
 if (!pass) process.exit(1);
