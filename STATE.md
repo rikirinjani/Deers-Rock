@@ -20,7 +20,7 @@
 - Evidence archived hash-verified under `docs/adr/evidence/`: `ADR-004-10k-FAIL` (v2), `ADR-004-6k-profile`, `ADR-004-10k-local-forecast`, `ADR-004-10k-kaggle-v4`, `ADR-004-10k-kaggle-v5`.
 
 ### Open items (staging decision pending owner)
-- **Stage live box:** wipe `/srv/deers-rock/data`, flags ON (`DR_BOUNDED_STATE=1 DR_DURABLE_QUEUE=1`), `DR_PRUNE_TTL_CHARGES=1000`, `DR_SNAPSHOT_RETENTION=3`, `NODE_OPTIONS=--max-old-space-size=350` in the unit, restart, verify (auth matrix, RAG co-tenant non-regression, nightly `/data` bundle per house rule 4), watch one growth cycle against the ceilings.
+- **Stage live box — HANDED TO RAG DEV (owner instruction, 2026-10-04):** runbook at `C:\Users\think\Project_v2\LocalNotebook\rag-service\DEERS-ROCK-DEPLOY-HANDOVER.md` (wipe data aside, flags ON + tuned env + `NODE_OPTIONS=--max-old-space-size=350`, pull/build/restart, acceptance criteria incl. RAG co-tenant non-regression and bounded data growth, rollback = stop). Awaiting RAG DEV deployment report; orchestrator reconciles STATE.md/issues on confirmation.
 - **Issue #3 correction comment** (bundled per owner choice): the "3422/3422 active" live evidence was `cleanup.ts:58` masking, not proof discharges stopped; the queue-loss defect itself was real (code + tests) and is now fixed + validated.
 - **Docs URL swap** (dead Railway → `deers-rock.cokro-tech.my.id`) at staging, per owner decision.
 - Issue #4 (CPU scaling) still open — blocks the 100k-tick calibration only, not staging.
