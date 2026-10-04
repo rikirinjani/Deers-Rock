@@ -394,7 +394,16 @@ export function createRestServer(world: () => World): RestServer {
       if (!fp.startsWith(publicDir)) { res.statusCode = 403; json(res, { error: "Forbidden" }); return; }
       const ext = path.extname(fp);
       res.setHeader("Content-Type", MIME[ext] ?? "application/octet-stream");
-      fs.readFile(fp, (err, data) => { if (err) { res.statusCode = 404; json(res, { error: "Not found" }); } else res.end(data); });
+      fs.readFile(fp, (err, data) => {
+        if (err) { res.statusCode = 404; json(res, { error: "Not found" }); return; }
+        if (ext === ".html" && apiKey) {
+          // Inject API key config so dashboard JS can auth requests
+          const html = data.toString("utf8").replace("</head>", `<script>window.__DR_API_KEY="${apiKey}"</script></head>`);
+          res.end(html);
+        } else {
+          res.end(data);
+        }
+      });
     } catch (e) {
       res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
