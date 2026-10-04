@@ -1,6 +1,31 @@
 # STATE.md — Deers-Rock loop state
 
-## Last run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
+## Last run: 2026-10-03/04 — ADR-004 remediation + 10k box-fit validation (Amendments 1–2)
+
+**Mode:** L2 (continuation of the owner-approved ADR-004 arc; remediation Option A chosen by owner in-session: tune + instrumented verify, then Kaggle re-validation).
+
+### Remediation (Amendment 1, commit `a9568db`; fidelity fix `906f245`)
+- Charges TTL 2000→1000 via validator default `DR_PRUNE_TTL_CHARGES`; snapshot retention env-tunable `DR_SNAPSHOT_RETENTION` (3 in validation; engine default 5, byte-identical when unset). Charges proven settlement-bound, not TTL-bound (TTL change moved tick-6000 charges only ~136.5k→130.2k).
+- Discharge gate fixed: `cleanup.ts:58` deletes non-active encounters within ≤10 ticks once active>500, so 1000-tick samples can never observe discharges after tick ~2000 (the old gate's PASS was pre-crash tick-1000 evidence only). Validator now counts discharge transitions **every tick** (`dischargedAfterResume`): 850 genuinely new post-resume discharges in the 10k run — D1 discharge continuity proven conclusively.
+- Crash-simulation fidelity: the harness released the pre-crash world before the resume parse (real restart = fresh process; V8 reclaims under parse pressure). Resume-spike sample: 355 MB local vs 641.9 in the failed run.
+- ver-1 independent reviews: **APPROVE** on `a9568db` (6 non-blocking findings) and **APPROVE** on `906f245` (3 non-blocking, incl. catching an evidence-labeling error of mine). Suite 26 files / 189 tests, tsc clean.
+- Process notes: two imp-1 dispatches hit provider header timeouts (failure records filed; edits recovered from disk and reconciled); one verifier F1 caught my evidence-copy mistake (200-tick smoke mislabeled as the 6k report) — fixed by extracting from the stdout log.
+
+### Validation arc (kernel `rikirinjani/deers-rock-bounded-10k-validation`, all pinned to the reviewed candidate)
+- v3: hung ~9 h (transient infra; relaunched, fresh 12 h window).
+- **v4 (unconstrained): FAIL 1/4** — `rssCeiling` 579/450 was the only miss; journal 265.1/300 PASS; `dischargedAfterResume` 850; charges 97,765 declining; no crash.
+- Local 10k true-peak forecast: PASS 4/4 (maxRss 400.7) — cross-host **determinism proven**: charges/journal/encounters/queueLen/dischargedAfterResume byte-identical to v4.
+- **v5 (`node --max-old-space-size=350`, mirroring the production constraint): PASS 4/4** — maxRss 417.3/450, journal 265.1/300, `dischargedAfterResume` 850, `crashed: null`, ~3 h, VALIDATE_EXIT=0. This is the box-fit evidence for the 512 M co-host.
+- **Amendment 2:** unconstrained-host RSS is not a valid box-fit proxy — V8 sizes its heap from host RAM and cgroups do not bound it (the live-incident mechanism). Production must set `--max-old-space-size` (~350) in the unit; gate definition unchanged.
+- Evidence archived hash-verified under `docs/adr/evidence/`: `ADR-004-10k-FAIL` (v2), `ADR-004-6k-profile`, `ADR-004-10k-local-forecast`, `ADR-004-10k-kaggle-v4`, `ADR-004-10k-kaggle-v5`.
+
+### Open items (staging decision pending owner)
+- **Stage live box:** wipe `/srv/deers-rock/data`, flags ON (`DR_BOUNDED_STATE=1 DR_DURABLE_QUEUE=1`), `DR_PRUNE_TTL_CHARGES=1000`, `DR_SNAPSHOT_RETENTION=3`, `NODE_OPTIONS=--max-old-space-size=350` in the unit, restart, verify (auth matrix, RAG co-tenant non-regression, nightly `/data` bundle per house rule 4), watch one growth cycle against the ceilings.
+- **Issue #3 correction comment** (bundled per owner choice): the "3422/3422 active" live evidence was `cleanup.ts:58` masking, not proof discharges stopped; the queue-loss defect itself was real (code + tests) and is now fixed + validated.
+- **Docs URL swap** (dead Railway → `deers-rock.cokro-tech.my.id`) at staging, per owner decision.
+- Issue #4 (CPU scaling) still open — blocks the 100k-tick calibration only, not staging.
+
+## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
 **Mode:** L2 (explicitly authorized by human tasking: "Implement GH issue #1 item P1-6, Option A only").
 **Root cause:** settled by Oracle (67.7% self-time in `generateCharge` full-map copy per charge). Not re-investigated.
