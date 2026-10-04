@@ -1,0 +1,69 @@
+[{"stream_name":"stderr","time":10.854578457,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":10.854675692,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":10.854689753,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":10.854693565,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":11.798405279,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":11.798489037,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":11.798496194,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":11.798500552,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":13.77572304,"data":"node: v20.19.0\n"}
+,{"stream_name":"stdout","time":14.608961344,"data":"npm : 10.8.2\n"}
+,{"stream_name":"stdout","time":14.609003008,"data":"cpu : 4 cores\n"}
+,{"stream_name":"stdout","time":15.965996871,"data":" Cloning into 'Deers-Rock'...\n"}
+,{"stream_name":"stdout","time":15.96604161,"data":"\n"}
+,{"stream_name":"stdout","time":15.966048032,"data":"HEAD: 587905de0acb3888093d9094872cc3de0f4c7681\n"}
+,{"stream_name":"stdout","time":164.33619184,"data":"HEAD is now at 906f245 fix(longrun): crash-simulation fidelity - release pre-crash world before resume parse\n"}
+,{"stream_name":"stdout","time":164.336229602,"data":"=== npm ci ===\n"}
+,{"stream_name":"stdout","time":164.336236538,"data":"npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0\n"}
+,{"stream_name":"stdout","time":164.336241831,"data":"npm notice To update run: npm install -g npm@12.2.0\n"}
+,{"stream_name":"stdout","time":164.336247391,"data":"npm notice\n"}
+,{"stream_name":"stdout","time":164.336254402,"data":"NPM_EXIT=0\n"}
+,{"stream_name":"stdout","time":164.336266252,"data":"=== build ===\n"}
+,{"stream_name":"stdout","time":164.336270062,"data":"\u003e deers-rock@0.5.0 build\n"}
+,{"stream_name":"stdout","time":164.336274023,"data":"\u003e tsc\n"}
+,{"stream_name":"stdout","time":164.336277379,"data":"\n"}
+,{"stream_name":"stdout","time":164.336280647,"data":"BUILD_EXIT=0\n"}
+,{"stream_name":"stdout","time":164.336284094,"data":"dist/engine/journal.js\n"}
+,{"stream_name":"stdout","time":164.33628749,"data":"dist/engine/world.js\n"}
+,{"stream_name":"stdout","time":15019.416777197,"data":"=== 10k-tick bounded validation (expect ~1-3h) ===\n"}
+,{"stream_name":"stdout","time":15019.416880852,"data":"2026-10-04T00:07:50Z\n"}
+,{"stream_name":"stdout","time":15019.416888648,"data":"{\"tick\":1000,\"rssMb\":230.6,\"journalMb\":24.9,\"charges\":21840,\"encounters\":500,\"statusDist\":{\"active\":410,\"discharged\":90},\"queueLen\":132}\n"}
+,{"stream_name":"stdout","time":15019.416894762,"data":"{\"tick\":2000,\"rssMb\":311.7,\"journalMb\":52.5,\"charges\":49363,\"encounters\":697,\"statusDist\":{\"active\":697},\"queueLen\":133}\n"}
+,{"stream_name":"stdout","time":15019.416900452,"data":"{\"tick\":3000,\"rssMb\":305.8,\"journalMb\":82.6,\"charges\":76857,\"encounters\":962,\"statusDist\":{\"active\":962},\"queueLen\":137}\n"}
+,{"stream_name":"stdout","time":15019.416905489,"data":"{\"tick\":4000,\"rssMb\":353.1,\"journalMb\":114.8,\"charges\":104310,\"encounters\":1234,\"statusDist\":{\"active\":1234},\"queueLen\":136}\n"}
+,{"stream_name":"stdout","time":15019.41691108,"data":"[longrun] CRASH-RESUME at tick 5000\n"}
+,{"stream_name":"stdout","time":15019.416931521,"data":"{\"tick\":5000,\"rssMb\":523.4,\"journalMb\":196,\"charges\":125564,\"encounters\":1511,\"statusDist\":{\"active\":1511},\"queueLen\":131}\n"}
+,{"stream_name":"stdout","time":15019.416936961,"data":"{\"tick\":6000,\"rssMb\":550.6,\"journalMb\":171.7,\"charges\":130594,\"encounters\":1782,\"statusDist\":{\"active\":1782},\"queueLen\":135}\n"}
+,{"stream_name":"stdout","time":15019.416941433,"data":"{\"tick\":7000,\"rssMb\":463.2,\"journalMb\":192.3,\"charges\":122591,\"encounters\":2060,\"statusDist\":{\"active\":2060},\"queueLen\":133}\n"}
+,{"stream_name":"stdout","time":15019.416946084,"data":"{\"tick\":8000,\"rssMb\":517.2,\"journalMb\":217.1,\"charges\":121280,\"encounters\":2323,\"statusDist\":{\"active\":2323},\"queueLen\":134}\n"}
+,{"stream_name":"stdout","time":15019.416950071,"data":"{\"tick\":9000,\"rssMb\":576.3,\"journalMb\":238.9,\"charges\":109468,\"encounters\":2594,\"statusDist\":{\"active\":2594},\"queueLen\":137}\n"}
+,{"stream_name":"stdout","time":15019.416953821,"data":"{\"tick\":10000,\"rssMb\":579,\"journalMb\":265.1,\"charges\":97765,\"encounters\":2876,\"statusDist\":{\"active\":2876},\"queueLen\":134}\n"}
+,{"stream_name":"stdout","time":15019.416959985,"data":"{\"config\":{\"ticks\":10000,\"seed\":42,\"patients\":50,\"crashAt\":5000,\"pruneTtlCharges\":\"1000\",\"snapshotRetention\":\"3\"},\"ceilings\":{\"rssMb\":450,\"journalMb\":300},\"observed\":{\"maxRssMb\":579,\"finalJournalMb\":265.1,\"finalCharges\":97765,\"midCharges\":130594,\"dischargedSeen\":true,\"dischargedAfterResume\":850,\"crashed\":null,\"lastTick\":10000},\"gates\":{\"rssCeiling\":false,\"journalCeiling\":true,\"dischargeContinuity\":true,\"pruningEvidence\":true},\"samples\":\"[10 samples]\",\"verdict\":\"FAIL\"}\n"}
+,{"stream_name":"stdout","time":15019.416968761,"data":"VALIDATE_EXIT=1\n"}
+,{"stream_name":"stdout","time":15019.416973103,"data":"2026-10-04T04:15:25Z\n"}
+,{"stream_name":"stdout","time":15019.610469342,"data":"total 32\n"}
+,{"stream_name":"stdout","time":15019.610635953,"data":"drwxr-xr-x  3 root root  4096 Oct  4 04:15 .\n"}
+,{"stream_name":"stdout","time":15019.610641883,"data":"drwxr-xr-x  8 root root  4096 Oct  4 00:05 ..\n"}
+,{"stream_name":"stdout","time":15019.610645095,"data":"drwxr-xr-x 15 root root  4096 Oct  4 04:15 Deers-Rock\n"}
+,{"stream_name":"stdout","time":15019.610647848,"data":"-rw-r--r--  1 root root  2709 Oct  4 04:15 longrun-report.json\n"}
+,{"stream_name":"stdout","time":15019.610650435,"data":"-rw-r--r--  1 root root 10573 Oct  4 04:15 __notebook__.ipynb\n"}
+,{"stream_name":"stdout","time":15019.610653091,"data":"-rw-r--r--  1 root root  1759 Oct  4 04:15 validation.log\n"}
+,{"stream_name":"stdout","time":15019.63160883,"data":"config  : {'ticks': 10000, 'seed': 42, 'patients': 50, 'crashAt': 5000, 'pruneTtlCharges': '1000', 'snapshotRetention': '3'}\n"}
+,{"stream_name":"stdout","time":15019.631643588,"data":"observed: {'maxRssMb': 579, 'finalJournalMb': 265.1, 'finalCharges': 97765, 'midCharges': 130594, 'dischargedSeen': True, 'dischargedAfterResume': 850, 'crashed': None, 'lastTick': 10000}\n"}
+,{"stream_name":"stdout","time":15019.631649515,"data":"gates   : {\n"}
+,{"stream_name":"stdout","time":15019.631653307,"data":"  \"rssCeiling\": false,\n"}
+,{"stream_name":"stdout","time":15019.631657308,"data":"  \"journalCeiling\": true,\n"}
+,{"stream_name":"stdout","time":15019.631661106,"data":"  \"dischargeContinuity\": true,\n"}
+,{"stream_name":"stdout","time":15019.631664958,"data":"  \"pruningEvidence\": true\n"}
+,{"stream_name":"stdout","time":15019.631668678,"data":"}\n"}
+,{"stream_name":"stdout","time":15019.631672558,"data":"verdict : FAIL\n"}
+,{"stream_name":"stdout","time":15019.63167609,"data":"DONE — verdict is informational; see validation.log for progress lines\n"}
+,{"stream_name":"stderr","time":15024.053060019,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":15024.053098918,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":15024.355598873,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":15024.355653349,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":15025.527071739,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":15025.656948787,"data":"[NbConvertApp] Writing 12465 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":15029.070807171,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":15029.799937968,"data":"[NbConvertApp] Writing 292834 bytes to __results__.html\n"}
+]
