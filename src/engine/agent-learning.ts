@@ -1,6 +1,7 @@
 import type { OutcomeRecord, CaseRecord, HospitalState, LearningMemory } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import { isLearningFrozen } from "./config.js";
 
 export function learnFromOutcome(
   memory: LearningMemory,
@@ -36,6 +37,11 @@ export function getActionRanking(
   icdCode: string,
   candidateActions: { actionLabel: string; actionType: string }[],
 ): { actionLabel: string; actionType: string; score: number }[] {
+  // When learning is frozen, return uniform scores so agent behavior
+  // is deterministic and identical across seeded runs.
+  if (isLearningFrozen()) {
+    return candidateActions.map(a => ({ ...a, score: 0.5 }));
+  }
   const dx = memory.byDiagnosis.get(icdCode);
   if (!dx) return candidateActions.map(a => ({ ...a, score: 0.5 }));
 
@@ -49,12 +55,17 @@ export function getActionRanking(
 }
 
 export function getDeteriorationRate(memory: LearningMemory, icdCode: string): number | null {
+  // When learning is frozen, return null so agents use default rates.
+  if (isLearningFrozen()) return null;
   const dx = memory.byDiagnosis.get(icdCode);
   if (!dx || dx.totalCases < 2) return null;
   return dx.deteriorated / dx.totalCases;
 }
 
 export function learningHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  // Skip entirely when learning is frozen — no memory updates, no side effects.
+  if (isLearningFrozen()) return state;
+
   let lMemory = state._learningMemory ?? { byDiagnosis: new Map() };
 
   for (const outcome of state._outcomeRecords ?? []) {
