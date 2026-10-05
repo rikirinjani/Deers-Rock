@@ -94,7 +94,7 @@ section("Calendar Tests");
 }
 
 {
-  const formatted = formatCalendarDate({ year: 2024, month: 3, day: 15 });
+  const formatted = formatCalendarDate({ year: 2026, month: 3, day: 15 });
   assert(formatted.includes("2026"), "C5: formatCalendarDate includes year");
   assert(formatted.includes("WITA"), "C5b: includes timezone");
 }
