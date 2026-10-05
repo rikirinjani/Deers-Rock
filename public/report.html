@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deer's Rock — Report</title>
+<style>
+:root{--bg:#0b0e14;--surface:#141a24;--surface2:#1c2432;--border:#2a3444;--text:#e2e8f0;--muted:#8896a6;--accent:#38bdf8;--green:#4ade80;--yellow:#facc15;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'SF Mono','Cascadia Code','Consolas',monospace;background:var(--bg);color:var(--text);padding:12px;font-size:12px}
+h1{font-size:16px;color:var(--accent);margin-bottom:8px}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 0 6px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .val{font-size:20px;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:1px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:4px 6px;background:var(--surface2);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:1px}
+td{padding:4px 6px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.badge-green{background:#166534;color:#4ade80}
+.badge-yellow{background:#854d0e;color:#facc15}
+.badge-red{background:#991b1b;color:#ef4444}
+.badge-blue{background:#1e3a5f;color:#38bdf8}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.back{display:inline-block;margin-bottom:8px;color:var(--accent);text-decoration:none;font-size:11px}
+.back:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<a class="back" href="/">← Back to Dashboard</a>
+<h1>📊 Deer's Rock — Report</h1>
+<div id="loading" class="loading">Loading...</div>
+<div id="content" style="display:none"></div>
+<script>
+const API = '';
+async function load() {
+  const r = await fetch(API + '/api/report').then(x=>x.json());
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='block';
+  const fmt = (n) => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : String(n);
+  const fmtTime = (ms) => { const m=Math.floor(ms/60000),h=Math.floor(m/60)%24,d=Math.floor(m/1440); return d>0?`${d}d ${h}h` : `${h}h ${m%60}m`; };
+  let html = `<div class="card"><div class="grid">
+    <div class="stat"><span class="val">${r.census.totalPatients}</span><span class="lbl">Total Patients</span></div>
+    <div class="stat"><span class="val">${r.census.activeEncounters}</span><span class="lbl">Active Encounters</span></div>
+    <div class="stat"><span class="val">${r.census.dischargedEncounters}</span><span class="lbl">Discharged</span></div>
+    <div class="stat"><span class="val">${Math.round(r.census.occupancyRate*100)}%</span><span class="lbl">Bed Occupancy</span></div>
+    <div class="stat"><span class="val">${r.clinical.lab.total}</span><span class="lbl">Lab Orders</span></div>
+    <div class="stat"><span class="val">${r.clinical.pharmacy.total}</span><span class="lbl">Med Orders</span></div>
+    <div class="stat"><span class="val">${r.clinical.surgery.total}</span><span class="lbl">Surgery</span></div>
+    <div class="stat"><span class="val">IDR ${fmt(r.finance.totalChargeAmount)}</span><span class="lbl">Total Charges</span></div>
+  </div></div>`;
+
+  html += `<h2>Top Diagnoses</h2><div class="card"><table><tr><th>ICD-10</th><th>Diagnosis</th><th>Cases</th><th>Improved</th><th>Deteriorated</th></tr>`;
+  for (const d of (r.topDiagnoses || [])) {
+    html += `<tr><td>${d.code}</td><td>${d.name}</td><td>${d.count}</td><td><span class="badge badge-green">${d.improved}</span></td><td><span class="badge badge-red">${d.deteriorated}</span></td></tr>`;
+  }
+  html += `</table></div>`;
+
+  html += `<h2>Department Activity</h2><div class="card"><table><tr><th>Department</th><th>Orders</th><th>Active</th></tr>`;
+  for (const d of (r.departments || [])) {
+    html += `<tr><td>${d.name}</td><td>${d.orderCount}</td><td>${d.activeCount}</td></tr>`;
+  }
+  html += `</table></div>`;
+
+  html += `<h2>Blood Type Distribution</h2><div class="card"><div class="grid">`;
+  for (const [bt, count] of Object.entries(r.bloodTypes || {})) {
+    html += `<div class="stat"><span class="val" style="color:var(--yellow)">${bt}</span><span class="lbl">${count} patients</span></div>`;
+  }
+  html += `</div></div>`;
+
+  html += `<h2>Finance</h2><div class="card"><div class="grid">
+    <div class="stat"><span class="val">${r.finance.totalClaims}</span><span class="lbl">Claims</span></div>
+    <div class="stat"><span class="val">${r.finance.paidClaims}</span><span class="lbl">Paid</span></div>
+    <div class="stat"><span class="val">${r.finance.deniedClaims}</span><span class="lbl">Denied</span></div>
+    <div class="stat"><span class="val">IDR ${fmt(r.finance.totalPaymentAmount)}</span><span class="lbl">Payments</span></div>
+  </div></div>`;
+
+  html += `<div style="margin-top:16px;color:var(--muted);font-size:10px">Generated at ${r.generatedAt} | Tick ${r.tick}</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+load().catch(e => { document.getElementById('loading').textContent = 'Error: ' + e.message; });
+</script>
+</body>
+</html>

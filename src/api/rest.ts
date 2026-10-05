@@ -195,6 +195,73 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     if (!bundle) { res.statusCode = 404; json(res, { error: "Not found" }); return true; }
     json(res, bundle); return true;
   }
+  // ADR-014: New FHIR endpoints
+  if (p === "/api/fhir/Condition") {
+    const api = createFhirEndpoints(() => w);
+    const patient = url.searchParams.get("patient") ?? undefined;
+    const resources = api.conditionSearch(patient);
+    json(res, { resourceType: "Bundle", type: "searchset", total: resources.length, entry: resources.map(r => ({ resource: r })) });
+    return true;
+  }
+  if (p === "/api/fhir/Claim") {
+    const api = createFhirEndpoints(() => w);
+    const patient = url.searchParams.get("patient") ?? undefined;
+    const status = url.searchParams.get("status") ?? undefined;
+    const resources = api.claimSearch(patient, status);
+    json(res, { resourceType: "Bundle", type: "searchset", total: resources.length, entry: resources.map(r => ({ resource: r })) });
+    return true;
+  }
+  if (p === "/api/fhir/Encounter") {
+    const api = createFhirEndpoints(() => w);
+    const status = url.searchParams.get("status") ?? undefined;
+    const type = url.searchParams.get("type") ?? undefined;
+    const resources = api.encounterList(status, type);
+    json(res, { resourceType: "Bundle", type: "searchset", total: resources.length, entry: resources.map(r => ({ resource: r })) });
+    return true;
+  }
+  if (p === "/api/fhir/metadata") {
+    json(res, createFhirEndpoints(() => w).conformance());
+    return true;
+  }
+  // ADR-014: CSV exports
+  function esc(s: string): string {
+    return `"${String(s).replace(/"/g, '""').replace(/\n/g, " ")}"`;
+  }
+  if (p === "/api/export/patients.csv") {
+    const patients = Array.from(w.state.patients.values());
+    const rows = ["id,name,age,gender,bloodType,rhesus,allergies"];
+    for (const p of patients) {
+      const r = (p as any).rhesus ?? "+";
+      rows.push(`${esc(p.id)},${esc(p.name)},${p.age},${p.gender},${p.bloodType},${r},"${(p.allergies||[]).join(";")}"`);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="patients.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
+  if (p === "/api/export/encounters.csv") {
+    const encs = Array.from(w.state.encounters.values());
+    const rows = ["id,type,status,patientId,diagnosis,tickIn"];
+    for (const e of encs) {
+      const dx = e.primaryDiagnosis || "";
+      rows.push(`${esc(e.id)},${esc(e.type)},${esc(e.status)},${esc(e.patientId)},${esc(dx)},${e.startTime}`);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="encounters.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
+  if (p === "/api/export/charges.csv") {
+    const charges = Array.from(w.state.charges.values());
+    const rows = ["id,encounterId,patientId,description,amount,billedAt"];
+    for (const c of charges) {
+      rows.push(`${esc(c.id)},${esc(c.encounterId)},${esc(c.patientId)},${esc(c.description)},${c.amount},${c.billedAt}`);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="charges.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
   if (p === "/api/mm-conference") {
     const conferences = w.state._mmConferences || [];
     const latest = conferences[conferences.length - 1] ?? null;
