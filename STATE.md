@@ -1,32 +1,25 @@
 # STATE.md — Deers-Rock loop state
 
-## Last run: 2026-10-03/04 — ADR-004 remediation + 10k box-fit validation (Amendments 1–2)
+## Last run: 2026-10-05 — ADR-010 clinical fidelity expansion
 
-**Mode:** L2 (continuation of the owner-approved ADR-004 arc; remediation Option A chosen by owner in-session: tune + instrumented verify, then Kaggle re-validation).
+**Mode:** L2 (owner-approved: expand formulary to 73 drugs, ICD-10 generator to 146 codes, INA-CBG to 144 tariffs with full SEP scoring)
 
-### Remediation (Amendment 1, commit `a9568db`; fidelity fix `906f245`)
-- Charges TTL 2000→1000 via validator default `DR_PRUNE_TTL_CHARGES`; snapshot retention env-tunable `DR_SNAPSHOT_RETENTION` (3 in validation; engine default 5, byte-identical when unset). Charges proven settlement-bound, not TTL-bound (TTL change moved tick-6000 charges only ~136.5k→130.2k).
-- Discharge gate fixed: `cleanup.ts:58` deletes non-active encounters within ≤10 ticks once active>500, so 1000-tick samples can never observe discharges after tick ~2000 (the old gate's PASS was pre-crash tick-1000 evidence only). Validator now counts discharge transitions **every tick** (`dischargedAfterResume`): 850 genuinely new post-resume discharges in the 10k run — D1 discharge continuity proven conclusively.
-- Crash-simulation fidelity: the harness released the pre-crash world before the resume parse (real restart = fresh process; V8 reclaims under parse pressure). Resume-spike sample: 355 MB local vs 641.9 in the failed run.
-- ver-1 independent reviews: **APPROVE** on `a9568db` (6 non-blocking findings) and **APPROVE** on `906f245` (3 non-blocking, incl. catching an evidence-labeling error of mine). Suite 26 files / 189 tests, tsc clean.
-- Process notes: two imp-1 dispatches hit provider header timeouts (failure records filed; edits recovered from disk and reconciled); one verifier F1 caught my evidence-copy mistake (200-tick smoke mislabeled as the 6k report) — fixed by extracting from the stdout log.
+### ADR-010 Changes (commits `e5d4f76`, `2360f3f`)
+- **Drug catalog**: New file `src/engine/drug-catalog.ts` with 73 drugs across 24 categories (antihypertensives, antidiabetics, antibiotics, antivirals, antipsychotics, antidepressants, corticosteroids, etc.)
+- **ICD-10 generator**: Expanded from 52 to 146 codes covering all major chapters (A-R, excluding Z as fallback)
+- **INA-CBG tariffs**: Expanded from 71 to 144 entries with full SEP (Severity of Illness Points) scoring: SEP 0→×1.0, SEP 1→×1.15, SEP 2→×1.35, SEP 3→×1.60, SEP 4→×1.90
+- **Clinical protocols**: Added protocols for all 146 ICD codes in `clinical-knowledge.ts`
+- **Pharmacy integration**: Updated `pharmacy-knowledge.ts` (allergens, contraindications, interactions for 73 drugs), `pharmacy.ts`, `ai-pharmacy.ts`, `central-supply.ts`
+- **Auth polyfill**: Dashboard JS now injects `window.__DR_API_KEY` from server; all fetch calls authenticated
+- **Bug fixes**: Fixed duplicate ICD codes (C61, E11, S06), fixed `finance.ts` severity extraction, fixed TypeScript errors in `clinical-knowledge.ts`
 
-### Validation arc (kernel `rikirinjani/deers-rock-bounded-10k-validation`, all pinned to the reviewed candidate)
-- v3: hung ~9 h (transient infra; relaunched, fresh 12 h window).
-- **v4 (unconstrained): FAIL 1/4** — `rssCeiling` 579/450 was the only miss; journal 265.1/300 PASS; `dischargedAfterResume` 850; charges 97,765 declining; no crash.
-- Local 10k true-peak forecast: PASS 4/4 (maxRss 400.7) — cross-host **determinism proven**: charges/journal/encounters/queueLen/dischargedAfterResume byte-identical to v4.
-- **v5 (`node --max-old-space-size=350`, mirroring the production constraint): PASS 4/4** — maxRss 417.3/450, journal 265.1/300, `dischargedAfterResume` 850, `crashed: null`, ~3 h, VALIDATE_EXIT=0. This is the box-fit evidence for the 512 M co-host.
-- **Amendment 2:** unconstrained-host RSS is not a valid box-fit proxy — V8 sizes its heap from host RAM and cgroups do not bound it (the live-incident mechanism). Production must set `--max-old-space-size` (~350) in the unit; gate definition unchanged.
-- Evidence archived hash-verified under `docs/adr/evidence/`: `ADR-004-10k-FAIL` (v2), `ADR-004-6k-profile`, `ADR-004-10k-local-forecast`, `ADR-004-10k-kaggle-v4`, `ADR-004-10k-kaggle-v5`.
+### Validation
+- Test suite: **189 tests pass** (26 files), tsc clean
+- Live box: running at tick 2941, 419 patients, 960 active encounters, 386 outcomes, RSS 119MB/512MB
 
-### Open items (staging decision pending owner)
-- **Live box — STAGING ACCEPTED (2026-10-04 23:20 CST):** service active at `ca45991`/`e74c8ed`, auth 401/200 ✓, public 302→CF Access ✓, cokro-api co-tenant healthy, incident data set aside at `/srv/deers-rock/data.incident-20261002.bak` (1.2 GB). All 5 env vars in `/srv/deers-rock/deers-rock.env` (`DR_BOUNDED_STATE=1`, `DR_DURABLE_QUEUE=1`, `DR_PRUNE_TTL_CHARGES=1000`, `DR_SNAPSHOT_RETENTION=3`, `NODE_OPTIONS=--max-old-space-size=400`).
-  - **Durable queue test:** restarted from snapshot tick 10500; 4 post-restart discharge events at ticks > 10551, zero dropped-event warnings. D1 verified on live box.
-  - **Resume OOM remediated:** 350 MB cap hit OOM on 96 MB snapshot parse → increased to 400 MB (owner-approved). Service stable at tick 10601, RSS 328MB, peak 512MB (cgroup), swap 192MB.
-  - Journal: 298 MB (`world-journal.db`), 3 retained snapshots (ticks 10300/10400/10500).
-- **Issue #3 correction comment:** posted [here](https://github.com/rikirinjani/Deers-Rock/issues/3#issuecomment-5978461029) — cleanup-masking caveat on 3422/3422 evidence, durable queue fix `ce07e01` validated + deployed.
-- **Docs URL swap** (dead Railway → `deers-rock.cokro-tech.my.id`) at `EVALUATION-REPORT.md:292` — committed `c28588a`.
-- Issue #4 (CPU scaling) still open — blocks the 100k-tick calibration only, not staging.
+### Open items
+- Issue #4 (CPU scaling) still open — blocks 100k-tick calibration only
+- Long-term: consider snapshot compression to reduce resume memory footprint
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
