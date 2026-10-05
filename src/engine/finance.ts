@@ -106,7 +106,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
 
     // Compute severity from chart diagnoses
     const chartDxCodes = chart?.diagnoses.map(d => d.code) ?? [];
-    const severity = inferSeverity(chartDxCodes);
+    const { level: severity } = inferSeverity(chartDxCodes);
     const primaryDx = patient?.diagnoses.find(d => d.active) ?? patient?.diagnoses[0];
     const cbgEntry = primaryDx ? lookupCbgTariff(primaryDx.code, severity) : undefined;
 

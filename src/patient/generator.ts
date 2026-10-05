@@ -65,7 +65,6 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "A27", name: "Leptospirosis", minAge: 10, maxAge: 70, genders: ["male", "female"], weight: 3 },
   { code: "A82", name: "Rabies exposure", minAge: 1, maxAge: 80, genders: ["male", "female"], weight: 2 },
   { code: "T63", name: "Snake bite envenomation", minAge: 5, maxAge: 75, genders: ["male", "female"], weight: 2 },
-  { code: "E11", name: "Diabetic foot / gangrene", minAge: 35, maxAge: 85, genders: ["male", "female"], weight: 3 },
   { code: "P36", name: "Neonatal sepsis", minAge: 0, maxAge: 0, genders: ["male", "female"], weight: 3 },
   { code: "I05", name: "Rheumatic heart disease", minAge: 15, maxAge: 60, genders: ["male", "female"], weight: 2 },
   { code: "B86", name: "Scabies", minAge: 1, maxAge: 80, genders: ["male", "female"], weight: 2 },
@@ -152,7 +151,6 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "G56", name: "Carpal tunnel syndrome", minAge: 30, maxAge: 80, genders: ["female", "male"], weight: 2 },
 
   // ── NEW: Genitourinary (N-chapter) ────────────────────────────
-  { code: "C61", name: "Malignant neoplasm of prostate", minAge: 50, maxAge: 99, genders: ["male"], weight: 1 },
   { code: "N17", name: "Acute kidney failure", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 3 },
   { code: "N41", name: "Prostatitis", minAge: 20, maxAge: 80, genders: ["male"], weight: 2 },
   { code: "N10", name: "Acute pyelonephritis", minAge: 1, maxAge: 99, genders: ["female", "male"], weight: 3 },
@@ -172,7 +170,7 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   // ── NEW: Injury (S-chapter) ───────────────────────────────────
   { code: "S22", name: "Fracture of rib(s)", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 2 },
   { code: "S62", name: "Fracture of wrist/hand", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 2 },
-  { code: "S06", name: "Concussion", minAge: 1, maxAge: 85, genders: ["male", "female"], weight: 2 },
+  { code: "R51", name: "Headache", minAge: 1, maxAge: 85, genders: ["male", "female"], weight: 2 },
 
   // ── NEW: External causes (V-Y) ────────────────────────────────
   { code: "T39", name: "Poisoning by analgesic", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 1 },
@@ -182,7 +180,6 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "R50", name: "Fever unspecified", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 4 },
   { code: "R07", name: "Chest pain", minAge: 10, maxAge: 99, genders: ["male", "female"], weight: 4 },
   { code: "R55", name: "Syncope and collapse", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 3 },
-  { code: "R51", name: "Headache", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 3 },
   { code: "R70", name: "Elevated erythrocyte sedimentation rate", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 2 },
 ];
 
