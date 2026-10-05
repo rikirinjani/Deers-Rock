@@ -127,11 +127,26 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     const topActions = deduped.slice(0, 4);
 
     const keyPrefix = `AI-${clock.tick}-${enc.patientId}`;
-    const existingOrderKeys = new Set<string>();
-    for (const o of state.physicianOrders.values()) if (o.patientId === enc.patientId) existingOrderKeys.add(`physician:${o.description}`);
-    for (const o of state.labOrders.values()) if (o.patientId === enc.patientId) existingOrderKeys.add(`lab:${o.testName}`);
-    for (const o of state.medicationOrders.values()) if (o.patientId === enc.patientId) existingOrderKeys.add(`med:${o.medication.name}`);
-    for (const o of state.radiologyOrders.values()) if (o.patientId === enc.patientId) existingOrderKeys.add(`rad:${o.studyType}`);
+    // Oracle-issue #4 fix: build per-patient order-index ONCE per handler call
+    // instead of scanning all maps per encounter (O(encounters × Σorders) → O(Σorders + encounters)).
+    // Maps are copied above (newPhysOrders etc.) so we index the copies, not the originals.
+    const patientOrderKeys = new Map<string, Set<string>>();
+    const addPatientOrders = (orders: Iterable<{ patientId: string; description?: string; testName?: string; medication?: { name: string }; studyType?: string }>, prefix: string) => {
+      for (const o of orders) {
+        let keys = patientOrderKeys.get(o.patientId);
+        if (!keys) { keys = new Set(); patientOrderKeys.set(o.patientId, keys); }
+        if (o.description) keys.add(`${prefix}:${o.description}`);
+        else if (o.testName) keys.add(`${prefix}:${o.testName}`);
+        else if (o.medication) keys.add(`${prefix}:${o.medication.name}`);
+        else if (o.studyType) keys.add(`${prefix}:${o.studyType}`);
+      }
+    };
+    addPatientOrders(newPhysOrders.values(), "physician");
+    addPatientOrders(newLabOrders.values(), "lab");
+    addPatientOrders(newMedOrders.values(), "med");
+    addPatientOrders(newRadOrders.values(), "rad");
+
+    const existingOrderKeys = patientOrderKeys.get(enc.patientId) ?? new Set<string>();
 
     const taken: string[] = [];
     const caseKey = `CASE-${enc.id}`;
