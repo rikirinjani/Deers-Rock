@@ -1,0 +1,12 @@
+{
+  "id": "rikirinjani/deers-rock-issue4-cpu-scaling",
+  "title": "Deers-Rock Issue #4 CPU Scaling Validation",
+  "code_file": "kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "suffix": "issue4-cpu-scaling",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "commit_message": "Issue #4 CPU scaling validation - indexed order lookup fix"
+}
