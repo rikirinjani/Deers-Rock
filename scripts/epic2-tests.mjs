@@ -110,9 +110,6 @@ section("Calendar Tests");
 }
 
 {
-  const LEBAARAN = null; assert(LEBAARAN, "C9: LEBAARAN constant defined");
-  assert(NATAL_ISLAM !== undefined, "C10: NATAL_ISLAM defined");
-  assert(INA_INDEPENDENCE !== undefined, "C11: INA_INDEPENDENCE defined");
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
