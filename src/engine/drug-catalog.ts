@@ -5,8 +5,9 @@
  * Codes are 3-letter uppercase abbreviations (e.g. "LOS" = Losartan).
  * Supply codes follow the existing "MED-XXX" convention in central-supply.ts.
  *
- * Covers 73 drugs across 24 categories.
+ * Covers 92 drugs across 26 categories.
  * Existing 22 codes preserved for backward-compatibility with all downstream tables.
+ * ADR-011 additions: 19 new drugs + 1 dosing variant (MOR5).
  */
 
 export type DrugCategory =
@@ -164,6 +165,37 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "R", innName: "Rifampicin 150mg", category: "antituberculous", dose: "150 mg", route: "PO", supplyCode: "MED-R", costIdr: 2000, allergens: [], classTag: "antitb", minMg: 150, maxMg: 450, maxDailyMg: 600 },
   { code: "Z", innName: "Pyrazinamide 500mg", category: "antituberculous", dose: "500 mg", route: "PO", supplyCode: "MED-Z", costIdr: 1000, allergens: [], classTag: "antitb", minMg: 500, maxMg: 1500, maxDailyMg: 2000 },
   { code: "E", innName: "Ethambutol 400mg", category: "antituberculous", dose: "400 mg", route: "PO", supplyCode: "MED-E", costIdr: 1500, allergens: [], classTag: "antitb", minMg: 400, maxMg: 800, maxDailyMg: 1200 },
+
+  // ── ADR-011: Missing drugs for protocol coverage ───────────────
+  // Antibiotics
+  { code: "AZM", innName: "Azithromycin 250mg", category: "antibiotic", dose: "250 mg", route: "PO", supplyCode: "MED-AZM", costIdr: 3000, allergens: [], classTag: "macrolide", minMg: 250, maxMg: 500, maxDailyMg: 500 },
+  { code: "PCN", innName: "Penicillin G 1MU", category: "antibiotic", dose: "1 MU", route: "IV", supplyCode: "MED-PCN", costIdr: 2000, allergens: ["penicillin"], classTag: "penicillin", minMg: 1, maxMg: 4, maxDailyMg: 24 },
+  { code: "DAP", innName: "Dapsone 100mg", category: "antibiotic", dose: "100 mg", route: "PO", supplyCode: "MED-DAP", costIdr: 1000, allergens: ["sulfone"], classTag: "sulfone", minMg: 50, maxMg: 100, maxDailyMg: 200 },
+  // Antivirals
+  { code: "VALA", innName: "Valacyclovir 500mg", category: "antiviral", dose: "500 mg", route: "PO", supplyCode: "MED-VALA", costIdr: 15000, allergens: [], classTag: "antiviral", minMg: 500, maxMg: 1000, maxDailyMg: 3000 },
+  // Endocrine
+  { code: "LVT", innName: "Levothyroxine 100mcg", category: "other", dose: "100 mcg", route: "PO", supplyCode: "MED-LVT", costIdr: 1500, allergens: [], classTag: "thyroid_hormone", minMg: 25, maxMg: 100, maxDailyMg: 300 },
+  { code: "PTU", innName: "Propylthiouracil 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-PTU", costIdr: 3000, allergens: [], classTag: "antithyroid", minMg: 50, maxMg: 100, maxDailyMg: 300 },
+  { code: "KET", innName: "Ketoconazole 200mg", category: "antifungal", dose: "200 mg", route: "PO", supplyCode: "MED-KET", costIdr: 4000, allergens: [], classTag: "azole", minMg: 200, maxMg: 400, maxDailyMg: 800 },
+  // Cardiovascular
+  { code: "METO", innName: "Metoprolol 50mg", category: "antihypertensive", dose: "50 mg", route: "PO", supplyCode: "MED-METO", costIdr: 500, allergens: [], classTag: "beta_blocker", minMg: 25, maxMg: 50, maxDailyMg: 200 },
+  { code: "NIM", innName: "Nimodipine 60mg", category: "antihypertensive", dose: "60 mg", route: "PO", supplyCode: "MED-NIM", costIdr: 12000, allergens: [], classTag: "ccb", minMg: 30, maxMg: 60, maxDailyMg: 180 },
+  { code: "PRA", innName: "Prazosin 1mg", category: "antihypertensive", dose: "1 mg", route: "PO", supplyCode: "MED-PRA", costIdr: 1000, allergens: [], classTag: "alpha_blocker", minMg: 0.5, maxMg: 1, maxDailyMg: 20 },
+  { code: "MAG", innName: "Magnesium sulfate 1g", category: "electrolyte", dose: "1 g", route: "IV", supplyCode: "MED-MAG", costIdr: 5000, allergens: [], classTag: "electrolyte", minMg: 1, maxMg: 4, maxDailyMg: 8 },
+  // CNS / Psych
+  { code: "DON", innName: "Donepezil 10mg", category: "other", dose: "10 mg", route: "PO", supplyCode: "MED-DON", costIdr: 25000, allergens: [], classTag: "cholinesterase_inhibitor", minMg: 5, maxMg: 10, maxDailyMg: 23 },
+  { code: "MPH", innName: "Methylphenidate 10mg", category: "other", dose: "10 mg", route: "PO", supplyCode: "MED-MPH", costIdr: 15000, allergens: [], classTag: "stimulant", minMg: 5, maxMg: 10, maxDailyMg: 60 },
+  { code: "SUM", innName: "Sumatriptan 50mg", category: "other", dose: "50 mg", route: "PO", supplyCode: "MED-SUM", costIdr: 20000, allergens: [], classTag: "triptyan", minMg: 25, maxMg: 50, maxDailyMg: 200 },
+  { code: "BET", innName: "Betahistine 16mg", category: "other", dose: "16 mg", route: "PO", supplyCode: "MED-BET", costIdr: 8000, allergens: [], classTag: "histamine_analog", minMg: 8, maxMg: 16, maxDailyMg: 48 },
+  // Analgesic variant
+  { code: "MOR5", innName: "Morphine 5mg", category: "opioid", dose: "5 mg", route: "SC", supplyCode: "MED-MOR5", costIdr: 3000, allergens: ["morphine", "opioid"], classTag: "opioid", minMg: 2.5, maxMg: 5, maxDailyMg: 15 },
+  // Antidote
+  { code: "NAC", innName: "N-acetylcysteine 600mg", category: "other", dose: "600 mg", route: "PO", supplyCode: "MED-NAC", costIdr: 8000, allergens: [], classTag: "antidote", minMg: 600, maxMg: 1400, maxDailyMg: 3000 },
+  // Ophthalmic
+  { code: "TOB", innName: "Tobramycin eye drops", category: "antibiotic", dose: "0.3%", route: "TOP", supplyCode: "MED-TOB", costIdr: 12000, allergens: [], classTag: "aminoglycoside", minMg: 1, maxMg: 2, maxDailyMg: 6 },
+  { code: "PREDN", innName: "Prednisolone eye drops", category: "corticosteroid", dose: "1%", route: "TOP", supplyCode: "MED-PREDN", costIdr: 10000, allergens: [], classTag: "corticosteroid", minMg: 1, maxMg: 2, maxDailyMg: 8 },
+  // Supplement
+  { code: "FOL", innName: "Folic acid 1mg", category: "electrolyte", dose: "1 mg", route: "PO", supplyCode: "MED-FOL", costIdr: 200, allergens: [], classTag: "vitamin", minMg: 1, maxMg: 5, maxDailyMg: 10 },
 ];
 
 /** Lookup by 3-letter code — O(1) */

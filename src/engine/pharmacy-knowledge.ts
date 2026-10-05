@@ -51,6 +51,13 @@ export const MED_ALLERGEN_MAP: Record<string, string[]> = {
   "ART": [], "PRQ": [],
   // New — antituberculous
   "H": [], "R": [], "Z": [], "E": [],
+  // ADR-011: New drugs for protocol coverage
+  "AZM": [], "PCN": ["penicillin"], "DAP": ["sulfone"],
+  "VALA": [], "LVT": [], "PTU": [], "KET": [],
+  "METO": [], "NIM": [], "PRA": [], "MAG": [],
+  "DON": [], "MPH": [], "SUM": [], "BET": [],
+  "MOR5": ["morphine", "opioid"], "NAC": [],
+  "TOB": [], "PREDN": [], "FOL": [],
 };
 
 /**
@@ -143,6 +150,27 @@ export const DRUG_DIAGNOSIS_CONTRA: { drugCode: string; diagCodes: string[]; rat
   { drugCode: "PNT", diagCodes: ["N18", "N17"], rationale: "Pantoprazole — generally safe in renal impairment; monitor Mg with long-term use" },
   // ── New: Antiemetics ──────────────────────────────────────────
   { drugCode: "MET2", diagCodes: ["K25", "K26"], rationale: "Metoclopramide — extrapyramidal symptoms risk; avoid in GI perforation" },
+  // ── ADR-011: New drugs contraindications ──────────────────────
+  { drugCode: "AZM", diagCodes: ["K70", "K71", "K72", "K73", "K74"], rationale: "Azithromycin — hepatotoxic; caution in liver disease" },
+  { drugCode: "PCN", diagCodes: ["B20"], rationale: "Penicillin — monitor for rash in HIV patients" },
+  { drugCode: "DAP", diagCodes: ["D55"], rationale: "Dapsone — contraindicated in G6PD deficiency (hemolysis)" },
+  { drugCode: "VALA", diagCodes: ["N18", "N17"], rationale: "Valacyclovir — dose adjustment in renal impairment" },
+  { drugCode: "LVT", diagCodes: [], rationale: "Levothyroxine — monitor thyroid function; adjust dose based on TSH" },
+  { drugCode: "PTU", diagCodes: ["K70", "K71", "K72", "K73", "K74"], rationale: "Propylthiouracil — hepatotoxic; monitor LFTs" },
+  { drugCode: "KET", diagCodes: ["K70", "K71", "K72", "K73", "K74"], rationale: "Ketoconazole — hepatotoxic; avoid in liver disease" },
+  { drugCode: "METO", diagCodes: ["J45", "I50"], rationale: "Metoprolol — caution in asthma and heart failure" },
+  { drugCode: "NIM", diagCodes: [], rationale: "Nimodipine — monitor BP; risk of hypotension" },
+  { drugCode: "PRA", diagCodes: ["I95"], rationale: "Prazosin — may cause first-dose hypotension" },
+  { drugCode: "MAG", diagCodes: ["N18", "N17"], rationale: "Magnesium sulfate — caution in renal impairment (hypermagnesemia risk)" },
+  { drugCode: "DON", diagCodes: [], rationale: "Donepezil — caution in cardiac conduction disorders" },
+  { drugCode: "MPH", diagCodes: [], rationale: "Methylphenidate — monitor BP and heart rate" },
+  { drugCode: "SUM", diagCodes: ["I21", "I25"], rationale: "Sumatriptan — contraindicated in ischemic heart disease" },
+  { drugCode: "BET", diagCodes: [], rationale: "Betahistine — caution in peptic ulcer disease" },
+  { drugCode: "MOR5", diagCodes: ["J45"], rationale: "Morphine — respiratory depression in asthma" },
+  { drugCode: "NAC", diagCodes: [], rationale: "N-acetylcysteine — anaphylactoid reactions possible" },
+  { drugCode: "TOB", diagCodes: [], rationale: "Tobramycin eye drops — local irritation possible" },
+  { drugCode: "PREDN", diagCodes: [], rationale: "Prednisolone eye drops — avoid in viral eye infections" },
+  { drugCode: "FOL", diagCodes: [], rationale: "Folic acid — well-tolerated; no significant contraindications" },
 ];
 
 /**
@@ -244,6 +272,27 @@ export function getDoseRange(drugCode: string): { minMg: number; maxMg: number; 
     "R": { minMg: 150, maxMg: 450, maxDailyMg: 600, unit: "mg" },
     "Z": { minMg: 500, maxMg: 1500, maxDailyMg: 2000, unit: "mg" },
     "E": { minMg: 400, maxMg: 800, maxDailyMg: 1200, unit: "mg" },
+    // ADR-011: New drug dose ranges
+    "AZM": { minMg: 250, maxMg: 500, maxDailyMg: 500, unit: "mg" },
+    "PCN": { minMg: 1, maxMg: 4, maxDailyMg: 24, unit: "MU" },
+    "DAP": { minMg: 50, maxMg: 100, maxDailyMg: 200, unit: "mg" },
+    "VALA": { minMg: 500, maxMg: 1000, maxDailyMg: 3000, unit: "mg" },
+    "LVT": { minMg: 25, maxMg: 100, maxDailyMg: 300, unit: "mcg" },
+    "PTU": { minMg: 50, maxMg: 100, maxDailyMg: 300, unit: "mg" },
+    "KET": { minMg: 200, maxMg: 400, maxDailyMg: 800, unit: "mg" },
+    "METO": { minMg: 25, maxMg: 50, maxDailyMg: 200, unit: "mg" },
+    "NIM": { minMg: 30, maxMg: 60, maxDailyMg: 180, unit: "mg" },
+    "PRA": { minMg: 0.5, maxMg: 1, maxDailyMg: 20, unit: "mg" },
+    "MAG": { minMg: 1, maxMg: 4, maxDailyMg: 8, unit: "g" },
+    "DON": { minMg: 5, maxMg: 10, maxDailyMg: 23, unit: "mg" },
+    "MPH": { minMg: 5, maxMg: 10, maxDailyMg: 60, unit: "mg" },
+    "SUM": { minMg: 25, maxMg: 50, maxDailyMg: 200, unit: "mg" },
+    "BET": { minMg: 8, maxMg: 16, maxDailyMg: 48, unit: "mg" },
+    "MOR5": { minMg: 2.5, maxMg: 5, maxDailyMg: 15, unit: "mg" },
+    "NAC": { minMg: 600, maxMg: 1400, maxDailyMg: 3000, unit: "mg" },
+    "TOB": { minMg: 1, maxMg: 2, maxDailyMg: 6, unit: "drop" },
+    "PREDN": { minMg: 1, maxMg: 2, maxDailyMg: 8, unit: "drop" },
+    "FOL": { minMg: 1, maxMg: 5, maxDailyMg: 10, unit: "mg" },
   };
   return all[drugCode] ?? null;
 }
@@ -406,6 +455,81 @@ export function checkDrugInteraction(
     // ── New: Electrolyte ──────────────────────────────────────────
     "HCT": { "FUR": { severity: "moderate", desc: "HCTZ + Furosemide: additive electrolyte depletion" },
       "KCL": { severity: "minor", desc: "HCTZ + KCl: often co-prescribed for potassium replacement" } },
+    // ── ADR-011: New drug interactions ────────────────────────────
+    "AZM": {
+      "HEP": { severity: "moderate", desc: "Azithromycin + Enoxaparin: monitor for bleeding" },
+      "WAF": { severity: "moderate", desc: "Azithromycin + Warfarin: may enhance anticoagulant effect" },
+      "CLI": { severity: "moderate", desc: "Azithromycin + Clarithromycin: additive QT prolongation" },
+    },
+    "PCN": {
+      "TDF": { severity: "moderate", desc: "Penicillin + Tenofovir: monitor renal function" },
+      "HEP": { severity: "moderate", desc: "Penicillin + Enoxaparin: monitor for bleeding" },
+    },
+    "DAP": {
+      "MET": { severity: "moderate", desc: "Dapsone + Metformin: increased methemoglobin risk" },
+      "AZM": { severity: "minor", desc: "Dapsone + Azithromycin: monitor for hemolysis" },
+    },
+    "VALA": {
+      "ARI": { severity: "minor", desc: "Valacyclovir + Allopurinol: increased valacyclovir levels" },
+    },
+    "LVT": {
+      "WAF": { severity: "moderate", desc: "Levothyroxine + Warfarin: may enhance anticoagulant effect" },
+      "IRON": { severity: "minor", desc: "Levothyroxine + Iron: reduced absorption; separate by 4h" },
+    },
+    "PTU": {
+      "WAF": { severity: "moderate", desc: "PTU + Warfarin: monitor INR" },
+      "IPH": { severity: "minor", desc: "PTU + Isoniazid: increased hepatotoxicity risk" },
+    },
+    "KET": {
+      "WAF": { severity: "major", desc: "Ketoconazole + Warfarin: increased bleeding risk" },
+      "CLO": { severity: "moderate", desc: "Ketoconazole + Clopidogrel: CYP3A4 inhibition" },
+    },
+    "METO": {
+      "DIA": { severity: "moderate", desc: "Metoprolol + Diazepam: additive bradycardia" },
+      "FUR": { severity: "minor", desc: "Metoprolol + Furosemide: monitor BP" },
+      "IBU": { severity: "moderate", desc: "Metoprolol + Ibuprofen: reduced antihypertensive effect" },
+    },
+    "NIM": {
+      "CLI": { severity: "moderate", desc: "Nimodipine + Clarithromycin: CYP3A4 inhibition increases nimodipine levels" },
+      "WAF": { severity: "moderate", desc: "Nimodipine + Warfarin: monitor INR" },
+    },
+    "PRA": {
+      "BIS": { severity: "moderate", desc: "Prazosin + Bisoprolol: additive hypotension" },
+      "SILD": { severity: "major", desc: "Prazosin + Sildenafil: severe hypotension" },
+    },
+    "MAG": {
+      "FUR": { severity: "minor", desc: "Magnesium + Furosemide: monitor electrolytes" },
+      "ANT": { severity: "moderate", desc: "Magnesium + Antacids: hypermagnesemia risk" },
+    },
+    "DON": {
+      "CLI": { severity: "moderate", desc: "Donepezil + Clarithromycin: CYP3A4 interaction" },
+      "BIS": { severity: "minor", desc: "Donepezil + Beta-blockers: additive bradycardia" },
+    },
+    "MPH": {
+      "MAOI": { severity: "major", desc: "Methylphenidate + MAOIs: hypertensive crisis" },
+      "DIA": { severity: "moderate", desc: "Methylphenidate + Diazepam: opposing CNS effects" },
+    },
+    "SUM": {
+      "CLI": { severity: "moderate", desc: "Sumatriptan + Clarithromycin: CYP3A4 interaction" },
+      "SSRI": { severity: "moderate", desc: "Sumatriptan + SSRIs: serotonin syndrome risk" },
+    },
+    "BET": {
+      "ASP": { severity: "minor", desc: "Betahistine + Aspirin: may reduce betahistine efficacy" },
+    },
+    "MOR5": {
+      "DIA": { severity: "major", desc: "Morphine + Diazepam: respiratory depression" },
+      "TRM": { severity: "major", desc: "Morphine + Tramadol: additive opioid toxicity" },
+      "OLA": { severity: "moderate", desc: "Morphine + Olanzapine: increased sedation" },
+    },
+    "NAC": {
+      " activated charcoal": { severity: "minor", desc: "NAC + Activated charcoal: reduced absorption" },
+    },
+    "TOB": { "HEP": { severity: "minor", desc: "Tobramycin eye drops — local use, minimal systemic interaction" } },
+    "PREDN": { "IPR": { severity: "minor", desc: "Prednisolone eye drops — local use, minimal systemic interaction" } },
+    "FOL": {
+      "MET": { severity: "minor", desc: "Folic acid + Metformin: metformin may reduce folate levels" },
+      "PHN": { severity: "minor", desc: "Folic acid + Phenytoin: may reduce anticonvulsant efficacy" },
+    },
   };
 
   if (!INTERACTIONS[newDrug.code]) return { severity: "none", description: null };

@@ -9,6 +9,19 @@ import { getActionRanking } from "./agent-learning.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { RAD_STUDIES } from "./radiology.js";
+import { DRUG_CATALOG } from "./drug-catalog.js";
+
+/**
+ * Alias mapping: protocol action labels → drug codes.
+ * Covers cases where protocol uses a descriptive label that doesn't exactly
+ * match the catalog INN name (e.g. "Artemisinin-combination therapy" → "ART").
+ */
+const LABEL_TO_CODE: Record<string, string> = {
+  "Artemisinin-combination therapy": "ART",
+  "N-acetylcysteine 100mg": "NAC",
+  "Metoprolol 50mg": "METO",
+  "Morphine 5mg": "MOR5",
+};
 
 const ROUND_INTERVAL = 4;
 
@@ -156,12 +169,19 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
           break;
         }
         case "medication": {
-          const med = MEDICATIONS.find(m => m.name === ca.action.label || m.code === ca.action.detail);
-          if (med && !existingOrderKeys.has(`med:${med.name}`)) {
+          // Direct match by name or code, then alias fallback
+          const directMed = MEDICATIONS.find(m => m.name === ca.action.label || m.code === ca.action.detail);
+          const aliasCode = LABEL_TO_CODE[ca.action.label] ?? ca.action.detail;
+          const aliasDrug = aliasCode !== ca.action.detail
+            ? DRUG_CATALOG.find(d => d.code === aliasCode)
+            : undefined;
+          const med = directMed ?? (aliasDrug ? { code: aliasDrug.code, name: aliasDrug.innName, dose: aliasDrug.dose, route: aliasDrug.route } : undefined);
+          const medName = med?.name ?? med?.code ?? ca.action.label;
+          if (med && !existingOrderKeys.has(`med:${medName}`)) {
             const order: MedicationOrder = {
               id: `${keyPrefix}-${med.code}`,
               encounterId: enc.id, patientId: enc.patientId,
-              medication: { code: med.code, name: med.name, dose: med.dose, route: med.route },
+              medication: { code: med.code, name: medName, dose: med.dose, route: med.route },
               status: "ordered", dose: med.dose, route: med.route,
               frequency: determineFrequency(ca.action.label),
               orderedAt: clock.hospitalTimeMs, administeredAt: null,

@@ -4,7 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { InventoryItem, StockTransaction } from "../patient/schema.js";
 
 const CATALOG: { code: string; name: string; category: InventoryItem["category"]; unit: string; min: number; max: number }[] = [
-  // Medications (central pharmacy serves all wards/ED) — 73 drugs
+  // Medications (central pharmacy serves all wards/ED) — 93 drugs
   // ── Existing 22 ───────────────────────────────────────────────
   { code: "MED-ACE", name: "Enalapril 5mg", category: "medication", unit: "tab", min: 200, max: 2000 },
   { code: "MED-MET", name: "Metformin 500mg", category: "medication", unit: "tab", min: 200, max: 2000 },
@@ -80,6 +80,27 @@ const CATALOG: { code: string; name: string; category: InventoryItem["category"]
   { code: "MED-R", name: "Rifampicin 150mg", category: "medication", unit: "cap", min: 200, max: 2000 },
   { code: "MED-Z", name: "Pyrazinamide 500mg", category: "medication", unit: "tab", min: 200, max: 2000 },
   { code: "MED-E", name: "Ethambutol 400mg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  // ── ADR-011: New drugs for protocol coverage ───────────────────
+  { code: "MED-AZM", name: "Azithromycin 250mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-PCN", name: "Penicillin G 1MU", category: "medication", unit: "vial", min: 100, max: 1000 },
+  { code: "MED-DAP", name: "Dapsone 100mg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  { code: "MED-VALA", name: "Valacyclovir 500mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-LVT", name: "Levothyroxine 100mcg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  { code: "MED-PTU", name: "Propylthiouracil 100mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-KET", name: "Ketoconazole 200mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-METO", name: "Metoprolol 50mg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  { code: "MED-NIM", name: "Nimodipine 60mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-PRA", name: "Prazosin 1mg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  { code: "MED-MAG", name: "Magnesium sulfate 1g", category: "medication", unit: "vial", min: 100, max: 1000 },
+  { code: "MED-DON", name: "Donepezil 10mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-MPH", name: "Methylphenidate 10mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-SUM", name: "Sumatriptan 50mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-BET", name: "Betahistine 16mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-MOR5", name: "Morphine 5mg", category: "medication", unit: "vial", min: 50, max: 500 },
+  { code: "MED-NAC", name: "N-acetylcysteine 600mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-TOB", name: "Tobramycin eye drops", category: "medication", unit: "drop", min: 50, max: 500 },
+  { code: "MED-PREDN", name: "Prednisolone eye drops", category: "medication", unit: "drop", min: 50, max: 500 },
+  { code: "MED-FOL", name: "Folic acid 1mg", category: "medication", unit: "tab", min: 500, max: 5000 },
   // Lab reagents
   { code: "LAB-CBC", name: "CBC Reagent Kit", category: "lab-reagent", unit: "kit", min: 10, max: 100 },
   { code: "LAB-CHEM", name: "Chemistry Reagent", category: "lab-reagent", unit: "kit", min: 10, max: 100 },
