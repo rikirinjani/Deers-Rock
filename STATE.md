@@ -26,14 +26,36 @@
 - **FHIR compliance tests** — `tests/fhir-compliance.test.ts` (8 tests)
 - **GitHub Actions CI** — `.github/workflows/ci.yml`
 
+### Issue #5: CODEX Adapter Review — 5 Gaps Resolved (commits `4f0210a` + `37f474c`)
+Two commits: initial implementation (`4f0210a`) + Oracle-directed rework (`37f474c`).
+
+Initial candidate `4f0210a` was APPROVED by verifier but REJECTED by Oracle on two blockers:
+- **F1 BLOCKER:** Severity (`icuDays`/`ventilatorDays`) derived live from `state.respiratoryOrders`, which `cleanup.ts` prunes at `MAX_RESP=50` (~400-tick retention vs LOS 4320+ ticks). Oracle probe proved severity silently decays to 0 in steady state.
+- **F2 BLOCKER:** `dirujuk` derived from `state.socialWorkNotes`, which are 4/6 random placement-evaluation notes (not referral events) and get pruned at ~900 ticks — outcomes flip dirujuk→sembuh over poll time; clinically fabricated signal for an INA-CBG grouper.
+
+Rework `37f474c` resolved all 9 findings (F1–F9):
+- **F1:** Severity snapshot at discharge/close time onto `_severityAtClose` on the encounter (markov.ts, emergency.ts, outpatient.ts). Derive fallback only for fresh fixtures. Pruning-pressure regression test passes.
+- **F2:** Dropped `dirujuk` entirely. Outcome vocabulary: `{sembuh, meninggal, transfer}`. No encounter-linked referral signal exists in the engine.
+- **F3:** `/api/outcomes byIcd` now computed from `_outcomeRecords` (append-only, all-time) joined with morgue — consistent denominator with `records`/`total`. `_vocab` field documents two vocabularies.
+- **F4:** Unified shape — `byIcd` always present; `?icd=X` filters to one row (zeroed for unknown); `truncated` flag when 50-row cap applies.
+- **F5:** Doc comment in `fhir.ts` mapping local CodeSystem → standard discharge-disposition terms.
+- **F6:** `readmissionWithin30d` counts only `type==='inpatient'` encounters.
+- **F7:** Aligned key-presence guards (`status!=='active' && endTime!==null`) on both outcome and LOS.
+- **F8:** `parseIntParam` strict `/^\d+$/` regex.
+- **F9:** `Set<string>` morgue encounterIds built once per request.
+
+Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier APPROVE (all gates pass). Pushed to main. Issue #5 closed.
+
 ### Validation
-- Test suite: **197 tests pass** (27 files), tsc clean
-- Live box: tick 13,018+, 1,762+ outcomes, RSS ~205 MB / 512 MB
+- Test suite: **264 tests pass** (33 files), tsc clean
+- Live box: tick 14,700+, 1,971 patients, RSS ~283 MB / 512 MB
+- Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
 
 ### Open items
-- Issue #4 (CPU scaling) still open — blocks 100k-tick calibration only
+- Issue #4 (CPU scaling) still open — blocks 100k-tick calibration only; P2 priority
 - Long-term: consider snapshot compression to reduce resume memory footprint
 - Dashboard sub-panel rendering (doctor/pharmacy/nurse panels) — deferred
+- Learning toggle (Epic II.6) — needed for controlled experiments, not blocking production
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
