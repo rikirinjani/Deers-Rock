@@ -137,6 +137,10 @@
   const _orig = window.fetch;
   window.fetch = function(u, o) { return _orig(u, Object.assign({}, o, { headers: Object.assign({}, o ? o.headers : {}, { Authorization: `Bearer ${_k}` }) })); };
 })();
+// Shim: drFetch delegates to polyfilled window.fetch
+if (typeof drFetch === 'undefined') {
+  window.drFetch = (url, opts = {}) => fetch(url, opts);
+}
 function fmtTime(ms){const m=Math.floor(ms/60000),h=Math.floor(m/60)%24,d=Math.floor(m/1440);return d>0?`Day ${d} ${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`:`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
 function wc(p){return p>=80?'#ef4444':p>=60?'#fb923c':p>=40?'#facc15':'#4ade80'}
 
