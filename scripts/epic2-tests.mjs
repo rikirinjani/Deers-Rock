@@ -1,17 +1,16 @@
-/**
+﻿/**
  * All Epic II clinical fidelity tests + load test.
  * Run on Kaggle CPU: node --max-old-space-size=400 all-epic2-tests.mjs
  */
-import { createWorld } from "./src/engine/world.js";
-import { runMmConference, resetMmConferenceCounter } from "./src/engine/mm-conference.js";
+import { createWorld, runWorld } from "../src/engine/world.js";
+import { runMmConference, resetMmConferenceCounter } from "../src/engine/mm-conference.js";
 import {
   tickToDate, formatCalendarDate, getActiveEvents, getEventSummary,
-  LEBAARAN, NATAL_ISLAM, NATAL_KRISTEN, THAYEN, RAKOSE, NYE, INA_INDEPENDENCE,
-} from "./src/engine/calendar.js";
-import { createFhirEndpoints } from "./src/api/fhir.js";
-import { DRUG_CATALOG } from "./src/engine/drug-catalog.js";
-import { ICD_PROTOCOLS } from "./src/engine/clinical-knowledge.js";
-import { INA_CBG } from "./src/engine/ina-cbg.js";
+} from "../src/engine/calendar.js";
+import { createFhirEndpoints } from "../src/api/fhir.js";
+import { DRUG_CATALOG } from "../src/engine/drug-catalog.js";
+import { ICD_PROTOCOLS } from "../src/engine/clinical-knowledge.js";
+import { INA_CBG } from "../src/engine/ina-cbg.js";
 
 const PASS = [];
 const FAIL = [];
@@ -21,21 +20,36 @@ function assert(condition, msg) {
   else FAIL.push(msg);
 }
 
+function expect(val) {
+  return {
+    toBe(expected) { assert(val === expected, `expected ${expected}, got ${val}`); },
+    toBeGreaterThan(n) { assert(val > n, `expected >${n}, got ${val}`); },
+    toBeGreaterThanOrEqual(n) { assert(val >= n, `expected >=${n}, got ${val}`); },
+    toBeLessThan(n) { assert(val < n, `expected <${n}, got ${val}`); },
+    toBeTruthy() { assert(!!val, `expected truthy, got ${val}`); },
+    toBeNull() { assert(val === null, `expected null, got ${val}`); },
+    toHaveProperty(key) { assert(key in val, `expected property ${key}`); },
+    not: {
+      toThrow() { try { val(); } catch(e) { FAIL.push(`expected no throw, got: ${e.message}`); } }
+    }
+  };
+}
+
 function section(name) {
   console.log(`\n${"=".repeat(60)}`);
   console.log(`  ${name}`);
   console.log("=".repeat(60));
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 1: M&M Conference Tests
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("M&M Conference Tests");
 
 resetMmConferenceCounter();
 {
   const w = createWorld(10);
-  for (let i = 0; i < 10; i++) w.queue.step();
+  for (let i = 0; i < 10; i++) runWorld(w, 1);
   const result = runMmConference(w.state, w.clock, w.queue);
   assert(result.conference === null, "M1: returns null when no deaths");
 }
@@ -43,7 +57,7 @@ resetMmConferenceCounter();
 resetMmConferenceCounter();
 {
   const w = createWorld(6000);
-  for (let i = 0; i < 600; i++) w.queue.step();
+  for (let i = 0; i < 600; i++) runWorld(w, 1);
   const result = runMmConference(w.state, w.clock, w.queue);
   if (result.conference !== null) {
     assert(typeof result.conference.id === "number", "M2: conference has numeric ID");
@@ -51,19 +65,20 @@ resetMmConferenceCounter();
     assert(Array.isArray(result.conference.reviewedCases), "M4: reviewedCases is array");
     assert(Array.isArray(result.conference.overallRecommendations), "M5: recommendations is array");
   } else {
-    console.log("  (No conference generated — expected if no deaths in 6000 ticks)");
+    console.log("  (No conference generated â€” expected if no deaths in 6000 ticks)");
   }
 }
 
 resetMmConferenceCounter();
 {
   const w = createWorld(1);
-  assert(() => { runMmConference(w.state, w.clock, w.queue); return true; }(), "M6: does not crash with empty state");
+  expect(() => { runMmConference(w.state, w.clock, w.queue); }).not.toThrow();
+  PASS.push("M6: does not crash with empty state");
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 2: Calendar Tests
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Calendar Tests");
 
 {
@@ -100,9 +115,9 @@ section("Calendar Tests");
   assert(INA_INDEPENDENCE !== undefined, "C11: INA_INDEPENDENCE defined");
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 3: Morgue / Death Roll Tests
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Morgue / Death Roll Tests");
 
 {
@@ -113,7 +128,7 @@ section("Morgue / Death Roll Tests");
 
 {
   const w = createWorld(2000);
-  for (let i = 0; i < 200; i++) w.queue.step();
+  for (let i = 0; i < 200; i++) runWorld(w, 1);
   for (const record of w.state.morgue) {
     assert(typeof record.encounterId === "string", "MG3: morgue record has encounterId");
     assert(typeof record.patientId === "string", "MG4: morgue record has patientId");
@@ -126,16 +141,16 @@ section("Morgue / Death Roll Tests");
 
 {
   const w = createWorld(3000);
-  for (let i = 0; i < 300; i++) w.queue.step();
+  for (let i = 0; i < 300; i++) runWorld(w, 1);
   const ticks = w.state.morgue.map(m => m.deathTick).sort((a, b) => a - b);
   for (let i = 1; i < ticks.length; i++) {
     assert(ticks[i] >= ticks[i - 1], "MG9: death ticks are monotonic");
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 4: Outpatient Tests
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Outpatient Tests");
 
 {
@@ -146,7 +161,7 @@ section("Outpatient Tests");
 
 {
   const w = createWorld(500);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const visits = Array.from(w.state._outpatientVisits.values());
   for (const v of visits.slice(0, 5)) {
     assert(typeof v.id === "string", "OP3: visit has id");
@@ -159,21 +174,21 @@ section("Outpatient Tests");
 {
   const validStatuses = ["waiting", "in-consultation", "completed", "referenced", "cancelled"];
   const w = createWorld(500);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const visits = Array.from(w.state._outpatientVisits.values());
   for (const v of visits) {
     assert(validStatuses.includes(v.status), `OP7: valid status '${v.status}'`);
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 5: FHIR Compliance Tests
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("FHIR Compliance Tests");
 
 {
   const w = createWorld(50);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const api = createFhirEndpoints(() => w);
   const cs = api.conformance();
   assert(cs.resourceType === "CapabilityStatement", "F1: conformance is CapabilityStatement");
@@ -188,7 +203,7 @@ section("FHIR Compliance Tests");
 
 {
   const w = createWorld(50);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const api = createFhirEndpoints(() => w);
   const patients = api.patientSearch();
   assert(patients.length > 0, "F8: patient search returns results");
@@ -202,7 +217,7 @@ section("FHIR Compliance Tests");
 
 {
   const w = createWorld(50);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const api = createFhirEndpoints(() => w);
   const conditions = api.conditionSearch();
   assert(Array.isArray(conditions), "F13: conditionSearch returns array");
@@ -214,7 +229,7 @@ section("FHIR Compliance Tests");
 
 {
   const w = createWorld(50);
-  for (let i = 0; i < 50; i++) w.queue.step();
+  for (let i = 0; i < 50; i++) runWorld(w, 1);
   const api = createFhirEndpoints(() => w);
   const claims = api.claimSearch();
   assert(Array.isArray(claims), "F16: claimSearch returns array");
@@ -224,9 +239,9 @@ section("FHIR Compliance Tests");
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 6: Drug Catalog Integrity
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Drug Catalog Integrity");
 
 {
@@ -239,13 +254,13 @@ section("Drug Catalog Integrity");
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 7: Protocol Coverage
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Protocol Coverage");
 
 {
-  assert(ICD_PROTOCOLS.length >= 165, `P1: ${ICD_PROTOCOLS.length} protocols (target ≥165)`);
+  assert(ICD_PROTOCOLS.length >= 165, `P1: ${ICD_PROTOCOLS.length} protocols (target â‰¥165)`);
   const codes = new Set(ICD_PROTOCOLS.map(p => p.code));
   assert(codes.has("I73"), "P2: I73 (PVD) has protocol");
   assert(codes.has("J06"), "P3: J06 (URI) has protocol");
@@ -254,27 +269,27 @@ section("Protocol Coverage");
   assert(codes.has("N19"), "P6: N19 (renal failure) has protocol");
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 8: INA-CBG Tariff Coverage
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("INA-CBG Tariff Coverage");
 
 {
-  assert(INA_CBG.length >= 165, `CBG1: ${INA_CBG.length} CBG entries (target ≥165)`);
+  assert(INA_CBG.length >= 165, `CBG1: ${INA_CBG.length} CBG entries (target â‰¥165)`);
   const codes = new Set(INA_CBG.map(e => e.icdCode));
   assert(codes.has("I73"), "CBG2: I73 has CBG");
   assert(codes.has("J06"), "CBG3: J06 has CBG");
   assert(codes.has("I26"), "CBG4: I26 has CBG");
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 9: Snapshot/Resume Integrity
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Snapshot/Resume Integrity");
 
 {
   const w = createWorld(100);
-  for (let i = 0; i < 100; i++) w.queue.step();
+  for (let i = 0; i < 100; i++) runWorld(w, 1);
   const snap = w.worldSnapshot();
   
   const w2 = createWorld(100);
@@ -286,14 +301,14 @@ section("Snapshot/Resume Integrity");
   assert(w2.state._mmConferences?.length === w.state._mmConferences?.length, "S4: M&M conferences preserved");
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SECTION 10: Allergy Rate Check
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 section("Allergy Rate Check");
 
 {
   const w = createWorld(200);
-  for (let i = 0; i < 200; i++) w.queue.step();
+  for (let i = 0; i < 200; i++) runWorld(w, 1);
   const patients = Array.from(w.state.patients.values());
   const withAllergies = patients.filter(p => p.allergies.length > 0).length;
   const rate = patients.length > 0 ? (withAllergies / patients.length) * 100 : 0;
@@ -301,18 +316,18 @@ section("Allergy Rate Check");
   assert(rate >= 1, `ALL1: allergy rate >= 1% (got ${rate.toFixed(1)}%)`);
 }
 
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SUMMARY
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 console.log(`\n${"=".repeat(60)}`);
 console.log(`  RESULTS: ${PASS.length} passed, ${FAIL.length} failed`);
 console.log("=".repeat(60));
 
 if (FAIL.length > 0) {
   console.log("\nFAILED:");
-  for (const f of FAIL) console.log(`  ✗ ${f}`);
+  for (const f of FAIL) console.log(`  âœ— ${f}`);
   process.exit(1);
 } else {
-  console.log("\n✅ All tests passed!");
+  console.log("\nâœ… All tests passed!");
   process.exit(0);
 }

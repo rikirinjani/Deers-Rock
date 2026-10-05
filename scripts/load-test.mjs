@@ -2,13 +2,13 @@
  * Load test: measure tick latency at 500+ patients.
  * Reports p50, p95, p99, max per-tick latency over N ticks.
  */
-import { createWorld } from "./src/engine/world.js";
+import { createWorld, runWorld } from "../src/engine/world.js";
 
 const TICKS = 500;
 const PATIENTS = 500;
 const WARMUP = 50;
 
-function percentile(arr: number[], p: number): number {
+function percentile(arr, p) {
   if (arr.length === 0) return 0;
   const sorted = arr.slice().sort((a, b) => a - b);
   const idx = Math.ceil(p / 100 * sorted.length) - 1;
@@ -22,15 +22,15 @@ function run() {
   const loadTime = performance.now() - start;
   console.log(`World creation: ${loadTime.toFixed(1)}ms (${PATIENTS} patients)`);
 
-  const latencies: number[] = [];
+  const latencies = [];
   for (let i = 0; i < WARMUP; i++) {
-    w.queue.step();
+    runWorld(w, 1);
   }
   console.log(`Warmup: ${WARMUP} ticks done`);
 
   for (let i = 0; i < TICKS; i++) {
     const t0 = performance.now();
-    w.queue.step();
+    runWorld(w, 1);
     latencies.push(performance.now() - t0);
   }
 
