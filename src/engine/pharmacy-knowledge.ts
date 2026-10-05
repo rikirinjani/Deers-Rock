@@ -83,6 +83,8 @@ export const MED_ALLERGEN_MAP: Record<string, string[]> = {
   "TAM": [], "ALO": [], "ALO3": [],
   "LIDO2": [], "ADE": [],
   "GCG": [], "CAC": [],
+  // ADR-013: New drugs
+  "CSZ": [], "NBL": [], "OSL": [], "TNK": [], "HYS": [], "CLC": [],
 };
 
 /**
@@ -253,6 +255,13 @@ export const DRUG_DIAGNOSIS_CONTRA: { drugCode: string; diagCodes: string[]; rat
   { drugCode: "SBC", diagCodes: ["N18", "N17"], rationale: "Sodium bicarbonate — metabolic alkalosis risk; caution in renal impairment" },
   { drugCode: "D5W", diagCodes: ["E11", "E10"], rationale: "Dextrose 5% — hyperglycemia risk in diabetes; monitor blood glucose" },
   { drugCode: "D10", diagCodes: ["E11", "E10"], rationale: "Dextrose 10% — hyperglycemia risk; monitor blood glucose closely" },
+  // ADR-013: New drug contraindications
+  { drugCode: "CSZ", diagCodes: ["K70", "K71", "N18", "N17"], rationale: "Cilostazol — hepatotoxic; dose adjust in renal impairment; contraindicated in heart failure" },
+  { drugCode: "NBL", diagCodes: ["J45", "I50"], rationale: "Nebivolol — caution in asthma and heart failure; bradycardia risk" },
+  { drugCode: "OSL", diagCodes: ["K70", "K71"], rationale: "Oseltamivir — caution in hepatic impairment; adjust dose in renal impairment" },
+  { drugCode: "TNK", diagCodes: ["D69", "K25", "K26"], rationale: "Tenecteplase — contraindicated in bleeding disorders and active ulcer; risk of hemorrhage" },
+  { drugCode: "HYS", diagCodes: ["J45"], rationale: "Hyoscine — caution in asthma; anticholinergic effects" },
+  { drugCode: "CLC", diagCodes: ["K70", "K71", "N18", "N17"], rationale: "Colchicine — hepatotoxic and nephrotoxic; dose adjust in renal/hepatic impairment" },
 ];
 
 /**
@@ -451,6 +460,13 @@ export function getDoseRange(drugCode: string): { minMg: number; maxMg: number; 
     "ADE": { minMg: 6, maxMg: 12, maxDailyMg: 12, unit: "mg" },
     "GCG": { minMg: 1, maxMg: 1, maxDailyMg: 1, unit: "mg" },
     "CAC": { minMg: 5, maxMg: 10, maxDailyMg: 20, unit: "ml" },
+    // ADR-013: New drug dose ranges
+    "CSZ": { minMg: 100, maxMg: 200, maxDailyMg: 200, unit: "mg" },
+    "NBL": { minMg: 2.5, maxMg: 5, maxDailyMg: 10, unit: "mg" },
+    "OSL": { minMg: 75, maxMg: 75, maxDailyMg: 150, unit: "mg" },
+    "TNK": { minMg: 30, maxMg: 30, maxDailyMg: 30, unit: "mg" },
+    "HYS": { minMg: 10, maxMg: 20, maxDailyMg: 60, unit: "mg" },
+    "CLC": { minMg: 0.5, maxMg: 1, maxDailyMg: 3, unit: "mg" },
   };
   return all[drugCode] ?? null;
 }
@@ -687,6 +703,31 @@ export function checkDrugInteraction(
     "FOL": {
       "MET": { severity: "minor", desc: "Folic acid + Metformin: metformin may reduce folate levels" },
       "PHN": { severity: "minor", desc: "Folic acid + Phenytoin: may reduce anticonvulsant efficacy" },
+    },
+    // ADR-013: New drug interactions
+    "CSZ": {
+      "CLI": { severity: "moderate", desc: "Cilostazol + Clarithromycin: CYP3A4 inhibition increases cilostazol levels" },
+      "WAF": { severity: "moderate", desc: "Cilostazol + Warfarin: may enhance anticoagulant effect" },
+    },
+    "NBL": {
+      "VER": { severity: "moderate", desc: "Nebivolol + Verapamil: additive bradycardia and hypotension" },
+      "DIA": { severity: "moderate", desc: "Nebivolol + Diazepam: additive bradycardia" },
+    },
+    "OSL": {
+      "CLI": { severity: "moderate", desc: "Oseltamivir + Clarithromycin: CYP interaction possible" },
+    },
+    "TNK": {
+      "HEP": { severity: "major", desc: "Tenecteplase + Heparin: additive bleeding risk" },
+      "ASP": { severity: "major", desc: "Tenecteplase + Aspirin: increased bleeding risk" },
+      "WAF": { severity: "major", desc: "Tenecteplase + Warfarin: do not combine — severe hemorrhage risk" },
+    },
+    "HYS": {
+      "DIA": { severity: "moderate", desc: "Hyoscine + Diazepam: additive anticholinergic sedation" },
+    },
+    "CLC": {
+      "CLI": { severity: "moderate", desc: "Colchicine + Clarithromycin: CYP3A4 inhibition — colchicine toxicity" },
+      "VER": { severity: "moderate", desc: "Colchicine + Verapamil: increased colchicine levels" },
+      "HEP": { severity: "moderate", desc: "Colchicine + Heparin: monitor for bleeding" },
     },
   };
 

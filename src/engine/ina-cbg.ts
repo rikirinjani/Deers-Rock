@@ -469,6 +469,32 @@ export const INA_CBG: CbgEntry[] = [
   // Additional entries for existing codes not yet covered
   // ═══════════════════════════════════════════════════════════════
   { icdCode: "E11.5", cbgGroup: "E03B", tariffIdr: 7_500_000, description: "Type 2 diabetes w diabetic foot", severity: "II" },
+  // ── ADR-013: Chapter IX — Circulatory ─────────────────────────
+  { icdCode: "I73", cbgGroup: "B12A", tariffIdr: 6_500_000, description: "Peripheral vascular disease, w/o CC", defaultSep: 0 },
+  { icdCode: "I80", cbgGroup: "B13A", tariffIdr: 5_500_000, description: "Phlebitis and thrombophlebitis", defaultSep: 0 },
+  { icdCode: "I82", cbgGroup: "B14A", tariffIdr: 14_000_000, description: "Venous embolism and thrombosis", defaultSep: 1 },
+  { icdCode: "I11", cbgGroup: "B15A", tariffIdr: 8_000_000, description: "Hypertensive heart disease", defaultSep: 0 },
+  { icdCode: "I12", cbgGroup: "B16A", tariffIdr: 7_000_000, description: "Hypertensive renal disease", defaultSep: 0 },
+  { icdCode: "I00", cbgGroup: "B17A", tariffIdr: 4_500_000, description: "Rheumatic fever w/o heart involvement", defaultSep: 0 },
+  { icdCode: "I33", cbgGroup: "B18A", tariffIdr: 18_000_000, description: "Acute endocarditis", defaultSep: 2 },
+  { icdCode: "I30", cbgGroup: "B19A", tariffIdr: 6_000_000, description: "Acute pericarditis", defaultSep: 0 },
+  { icdCode: "I49", cbgGroup: "B20A", tariffIdr: 7_500_000, description: "Other cardiac arrhythmias", defaultSep: 0 },
+  { icdCode: "I42", cbgGroup: "B21A", tariffIdr: 10_000_000, description: "Cardiomyopathy", defaultSep: 1 },
+  { icdCode: "I26", cbgGroup: "B22A", tariffIdr: 16_000_000, description: "Pulmonary embolism", defaultSep: 2 },
+  { icdCode: "I77", cbgGroup: "B23A", tariffIdr: 5_000_000, description: "Other disorders of arteries and arterioles", defaultSep: 0 },
+  // ── ADR-013: Chapter X — Respiratory ──────────────────────────
+  { icdCode: "J06", cbgGroup: "C12A", tariffIdr: 3_000_000, description: "Acute upper respiratory infection", defaultSep: 0 },
+  { icdCode: "J10", cbgGroup: "C13A", tariffIdr: 5_500_000, description: "Influenza with identified virus", defaultSep: 0 },
+  { icdCode: "J11", cbgGroup: "C14A", tariffIdr: 5_000_000, description: "Influenza unspecified", defaultSep: 0 },
+  { icdCode: "J96", cbgGroup: "C15A", tariffIdr: 14_000_000, description: "Respiratory failure", defaultSep: 2 },
+  { icdCode: "J91", cbgGroup: "C16A", tariffIdr: 6_500_000, description: "Pleural effusion", defaultSep: 0 },
+  // ── ADR-013: Chapter R — Symptoms ─────────────────────────────
+  { icdCode: "R31", cbgGroup: "R08A", tariffIdr: 4_500_000, description: "Hematuria", defaultSep: 0 },
+  { icdCode: "R10", cbgGroup: "R09A", tariffIdr: 4_000_000, description: "Abdominal and pelvic pain", defaultSep: 0 },
+  // ── ADR-013: Chapter N — GU ───────────────────────────────────
+  { icdCode: "N19", cbgGroup: "L10A", tariffIdr: 8_000_000, description: "Unspecified renal failure", defaultSep: 1 },
+  // ── ADR-013: Chapter E — Endocrine ────────────────────────────
+  { icdCode: "E20", cbgGroup: "E13A", tariffIdr: 4_500_000, description: "Hypoparathyroidism", defaultSep: 0 },
 ];
 
 /**

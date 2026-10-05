@@ -176,6 +176,13 @@ const CATALOG: { code: string; name: string; category: InventoryItem["category"]
   { code: "MED-ADE", name: "Adenosine 6mg", category: "medication", unit: "vial", min: 50, max: 500 },
   { code: "MED-GCG", name: "Glucagon 1mg", category: "medication", unit: "syringe", min: 50, max: 500 },
   { code: "MED-CAC", name: "Calcium chloride 10%", category: "medication", unit: "vial", min: 100, max: 1000 },
+  // ── ADR-013: New drugs for Chapter IX/X ────────────────────────
+  { code: "MED-CSZ", name: "Cilostazol 100mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-NBL", name: "Nebivolol 5mg", category: "medication", unit: "tab", min: 100, max: 1000 },
+  { code: "MED-OSL", name: "Oseltamivir 75mg", category: "medication", unit: "cap", min: 100, max: 1000 },
+  { code: "MED-TNK", name: "Tenecteplase 30mg", category: "medication", unit: "vial", min: 50, max: 500 },
+  { code: "MED-HYS", name: "Hyoscine 20mg", category: "medication", unit: "tab", min: 200, max: 2000 },
+  { code: "MED-CLC", name: "Colchicine 0.5mg", category: "medication", unit: "tab", min: 100, max: 1000 },
   // Lab reagents
   { code: "LAB-CBC", name: "CBC Reagent Kit", category: "lab-reagent", unit: "kit", min: 10, max: 100 },
   { code: "LAB-CHEM", name: "Chemistry Reagent", category: "lab-reagent", unit: "kit", min: 10, max: 100 },

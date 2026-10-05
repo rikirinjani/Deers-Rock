@@ -297,6 +297,14 @@ export const DRUG_CATALOG: DrugEntry[] = [
   // Endocrine emergency
   { code: "GCG", innName: "Glucagon 1mg", category: "other", dose: "1 mg", route: "IM", supplyCode: "MED-GCG", costIdr: 15000, allergens: [], classTag: "glucagon", minMg: 1, maxMg: 1, maxDailyMg: 1 },
   { code: "CAC", innName: "Calcium chloride 10%", category: "electrolyte", dose: "10 ml", route: "IV", supplyCode: "MED-CAC", costIdr: 3000, allergens: [], classTag: "calcium", minMg: 5, maxMg: 10, maxDailyMg: 20 },
+
+  // ── ADR-013: Chapter IX/X expansion drugs ──────────────────────
+  { code: "CSZ", innName: "Cilostazol 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-CSZ", costIdr: 8000, allergens: [], classTag: "phosphodiesterase_inhibitor", minMg: 100, maxMg: 200, maxDailyMg: 200 },
+  { code: "NBL", innName: "Nebivolol 5mg", category: "antihypertensive", dose: "5 mg", route: "PO", supplyCode: "MED-NBL", costIdr: 12000, allergens: [], classTag: "beta_blocker", minMg: 2.5, maxMg: 5, maxDailyMg: 10 },
+  { code: "OSL", innName: "Oseltamivir 75mg", category: "antiviral", dose: "75 mg", route: "PO", supplyCode: "MED-OSL", costIdr: 25000, allergens: [], classTag: "neuraminidase_inhibitor", minMg: 75, maxMg: 75, maxDailyMg: 150 },
+  { code: "TNK", innName: "Tenecteplase 30mg", category: "other", dose: "30 mg", route: "IV", supplyCode: "MED-TNK", costIdr: 350000, allergens: [], classTag: "thrombolytic", minMg: 30, maxMg: 30, maxDailyMg: 30 },
+  { code: "HYS", innName: "Hyoscine 20mg", category: "other", dose: "20 mg", route: "PO", supplyCode: "MED-HYS", costIdr: 3000, allergens: [], classTag: "antispasmodic", minMg: 10, maxMg: 20, maxDailyMg: 60 },
+  { code: "CLC", innName: "Colchicine 0.5mg", category: "other", dose: "0.5 mg", route: "PO", supplyCode: "MED-CLC", costIdr: 5000, allergens: [], classTag: "anti-inflammatory", minMg: 0.5, maxMg: 1, maxDailyMg: 3 },
 ];
 
 /** Lookup by 3-letter code — O(1) */

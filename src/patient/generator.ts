@@ -181,6 +181,32 @@ const ICD10_DIAGNOSES: ICDMapping[] = [
   { code: "R07", name: "Chest pain", minAge: 10, maxAge: 99, genders: ["male", "female"], weight: 4 },
   { code: "R55", name: "Syncope and collapse", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 3 },
   { code: "R70", name: "Elevated erythrocyte sedimentation rate", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  // ── ADR-013: Chapter IX — Circulatory ──────────────────────────
+  { code: "I73", name: "Peripheral vascular disease", minAge: 40, maxAge: 99, genders: ["male", "female"], weight: 4 },
+  { code: "I80", name: "Phlebitis and thrombophlebitis", minAge: 20, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "I82", name: "Other venous embolism and thrombosis", minAge: 30, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  { code: "I11", name: "Hypertensive heart disease", minAge: 40, maxAge: 99, genders: ["male", "female"], weight: 4 },
+  { code: "I12", name: "Hypertensive renal disease", minAge: 40, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "I00", name: "Rheumatic fever without heart involvement", minAge: 5, maxAge: 40, genders: ["male", "female"], weight: 2 },
+  { code: "I33", name: "Acute endocarditis", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  { code: "I30", name: "Acute pericarditis", minAge: 10, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  { code: "I49", name: "Other cardiac arrhythmias", minAge: 20, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "I42", name: "Cardiomyopathy", minAge: 20, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "I26", name: "Pulmonary embolism", minAge: 30, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "I77", name: "Other disorders of arteries and arterioles", minAge: 20, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  // ── ADR-013: Chapter X — Respiratory ──────────────────────────
+  { code: "J06", name: "Acute upper respiratory infection", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 8 },
+  { code: "J10", name: "Influenza due to identified influenza virus", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 5 },
+  { code: "J11", name: "Influenza unspecified", minAge: 0, maxAge: 99, genders: ["male", "female"], weight: 4 },
+  { code: "J96", name: "Respiratory failure", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 4 },
+  { code: "J91", name: "Pleural effusion in conditions classified elsewhere", minAge: 10, maxAge: 99, genders: ["male", "female"], weight: 2 },
+  // ── ADR-013: Chapter R — Symptoms ─────────────────────────────
+  { code: "R31", name: "Hematuria", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  { code: "R10", name: "Abdominal and pelvic pain", minAge: 5, maxAge: 99, genders: ["male", "female"], weight: 6 },
+  // ── ADR-013: Chapter N — GU ───────────────────────────────────
+  { code: "N19", name: "Unspecified renal failure", minAge: 1, maxAge: 99, genders: ["male", "female"], weight: 3 },
+  // ── ADR-013: Chapter E — Endocrine ────────────────────────────
+  { code: "E20", name: "Hypoparathyroidism", minAge: 10, maxAge: 80, genders: ["male", "female"], weight: 1 },
 ];
 
 function pickWeighted<T extends { weight: number }>(items: T[], rng?: () => number): T {
