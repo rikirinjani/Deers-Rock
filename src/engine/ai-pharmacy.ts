@@ -1,3 +1,4 @@
+import { DRUG_CATALOG } from "./drug-catalog.js";
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
@@ -7,14 +8,9 @@ import { appendCharge } from "./charge-generator.js";
 import { checkDrugAllergy, checkDiagnosisContraindication, checkDrugInteraction, getDoseRange } from "./pharmacy-knowledge.js";
 import { getDeteriorationRate } from "./agent-learning.js";
 
-const MED_TO_SUPPLY: Record<string, string> = {
-  "ACE": "MED-ACE", "MET": "MED-MET", "ATR": "MED-ATR", "OMP": "MED-OMP",
-  "LVF": "MED-LVF", "PRC": "MED-PRC", "HEP": "MED-HEP", "SAL": "MED-SAL",
-  "FUR": "MED-FUR", "DIA": "MED-DIA",
-  "AMX": "MED-AMX", "CTR": "MED-CTR", "MTZ": "MED-MTZ", "CIP": "MED-CIP",
-  "AML": "MED-AML", "BIS": "MED-BIS", "ASP": "MED-ASP", "INS": "MED-INS",
-  "OND": "MED-OND", "MOR": "MED-MOR", "KCL": "MED-KCL", "RL": "MED-RL",
-};
+const MED_TO_SUPPLY: Record<string, string> = Object.fromEntries(
+  DRUG_CATALOG.map(d => [d.code, d.supplyCode])
+);
 
 export interface PharmacistCaseRecord {
   encounterId: string;
