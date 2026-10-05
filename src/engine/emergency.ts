@@ -5,6 +5,7 @@ import type { EdTriage } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { assignPayer } from "./finance.js";
 import { selectPrimaryDiagnosisCode } from "./markov.js";
+import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 
 const COMPLAINTS = [
   "Chest pain", "Abdominal pain", "Shortness of breath", "Headache", "Fever", "Trauma from fall",
@@ -92,7 +93,19 @@ export function edDischargeHandler(state: HospitalState, clock: Clock, _queue: E
       const newEncounters = new Map(state.encounters);
       const enc = newEncounters.get(t.encounterId);
       if (enc) {
-        newEncounters.set(t.encounterId, { ...enc, endTime: clock.hospitalTimeMs, status: admitted ? "active" : "discharged" });
+        // Issue #5 (Oracle F1): snapshot severity only when the encounter
+        // actually CLOSES here (non-admitted ED patients). The admitted
+        // branch keeps status "active" — the encounter continues as an
+        // inpatient stay and markov.ts snapshots it at the real close.
+        // Pure computation: no rng, no tick-loop behavior change (additive).
+        newEncounters.set(t.encounterId, admitted
+          ? { ...enc, endTime: clock.hospitalTimeMs, status: "active" }
+          : {
+              ...enc,
+              endTime: clock.hospitalTimeMs,
+              status: "discharged",
+              _severityAtClose: computeSeveritySnapshot(state, enc, tickFromMs(clock.hospitalTimeMs)),
+            });
       }
       return { ...state, edTriages: newTriages, encounters: newEncounters };
     }

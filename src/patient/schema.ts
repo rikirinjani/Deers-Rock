@@ -67,6 +67,21 @@ export interface Encounter {
    *    reason for the visit, not the chronic problem list.
    */
   primaryDiagnosis?: string;
+  /**
+   * Issue #5 (Oracle rework, F1): discharge-time severity snapshot, written
+   * ONCE by the engine at the moment the encounter closes (markov.ts /
+   * emergency.ts / outpatient.ts), computed from the respiratoryOrders that
+   * still exist at close time. Additive optional field; no rng; no tick-loop
+   * behavior change. Stored ON the encounter (not a module-level Map) so it
+   * lives and dies with the encounter object, flows through state
+   * snapshots/journaling, and cannot leak between Worlds in one process.
+   * Serialization prefers this snapshot; live derivation from
+   * respiratoryOrders is only a fallback when no snapshot exists (fresh test
+   * fixtures), because cleanup.ts prunes discontinued respiratory orders
+   * (MAX_RESP=50, ~400-tick retention) and would otherwise decay the value
+   * toward 0 over poll time.
+   */
+  _severityAtClose?: { icuDays: number; ventilatorDays: number };
 }
 
 export type RoomClass = "vvip" | "vip" | "kelas-1" | "kelas-2" | "kelas-3" | "icu" | "hcu" | "nicu" | "picu";

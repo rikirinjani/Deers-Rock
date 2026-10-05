@@ -34,6 +34,9 @@ function buildPatientResource(patient: Patient): FhirResource {
 
 // Issue #5 P0-1: carries the derived encounter outcome (when one exists) as
 // Encounter.hospitalization.dischargeDisposition — additive, omitted while active.
+// Standard-concept alignment (Oracle F5): sembuh → home, meninggal → expired,
+// transfer → other-hcf, per http://terminology.hl7.org/CodeSystem/discharge-disposition.
+// The local CodeSystem (OUTCOME_CODE_SYSTEM) stays the wire format — no dual-coding.
 function buildEncounterResource(enc: Encounter, state?: HospitalState): FhirResource {
   const outcome = state ? deriveOutcome(state, enc) : undefined;
   return {

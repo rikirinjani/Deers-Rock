@@ -23,7 +23,7 @@ import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots, listExp
 import { SCENARIO_DEFS } from "../engine/scenario.js";
 import { buildBiData } from "./bi.js";
 import { createFhirEndpoints } from "./fhir.js";
-import { buildEncounterView, computeIcdOutcomeStats, tickFromMs } from "../engine/encounter-insights.js";
+import { buildEncounterView, computeIcdOutcomeStats, morgueEncounterIds, tickFromMs } from "../engine/encounter-insights.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -75,12 +75,18 @@ function parseEnumParam(url: URL, name: string, allowed: readonly string[]): str
   return (allowed as readonly string[]).includes(raw) ? raw : "INVALID";
 }
 
-/** Integer >= min. Returns a number when valid, undefined when absent, "INVALID" otherwise. */
+/**
+ * Integer >= min. Returns a number when valid, undefined when absent,
+ * "INVALID" otherwise. Strict /^\d+$/ (Oracle F8): rejects non-decimal
+ * forms Number() would accept — "0x10", "1e3", " 5", "+5", "-5", "1.0" —
+ * with a 400 instead of silently coercing them.
+ */
 function parseIntParam(url: URL, name: string, min: number): number | undefined | "INVALID" {
   const raw = url.searchParams.get(name);
   if (raw === null || raw === "") return undefined;
-  const n = Number(raw);
-  return Number.isInteger(n) && n >= min ? n : "INVALID";
+  if (!/^\d+$/.test(raw)) return "INVALID";
+  const n = Number.parseInt(raw, 10);
+  return n >= min ? n : "INVALID";
 }
 
 export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World, url: URL): boolean {
@@ -134,7 +140,9 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     if (limit === "INVALID") { badRequest(res, "invalid limit param — expected integer >= 1"); return true; }
     const since = parseIntParam(url, "since", 0);
     if (since === "INVALID") { badRequest(res, "invalid since param — expected integer tick >= 0"); return true; }
-    let list = toArr(w.state.encounters).map(e => buildEncounterView(w.state, e));
+    // Oracle F9: one morgue-id set per request instead of a morgue scan per encounter.
+    const morgueIds = morgueEncounterIds(w.state);
+    let list = toArr(w.state.encounters).map(e => buildEncounterView(w.state, e, morgueIds));
     if (status !== undefined) list = list.filter(e => e.status === status);
     if (type !== undefined) list = list.filter(e => e.type === type);
     if (since !== undefined) list = list.filter(e => tickFromMs(e.startTime) >= since);
@@ -222,20 +230,24 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/specialty") { json(res, toArr(w.state.specialtyOrders)); return true; }
   if (p === "/api/doctor-cases") { json(res, { cases: Array.from(w.state._doctorCaseMemory.values()).reverse(), total: w.state._doctorCaseMemory.size }); return true; }
   if (p === "/api/nurse-cases") { json(res, { cases: Array.from(w.state._nurseCaseMemory.values()).reverse(), total: w.state._nurseCaseMemory.size }); return true; }
-  // Issue #5 P2-7: per-ICD outcome stats built from the derived encounter
-  // outcomes. Additive on top of the pre-existing records/total payload:
-  //  - ?icd=<code> → `stats` holds the single-code row (zeros when unknown).
-  //  - no param    → `byIcd` holds the aggregate rows (top ICDs, capped).
+  // Issue #5 P2-7 (Oracle F3/F4): per-ICD outcome stats from _outcomeRecords
+  // (append-only, all-time) joined with the morgue — same denominator as
+  // records/total in this payload. Unified shape: `byIcd` is ALWAYS present;
+  //  - ?icd=<code> → byIcd holds just that row (zeroed row when unknown).
+  //  - no param    → byIcd holds the aggregate rows (top ICDs, capped at 50);
+  //                  `truncated: true` + `totalDistinct` appear when capped.
+  // records/total keep their pre-existing meaning (tracker vocabulary).
   if (p === "/api/outcomes") {
-    const icd = url.searchParams.get("icd");
-    if (icd !== null && icd !== "") {
-      const rows = computeIcdOutcomeStats(w.state, icd);
-      const stats = rows[0] ?? { icd, total: 0, sembuh: 0, meninggal: 0, dirujuk: 0, lari: 0, mortalityRate: 0 };
-      json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length, stats });
-    } else {
-      json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length, byIcd: computeIcdOutcomeStats(w.state) });
-    }
-    return true;
+    const icdParam = url.searchParams.get("icd");
+    const icd = icdParam !== null && icdParam !== "" ? icdParam : undefined;
+    const { byIcd, totalDistinct, truncated } = computeIcdOutcomeStats(w.state, icd);
+    json(res, {
+      records: w.state._outcomeRecords,
+      total: w.state._outcomeRecords.length,
+      byIcd,
+      ...(truncated ? { truncated: true, totalDistinct } : {}),
+      _vocab: "records[].outcome uses the vitals-based tracker vocabulary {improved, deteriorated, deceased} (deceased = morgue-linked); byIcd[] uses the discharge vocabulary {sembuh = discharged alive, meninggal = died}",
+    }); return true;
   }
   if (p === "/api/performance") { json(res, { diagnoses: computePerformanceStats(w.state) }); return true; }
   if (p === "/api/pharmacy-cases") { json(res, { cases: Array.from(w.state._pharmacyCaseMemory.values()).reverse(), total: w.state._pharmacyCaseMemory.size }); return true; }

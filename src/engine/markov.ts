@@ -8,6 +8,7 @@ import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge
 import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
 import { assignPayer } from "./finance.js";
+import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -139,7 +140,16 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
       });
     }
 
-    newEncounters.set(encounterId, { ...toDischarge, endTime: clock.hospitalTimeMs, status: "discharged" });
+    newEncounters.set(encounterId, {
+      ...toDischarge,
+      endTime: clock.hospitalTimeMs,
+      status: "discharged",
+      // Issue #5 (Oracle F1): freeze severity ONCE at close time from the
+      // respiratoryOrders still present (cleanup.ts prunes discontinued ones,
+      // MAX_RESP=50 — live derivation would decay toward 0 over poll time).
+      // Pure computation: no rng, no tick-loop behavior change (additive).
+      _severityAtClose: computeSeveritySnapshot(state, toDischarge, tickFromMs(clock.hospitalTimeMs)),
+    });
 
     for (const [bid, bed] of newBeds) {
       if (bed.patientId === toDischarge.patientId) {

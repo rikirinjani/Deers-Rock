@@ -1,7 +1,7 @@
 import type { World } from "../engine/world.js";
 import type { Patient, Encounter, InsuranceClaim, MedicalChart } from "../patient/schema.js";
 import type { HospitalState } from "../engine/state-store.js";
-import { deriveOutcome, OUTCOME_DISPLAY, OUTCOME_CODE_SYSTEM } from "../engine/encounter-insights.js";
+import { deriveOutcome, morgueEncounterIds, OUTCOME_DISPLAY, OUTCOME_CODE_SYSTEM } from "../engine/encounter-insights.js";
 
 type FhirResource = Record<string, unknown>;
 
@@ -106,8 +106,16 @@ function claimToFhir(claim: InsuranceClaim, chart?: MedicalChart): FhirResource 
 // Issue #5 P0-1: when state is provided and a derived outcome exists, it is
 // carried as Encounter.hospitalization.dischargeDisposition using DR's local
 // outcome code system (additive; omitted when the encounter is still active).
-function encounterToFhir(enc: Encounter, state?: HospitalState): FhirResource {
-  const outcome = state ? deriveOutcome(state, enc) : undefined;
+//
+// Standard-concept alignment (Oracle F5): the local codes map onto
+// http://terminology.hl7.org/CodeSystem/discharge-disposition as —
+//   sembuh    → home      (discharged well / discharged to home)
+//   meninggal → expired   (died)
+//   transfer  → other-hcf (moved to another healthcare facility)
+// The local CodeSystem remains the wire format (no dual-coding); this table
+// exists so implementers can map DR dispositions to the standard concepts.
+function encounterToFhir(enc: Encounter, state?: HospitalState, morgueIds?: Set<string>): FhirResource {
+  const outcome = state ? deriveOutcome(state, enc, morgueIds) : undefined;
   return {
     resourceType: "Encounter",
     id: enc.id,
@@ -267,7 +275,10 @@ export function createFhirEndpoints(world: () => World): FhirApi {
       if (status === "active") encs = encs.filter(e => e.status === "active");
       if (status === "finished") encs = encs.filter(e => e.status !== "active");
       if (type) encs = encs.filter(e => e.type === type);
-      return encs.map(e => encounterToFhir(e, getWorld()));
+      // Oracle F9: one morgue-id set per request, not one morgue scan per encounter.
+      const state = getWorld();
+      const morgueIds = morgueEncounterIds(state);
+      return encs.map(e => encounterToFhir(e, state, morgueIds));
     },
 
     conformance(): FhirResource {

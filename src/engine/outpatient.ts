@@ -5,6 +5,7 @@ import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js"
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { assignPayer } from "./finance.js";
+import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 
 export interface Poli {
   id: string;
@@ -167,10 +168,13 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       ordersGenerated: (visit.ordersGenerated || 0) + 1,
     });
 
+    const closingEnc = newEncounters.get(visit.encounterId)!;
     newEncounters.set(visit.encounterId, {
-      ...newEncounters.get(visit.encounterId)!,
+      ...closingEnc,
       endTime: clock.hospitalTimeMs,
       status: "discharged",
+      // Issue #5 (Oracle F1): severity snapshot at close — no rng, additive.
+      _severityAtClose: computeSeveritySnapshot(state, closingEnc, tickFromMs(clock.hospitalTimeMs)),
     });
   }
 
