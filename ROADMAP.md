@@ -286,6 +286,60 @@ These four milestones are interconnected — finance needs drug costs, insurance
 
 ---
 
+## Epic X — International Billing & Commercial Productization
+
+**Status:** Design phase — strategy approved by owner 2026-10-05. Implementation deferred until engineering capacity available.
+
+### Milestone 10.1: Billing Adapter Architecture
+- [ ] Define `BillingAdapter` interface in `src/engine/billing/adapter.ts`
+- [ ] Extract INA-CBG grouper into `src/engine/billing/ina-cbg.ts` implementing the interface
+- [ ] Wire through `World` — adapter selected by env var (`DR_BILLING=ina-cbg|us-drg|euro-drg|none`)
+- [ ] When `DR_BILLING=none`, charges accrue but no claim is generated (clean baseline for testing)
+- [ ] Tariff tables as JSON data files, not hardcoded (version-locked per ADR)
+- [ ] All adapters output FHIR `Claim` resources (existing ADR-014 infrastructure)
+
+### Milestone 10.2: US-DRG Adapter (CMS-1500 / UB-04)
+- [ ] CMS-1500 claim structure (16 fields, CMS standard)
+- [ ] MS-DRG grouper logic: MDC grouping → DRG assignment → CC/MCC severity → payment weight
+- [ ] CMS DRG reference tables (public, annual update from CMS.gov) — ~2,000 DRGs
+- [ ] CPT code mapping from DR procedures (start with curated subset)
+- [ ] Output: JSON claim matching CMS-1500 layout + UB-04 electronic format
+- [ ] ICD-10-CM codes (US modification, not Indonesia ICD-10)
+
+### Milestone 10.3: EU EuroDRG Adapter
+- [ ] Procedure-driven grouping (different from diagnosis-driven MS-DRG)
+- [ ] 43 MDCs with procedure + diagnosis double-counting
+- [ ] Country variants (Germany OPS vs France CCAM)
+- [ ] Age bracket adjustments
+
+### Milestone 10.4: Pricing & Market Tiers
+- [ ] Same features, same API, same adapters available to everyone — price differs by region
+- [ ] Indonesian market: Free / Team ($200/mo) / Pro ($500/mo) / Enterprise ($1,500/mo)
+- [ ] US/EU market: Free / Starter ($500/mo) / Professional ($1,500/mo) / Enterprise ($5,000/mo) / Custom ($10K+/mo)
+- [ ] Adapter availability as SKU differentiator (not product separation)
+- [ ] Per-market documentation (English for US/EU, Indonesian for local)
+
+### Milestone 10.5: Usage Metering & Multi-Tenancy
+- [ ] Track ticks per seed, API calls, adapter selections per tenant
+- [ ] Stripe integration for USD billing
+- [ ] Local payment integration for IDR billing
+- [ ] Separate billing infrastructure per region (no single monolithic billing)
+
+### Milestone 10.6: Codex Integration Lifecycle
+- [ ] Extend `DeersRockClient` adapter to route through selected billing adapter
+- [ ] Codex ↔ DR closed-loop: generate → process → validate → regress
+- [ ] Test regression suite: frozen seeds → expected outcome distributions
+- [ ] Position DR as official test fixture engine for Codex Interpretum
+
+### Design Principles
+1. **One product, tiered pricing** — not two separate products for ID vs international
+2. **Same features, same API** — price discrimination by market, not by feature gate
+3. **Adapter = SKU** — clients pick which billing system they need, not which product they buy
+4. **Open-core model** — engine always free; hosted API + adapters are the commercial layer
+5. **Determinism preserved** — all billing assignment is deterministic on a given seed; tariff tables are read-only lookups, no rng involved
+
+---
+
 ## Legend
 
 - ✅ Completed
