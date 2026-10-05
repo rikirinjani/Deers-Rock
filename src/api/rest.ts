@@ -437,7 +437,7 @@ export function createRestServer(world: () => World): RestServer {
       }
       // Opt-in auth (DR_API_KEY) — checked before any body parsing or route work.
       if (apiKey) {
-        const exempt = req.method === "GET" && (url.pathname === "/" || url.pathname === "/api/status");
+        const exempt = req.method === "GET" && (url.pathname === "/" || url.pathname === "/api/status" || url.pathname.endsWith(".html"));
         if (!exempt) {
           const authHeader = req.headers.authorization;
           const bearer = typeof authHeader === "string" && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
