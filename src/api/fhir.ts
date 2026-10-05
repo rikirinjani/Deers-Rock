@@ -1,5 +1,7 @@
 import type { World } from "../engine/world.js";
 import type { Patient, Encounter, InsuranceClaim, MedicalChart } from "../patient/schema.js";
+import type { HospitalState } from "../engine/state-store.js";
+import { deriveOutcome, OUTCOME_DISPLAY, OUTCOME_CODE_SYSTEM } from "../engine/encounter-insights.js";
 
 type FhirResource = Record<string, unknown>;
 
@@ -101,7 +103,11 @@ function claimToFhir(claim: InsuranceClaim, chart?: MedicalChart): FhirResource 
 }
 
 // ─── Encounter ──────────────────────────────────────────────────────
-function encounterToFhir(enc: Encounter): FhirResource {
+// Issue #5 P0-1: when state is provided and a derived outcome exists, it is
+// carried as Encounter.hospitalization.dischargeDisposition using DR's local
+// outcome code system (additive; omitted when the encounter is still active).
+function encounterToFhir(enc: Encounter, state?: HospitalState): FhirResource {
+  const outcome = state ? deriveOutcome(state, enc) : undefined;
   return {
     resourceType: "Encounter",
     id: enc.id,
@@ -112,6 +118,11 @@ function encounterToFhir(enc: Encounter): FhirResource {
     period: { start: fhirDateTime(enc.startTime) },
     length: enc.endTime ? { value: Math.max(0, Math.floor((enc.endTime - enc.startTime) / 60000)), unit: "min", system: "http://unitsofmeasure.org", code: "min" } : undefined,
     reasonCode: enc.primaryDiagnosis ? [{ coding: [{ system: "http://hl7.org/fhir/sid/icd-10", code: enc.primaryDiagnosis, display: enc.primaryDiagnosis }] }] : undefined,
+    hospitalization: outcome ? {
+      dischargeDisposition: {
+        coding: [{ system: OUTCOME_CODE_SYSTEM, code: outcome, display: OUTCOME_DISPLAY[outcome] }],
+      },
+    } : undefined,
   };
 }
 
@@ -256,7 +267,7 @@ export function createFhirEndpoints(world: () => World): FhirApi {
       if (status === "active") encs = encs.filter(e => e.status === "active");
       if (status === "finished") encs = encs.filter(e => e.status !== "active");
       if (type) encs = encs.filter(e => e.type === type);
-      return encs.map(encounterToFhir);
+      return encs.map(e => encounterToFhir(e, getWorld()));
     },
 
     conformance(): FhirResource {

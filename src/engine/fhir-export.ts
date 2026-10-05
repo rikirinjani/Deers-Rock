@@ -1,5 +1,6 @@
 import type { HospitalState } from "./state-store.js";
 import type { Patient, Encounter, LabOrder, MedicationOrder, RadiologyOrder, NurseNote, PhysicianOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart } from "../patient/schema.js";
+import { deriveOutcome, OUTCOME_DISPLAY, OUTCOME_CODE_SYSTEM } from "./encounter-insights.js";
 
 type FhirResource = Record<string, unknown>;
 type FhirBundle = {
@@ -31,7 +32,10 @@ function buildPatientResource(patient: Patient): FhirResource {
   };
 }
 
-function buildEncounterResource(enc: Encounter): FhirResource {
+// Issue #5 P0-1: carries the derived encounter outcome (when one exists) as
+// Encounter.hospitalization.dischargeDisposition — additive, omitted while active.
+function buildEncounterResource(enc: Encounter, state?: HospitalState): FhirResource {
+  const outcome = state ? deriveOutcome(state, enc) : undefined;
   return {
     resourceType: "Encounter",
     id: enc.id,
@@ -41,6 +45,11 @@ function buildEncounterResource(enc: Encounter): FhirResource {
     period: { start: fhirDateTime(enc.startTime), end: enc.endTime ? fhirDateTime(enc.endTime) : undefined },
     subject: { reference: `Patient/${enc.patientId}` },
     diagnosis: [] as unknown[],
+    hospitalization: outcome ? {
+      dischargeDisposition: {
+        coding: [{ system: OUTCOME_CODE_SYSTEM, code: outcome, display: OUTCOME_DISPLAY[outcome] }],
+      },
+    } : undefined,
   };
 }
 
@@ -203,7 +212,7 @@ export function buildFhirBundle(state: HospitalState, encounterId: string): Fhir
   const patientR = buildPatientResource(patient);
   entries.push({ fullUrl: fullUrl("Patient", patient.id), resource: patientR });
 
-  const encR = buildEncounterResource(enc);
+  const encR = buildEncounterResource(enc, state);
   entries.push({ fullUrl: fullUrl("Encounter", enc.id), resource: encR });
 
   const conditions = buildConditionResources(patient.diagnoses, enc.id, patient.id);

@@ -23,6 +23,7 @@ import { journalQuery, journalStats, loadNearestSnapshot, listSnapshots, listExp
 import { SCENARIO_DEFS } from "../engine/scenario.js";
 import { buildBiData } from "./bi.js";
 import { createFhirEndpoints } from "./fhir.js";
+import { buildEncounterView, computeIcdOutcomeStats, tickFromMs } from "../engine/encounter-insights.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -53,7 +54,36 @@ function keyMatches(provided: string | undefined, expected: string): boolean {
 
 function toArr<K, V>(map: Map<K, V>): V[] { return Array.from(map.values()).reverse(); }
 
-function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World, url: URL): boolean {
+// ── Query-param helpers (issue #5 P1-4) ──────────────────────────────────
+// Optional filters on GET /api/encounters and GET /api/charts. Absent/empty
+// params mean "no filter" (behavior unchanged); present-but-invalid values
+// are rejected with 400 rather than silently ignored.
+
+const ENCOUNTER_STATUSES = ["active", "discharged", "transferred"] as const;
+const ENCOUNTER_TYPES = ["inpatient", "outpatient"] as const;
+const CHART_STATUSES = ["open", "incomplete", "completed", "coded"] as const;
+
+function badRequest(res: http.ServerResponse, msg: string): void {
+  res.statusCode = 400;
+  json(res, { error: msg });
+}
+
+/** Returns the raw value when valid, undefined when absent, "INVALID" otherwise. */
+function parseEnumParam(url: URL, name: string, allowed: readonly string[]): string | undefined | "INVALID" {
+  const raw = url.searchParams.get(name);
+  if (raw === null || raw === "") return undefined;
+  return (allowed as readonly string[]).includes(raw) ? raw : "INVALID";
+}
+
+/** Integer >= min. Returns a number when valid, undefined when absent, "INVALID" otherwise. */
+function parseIntParam(url: URL, name: string, min: number): number | undefined | "INVALID" {
+  const raw = url.searchParams.get(name);
+  if (raw === null || raw === "") return undefined;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= min ? n : "INVALID";
+}
+
+export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World, url: URL): boolean {
   const p = url.pathname;
 
   if (p === "/api/status") {
@@ -92,7 +122,25 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
     const pt = w.state.patients.get(target);
     if (pt) json(res, pt); else { res.statusCode = 404; json(res, { error: "Patient not found", mrn: num }); } return true;
   }
-  if (p === "/api/encounters") { json(res, toArr(w.state.encounters)); return true; }
+  // Issue #5: encounters now carry derived fields (outcome, icuDays,
+  // ventilatorDays, readmissionWithin30d, lengthOfStay) plus optional
+  // status/type/limit/since filters. No params → full array, as before.
+  if (p === "/api/encounters") {
+    const status = parseEnumParam(url, "status", ENCOUNTER_STATUSES);
+    if (status === "INVALID") { badRequest(res, `invalid status param — expected one of ${ENCOUNTER_STATUSES.join("|")}`); return true; }
+    const type = parseEnumParam(url, "type", ENCOUNTER_TYPES);
+    if (type === "INVALID") { badRequest(res, `invalid type param — expected one of ${ENCOUNTER_TYPES.join("|")}`); return true; }
+    const limit = parseIntParam(url, "limit", 1);
+    if (limit === "INVALID") { badRequest(res, "invalid limit param — expected integer >= 1"); return true; }
+    const since = parseIntParam(url, "since", 0);
+    if (since === "INVALID") { badRequest(res, "invalid since param — expected integer tick >= 0"); return true; }
+    let list = toArr(w.state.encounters).map(e => buildEncounterView(w.state, e));
+    if (status !== undefined) list = list.filter(e => e.status === status);
+    if (type !== undefined) list = list.filter(e => e.type === type);
+    if (since !== undefined) list = list.filter(e => tickFromMs(e.startTime) >= since);
+    if (limit !== undefined) list = list.slice(0, limit);
+    json(res, list); return true;
+  }
   if (p === "/api/beds") { const b = Array.from(w.state.beds.values()); const bw: Record<string, {total:number;occupied:number}> = {}; const bb: Record<string, {total:number;occupied:number}> = {}; for (const x of b) { if (!bw[x.ward]) bw[x.ward] = {total:0,occupied:0}; bw[x.ward]!.total++; if (x.patientId) bw[x.ward]!.occupied++; if (x.building) { if (!bb[x.building]) bb[x.building] = {total:0,occupied:0}; bb[x.building]!.total++; if (x.patientId) bb[x.building]!.occupied++; } } json(res, {beds:b, byWard:bw, byBuilding:bb}); return true; }
   if (p === "/api/labs") { json(res, toArr(w.state.labOrders)); return true; }
   if (p === "/api/radiology") { json(res, toArr(w.state.radiologyOrders)); return true; }
@@ -104,7 +152,21 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/respiratory") { json(res, toArr(w.state.respiratoryOrders)); return true; }
   if (p === "/api/diet") { json(res, toArr(w.state.dietOrders)); return true; }
   if (p === "/api/social") { json(res, toArr(w.state.socialWorkNotes)); return true; }
-  if (p === "/api/charts") { json(res, toArr(w.state.medicalCharts)); return true; }
+  // Issue #5: optional status/limit/since filters on charts. No params →
+  // full array, as before.
+  if (p === "/api/charts") {
+    const status = parseEnumParam(url, "status", CHART_STATUSES);
+    if (status === "INVALID") { badRequest(res, `invalid status param — expected one of ${CHART_STATUSES.join("|")}`); return true; }
+    const limit = parseIntParam(url, "limit", 1);
+    if (limit === "INVALID") { badRequest(res, "invalid limit param — expected integer >= 1"); return true; }
+    const since = parseIntParam(url, "since", 0);
+    if (since === "INVALID") { badRequest(res, "invalid since param — expected integer tick >= 0"); return true; }
+    let list = toArr(w.state.medicalCharts);
+    if (status !== undefined) list = list.filter(c => c.status === status);
+    if (since !== undefined) list = list.filter(c => tickFromMs(c.createdAt) >= since);
+    if (limit !== undefined) list = list.slice(0, limit);
+    json(res, list); return true;
+  }
   if (p === "/api/charges") { json(res, toArr(w.state.charges)); return true; }
   if (p === "/api/claims") { json(res, toArr(w.state.insuranceClaims)); return true; }
   if (p === "/api/payments") { json(res, toArr(w.state.payments)); return true; }
@@ -160,7 +222,21 @@ function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w: World
   if (p === "/api/specialty") { json(res, toArr(w.state.specialtyOrders)); return true; }
   if (p === "/api/doctor-cases") { json(res, { cases: Array.from(w.state._doctorCaseMemory.values()).reverse(), total: w.state._doctorCaseMemory.size }); return true; }
   if (p === "/api/nurse-cases") { json(res, { cases: Array.from(w.state._nurseCaseMemory.values()).reverse(), total: w.state._nurseCaseMemory.size }); return true; }
-  if (p === "/api/outcomes") { json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length }); return true; }
+  // Issue #5 P2-7: per-ICD outcome stats built from the derived encounter
+  // outcomes. Additive on top of the pre-existing records/total payload:
+  //  - ?icd=<code> → `stats` holds the single-code row (zeros when unknown).
+  //  - no param    → `byIcd` holds the aggregate rows (top ICDs, capped).
+  if (p === "/api/outcomes") {
+    const icd = url.searchParams.get("icd");
+    if (icd !== null && icd !== "") {
+      const rows = computeIcdOutcomeStats(w.state, icd);
+      const stats = rows[0] ?? { icd, total: 0, sembuh: 0, meninggal: 0, dirujuk: 0, lari: 0, mortalityRate: 0 };
+      json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length, stats });
+    } else {
+      json(res, { records: w.state._outcomeRecords, total: w.state._outcomeRecords.length, byIcd: computeIcdOutcomeStats(w.state) });
+    }
+    return true;
+  }
   if (p === "/api/performance") { json(res, { diagnoses: computePerformanceStats(w.state) }); return true; }
   if (p === "/api/pharmacy-cases") { json(res, { cases: Array.from(w.state._pharmacyCaseMemory.values()).reverse(), total: w.state._pharmacyCaseMemory.size }); return true; }
   if (p === "/api/outpatient") {
