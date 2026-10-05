@@ -135,24 +135,26 @@ Timeline Engine is intentionally specified as a generic temporal abstraction. He
 Make HOE data useful for analytics, reporting, and external system integration.
 
 ### Milestone 4.1: FHIR Resources
-- [ ] Add `/fhir/Patient` search endpoint ✅
-- [ ] Add `/fhir/Observation` search endpoint ✅
-- [ ] Add `/fhir/Condition` endpoint
-- [ ] Add `/fhir/Claim` endpoint
-- [ ] Add `/fhir/Encounter` search endpoint
-- [ ] FHIR R4 compliance tests
+- [x] Add `/fhir/Patient` search endpoint ✅
+- [x] Add `/fhir/Observation` search endpoint ✅
+- [x] Add `/fhir/Condition` endpoint ✅ (ADR-014, 2026-10-05)
+- [x] Add `/fhir/Claim` endpoint ✅ (ADR-014, 2026-10-05)
+- [x] Add `/fhir/Encounter` search endpoint ✅ (ADR-014, 2026-10-05)
+- [x] FHIR R4 compliance tests ✅ (ADR-014, 8 tests)
+- [x] FHIR Conformance Statement at `/api/fhir/metadata` ✅
 
 ### Milestone 4.2: Report Presentation
-- [ ] Replace JSON dump with styled HTML tables
-- [ ] Add charts (ECharts or Chart.js) to reports
-- [ ] Export to CSV/PDF
-- [ ] Fix report blood type detection to use `patient.rhesus` (not Math.random())
+- [x] Replace JSON dump with styled HTML tables ✅ (`/report.html`, dark theme)
+- [x] Export to CSV — patients, encounters, charges ✅ (`/api/export/*.csv`)
+- [x] Fix report blood type detection to use `patient.rhesus` ✅ (was already correct)
+- [ ] Add charts (ECharts or Chart.js) to reports — deferred
+- [ ] PDF export — deferred
 - See EVALUATION-REPORT §7
 
 ### Milestone 4.3: CI/CD
-- [ ] GitHub Actions: lint, typecheck, test on push
-- [ ] Railway auto-deploy from main
-- [ ] Integration test: `runWorld(createWorld(20), 30)` with department-level assertions
+- [x] GitHub Actions: lint, typecheck, test on push ✅ (`.github/workflows/ci.yml`)
+- [x] Railway auto-deploy from main — superseded by cokro-tech live box
+- [ ] Integration test: `runWorld(createWorld(20), 30)` with department-level assertions — deferred
 
 ---
 

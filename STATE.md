@@ -1,25 +1,39 @@
 # STATE.md — Deers-Rock loop state
 
-## Last run: 2026-10-05 — ADR-010 clinical fidelity expansion
+## Last run: 2026-10-05 — ADR-012 BPOM expansion + ADR-013 Ch.IX/X + ADR-014 Epic IV
 
-**Mode:** L2 (owner-approved: expand formulary to 73 drugs, ICD-10 generator to 146 codes, INA-CBG to 144 tariffs with full SEP scoring)
+**Mode:** L2 (owner-approved: expand formulary to 174 drugs, ICD-10 to 147 codes, CBG to 165 tariffs, FHIR test-bed endpoints)
 
-### ADR-010 Changes (commits `e5d4f76`, `2360f3f`)
-- **Drug catalog**: New file `src/engine/drug-catalog.ts` with 73 drugs across 24 categories (antihypertensives, antidiabetics, antibiotics, antivirals, antipsychotics, antidepressants, corticosteroids, etc.)
-- **ICD-10 generator**: Expanded from 52 to 146 codes covering all major chapters (A-R, excluding Z as fallback)
-- **INA-CBG tariffs**: Expanded from 71 to 144 entries with full SEP (Severity of Illness Points) scoring: SEP 0→×1.0, SEP 1→×1.15, SEP 2→×1.35, SEP 3→×1.60, SEP 4→×1.90
-- **Clinical protocols**: Added protocols for all 146 ICD codes in `clinical-knowledge.ts`
-- **Pharmacy integration**: Updated `pharmacy-knowledge.ts` (allergens, contraindications, interactions for 73 drugs), `pharmacy.ts`, `ai-pharmacy.ts`, `central-supply.ts`
-- **Auth polyfill**: Dashboard JS now injects `window.__DR_API_KEY` from server; all fetch calls authenticated
-- **Bug fixes**: Fixed duplicate ICD codes (C61, E11, S06), fixed `finance.ts` severity extraction, fixed TypeScript errors in `clinical-knowledge.ts`
+### ADR-012: BPOM Generic Drug Expansion (commit `8b43880`)
+- Added **82 new drugs** from BPOM-registered generics (174 total)
+- Categories: antipsychotics, mood stabilizers, anticonvulsants, antidiabetics, advanced antibiotics, rheumatology DMARDs, cardiovascular, respiratory, endocrine, ophthalmic, dermatology, hematology, pain/anesthesia, fluids, anticoagulants, immunosuppressants, urinary, antiarrhythmics
+- Full pharmacy safety网: allergens (174), contraindications (174), dose ranges (174), interactions (~100 pairs)
+- Live box: first mortality events (4 deceased at tick ~7,300)
+
+### ADR-013: ICD Chapter IX + X Expansion (commit `5686b45`)
+- Added **25 new ICD-10 codes** across circulatory (I73, I80, I82, I11, I12, I00, I33, I30, I49, I42, I26, I77) and respiratory (J06, J10, J11, J96, J91) chapters
+- Added **6 new drugs**: Cilostazol (PVD), Nebivolol (HTN heart), Oseltamivir (flu), Tenecteplase (PE), Hyoscine (abdominal pain), Colchicine (pericarditis)
+- Total: 147 generator codes, 165 protocols, 165 CBG tariffs
+- Live box: 1,762 outcomes, 5 deceased at tick ~11,900
+
+### ADR-014: Hospital Test-bed / Epic IV (commit `78129f5`)
+- **FHIR Condition** — `/api/fhir/Condition` with ICD-10 coding (4,088 resources)
+- **FHIR Claim** — `/api/fhir/Claim` with CBG/SEP tariff data (100 resources)
+- **FHIR Encounter** — `/api/fhir/Encounter` with status/type filters (3,796 resources)
+- **FHIR Conformance** — `/api/fhir/metadata` — CapabilityStatement FHIR R4.0.1
+- **CSV exports** — `/api/export/patients.csv`, `/api/export/encounters.csv`, `/api/export/charges.csv`
+- **HTML report** — `/report.html` styled dark-theme dashboard
+- **FHIR compliance tests** — `tests/fhir-compliance.test.ts` (8 tests)
+- **GitHub Actions CI** — `.github/workflows/ci.yml`
 
 ### Validation
-- Test suite: **189 tests pass** (26 files), tsc clean
-- Live box: running at tick 2941, 419 patients, 960 active encounters, 386 outcomes, RSS 119MB/512MB
+- Test suite: **197 tests pass** (27 files), tsc clean
+- Live box: tick 13,018+, 1,762+ outcomes, RSS ~205 MB / 512 MB
 
 ### Open items
 - Issue #4 (CPU scaling) still open — blocks 100k-tick calibration only
 - Long-term: consider snapshot compression to reduce resume memory footprint
+- Dashboard sub-panel rendering (doctor/pharmacy/nurse panels) — deferred
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
