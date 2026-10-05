@@ -6,9 +6,9 @@ import { generatePatientPool } from "../src/patient/generator.js";
 import { centralSupplyInit, centralSupplyHandler, dispenseItem, getStock } from "../src/engine/central-supply.js";
 
 describe("Central Supply", () => {
-  it("initializes 101 inventory items with stock between min and max", () => {
+  it("initializes 175 inventory items with stock between min and max", () => {
     const inv = centralSupplyInit();
-    expect(inv.size).toBe(101);
+    expect(inv.size).toBe(175);
     for (const item of inv.values()) {
       expect(item.stock).toBeGreaterThanOrEqual(item.minStock);
       expect(item.stock).toBeLessThanOrEqual(item.maxStock);
