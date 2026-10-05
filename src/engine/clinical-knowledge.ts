@@ -506,7 +506,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
     ] },
   { code: "A37", name: "Pertussis", specialty: "pulmonology",
     actions: [
-      { type: "medication", label: "Azithromycin 500mg", priority: 9, detail: "Macrolide antibiotic" },
+      { type: "medication", label: "Azithromycin 250mg", priority: 9, detail: "Macrolide antibiotic" },
       { type: "lab", label: "PCR nasofaring", priority: 8, detail: "pertussis_pcr" },
       { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
     ] },
@@ -722,7 +722,7 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
   { code: "G61", name: "Bell's palsy", specialty: "neurology",
     actions: [
       { type: "medication", label: "Prednisone 5mg", priority: 10, detail: "Steroid early treatment" },
-      { type: "medication", label: "Valacyclovir 1g", priority: 7, detail: "Antiviral" },
+      { type: "medication", label: "Valacyclovir 500mg", priority: 7, detail: "Antiviral" },
       { type: "consult", label: "Saraf", priority: 8, detail: "neurology" },
     ] },
   { code: "G58", name: "Mononeuritis multiplex", specialty: "neurology",

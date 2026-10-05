@@ -18,7 +18,8 @@ import { DRUG_CATALOG } from "./drug-catalog.js";
  */
 const LABEL_TO_CODE: Record<string, string> = {
   "Artemisinin-combination therapy": "ART",
-  "N-acetylcysteine 100mg": "NAC",
+  "N-acetylcysteine 100mg/kg": "NAC",
+  "N-acetylcysteine 600mg": "NAC",
   "Metoprolol 50mg": "METO",
   "Morphine 5mg": "MOR5",
 };
