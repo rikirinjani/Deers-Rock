@@ -79,7 +79,7 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 - [x] Generator seeding — `createWorld(50, "db", 42)` = identical output
 - [x] Multi-run test harness — `src/experiment/runner.ts` (seedCount, ticks, scenario forcing)
 - [x] Outcome recorder — per-run CSV/JSON export with CI/SD, deaths by ICD, LOS, occupancy
-- [ ] Add learning toggle (freeze/disable agent learning for control experiments)
+- [x] Learning toggle — `DR_FREEZE_LEARNING=1` freezes agent learning for controlled experiments (commit `21e99c8`)
 
 ---
 

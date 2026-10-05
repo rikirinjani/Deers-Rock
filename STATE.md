@@ -52,11 +52,9 @@ Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier A
 - Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
 
 ### Open items
-- Issue #4 (CPU scaling) — **FIXED** (commit `75dfb99`, indexed order lookup). Kaggle kernel pushed for long-run validation.
 - Issue #3 (EventQueue) — fixed by ADR-004 D1, awaiting close
 - Long-term: consider snapshot compression to reduce resume memory footprint
 - Dashboard sub-panel rendering (doctor/pharmacy/nurse panels) — deferred
-- Learning toggle (Epic II.6) — needed for controlled experiments, not blocking production
 - Epic X (International Billing) — design phase, see ROADMAP Epic X
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
