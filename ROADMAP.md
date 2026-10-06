@@ -280,9 +280,10 @@ Build out the business and logistics layer to match a real Indonesian Tier A hos
 - [x] Fixed draw count discipline (6 draws per fire, counter-based IDs) — ADR-016 wave 1
 
 ### Milestone 9.4: Expanded Formulary
-- [ ] Expand from 22 to 200-500 essential drugs
-- [ ] All generic names (no brands)
-- [ ] 12 categories: antibiotics, cardiovascular, endocrine, respiratory, CNS, GI, IV fluids, emergency, chemotherapy, vaccines, anaesthetics, nutrition
+- [x] Expand from 22 to 200+ essential drugs (205 drugs, 36 categories)
+- [x] All generic names (no brands)
+- [x] 12 categories covered: antibiotics, cardiovascular, endocrine, respiratory, CNS, GI, IV fluids, emergency, chemotherapy, vaccines, anaesthetics, nutrition
+- [x] Drug costs from e-catalogue (costIdr on all 205 drugs)
 
 ### Design Note
 These four milestones are interconnected — finance needs drug costs, insurance needs ICD→INA-CBG mapping, referral needs geographic routing, ambulance needs dispatch logic. **A design review session is recommended before any code changes.**

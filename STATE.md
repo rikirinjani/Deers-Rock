@@ -48,6 +48,7 @@ Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier A
 
 ### Validation
 - Test suite: **300 tests pass** (37 files), tsc clean
+- Drug formulary: **205 drugs** across 36 categories (M9.4), "other" reduced from 32→12
 - Live box: tick 16,800+, 1,997 patients, RSS ~283 MB / 512 MB
 - Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
 
