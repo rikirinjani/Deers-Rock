@@ -1,0 +1,43 @@
+{
+  "benchmark": "100k tick scaling test",
+  "platform": "Kaggle CPU (2 vCPU, 8GB RAM)",
+  "date": "2026-10-06",
+  "kernel_url": "https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark",
+  "kernel_version": 6,
+  "results": [
+    {
+      "ticks": 5000,
+      "total_ms": 1500,
+      "ms_per_tick": 300.0
+    },
+    {
+      "ticks": 10000,
+      "total_ms": 3520,
+      "ms_per_tick": 352.1
+    },
+    {
+      "ticks": 20000,
+      "total_ms": 13000,
+      "ms_per_tick": 650.1
+    },
+    {
+      "ticks": 30000,
+      "total_ms": 32000,
+      "ms_per_tick": 1066.6
+    },
+    {
+      "ticks": 50000,
+      "total_ms": 111180,
+      "ms_per_tick": 2223.5
+    },
+    {
+      "ticks": 100000,
+      "total_ms": 482720,
+      "ms_per_tick": 4827.2
+    }
+  ],
+  "tests_passed": 300,
+  "tests_skipped": 1,
+  "verdict": "SUPERLINEAR - ms/tick grows 16x as ticks grow 20x",
+  "root_cause_hypothesis": "State object growth + deep copy overhead per tick"
+}

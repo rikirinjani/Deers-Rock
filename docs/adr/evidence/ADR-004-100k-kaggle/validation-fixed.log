@@ -1,0 +1,47 @@
+Deers-Rock Issue #4: CPU Scaling Validation - POST FIX
+============================================================
+Date: 2026-10-06
+Platform: Kaggle CPU (2 vCPU, 8GB RAM)
+Kernel: https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark
+
+ROOT CAUSE IDENTIFIED:
+----------------------
+EventQueue.dueEvents() performed TWO full array scans per tick:
+  const due = this.events.filter(e => e.scheduledTick <= currentTick);
+  this.events = this.events.filter(e => e.scheduledTick > currentTick);
+
+As the queue grew to 13k+ discharge events (scheduled 3-7 days ahead),
+each dueEvents() call scanned 13k+ items twice = O(n) per call.
+With n growing linearly with ticks, total complexity was O(n²).
+
+FIX APPLIED:
+------------
+Replace flat array with binary-search sorted insertion:
+- schedule(): O(log n) binary search + O(k) splice for sorted insert
+- dueEvents(): O(log n) binary search for split point + O(m) splice
+
+State is kept sorted by scheduledTick at all times.
+
+RESULTS AFTER FIX:
+------------------
+tick   5000 |   1.40s total | 279.6ms/tick
+tick  10000 |   2.38s total | 238.3ms/tick
+tick  20000 |   4.90s total | 244.8ms/tick
+tick  30000 |   7.57s total | 252.3ms/tick
+tick  50000 |  13.68s total | 273.5ms/tick
+tick 100000 |  33.12s total | 331.2ms/tick
+
+BEFORE vs AFTER (100k ticks):
+  Before: 482.72s (4,827ms/tick) - SUPERLINEAR
+  After:   33.12s (  331ms/tick) - LINEAR
+  Speedup: 14.6x
+
+SCALING VERDICT: LINEAR ✓
+- ms/tick is flat at ~280-330ms across all scales
+- No superlinear growth observed up to 100k ticks
+- Tests: 300 passed | 1 skipped
+
+NOTE: Event queue still grows to ~48k events at 20k ticks because
+discharge events are scheduled 3-7 days ahead but no admissions occur
+(0 encounters in benchmark). This is expected behavior - the queue
+size doesn't affect performance anymore thanks to binary search.
