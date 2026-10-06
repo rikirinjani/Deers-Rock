@@ -1,6 +1,9 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import type { Charge } from "../patient/schema.js";
+import { appendCharge } from "./charge-generator.js";
+import { dialysisPrice } from "./price-tables.js";
 
 export interface DialysisMachine {
   id: string; name: string; type: "hd" | "hdf" | "pd";
@@ -46,6 +49,9 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
   const d = state._dialysis ?? initDialysisState();
   const newMachines = [...d.machines];
   const newSessions = [...d.sessions];
+  // ADR-015 D7: charges map copied lazily on first completed session so the
+  // previous state's map is never mutated (same pattern as ai-pharmacy.ts).
+  let chargesMut: Map<string, Charge> | null = null;
 
   let nephrologistId: string | null = null;
   let nurseId: string | null = null;
@@ -95,6 +101,12 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
       const mi = newMachines.findIndex(m => m.id === s.machineId);
       if (mi !== -1) newMachines[mi] = { ...newMachines[mi]!, status: "available" };
       newSessions[si] = { ...s, status: "completed", completedAt: clock.hospitalTimeMs, complication };
+      // ADR-015 D7: bill per completed session by session type (hd/hdf/pd).
+      // Appended in the same deterministic loop order as session completion.
+      if (chargesMut === null) chargesMut = new Map(state.charges);
+      const unitPrice = dialysisPrice(s.type);
+      appendCharge(chargesMut, clock, s.encounterId, s.patientId, "dialysis",
+        `Dialysis session (${s.type.toUpperCase()})`, undefined, { code: s.type, unitPrice, quantity: 1 });
     }
   }
 
@@ -107,5 +119,9 @@ export function dialysisHandler(state: HospitalState, clock: Clock, _queue: Even
     }
   }
 
-  return { ...state, _dialysis: { machines: newMachines, sessions: newSessions } };
+  return {
+    ...state,
+    _dialysis: { machines: newMachines, sessions: newSessions },
+    ...(chargesMut !== null ? { charges: chargesMut } : {}),
+  };
 }

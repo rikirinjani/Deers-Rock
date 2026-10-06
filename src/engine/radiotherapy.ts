@@ -1,6 +1,9 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import type { Charge } from "../patient/schema.js";
+import { appendCharge } from "./charge-generator.js";
+import { radiotherapyPrice } from "./price-tables.js";
 
 export type RadiotherapyModality = "external_beam" | "brachytherapy" | "stereotactic" | "imrt" | "electron";
 
@@ -66,6 +69,9 @@ export function radiotherapyHandler(state: HospitalState, clock: Clock, _queue: 
   const newPlans = [...rt.plans];
   const newFracs = [...rt.fractions];
   const newEquip = [...rt.equipment];
+  // ADR-015 D7: charges map copied lazily on first delivered fraction
+  // (same pattern as ai-pharmacy.ts / dialysis.ts).
+  let chargesMut: Map<string, Charge> | null = null;
 
   const agentPool = state._agentState?.pool;
   let oncoId: string | null = null;
@@ -120,6 +126,13 @@ export function radiotherapyHandler(state: HospitalState, clock: Clock, _queue: 
         therapistId,
       });
       newPlans[pi] = { ...p, fractionsDelivered: p.fractionsDelivered + 1 };
+      // ADR-015 D7: bill per delivered fraction by modality, appended in the
+      // same deterministic loop order as fraction delivery.
+      if (chargesMut === null) chargesMut = new Map(state.charges);
+      const unitPrice = radiotherapyPrice(p.modality);
+      appendCharge(chargesMut, clock, p.encounterId, p.patientId, "radiotherapy",
+        `Radiotherapy fraction ${p.fractionsDelivered + 1} (${p.modality})`, undefined,
+        { code: p.modality, unitPrice, quantity: 1 });
     }
     if (p.status === "in_progress" && p.fractionsDelivered >= p.fractionsPlanned) {
       newPlans[pi] = { ...p, status: "completed", completedAt: clock.hospitalTimeMs };
@@ -135,5 +148,9 @@ export function radiotherapyHandler(state: HospitalState, clock: Clock, _queue: 
     }
   }
 
-  return { ...state, _radiotherapy: { plans: newPlans, fractions: newFracs, equipment: newEquip } };
+  return {
+    ...state,
+    _radiotherapy: { plans: newPlans, fractions: newFracs, equipment: newEquip },
+    ...(chargesMut !== null ? { charges: chargesMut } : {}),
+  };
 }

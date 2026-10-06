@@ -4,6 +4,8 @@ import { EventQueue } from "./event-queue.js";
 import type { EdTriage } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { assignPayer } from "./finance.js";
+import { appendCharge } from "./charge-generator.js";
+import { edFee } from "./price-tables.js";
 import { selectPrimaryDiagnosisCode } from "./markov.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 
@@ -107,7 +109,21 @@ export function edDischargeHandler(state: HospitalState, clock: Clock, _queue: E
               _severityAtClose: computeSeveritySnapshot(state, enc, tickFromMs(clock.hospitalTimeMs)),
             });
       }
-      return { ...state, edTriages: newTriages, encounters: newEncounters };
+
+      // ADR-015 D7: ED fee by acuity, billed ONCE per encounter at
+      // disposition. The disposition===null gate above makes this path
+      // one-shot per triage, but guard defensively against an "emergency"
+      // charge already existing for the encounter (same pattern as the
+      // admin-fee guard in finance.ts). No rng.
+      let newCharges = state.charges;
+      if (enc && !Array.from(state.charges.values()).some(c => c.encounterId === t.encounterId && c.category === "emergency")) {
+        const unitPrice = edFee(t.acuity);
+        newCharges = appendCharge(new Map(state.charges), clock, t.encounterId, t.patientId,
+          "emergency", `ED visit (acuity ${t.acuity})`, undefined,
+          { code: `ED-P${t.acuity}`, unitPrice, quantity: 1 });
+      }
+
+      return { ...state, edTriages: newTriages, encounters: newEncounters, charges: newCharges };
     }
   }
   return state;

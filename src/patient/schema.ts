@@ -82,6 +82,22 @@ export interface Encounter {
    * toward 0 over poll time.
    */
   _severityAtClose?: { icuDays: number; ventilatorDays: number };
+  /**
+   * ADR-015 D2 (Epic IX Phase 1): room class stamped ONCE at inpatient bed
+   * assignment (markov.ts). Additive optional field; no rng. Room charges bill
+   * per 1440-tick sim-day against this stamp for the whole stay. Absent on
+   * outpatient/ED encounters — its absence gates room billing (they never
+   * accrue room charges).
+   */
+  roomClassAtAdmission?: RoomClass;
+  /**
+   * ADR-015 D2 (Epic IX Phase 1): highest room-day number already billed for
+   * this encounter (1 charge per complete 1440-tick day + one final partial
+   * day at discharge, min 1). Written only by billingHandler; makes per-day
+   * billing idempotent across the handler's every-5-tick cadence without any
+   * rng draw. Survives serialization with the encounter object.
+   */
+  lastRoomDayBilled?: number;
 }
 
 export type RoomClass = "vvip" | "vip" | "kelas-1" | "kelas-2" | "kelas-3" | "icu" | "hcu" | "nicu" | "picu";
@@ -224,7 +240,10 @@ export interface MedicalChart {
 }
 
 // ─── Finance / Billing ───
-export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply" | "administration";
+// ADR-015 D1/D7: "dialysis" and "radiotherapy" added (additive union growth —
+// previously fully-simulated departments that billed zero; no consumer switches
+// exhaustively on this union, grouping is by string).
+export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply" | "administration" | "dialysis" | "radiotherapy";
 
 export interface Charge {
   id: string;
@@ -235,6 +254,13 @@ export interface Charge {
   amount: number;
   billedAt: number;
   paid: boolean;
+  /**
+   * ADR-015 D1 additive optional pricing fields. `amount` stays the canonical
+   * billed total: amount = unitPrice × quantity whenever both are present.
+   */
+  code?: string;
+  unitPrice?: number;
+  quantity?: number;
 }
 
 export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | null;

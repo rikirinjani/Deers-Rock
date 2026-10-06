@@ -3,6 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { SurgeryOrder } from "../patient/schema.js";
 import { appendCharge } from "./charge-generator.js";
+import { surgeryPrice } from "./price-tables.js";
 
 const SURGEONS = ["Dr. Wijaya", "Dr. Santoso", "Dr. Kusuma", "Dr. Hidayat", "Dr. Pratama"];
 
@@ -60,7 +61,11 @@ export function surgeryResultHandler(state: HospitalState, clock: Clock, _queue:
         notes: "Procedure completed without complications. Patient transferred to recovery.",
       };
       newOrders.set(id, updated);
-      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "surgery", `Surgery: ${order.procedureName}`);
+      // ADR-015 D1: per-procedure price from the surgery price table
+      // (fallback: flat CHARGE_RATES.surgery on unknown procedure codes).
+      const unitPrice = surgeryPrice(order.procedureCode);
+      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "surgery",
+        `Surgery: ${order.procedureName}`, undefined, { code: order.procedureCode, unitPrice, quantity: 1 });
 
       // Write procedure to chart
       const chart = Array.from(newCharts.values()).find(c => c.encounterId === order.encounterId);

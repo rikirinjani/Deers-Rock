@@ -3,6 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { RadiologyOrder } from "../patient/schema.js";
 import { appendCharge } from "./charge-generator.js";
+import { radiologyPrice } from "./price-tables.js";
 
 export const RAD_STUDIES: { modality: RadiologyOrder["modality"]; studyType: string; findings: string[]; impressions: string[] }[] = [
   { modality: "X-ray", studyType: "Chest X-ray PA & Lateral", findings: ["Clear lung fields bilaterally", "Mild interstitial prominence", "Focal opacity right lower lobe", "Cardiomegaly with pulmonary congestion", "Small pleural effusion left base"], impressions: ["No acute cardiopulmonary abnormality", "Community-acquired pneumonia", "Congestive heart failure exacerbation", "Normal study"] },
@@ -54,7 +55,11 @@ export function radResultHandler(state: HospitalState, clock: Clock, _queue: Eve
         impression: study.impressions[Math.floor(clock.rng() * study.impressions.length)]!,
         resultedAt: clock.hospitalTimeMs,
       });
-      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "radiology", `Imaging: ${order.studyType}`);
+      // ADR-015 D1: per-study price from the radiology price table
+      // (fallback: flat CHARGE_RATES.radiology on unknown study types).
+      const unitPrice = radiologyPrice(order.studyType);
+      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "radiology",
+        `Imaging: ${order.studyType}`, undefined, { code: order.studyType, unitPrice, quantity: 1 });
     }
   }
   return { ...state, radiologyOrders: newOrders, charges: newCharges };

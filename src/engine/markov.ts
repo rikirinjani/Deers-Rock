@@ -99,6 +99,10 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       status: "active" as const,
       payer: assignPayer(patient),
       primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
+      // ADR-015 D2: stamp the room class ONCE at bed assignment. Per-day room
+      // billing (finance.ts) reads this stamp; absent on outpatient/ED
+      // encounters, which gates them out of room charges. No rng.
+      roomClassAtAdmission: freeBed.roomClass,
     };
     newEncounters.set(encounter.id, encounter);
 

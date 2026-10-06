@@ -31,12 +31,15 @@ describe("Determinism (Phase B)", () => {
   });
 
   it("same seed + same ticks yields identical state in same process", () => {
+    // ADR-015 D8: strengthened from size equality to FULL content equality —
+    // every charge (incl. amount/category/paid/unitPrice/quantity/code) and
+    // every claim must be identical across same-seed worlds.
     const w1 = createWorld(30, undefined, 99);
-    const r1 = runWorld(w1, 100);
+    const r1 = runWorld(w1, 300);
     const w2 = createWorld(30, undefined, 99);
-    const r2 = runWorld(w2, 100);
-    expect(r1.clock.tick).toBe(100);
-    expect(r2.clock.tick).toBe(100);
+    const r2 = runWorld(w2, 300);
+    expect(r1.clock.tick).toBe(300);
+    expect(r2.clock.tick).toBe(300);
     expect(r1.clock.rngSeed).toBe(99);
     expect(r2.clock.rngSeed).toBe(99);
     // Compare patient IDs (should be identical after fix)
@@ -48,6 +51,42 @@ describe("Determinism (Phase B)", () => {
     // Compare key state sizes
     expect(r1.state.charges.size).toBe(r2.state.charges.size);
     expect(r1.state.labOrders.size).toBe(r2.state.labOrders.size);
+
+    // FULL charge content equality (sorted canonical JSON projection).
+    const chargeFingerprint = (s: typeof r1.state) => JSON.stringify(
+      Array.from(s.charges.values())
+        .map(c => ({
+          id: c.id, encounterId: c.encounterId, patientId: c.patientId,
+          category: c.category, description: c.description, amount: c.amount,
+          billedAt: c.billedAt, paid: c.paid,
+          code: c.code ?? null, unitPrice: c.unitPrice ?? null, quantity: c.quantity ?? null,
+        }))
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    );
+    expect(chargeFingerprint(r1.state)).toBe(chargeFingerprint(r2.state));
+
+    // FULL claim content equality.
+    const claimFingerprint = (s: typeof r1.state) => JSON.stringify(
+      Array.from(s.insuranceClaims.values())
+        .map(c => ({
+          id: c.id, encounterId: c.encounterId, patientId: c.patientId,
+          payer: c.payer, sepNumber: c.sepNumber, actualCost: c.actualCost,
+          totalCharges: c.totalCharges, coveredAmount: c.coveredAmount,
+          patientResponsibility: c.patientResponsibility, status: c.status,
+          denialReason: c.denialReason ?? null,
+          submittedAt: c.submittedAt, resolvedAt: c.resolvedAt ?? null,
+        }))
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    );
+    expect(claimFingerprint(r1.state)).toBe(claimFingerprint(r2.state));
+
+    // Payment content equality (cashier amounts/types must match too).
+    const paymentFingerprint = (s: typeof r1.state) => JSON.stringify(
+      Array.from(s.payments.values())
+        .map(p => ({ id: p.id, encounterId: p.encounterId, amount: p.amount, type: p.type, paidAt: p.paidAt }))
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    );
+    expect(paymentFingerprint(r1.state)).toBe(paymentFingerprint(r2.state));
   });
 
   it("different seeds yield different trajectories", () => {

@@ -2,7 +2,7 @@ import type { HospitalState, CaseRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { HospitalAgent } from "../agent/types.js";
-import type { LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, PhysicianOrder } from "../patient/schema.js";
+import type { Charge, LabOrder, MedicationOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, PhysicianOrder } from "../patient/schema.js";
 import type { SpecialtyOrder } from "./specialty.js";
 import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers, assessQsofa, ESCALATION_TRIGGERS, assessMortalityRisk } from "./clinical-knowledge.js";
 import { getActionRanking } from "./agent-learning.js";
@@ -10,6 +10,8 @@ import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { RAD_STUDIES } from "./radiology.js";
 import { DRUG_CATALOG } from "./drug-catalog.js";
+import { appendCharge } from "./charge-generator.js";
+import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
 
 /**
  * Alias mapping: protocol action labels → drug codes.
@@ -37,6 +39,9 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
   let newSpecOrders = new Map(state.specialtyOrders);
   let newEncounters = new Map(state.encounters);
   let caseMemory = new Map(state._doctorCaseMemory ?? []);
+  // ADR-015 D7: charges map copied lazily on first respiratory order created
+  // here (activation fee) — same pattern as ai-pharmacy.ts. No rng added.
+  let chargesMut: Map<string, Charge> | null = null;
 
   const agentPool = state._agentState?.pool;
   if (!agentPool) return state;
@@ -249,6 +254,11 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
               orderedAt: clock.hospitalTimeMs, notes: null,
             };
             newRespOrders.set(order.id, order);
+            // ADR-015 D7: per-order activation fee (mirrors respiratory.ts).
+            if (chargesMut === null) chargesMut = new Map(state.charges);
+            appendCharge(chargesMut, clock, enc.id, enc.patientId, "respiratory",
+              `Respiratory therapy: ${therapyType}`, undefined,
+              { code: therapyType, unitPrice: RESPIRATORY_ACTIVATION_FEE, quantity: 1 });
             taken.push(orderKey);
           }
           break;
@@ -324,6 +334,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     dietOrders: newDietOrders,
     specialtyOrders: newSpecOrders,
     _doctorCaseMemory: caseMemory,
+    ...(chargesMut !== null ? { charges: chargesMut } : {}),
   };
 }
 

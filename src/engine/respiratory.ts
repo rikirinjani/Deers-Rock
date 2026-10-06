@@ -1,7 +1,9 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { RespiratoryOrder } from "../patient/schema.js";
+import type { Charge, RespiratoryOrder } from "../patient/schema.js";
+import { appendCharge } from "./charge-generator.js";
+import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
 
 export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: string[] }[] = [
   { type: "oxygen", settings: ["2L NC", "3L NC", "4L NC", "Face mask 40%", "NRB 15L"] },
@@ -14,6 +16,7 @@ export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: strin
 
 export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   let newOrders = new Map(state.respiratoryOrders);
+  let newCharges = new Map(state.charges);
 
   // Fulfillment: discontinue orders >2 ticks old, or for discharged encounters
   for (const [id, order] of newOrders) {
@@ -40,9 +43,14 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
       orderedAt: clock.hospitalTimeMs,
       notes: null,
     });
+    // ADR-015 D7: per-order activation fee (no code ever transitions these
+    // orders to "active" — creation is the activation). No rng draws added.
+    newCharges = appendCharge(newCharges, clock, encounter.id, encounter.patientId, "respiratory",
+      `Respiratory therapy: ${therapy.type}`, undefined,
+      { code: therapy.type, unitPrice: RESPIRATORY_ACTIVATION_FEE, quantity: 1 });
   }
 
-  return { ...state, respiratoryOrders: newOrders };
+  return { ...state, respiratoryOrders: newOrders, charges: newCharges };
 }
 
 function ticksFromMs(hospitalTimeMs: number, clock: Clock): number {

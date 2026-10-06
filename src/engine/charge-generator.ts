@@ -9,7 +9,28 @@ const CHARGE_RATES: Record<ChargeCategory, number> = {
   lab: 250000, radiology: 500000, pharmacy: 75000, surgery: 5000000,
   room: 350000, consult: 150000, emergency: 400000, respiratory: 200000, supply: 50000,
   administration: 150000,
+  // ADR-015 D1/D7 fallbacks for the new priced categories (real prices live in
+  // price-tables.ts; these fire only when a table lookup misses).
+  dialysis: 900000, radiotherapy: 800000,
 };
+
+/** ADR-015 D1: optional item-level pricing fields on a charge. */
+export interface ChargePrice {
+  /** Item/billing code (test code, CPT, drug code, room class, modality...). */
+  code?: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+/**
+ * Resolve the canonical billed amount. `amount` remains the canonical total:
+ * when a price triple is given, amount = unitPrice × quantity.
+ */
+function resolveAmount(category: ChargeCategory, amount: number | undefined, price: ChargePrice | undefined): number {
+  if (amount !== undefined) return amount;
+  if (price !== undefined) return price.unitPrice * price.quantity;
+  return CHARGE_RATES[category];
+}
 
 /** Flat administration tariff charged once per encounter (inpatient or outpatient). */
 const ADMIN_TARIFF = 150000;
@@ -24,7 +45,8 @@ const ROOM_CLASS_MULTIPLIER: Record<RoomClass, number> = {
 export function generateCharge(
   charges: Map<string, Charge>, clock: Clock,
   encounterId: string, patientId: string,
-  category: ChargeCategory, description: string, amount?: number
+  category: ChargeCategory, description: string, amount?: number,
+  price?: ChargePrice
 ): Map<string, Charge> {
   chargeCounter++;
   const newCharges = new Map(charges);
@@ -33,9 +55,10 @@ export function generateCharge(
     encounterId, patientId,
     category,
     description,
-    amount: amount ?? CHARGE_RATES[category],
+    amount: resolveAmount(category, amount, price),
     billedAt: clock.hospitalTimeMs,
     paid: false,
+    ...(price !== undefined ? { code: price.code, unitPrice: price.unitPrice, quantity: price.quantity } : {}),
   });
   return newCharges;
 }
@@ -51,7 +74,8 @@ export function generateCharge(
 export function appendCharge(
   charges: Map<string, Charge>, clock: Clock,
   encounterId: string, patientId: string,
-  category: ChargeCategory, description: string, amount?: number
+  category: ChargeCategory, description: string, amount?: number,
+  price?: ChargePrice
 ): Map<string, Charge> {
   chargeCounter++;
   charges.set(`CHG-${chargeCounter}-${patientId}`, {
@@ -59,9 +83,10 @@ export function appendCharge(
     encounterId, patientId,
     category,
     description,
-    amount: amount ?? CHARGE_RATES[category],
+    amount: resolveAmount(category, amount, price),
     billedAt: clock.hospitalTimeMs,
     paid: false,
+    ...(price !== undefined ? { code: price.code, unitPrice: price.unitPrice, quantity: price.quantity } : {}),
   });
   return charges;
 }

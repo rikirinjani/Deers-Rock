@@ -4,6 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { LabOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 import { appendCharge } from "./charge-generator.js";
+import { labPrice } from "./price-tables.js";
 
 export const LAB_TESTS = [
   { code: "CBC", name: "Complete Blood Count", range: "4.5-11.0 x10^3/uL", unit: "x10^3/uL", supplyCode: "LAB-CBC" },
@@ -71,7 +72,11 @@ export function labResultHandler(state: HospitalState, clock: Clock, _queue: Eve
         result: generateResult(order.testCode, clock.rng),
         resultedAt: clock.hospitalTimeMs,
       });
-      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "lab", `Lab test: ${order.testName}`);
+      // ADR-015 D1: per-test price from the lab price table (fallback: flat
+      // CHARGE_RATES.lab when the test code misses the table).
+      const unitPrice = labPrice(order.testCode);
+      newCharges = appendCharge(newCharges, clock, order.encounterId, order.patientId, "lab",
+        `Lab test: ${order.testName}`, undefined, { code: order.testCode, unitPrice, quantity: 1 });
     }
   }
   return { ...state, labOrders: newOrders, charges: newCharges };

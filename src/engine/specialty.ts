@@ -1,6 +1,9 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
+import type { Charge } from "../patient/schema.js";
+import { appendCharge } from "./charge-generator.js";
+import { specialtyConsultFee } from "./price-tables.js";
 
 export interface SpecialtyOrder {
   id: string;
@@ -71,15 +74,31 @@ export function specialtyHandler(state: HospitalState, clock: Clock, _queue: Eve
   const newOrders = new Map(state.specialtyOrders);
   newOrders.set(order.id, { ...order, status: "completed", completedAt: clock.hospitalTimeMs, findings: `${serviceName} completed. ${specialty === "cardiology" ? "Normal sinus rhythm" : specialty === "neurology" ? "No focal neurological deficit" : "Within normal limits"}.` });
 
+  // ADR-015 D7: specialty consult fee on order completion. Charges map is
+  // copied lazily on first append (one copy per pass at most). No rng.
+  let chargesMut: Map<string, Charge> | null = null;
+  const chargeCompletion = (spec: string, encId: string, patId: string) => {
+    if (chargesMut === null) chargesMut = new Map(state.charges);
+    const unitPrice = specialtyConsultFee(spec);
+    appendCharge(chargesMut, clock, encId, patId, "consult",
+      `Specialty consult (${spec})`, undefined, { code: spec, unitPrice, quantity: 1 });
+  };
+  chargeCompletion(specialty, order.encounterId, order.patientId);
+
   // Process backlog: complete up to 5 "ordered" or "in_progress" orders
   let backlogged = 0;
   for (const [id, o] of newOrders) {
     if (backlogged >= 5) break;
     if (o.status === "ordered" || o.status === "in-progress") {
       newOrders.set(id, { ...o, status: "completed", completedAt: clock.hospitalTimeMs, findings: o.findings ?? `${o.serviceName} completed.` });
+      chargeCompletion(o.specialty, o.encounterId, o.patientId);
       backlogged++;
     }
   }
 
-  return { ...state, specialtyOrders: newOrders };
+  return {
+    ...state,
+    specialtyOrders: newOrders,
+    ...(chargesMut !== null ? { charges: chargesMut } : {}),
+  };
 }

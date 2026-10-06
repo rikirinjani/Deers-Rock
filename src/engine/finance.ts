@@ -1,13 +1,16 @@
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import type { Charge, InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
+import type { Charge, Encounter, InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
 import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 import { isBoundedStateEnabled } from "./config.js";
 
 const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
+
+/** ADR-015 D2: one sim-day = 1440 ticks (1 tick = 1 sim-minute). */
+const TICKS_PER_SIM_DAY = 1440;
 
 /**
  * Assign payer at encounter start.
@@ -72,15 +75,44 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     billedAdmin.add(enc.id);
   }
 
-  // Room tariff: only for inpatients with beds
-  if (clock.tick % 5 === 0) {
-    const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active" && e.type === "inpatient");
-    for (const enc of activeEncounters) {
-      const bed = Array.from(state.beds.values()).find(b => b.patientId === enc.patientId);
-      const rc: RoomClass = bed?.roomClass ?? "kelas-3";
+  // Room tariff (ADR-015 D2 — fixes F-A): bill ONCE per 1440-tick sim-day
+  // against the encounter's roomClassAtAdmission stamp (set at bed
+  // assignment, markov.ts). Full days are charged at each complete-day
+  // anniversary while active; at discharge ONE final partial day covers the
+  // remainder (total days = ceil((end−start)/1440), min 1). Idempotent per
+  // encounter-day via the lastRoomDayBilled counter, so this pass is safe to
+  // run at any cadence (the world drives it every 5 ticks). Pure arithmetic —
+  // no rng draws. Only inpatients carry the stamp: outpatient/ED encounters
+  // never accrue room charges.
+  const msPerTick = clock.tickIntervalMs * clock.speedMultiplier;
+  if (msPerTick > 0) {
+    const nowTick = Math.floor(clock.hospitalTimeMs / msPerTick);
+    let updatedEncounters: Map<string, Encounter> | null = null;
+    for (const enc of state.encounters.values()) {
+      if (enc.type !== "inpatient") continue;
+      const rc: RoomClass | undefined = enc.roomClassAtAdmission;
+      if (!rc) continue;
+      const startTick = Math.floor(enc.startTime / msPerTick);
+      let targetDays: number;
+      if (enc.status === "active") {
+        targetDays = Math.floor((nowTick - startTick) / TICKS_PER_SIM_DAY);
+      } else if (enc.status === "discharged" && enc.endTime !== null) {
+        const endTick = Math.floor(enc.endTime / msPerTick);
+        targetDays = Math.max(1, Math.ceil((endTick - startTick) / TICKS_PER_SIM_DAY));
+      } else {
+        continue;
+      }
+      const lastBilled = enc.lastRoomDayBilled ?? 0;
+      if (targetDays <= lastBilled) continue;
       const rate = Math.round(CHARGE_RATES.room * (ROOM_CLASS_MULTIPLIER[rc] ?? 1));
-      newCharges = appendCharge(newCharges, clock, enc.id, enc.patientId, "room", `Room (${rc}) - tick ${clock.tick}`, rate);
+      for (let day = lastBilled + 1; day <= targetDays; day++) {
+        newCharges = appendCharge(newCharges, clock, enc.id, enc.patientId, "room",
+          `Room (${rc}) - day ${day}`, rate, { code: rc, unitPrice: rate, quantity: 1 });
+      }
+      if (updatedEncounters === null) updatedEncounters = new Map(state.encounters);
+      updatedEncounters.set(enc.id, { ...enc, lastRoomDayBilled: targetDays });
     }
+    if (updatedEncounters !== null) state = { ...state, encounters: updatedEncounters };
   }
 
   for (const enc of state.encounters.values()) {
@@ -296,6 +328,7 @@ function pruneAgedCharges(
 function processCashier(state: HospitalState, clock: Clock, encounterType: string): HospitalState {
   let newPayments = new Map(state.payments);
   const newClaims = new Map(state.insuranceClaims);
+  let newCharges: Map<string, Charge> | null = null;
 
   for (const [id, claim] of newClaims) {
     if (claim.status !== "paid" || claim.patientResponsibility <= 0) continue;
@@ -312,10 +345,21 @@ function processCashier(state: HospitalState, clock: Clock, encounterType: strin
       note: `Patient responsibility for ${claim.id}`,
     };
     newPayments.set(payment.id, payment);
+
+    // ADR-015 D9: flip linked charges to paid in the same pass. Charges link
+    // to encounters via encounterId (claims carry no charge IDs); no partial
+    // payments in wave 1 — every still-unpaid charge of the encounter flips.
+    for (const charge of (newCharges ?? state.charges).values()) {
+      if (charge.encounterId !== claim.encounterId || charge.paid) continue;
+      if (newCharges === null) newCharges = new Map(state.charges);
+      newCharges.set(charge.id, { ...charge, paid: true });
+    }
     break;
   }
 
-  return { ...state, insuranceClaims: newClaims, payments: newPayments };
+  return newCharges !== null
+    ? { ...state, insuranceClaims: newClaims, payments: newPayments, charges: newCharges }
+    : { ...state, insuranceClaims: newClaims, payments: newPayments };
 }
 
 export function edCashierHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
