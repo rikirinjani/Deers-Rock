@@ -27,46 +27,11 @@ if r.returncode != 0:
     sys.exit(1)
 print("✓ Build: PASS")
 
-# ── 100k tick benchmark ─────────────────────────────────────────────────
-print("\n--- Running 100k ticks ---")
-script = """
-const { createWorld, runWorld } = require('./dist/engine/world.js');
-
-const w = createWorld(200, undefined, 42);
-const start = process.hrtime.bigint();
-const TARGET = 100000;
-const CHECKPOINTS = [10000, 25000, 50000, 75000, 100000];
-let lastEnc = 0;
-let lastOcc = 0;
-
-for (let i = 0; i < TARGET; i++) {
-  const w2 = runWorld(w, 1);
-  // Checkpoint output at key ticks
-  if (CHECKPOINTS.includes(i + 1)) {
-    const occ = Array.from(w2.state.beds.values()).filter(b => b.patientId).length;
-    const enc = w2.state.encounters.size;
-    console.log(JSON.stringify({
-      tick: i + 1,
-      patients: w2.state.patients.size,
-      occupied: occ,
-      encounters: enc,
-      morgue: w2.state.morgue.length,
-      physicianOrders: w2.state.physicianOrders.size,
-      charges: w2.state.charges?.size || 0,
-      nurseNotes: w2.state.nurseNotes?.size || 0,
-      msSinceStart: null // will be filled after loop
-    }));
-  }
-  // Release old ref
-  if (i < TARGET - 1) w._state = w2.state;
-}
-
-// Actually we need to keep the world, let me redo this properly
-"""
-
-# Proper benchmark script
-benchmark_script = r'''
-const { createWorld, runWorld } = require('./dist/engine/world.js');
+# ── Write benchmark JS to file (avoids node -e path issues) ───────────
+BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_100k.mjs")
+with open(BENCHMARK_JS, "w") as f:
+    f.write(r'''
+import { createWorld, runWorld } from "./dist/engine/world.js";
 
 const w = createWorld(200, undefined, 42);
 const start = process.hrtime.bigint();
@@ -112,10 +77,11 @@ console.log(JSON.stringify({
   waitingRoom: wCurrent.state.waitingRoom,
   finalTick: wCurrent.clock.tick,
 }));
-'''
+''')
 
+print("\n--- Running 100k ticks ---")
 result = subprocess.run(
-    ["node", "-e", benchmark_script],
+    ["node", BENCHMARK_JS],
     capture_output=True, text=True, timeout=600
 )
 
