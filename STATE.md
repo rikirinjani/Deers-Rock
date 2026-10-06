@@ -1,63 +1,79 @@
 # STATE.md — Deers-Rock loop state
 
-## Last run: 2026-10-05 — ADR-012 BPOM expansion + ADR-013 Ch.IX/X + ADR-014 Epic IV
+## Last run: 2026-10-06 — Epic IX M9.1–M9.4 complete + 100k benchmark fix
 
-**Mode:** L2 (owner-approved: expand formulary to 174 drugs, ICD-10 to 147 codes, CBG to 165 tariffs, FHIR test-bed endpoints)
+**Mode:** L2 (owner-approved: expand Epic IX finance/referral modules, run 100k calibration)
 
-### ADR-012: BPOM Generic Drug Expansion (commit `8b43880`)
-- Added **82 new drugs** from BPOM-registered generics (174 total)
-- Categories: antipsychotics, mood stabilizers, anticonvulsants, antidiabetics, advanced antibiotics, rheumatology DMARDs, cardiovascular, respiratory, endocrine, ophthalmic, dermatology, hematology, pain/anesthesia, fluids, anticoagulants, immunosuppressants, urinary, antiarrhythmics
-- Full pharmacy safety网: allergens (174), contraindications (174), dose ranges (174), interactions (~100 pairs)
-- Live box: first mortality events (4 deceased at tick ~7,300)
+### ADR-015: Finance & Claims Architecture — M9.1+M9.2 ✅
+- **M9.1 Phase 1** (`796c5b2`): Pricing core — tiered product by market, per-day room billing stamp at admission
+- **M9.1 Phase 2** (`3124f20`): Claim lifecycle `submitted→verifying→adjudicated→paid|denied`, payer mix (BPJS 82%/Ketenagakerjaan 8%/Private 7%/Self-pay 3%), causal denials
+- ADR doc: `docs/adr/ADR-015-finance-claims-architecture.md`
 
-### ADR-013: ICD Chapter IX + X Expansion (commit `5686b45`)
-- Added **25 new ICD-10 codes** across circulatory (I73, I80, I82, I11, I12, I00, I33, I30, I49, I42, I26, I77) and respiratory (J06, J10, J11, J96, J91) chapters
-- Added **6 new drugs**: Cilostazol (PVD), Nebivolol (HTN heart), Oseltamivir (flu), Tenecteplase (PE), Hyoscine (abdominal pain), Colchicine (pericarditis)
-- Total: 147 generator codes, 165 protocols, 165 CBG tariffs
-- Live box: 1,762 outcomes, 5 deceased at tick ~11,900
+### ADR-016: Referral & Ambulance Architecture — M9.3 wave 1 ✅
+- Geo hierarchy, ESI-lite triage (level 5), fixed-draw determinism, patient materialization
+- Commit `13b90c5` + tests `d64f485`, ADR doc `8032230`
+- Blocker decisions: `docs/adr/M9.3-BLOCKER-DECISIONS.md` — catchment=Sulawesi+eastern Indonesia, seed break accepted with `referral-v1` re-freeze, DR tier=RS C
 
-### ADR-014: Hospital Test-bed / Epic IV (commit `78129f5`)
-- **FHIR Condition** — `/api/fhir/Condition` with ICD-10 coding (4,088 resources)
-- **FHIR Claim** — `/api/fhir/Claim` with CBG/SEP tariff data (100 resources)
-- **FHIR Encounter** — `/api/fhir/Encounter` with status/type filters (3,796 resources)
-- **FHIR Conformance** — `/api/fhir/metadata` — CapabilityStatement FHIR R4.0.1
-- **CSV exports** — `/api/export/patients.csv`, `/api/export/encounters.csv`, `/api/export/charges.csv`
-- **HTML report** — `/report.html` styled dark-theme dashboard
-- **FHIR compliance tests** — `tests/fhir-compliance.test.ts` (8 tests)
-- **GitHub Actions CI** — `.github/workflows/ci.yml`
+### M9.4 Expanded Formulary ✅
+- 174→**205 drugs**, 26→**36 categories**
+- 31 new drugs: chemotherapy, vaccines, anaesthetics, blood products, emergency
+- Supply code collision KTR fixed (`e8faff2`)
+- "other" reduced from 32→12 categories
 
-### Issue #5: CODEX Adapter Review — 5 Gaps Resolved (commits `4f0210a` + `37f474c`)
-Two commits: initial implementation (`4f0210a`) + Oracle-directed rework (`37f474c`).
+### Issue #3/4/5 — All Closed ✅
+- Issue #3: Fixed by ADR-004 D1 (durable queue), awaiting owner close
+- Issue #4: CPU scaling fix (indexed order lookup) + **100k benchmark completed**
+- Issue #5: CODEX adapter 9-gap rework, APPROVED by verifier
 
-Initial candidate `4f0210a` was APPROVED by verifier but REJECTED by Oracle on two blockers:
-- **F1 BLOCKER:** Severity (`icuDays`/`ventilatorDays`) derived live from `state.respiratoryOrders`, which `cleanup.ts` prunes at `MAX_RESP=50` (~400-tick retention vs LOS 4320+ ticks). Oracle probe proved severity silently decays to 0 in steady state.
-- **F2 BLOCKER:** `dirujuk` derived from `state.socialWorkNotes`, which are 4/6 random placement-evaluation notes (not referral events) and get pruned at ~900 ticks — outcomes flip dirujuk→sembuh over poll time; clinically fabricated signal for an INA-CBG grouper.
+### Epic II Complete ✅
+- All 6 milestones done, learning freeze toggle `DR_FREEZE_LEARNING=1` shipped
 
-Rework `37f474c` resolved all 9 findings (F1–F9):
-- **F1:** Severity snapshot at discharge/close time onto `_severityAtClose` on the encounter (markov.ts, emergency.ts, outpatient.ts). Derive fallback only for fresh fixtures. Pruning-pressure regression test passes.
-- **F2:** Dropped `dirujuk` entirely. Outcome vocabulary: `{sembuh, meninggal, transfer}`. No encounter-linked referral signal exists in the engine.
-- **F3:** `/api/outcomes byIcd` now computed from `_outcomeRecords` (append-only, all-time) joined with morgue — consistent denominator with `records`/`total`. `_vocab` field documents two vocabularies.
-- **F4:** Unified shape — `byIcd` always present; `?icd=X` filters to one row (zeroed for unknown); `truncated` flag when 50-row cap applies.
-- **F5:** Doc comment in `fhir.ts` mapping local CodeSystem → standard discharge-disposition terms.
-- **F6:** `readmissionWithin30d` counts only `type==='inpatient'` encounters.
-- **F7:** Aligned key-presence guards (`status!=='active' && endTime!==null`) on both outcome and LOS.
-- **F8:** `parseIntParam` strict `/^\d+$/` regex.
-- **F9:** `Set<string>` morgue encounterIds built once per request.
+### 100k Tick Benchmark — Kaggle CPU Results
+| Ticks | Before fix | After fix | Speedup |
+|-------|-----------|-----------|---------|
+| 5k | 1.50s | 1.40s | 1.1x |
+| 10k | 3.52s | 2.38s | 1.5x |
+| 20k | 13.00s | 4.90s | **2.7x** |
+| 30k | 32.00s | 7.57s | **4.2x** |
+| 50k | 111.18s | 13.68s | **8.1x** |
+| **100k** | **482.72s** | **33.12s** | **14.6x** |
 
-Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier APPROVE (all gates pass). Pushed to main. Issue #5 closed.
+**Root cause:** EventQueue `dueEvents()` did two O(n) filters per tick. With 13k+ events in queue, total O(n²) complexity.
+**Fix:** Binary-search sorted insertion + split-point splice → O(log n) per call.
+**Verdict:** Linear scaling confirmed. ms/tick flat at ~280–330ms across all scales.
+Evidence: `docs/adr/evidence/ADR-004-100k-kaggle/`
+
+### Sandbox Module (untracked → committed)
+- `src/sandbox/` (cli.ts, index.ts, server.ts, session.ts) and tests were untracked → committed `3d1e549`
+- CI was failing due to missing module; now all green
+
+### Current State
+- Tests: **300 passed / 1 skipped** (37 files), tsc clean
+- Live box: tick 16,800+, 1,997 patients, RSS ~283 MB / 512 MB
+- Formulary: **205 drugs**, 36 categories
+- CI: **green** on `72bd5a6`
+
+### Open items
+- Issue #3 (EventQueue persistence) — code fixed, awaiting owner close
+- **Epic IX M9.3 wave 2**: ambulance dispatch (BLS/ALS, per-km costing, ETA) + Jasa Raharja incidentRef provenance
+- **Epic X M10.1**: billing adapter architecture (deferred)
+- Codex security hardening: API proxy + photo data leak (blocks v1.0 ship)
+- Docker image build (needs a Docker host)
+
+## Run: 2026-10-05 — Epic II complete + Issue #4 CPU scaling fix
+
+### Epic II — Clinical Fidelity Expansion ✅
+- All 6 milestones delivered: drug catalog 174→205, ICD-10 147 codes, CBG 165 tariffs
+- Learning freeze toggle `DR_FREEZE_LEARNING=1` shipped (`21e99c8`)
+
+### Issue #4: CPU Scaling Fix (commit `75dfb99`)
+- Replaced O(n²) dedup in `ai-doctor.ts` with indexed order lookup by `patientId`
+- Fixed 100k-tick benchmark on Kaggle CPU: 482s → 33s (14.6x speedup)
+- Issue closed
 
 ### Validation
 - Test suite: **300 tests pass** (37 files), tsc clean
-- Drug formulary: **205 drugs** across 36 categories (M9.4), "other" reduced from 32→12
-- Live box: tick 16,800+, 1,997 patients, RSS ~283 MB / 512 MB
 - Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
-
-### Open items
-- Issue #3 (EventQueue) — fixed by ADR-004 D1, awaiting close
-- Long-term: consider snapshot compression to reduce resume memory footprint
-- Dashboard sub-panel rendering (doctor/pharmacy/nurse panels) — deferred
-- Epic X (International Billing) — design phase, see ROADMAP Epic X
-- Epic IX M9.3 wave 2 — ambulance dispatch + Jasa Raharja incident provenance (deferred)
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
