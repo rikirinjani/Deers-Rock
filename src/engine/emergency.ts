@@ -26,7 +26,7 @@ const COMPLAINTS = [
  * Level 4: requires one resource
  * Level 5: non-urgent (new — enables self-referral routing to POLI)
  */
-function assignAcuity(complaint: string, rngDraw: number): EdTriage["acuity"] {
+export function assignAcuity(complaint: string, rngDraw: number): EdTriage["acuity"] {
   // Level 1: immediate life threat
   if (["Chest pain", "Shortness of breath", "Altered mental status", "Seizure", "Motor vehicle accident"].includes(complaint)) return 1;
   // Level 2: high risk / severe
