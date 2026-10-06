@@ -35,61 +35,51 @@ if r.returncode != 0:
 print("✓ Build: PASS")
 
 # ── Write benchmark JS to file (avoids node -e path issues) ───────────
-BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_100k.cjs")
+BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_scaling.cjs")
 with open(BENCHMARK_JS, "w") as f:
     f.write(r'''
 const { createWorld, runWorld } = require('./dist/engine/world.js');
 
-const w = createWorld(200, undefined, 42);
-const start = process.hrtime.bigint();
-const TARGET = 100000;
-const checkpoints = [10000, 25000, 50000, 75000, 100000];
-let wCurrent = w;
+const TARGETS = [5000, 10000, 20000, 30000, 50000, 100000];
+const results = [];
 
-for (let i = 0; i < TARGET; i++) {
-  wCurrent = runWorld(wCurrent, 1);
-  if (checkpoints.includes(i + 1)) {
-    const occ = Array.from(wCurrent.state.beds.values()).filter(b => b.patientId).length;
-    const elapsed = Number(process.hrtime.bigint() - start) / 1e6;
-    console.log(JSON.stringify({
-      tick: i + 1,
-      elapsed_ms: Math.round(elapsed),
-      patients: wCurrent.state.patients.size,
-      occupied: occ,
-      encounters: wCurrent.state.encounters.size,
-      morgue: wCurrent.state.morgue.length,
-      physicianOrders: wCurrent.state.physicianOrders.size,
-      charges: wCurrent.state.charges?.size || 0,
-      nurseNotes: wCurrent.state.nurseNotes?.size || 0,
-      msPerTick: parseFloat((elapsed / (i + 1) * 1000).toFixed(2)),
-    }));
+for (const TARGET of TARGETS) {
+  const w = createWorld(200, undefined, 42);
+  const start = process.hrtime.bigint();
+  for (let i = 0; i < TARGET; i++) {
+    runWorld(w, 1);
   }
+  const end = process.hrtime.bigint();
+  const totalMs = Number(end - start) / 1e6;
+  const occ = Array.from(w.state.beds.values()).filter(b => b.patientId).length;
+  console.log(JSON.stringify({
+    tick: TARGET,
+    total_ms: Math.round(totalMs),
+    total_seconds: parseFloat((totalMs / 1000).toFixed(2)),
+    ms_per_tick: parseFloat((totalMs / TARGET * 1000).toFixed(3)),
+    patients: w.state.patients.size,
+    occupied: occ,
+    encounters: w.state.encounters.size,
+    morgue: w.state.morgue.length,
+    physicianOrders: w.state.physicianOrders.size,
+    charges: w.state.charges?.size || 0,
+    nurseNotes: w.state.nurseNotes?.size || 0,
+    waitingRoom: w.state.waitingRoom,
+    finalTick: w.clock.tick,
+  }));
 }
 
-const end = process.hrtime.bigint();
-const totalMs = Number(end - start) / 1e6;
+// Scaling analysis
 console.log(JSON.stringify({
-  summary: true,
-  total_ticks: TARGET,
-  total_ms: Math.round(totalMs),
-  total_seconds: parseFloat((totalMs / 1000).toFixed(2)),
-  ms_per_tick: parseFloat((totalMs / TARGET * 1000).toFixed(3)),
-  patients: wCurrent.state.patients.size,
-  occupied: Array.from(wCurrent.state.beds.values()).filter(b => b.patientId).length,
-  encounters: wCurrent.state.encounters.size,
-  morgue: wCurrent.state.morgue.length,
-  physicianOrders: wCurrent.state.physicianOrders.size,
-  charges: wCurrent.state.charges?.size || 0,
-  nurseNotes: wCurrent.state.nurseNotes?.size || 0,
-  waitingRoom: wCurrent.state.waitingRoom,
-  finalTick: wCurrent.clock.tick,
+  scaling_analysis: true,
+  message: "Run each chunk independently to measure linear scaling"
 }));
 ''')
 
-print("\n--- Running 100k ticks ---")
+print("\n--- Running scaling benchmark ---")
 result = subprocess.run(
     ["node", BENCHMARK_JS],
-    capture_output=True, text=True, timeout=600
+    capture_output=True, text=True, timeout=900
 )
 
 print("\nBenchmark output:")
@@ -97,24 +87,10 @@ for line in result.stdout.strip().split('\n'):
     if line.strip():
         try:
             d = json.loads(line)
-            if 'summary' in d:
-                print(f"\n{'='*50}")
-                print(f"  100k TICKS COMPLETE")
-                print(f"{'='*50}")
-                print(f"  Total duration: {d['total_seconds']}s ({d['total_ms']}ms)")
-                print(f"  Avg per tick:   {d['ms_per_tick']}ms")
-                print(f"  Final state:")
-                print(f"    Patients:     {d['patients']}")
-                print(f"    Occupied:     {d['occupied']}")
-                print(f"    Encounters:   {d['encounters']}")
-                print(f"    Morgue:       {d['morgue']}")
-                print(f"    Charges:      {d['charges']}")
-                print(f"    Nurse notes:  {d['nurseNotes']}")
-                print(f"    Phy orders:   {d['physicianOrders']}")
-                print(f"    Waiting room: {d['waitingRoom']}")
-                print(f"{'='*50}")
+            if 'scaling_analysis' in d:
+                print(f"  {d['message']}")
             elif 'tick' in d:
-                print(f"  tick {d['tick']:>6} | {d['elapsed_ms']:>8}ms total | {d['msPerTick']:>6}ms/tick | occ:{d['occupied']} enc:{d['encounters']} morgue:{d['morgue']}")
+                print(f"  tick {d['tick']:>6} | {d['total_seconds']:>6.2f}s total | {d['ms_per_tick']:>6.3f}ms/tick | occ:{d['occupied']} enc:{d['encounters']} morgue:{d['morgue']}")
             else:
                 print(f"  {line}")
         except:
