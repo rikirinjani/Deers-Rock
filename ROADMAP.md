@@ -255,18 +255,19 @@ Build out the business and logistics layer to match a real Indonesian Tier A hos
 **Status:** Design phase — requirements collected from human via Research OC. Implementation after JAMIA submission.
 
 ### Milestone 9.1: Finance Overhaul
-- [ ] Drug charges — each medication dispensed generates acquisition cost + markup
-- [ ] Professional charges — doctor/specialist consultation fees (per INA-CBG tariff schedules)
-- [ ] Procedure charges — lab, imaging, surgery, dialysis, radiotherapy with real costs
-- [ ] Bed/day charges — differentiated by ward class (VIP, I, II, III)
-- [ ] AI Medical Records/Coder agent — ICD-10 coding validation, DRG assignment, chart completeness, claim coding
+- [x] Drug charges — each medication dispensed generates acquisition cost × markup (`costIdr × 1.25`, Phase 1)
+- [x] Professional charges — doctor/specialist consultation fees (ED acuity, specialty consult)
+- [x] Procedure charges — lab, imaging, surgery, dialysis, radiotherapy with real costs (Phase 1)
+- [x] Bed/day charges — differentiated by ward class (`roomClassAtAdmission` stamp, per 1440-tick day)
+- [ ] AI Medical Records/Coder agent — ICD-10 coding validation, DRG assignment, chart completeness, claim coding (deferred to later wave — static coders suffice for wave 1)
 
 ### Milestone 9.2: Claims & Insurance
-- [ ] BPJS model — INA-CBG (ICD-10 → fixed tariff mapping)
-- [ ] Private insurance — coverage levels, co-pay, policy limits
-- [ ] Jasa Raharja — mandatory accident insurance, 30-day emergency cover
-- [ ] Out-of-pocket — balance billing, self-pay, co-payments
-- [ ] Claim workflow: verification → approval → payment/rejection
+- [x] BPJS model — INA-CBG (ICD-10 → fixed tariff mapping), verified at Phase 2
+- [x] Private insurance — 3-tier coverage (80/90/100% with 10/5/0% co-pay) activated
+- [x] Jasa Raharja — mandatory accident insurance, 30-day emergency cover (unchanged)
+- [x] Out-of-pocket — balance billing, self-pay, co-payments (Self-pay ~3% share)
+- [x] Claim workflow — `submitted → verifying → adjudicated → paid | denied` (+ `returned`), batch adjudication ≤8/15-tick pass, causal denial taxonomy (`invalid_principal_dx`, `procedure_not_documented`)
+- [x] Payer mix — all five `PayerType` activated (82/8/7/3) via one admission-time rng draw
 
 ### Milestone 9.3: Referral System Redesign
 - [ ] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A
