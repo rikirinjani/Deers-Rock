@@ -263,7 +263,25 @@ export interface Charge {
   quantity?: number;
 }
 
-export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | null;
+export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | "invalid_principal_dx" | "procedure_not_documented" | null;
+
+/**
+ * ADR-015 D3 (Epic IX Phase 2): private-insurance tier data table.
+ * Replaces the flat 70% coverage with 3 tiers (80/90/100% coverage,
+ * 10/5/0% co-pay). No annual policy ceiling in wave 1 (deferred, D10).
+ * Tier selection is deterministic — see `selectPrivateTier` in finance.ts.
+ */
+export interface PrivateTier {
+  name: string;
+  coverage: number;   // fraction of totalCharges covered (0.80 | 0.90 | 1.00)
+  coPay: number;      // patient out-of-pocket fraction (0.10 | 0.05 | 0.00)
+}
+
+export const PRIVATE_TIERS: PrivateTier[] = [
+  { name: "private-basic",   coverage: 0.80, coPay: 0.10 },
+  { name: "private-standard",coverage: 0.90, coPay: 0.05 },
+  { name: "private-premium", coverage: 1.00, coPay: 0.00 },
+];
 
 export interface InsuranceClaim {
   id: string;
@@ -275,10 +293,25 @@ export interface InsuranceClaim {
   totalCharges: number;
   coveredAmount: number;
   patientResponsibility: number;
-  status: "submitted" | "adjudicated" | "paid" | "denied" | "returned";
+  /**
+   * ADR-015 D3 lifecycle (Phase 2):
+   *   submitted → verifying → adjudicated → paid | denied
+   *   + returned (defect; auto-resubmits when chart is coded — existing behavior)
+   * "adjudicated" was previously a dead enum value; it is now the
+   * post-verification decision point, immediately followed by paid/denied.
+   * In practice adjudicated is transient (resolved within the same pass).
+   */
+  status: "submitted" | "verifying" | "adjudicated" | "paid" | "denied" | "returned";
   denialReason: ClaimDenialReason;
   submittedAt: number;
   resolvedAt: number | null;
+  /**
+   * ADR-015 D5: deterministic private-insurance tier index for claims paid
+   * by "Private Insurance" (0-2 into PRIVATE_TIERS). Absent on all other
+   * payers. Computed at claim creation from a string hash of claim.id —
+   * zero rng draws (D8).
+   */
+  privateTier?: number;
 }
 
 export interface Payment {

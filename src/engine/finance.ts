@@ -5,6 +5,7 @@ import type { Charge, Encounter, InsuranceClaim, Payment, RoomClass, PayerType, 
 import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
 import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 import { isBoundedStateEnabled } from "./config.js";
+import { PRIVATE_TIERS } from "../patient/schema.js";
 
 const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
@@ -13,13 +14,48 @@ const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks
 const TICKS_PER_SIM_DAY = 1440;
 
 /**
- * Assign payer at encounter start.
- * Rules per Coordinator design brief:
- * - Default: BPJS Kesehatan
- * - Accident ICD codes → Jasa Raharja (state traffic accident insurance)
- * - Foreigners (nationality !== "WNI") → Self-pay
+ * ADR-015 D5 (Epic IX Phase 2): payer mix table.
+ * One PAYER_MIX draw at encounter creation (injected rng source), stored on
+ * the encounter — never re-derived per-tick (D8 entity-creation rule).
+ *
+ * - Non-WNI patients → Self-pay (override, no roll)
+ * - Accident ICD codes → Jasa Raharja (override, no roll)
+ * - Everyone else rolls against PAYER_MIX:
+ *     BPJS Kesehatan 82%, BPJS Ketenagakerjaan 8% (CBG-like path, billed
+ *     identically to BPJS Kesehatan in wave 1 — JKK accident workflow is
+ *     deferred, D10), Private Insurance 7%, Self-pay 3%.
+ *
+ * The dead PAYERS array from the original design (containing invalid values
+ * like "Private Insurance A/B") is deleted.
  */
-export function assignPayer(patient: { diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string } }): PayerType {
+export const PAYER_MIX: [PayerType, number][] = [
+  ["BPJS Kesehatan", 0.82],
+  ["BPJS Ketenagakerjaan", 0.08],
+  ["Private Insurance", 0.07],
+  ["Self-pay", 0.03],
+];
+
+function rollPayerMix(rng: number): PayerType {
+  // Bound check: last entry takes the remainder (guards float drift).
+  for (const [payer, share] of PAYER_MIX) {
+    if (rng < share) return payer;
+    rng -= share;
+  }
+  return PAYER_MIX[PAYER_MIX.length - 1][0];
+}
+
+/**
+ * Assign payer at encounter start.
+ * ADR-015 D5: `rngDraw` is an OPTIONAL one-shot rng source (inject
+ * clock.rng from the calling handler). Without it the function is
+ * deterministic and roll-free — existing callers that haven't been updated
+ * still get the legacy default (BPJS Kesehatan for WNI non-accidents).
+ * With it, the PAYER_MIX table is rolled ONCE at encounter creation.
+ */
+export function assignPayer(
+  patient: { diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string } },
+  rngDraw?: () => number,
+): PayerType {
   if (patient.identity?.nationality && patient.identity.nationality !== "WNI") {
     return "Self-pay";
   }
@@ -27,7 +63,21 @@ export function assignPayer(patient: { diagnoses: { code: string; active: boolea
   if (activeDx && ACCIDENT_ICD_CODES.has(activeDx.code)) {
     return "Jasa Raharja";
   }
+  if (rngDraw) {
+    return rollPayerMix(rngDraw());
+  }
   return "BPJS Kesehatan";
+}
+
+/**
+ * ADR-015 D5: deterministic private-insurance tier selection (zero rng).
+ * String-hash claim.id into PRIVATE_TIERS (0-2). This keeps the per-claim
+ * draw count at exactly 1 (the adjudication roll), satisfying D8.
+ */
+export function selectPrivateTier(claimId: string): number {
+  let h = 0;
+  for (let i = 0; i < claimId.length; i++) h = (h * 31 + claimId.charCodeAt(i)) | 0;
+  return Math.abs(h) % PRIVATE_TIERS.length;
 }
 
 /**
@@ -126,17 +176,17 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
 
     const payer = enc.payer ?? "BPJS Kesehatan";
 
-    // BPJS claims require coded chart before submission
+    // BPJS / BPJS Ketenagakerjaan claims require coded chart before submission
     const patient = state.patients.get(enc.patientId);
     const chart = Array.from(state.medicalCharts.values()).find(c => c.encounterId === enc.id);
     const chartStatus = chart?.status ?? "open";
-
-    // Only submit BPJS claims when chart is coded
-    if (payer === "BPJS Kesehatan" && chartStatus !== "coded") {
+    const isCbgPayer = payer === "BPJS Kesehatan" || payer === "BPJS Ketenagakerjaan";
+    if (isCbgPayer && chartStatus !== "coded") {
       continue;
     }
 
-    // Compute severity from chart diagnoses
+    // Compute severity from chart diagnoses (ADR-015 D4 — chart is the grouping
+    // truth source for both severity and tariff lookup)
     const chartDxCodes = chart?.diagnoses.map(d => d.code) ?? [];
     const { level: severity } = inferSeverity(chartDxCodes);
     const primaryDx = patient?.diagnoses.find(d => d.active) ?? patient?.diagnoses[0];
@@ -147,16 +197,18 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
     let patientResponsibility: number;
     let sepNumber: string | null = null;
     let denialReason: ClaimDenialReason = null;
+    let privateTier: number | undefined;
 
-    if (payer === "BPJS Kesehatan") {
-      // BPJS: all-inclusive tariff per INA-CBG
+    if (isCbgPayer) {
+      // BPJS / Ketenagakerjaan: all-inclusive tariff per INA-CBG (wave 1: same path)
       if (cbgEntry) {
         totalCharges = cbgEntry.tariffIdr;
         coveredAmount = cbgEntry.tariffIdr;
         patientResponsibility = 0;
         sepNumber = generateSepNumber(clock);
       } else {
-        // No CBG mapping — deny with mismatched_icd_cbg
+        // ADR-015 D3: no longer a stillborn denied claim — submitted with
+        // denial deferred to the verification stage (invalid_principal_dx).
         totalCharges = total;
         coveredAmount = 0;
         patientResponsibility = total;
@@ -179,9 +231,12 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       coveredAmount = 0;
       patientResponsibility = total;
     } else {
-      // Private insurance: 70% coverage
+      // ADR-015 D5: private insurance — 3-tier table replaces the flat 70%.
+      // Tier is deterministic (string hash of claim id), zero rng (D8).
+      privateTier = selectPrivateTier(claimId);
+      const tier = PRIVATE_TIERS[privateTier] ?? PRIVATE_TIERS[0];
       totalCharges = total;
-      coveredAmount = Math.round(total * 0.7);
+      coveredAmount = Math.round(total * tier.coverage);
       patientResponsibility = total - coveredAmount;
     }
 
@@ -195,36 +250,103 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       totalCharges,
       coveredAmount,
       patientResponsibility,
-      status: denialReason ? "denied" : (payer === "Jasa Raharja" ? "paid" : "submitted"),
+      // ADR-015 D3: every new claim enters the lifecycle at "submitted";
+      // Jasa Raharja (fully covered, no verifikator step) goes straight to
+      // paid — existing behavior.
+      status: denialReason && payer === "Jasa Raharja" ? "paid" : "submitted",
       denialReason,
       submittedAt: clock.hospitalTimeMs,
-      resolvedAt: denialReason ? clock.hospitalTimeMs : (payer === "Jasa Raharja" ? clock.hospitalTimeMs : null),
+      resolvedAt: payer === "Jasa Raharja" ? clock.hospitalTimeMs : null,
+      privateTier,
     };
     newClaims.set(claim.id, claim);
   }
 
-  // Adjudicate submitted claims every 15 ticks
+  // ── ADR-015 D3 (Phase 2): verifying stage — 1 pass between submitted and
+  //    adjudicated. Runs every 15 ticks alongside adjudication; moves
+  //    submitted → verifying (verifikator review). Pure state transition,
+  //    zero rng draws. Bounded batch of 8 to avoid O(n) per-claim scans.
   if (clock.tick > 0 && clock.tick % 15 === 0) {
+    let batch = 0;
     for (const [id, claim] of newClaims) {
-      if (claim.status === "submitted") {
-        // BPJS: 85% approve, 10% returned for coding issues, 5% deny
-        const roll = clock.rng();
-        let newStatus: InsuranceClaim["status"];
-        let denialReason: ClaimDenialReason = null;
+      if (batch >= 8) break;
+      if (claim.status !== "submitted") continue;
+      newClaims.set(id, { ...claim, status: "verifying" });
+      batch++;
+    }
 
-        if (roll < 0.85) {
-          newStatus = "paid";
-        } else if (roll < 0.95) {
-          newStatus = "returned";
-          denialReason = "incomplete_coding";
-        } else {
+    // Adjudicate verifying claims — batch of up to 8 per pass (fixes F-B:
+    // one-claim-per-pass could not drain the backlog created by discharges).
+    // ONE rng draw per transitioned claim (D8 transition rule); draw count
+    // is a pure function of state (number of claims in "verifying").
+    batch = 0;
+    for (const [id, claim] of newClaims) {
+      if (batch >= 8) break;
+      if (claim.status !== "verifying") continue;
+
+      let newStatus: InsuranceClaim["status"];
+      let denialReason: ClaimDenialReason = null;
+
+      // ADR-015 D3: causal denial checks (deterministic, chart-driven — no rng).
+      const enc = state.encounters.get(claim.encounterId);
+      const encChart = Array.from(state.medicalCharts.values()).find(c => c.encounterId === claim.encounterId);
+      const isCbgClaim = claim.payer === "BPJS Kesehatan" || claim.payer === "BPJS Ketenagakerjaan";
+
+      if (isCbgClaim) {
+        // invalid_principal_dx: billed CBG claim whose coded chart's primary
+        // dx has no tariff mapping (or the claim was born with the legacy
+        // mismatched_icd_cbg marker — surface it as the proper denial).
+        const chartPrimary = encChart?.diagnoses.find(d => d.type === "primary")
+          ?? encChart?.diagnoses[0];
+        const chartHasTariff = chartPrimary ? lookupCbgTariff(chartPrimary.code) !== undefined : false;
+        const chartDxHasTariff = encChart?.diagnoses.some(d => lookupCbgTariff(d.code) !== undefined) ?? false;
+        if (claim.denialReason === "mismatched_icd_cbg" || (chartHasTariff === false && chartDxHasTariff === false)) {
           newStatus = "denied";
-          denialReason = "missing_documents";
+          denialReason = "invalid_principal_dx";
+        } else {
+          // procedure_not_documented: a billed procedure charge with no
+          // corresponding chart procedure entry.
+          const procCharges = Array.from(newCharges.values()).filter(c =>
+            c.encounterId === claim.encounterId &&
+            (c.category === "surgery" || c.category === "dialysis" || c.category === "radiotherapy"));
+          const chartProcs = encChart?.procedures ?? [];
+          if (procCharges.length > 0 && chartProcs.length === 0) {
+            newStatus = "denied";
+            denialReason = "procedure_not_documented";
+          } else {
+            // ADR-015 D3/D6: coding-defect probability varies with chart
+            // completeness — fewer secondary diagnoses → higher chance the
+            // verifikator flags the resume medis as incomplete. Bounded
+            // deterministic function of chart state; ONE rng roll for the
+            // paid/returned/denied outcome (D8: 1 draw per transitioned claim).
+            const secondaryCount = encChart?.diagnoses.filter(d => d.type === "secondary").length ?? 0;
+            const defectProb = Math.min(0.25, 0.10 + Math.max(0, 2 - secondaryCount) * 0.05);
+            const roll = clock.rng();
+            if (roll < 1 - defectProb) {
+              newStatus = "paid";
+            } else {
+              // Split the defect probability: 2/3 returned-for-coding (auto
+              // resubmits when the chart is coded — existing loop below),
+              // 1/3 hard-denied missing_documents.
+              if (roll < 1 - defectProb * (1/3)) {
+                newStatus = "returned";
+                denialReason = "incomplete_coding";
+              } else {
+                newStatus = "denied";
+                denialReason = "missing_documents";
+              }
+            }
+          }
         }
-
-        newClaims.set(id, { ...claim, status: newStatus, denialReason, resolvedAt: clock.hospitalTimeMs });
-        break;
+      } else {
+        // Non-CBG payers (JR is already terminal at creation; private/
+        // self-pay settle on their coverage math): verifying passes
+        // straight to paid with no denial roll (zero extra rng draws).
+        newStatus = "paid";
       }
+
+      newClaims.set(id, { ...claim, status: newStatus, denialReason, resolvedAt: clock.hospitalTimeMs });
+      batch++;
     }
   }
 
