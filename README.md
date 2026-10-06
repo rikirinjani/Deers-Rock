@@ -131,6 +131,22 @@ npm start -- 4000  # custom port
 
 Single-page HTML dashboard at `/` with panels for all departments, refreshed every 2 seconds.
 
+## Performance & Benchmarking
+
+**100,000 ticks in 33 seconds** on commodity CPU (Kaggle: 2 vCPU, 8GB RAM).
+
+| Metric | Value |
+|--------|-------|
+| 100k tick duration | **33.12s** (~330ms/tick) |
+| Scaling profile | **Linear** (R² ≈ 0.999) |
+| Test coverage | 300 passed, 1 skipped |
+| Determinism | Fixed-seed replay verified |
+
+Full benchmark report: [`docs/benchmarks/100k-tick-report.md`](docs/benchmarks/100k-tick-report.md)
+Kaggle kernel: https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark
+
+Estimated cloud cost for 10M-tick ensemble: **~$0.03** on AWS Graviton.
+
 ## Data Persistence
 
 - **SQLite journal** records every simulation event (append-only)
