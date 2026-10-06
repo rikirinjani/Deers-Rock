@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-10-06T12:20:00Z",
+  "benchmark": "100k tick scaling test on Kaggle CPU",
+  "results": [
+    {
+      "ticks": 5000,
+      "total_ms": 1500,
+      "ms_per_tick": 300.0
+    },
+    {
+      "ticks": 10000,
+      "total_ms": 3520,
+      "ms_per_tick": 352.1
+    },
+    {
+      "ticks": 20000,
+      "total_ms": 13000,
+      "ms_per_tick": 650.1
+    },
+    {
+      "ticks": 30000,
+      "total_ms": 32000,
+      "ms_per_tick": 1066.6
+    },
+    {
+      "ticks": 50000,
+      "total_ms": 111180,
+      "ms_per_tick": 2223.5
+    },
+    {
+      "ticks": 100000,
+      "total_ms": 482720,
+      "ms_per_tick": 4827.2
+    }
+  ],
+  "tests": {
+    "passed": 300,
+    "skipped": 1,
+    "failed": 0
+  },
+  "kernel_url": "https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark",
+  "verdict": "SUPERLINEAR - O(n^2) still present despite Issue #4 fix"
+}

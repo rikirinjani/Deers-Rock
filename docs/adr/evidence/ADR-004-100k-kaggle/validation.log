@@ -1,0 +1,34 @@
+Deers-Rock Issue #4: CPU Scaling Validation - 100k Tick Benchmark
+============================================================
+Date: 2026-10-06
+Platform: Kaggle CPU (2 vCPU, 8GB RAM)
+Kernel: https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark
+
+RESULTS:
+--------
+tick   5000 |   1.50s total | 300.0ms/tick
+tick  10000 |   3.52s total | 352.1ms/tick
+tick  20000 |  13.00s total | 650.1ms/tick
+tick  30000 |  32.00s total | 1066.6ms/tick
+tick  50000 | 111.18s total | 2223.5ms/tick
+tick 100000 | 482.72s total | 4827.2ms/tick
+
+Tests: 300 passed | 1 skipped
+
+SCALING ANALYSIS:
+-----------------
+The ms/tick ratio increases superlinearly:
+- 5k->10k: 1.17x (expected 2x if linear, but early warmup)
+- 10k->20k: 1.85x (near-linear)
+- 20k->30k: 1.64x
+- 30k->50k: 2.09x (superlinear)
+- 50k->100k: 2.17x (superlinear)
+
+VERDICT: SUPERLINEAR - The O(n^2) dedup issue from Issue #4 is NOT fully fixed.
+The indexed order lookup helps at small scales but memory allocation and GC
+pressure cause superlinear slowdown at 100k ticks.
+
+RECOMMENDATION:
+- Issue #4 fix (indexed lookup) is necessary but not sufficient
+- Further optimization needed: memory pooling, object reuse, or batch processing
+- 100k ticks takes ~8 minutes on Kaggle CPU (vs estimated ~40s if linear)
