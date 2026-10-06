@@ -270,12 +270,14 @@ Build out the business and logistics layer to match a real Indonesian Tier A hos
 - [x] Payer mix — all five `PayerType` activated (82/8/7/3) via one admission-time rng draw
 
 ### Milestone 9.3: Referral System Redesign
-- [ ] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A
-- [ ] ED walk-in / self-referral with ESI-based routing
-- [ ] Road accidents + Jasa Raharja claim integration
-- [ ] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia
-- [ ] Referral capacity: limited specialist slots per day
-- [ ] Ambulance system: BLS, ALS, helicopter; dispatch, tracking, costing
+- [x] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A (tier function, catchment band, distanceKm) — ADR-016 wave 1
+- [x] ED walk-in / self-referral with ESI-based routing (ESI-lite table, level 5 reintroduced, fast-track ESI 4-5 → POLI) — ADR-016 wave 1
+- [ ] Road accidents + Jasa Raharja claim integration (incidentRef provenance — wave 2)
+- [x] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia (catchmentBand function, sender province filter) — ADR-016 wave 1
+- [x] Referral capacity: limited specialist slots per day (REFERRAL_DAILY_SLOT_BUDGET=5, FIFO drain, age-out→returned) — ADR-016 wave 1
+- [ ] Ambulance system: BLS/ALS dispatch, tracking, costing (wave 2)
+- [x] Real-patient linkage: phantom REF-PAT-* eliminated, real Patient materialized at letter→arrival — ADR-016 wave 1
+- [x] Fixed draw count discipline (6 draws per fire, counter-based IDs) — ADR-016 wave 1
 
 ### Milestone 9.4: Expanded Formulary
 - [ ] Expand from 22 to 200-500 essential drugs
