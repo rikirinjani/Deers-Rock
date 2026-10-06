@@ -28,7 +28,7 @@ if r.returncode != 0:
 print("✓ Build: PASS")
 
 # ── Write benchmark JS to file (avoids node -e path issues) ───────────
-BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_100k.js")
+BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_100k.cjs")
 with open(BENCHMARK_JS, "w") as f:
     f.write(r'''
 const { createWorld, runWorld } = require('./dist/engine/world.js');
