@@ -38,7 +38,7 @@
 
 | # | Source | Regulation | Entries | File(s) | Used By | Notes |
 |---|--------|-----------|---------|---------|---------|-------|
-| 15 | Referral facilities | Referral system network | 35 facilities | `identity/data.ts` | `referralHandler` | Puskesmas, Klinik, RS Tipe D/C/B. Network topology for tiered referral. |
+| 15 | Referral facilities | Referral system network | 35 facilities | `identity/data.ts` | `referralHandler` | Puskesmas, Klinik, RS Tier D/C/B. Network topology for tiered referral. |
 | 16 | Drug contra-indications | Clinical pharmacology | 22 entries | `pharmacy-knowledge.ts:28-47` | `aiPharmacyHandler` | Drug-diagnosis interactions (ACE + CKD, Metformin + renal, etc.) |
 | 17 | Drug dose ranges | Clinical pharmacology | 22 drugs | `pharmacy-knowledge.ts:49-68` | `aiPharmacyHandler` | min/max/maxDaily per drug |
 | 18 | Medication allergen map | Clinical pharmacology | 22 drugs | `pharmacy-knowledge.ts:3-26` | `aiPharmacyHandler` | Drug → allergen group mapping |

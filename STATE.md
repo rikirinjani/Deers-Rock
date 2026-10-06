@@ -1,6 +1,22 @@
 # STATE.md — Deers-Rock loop state
 
-## Last run: 2026-10-06 — Epic IX M9.1–M9.4 complete + 100k benchmark fix
+## Last run: 2026-10-07 — ADRs 005/006/007 + tier terminology normalization (docs only)
+
+**Mode:** Docs-only pass (no source changes, no tests run per tasking).
+
+### ADRs written (docs/adr/)
+- **ADR-005** Department Addition Pattern — codifies the 5-file pattern (`{dept}.ts`, `{dept}-knowledge.ts`, handler registration in `world.ts` HANDLER_SKIP, `tests/{dept}.test.ts`, serializable `_`-state). Grounded in dialysis/radiotherapy precedents; relates ADR-001/ADR-004.
+- **ADR-006** Agent Learning Architecture — codifies `DR_FREEZE_LEARNING=1` (commit `21e99c8`, Epic II M2.6): frozen learning computes metrics but never applies them; agent fatigue/health/shift state persists in snapshots. Relates ADR-008.
+- **ADR-007** Referral System (Rujukan Berjenjang) — codifies `geo.ts` facilityTier ladder (Puskesmas→1 … RS A→5), catchment bands (Makassar immediate / South Sulawesi secondary / Eastern Indonesia tertiary), `REFERRAL_DAILY_SLOT_BUDGET=5`, FIFO drain, 500-tick age-out. Companion to ADR-016; Epic IX M9.3.
+
+### Terminology normalization (Milestone 8.2)
+- English-context docs normalized to "Tier A/B/C/D": ROADMAP.md, docs/MODULE-CONTRACTS.md, docs/integration-depth-ledger.md (descriptive rows), docs/adr/ADR-010, docs/adr/M9.3-BLOCKER-DECISIONS.md.
+- Kept "Tipe A" in Indonesian regulatory citation (integration-depth-ledger.md row 1: "PMK 28/2020 RS Tipe A") and all paper drafts (submission artifacts) per policy.
+- README.md / CONSTITUTION.md already used "Tier A" — no change needed.
+- Remaining known occurrence: root `adr/ADR-003-agent-state-persistence.md:41` ("RS Tipe D/C", historical ADR, outside this pass's authorized scope — left untouched).
+- ROADMAP.md 8.1: ADR-005/006/007 marked done.
+
+## Run: 2026-10-06 — Epic IX M9.1–M9.4 complete + 100k benchmark fix
 
 **Mode:** L2 (owner-approved: expand Epic IX finance/referral modules, run 100k calibration)
 

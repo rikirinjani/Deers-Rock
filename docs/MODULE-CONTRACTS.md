@@ -446,8 +446,8 @@
 
 ### Invariants
 
-- `initReferralState` loads 35 facilities from `REFERRAL_FACILITIES` (15 Puskesmas, 5 Klinik, 5 RS Tipe D, 10 RS Tipe C).
-- Referral handler generates incoming referrals every 15 ticks (30% chance) from Puskesmas/Klinik/RS Tipe D.
+- `initReferralState` loads 35 facilities from `REFERRAL_FACILITIES` (15 Puskesmas, 5 Klinik, 5 RS Tier D, 10 RS Tier C).
+- Referral handler generates incoming referrals every 15 ticks (30% chance) from Puskesmas/Klinik/RS Tier D.
 - Referral processing: first item in `incomingQueue` is marked "received" every 5 ticks.
 - `processReferralLetter` is a pure data function — does not mutate.
 
@@ -455,7 +455,7 @@
 
 - `incomingQueue` is replaced with `incoming.slice(0, 0)` (empties the array) after processing — only one referral processed at a time.
 - No outgoing referral logic — the hospital only receives referrals, never refers out.
-- Referrals from RS Tipe C and higher are never generated (filter only includes Puskesmas/Klinik/RS Tipe D).
+- Referrals from RS Tier C and higher are never generated (filter only includes Puskesmas/Klinik/RS Tier D).
 - `generateReferrals` constructs a fresh patient ID (`REF-PAT-...`) each time — these patients are never created in the patient pool.
 
 ### Dependencies

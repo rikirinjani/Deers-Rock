@@ -192,7 +192,7 @@ Add remaining clinical workflows to match a full Tier A hospital.
 ### Milestone 6.2: Patient Flow
 - [ ] Outpatient clinic system (Rawat Jalan) with appointment scheduling
 - [ ] Patient discharge planning with referral to Puskesmas (rujuk balik)
-- [ ] Puskesmas → RS Tipe C/D → Deer's Rock referral chain
+- [ ] Puskesmas → RS Tier C/D → Deer's Rock referral chain
 - [ ] Kamar Jenazah & forensik workflow
 
 ### Milestone 6.3: Equipment & Supply
@@ -231,9 +231,9 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] ADR-008: Seeded Random Number Generation
 - [x] ADR-004: Mortality Risk Engine (drafted by Research OC, pending Coordinator approval)
 - [x] ADR-009: Timeline Engine (Vision ADR — accepted, implementation deferred)
-- [ ] ADR-005: Department Addition Pattern
-- [ ] ADR-006: Agent Learning Architecture
-- [ ] ADR-007: Referral System (Rujukan Berjenjang)
+- [x] ADR-005: Department Addition Pattern (docs/adr, 2026-10-07)
+- [x] ADR-006: Agent Learning Architecture (docs/adr, 2026-10-07)
+- [x] ADR-007: Referral System (Rujukan Berjenjang) (docs/adr, 2026-10-07)
 
 ### Milestone 8.3: Constitution Amendments
 - [x] Amendment 1: Article VI — Agent Interoperability

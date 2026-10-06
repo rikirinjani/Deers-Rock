@@ -100,7 +100,7 @@ export type Route = "PO" | "IV" | "IM" | "SC" | "INH" | "PR" | "SL" | "TOP";
 
 **Current:** 52 unique ICD-10 codes, all in chapters A-J, M, N, O, P, Q, S, T, Z.
 
-**Target:** ~150 codes spanning all clinically relevant chapters for a RS Tipe C hospital in Indonesia.
+**Target:** ~150 codes spanning all clinically relevant chapters for a RS Tier C hospital in Indonesia.
 
 **Coverage by chapter (target):**
 
@@ -158,7 +158,7 @@ Every new ICD-10 code needs a corresponding `IcdProtocol` entry with:
 
 **Target:** ~150 entries matching the expanded generator.
 
-**New entries added per ICD-10 code** using PMK 28/2020 tariff ranges, adjusted for RS Tipe C pricing (0.7× Tipe A baseline):
+**New entries added per ICD-10 code** using PMK 28/2020 tariff ranges, adjusted for RS Tier C pricing (0.7× Tier A baseline):
 
 Severity inference algorithm (already implemented in `inferSeverity`) uses:
 - `CC_LIST`: mild CC tags (Level II)
