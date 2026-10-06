@@ -1,0 +1,11 @@
+{
+  "id": "deersrock-100k-benchmark",
+  "title": "Deers-Rock 100k Tick Benchmark",
+  "language": "python",
+  "version": "2",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "kernel_sources": []
+}
