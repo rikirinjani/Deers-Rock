@@ -63,9 +63,9 @@ describe("ADR-004 snapshot v2", () => {
     expect(Array.isArray(raw.queue)).toBe(true);
     const queue = raw.queue as { type: string; scheduledTick: number; data: Record<string, unknown> }[];
     expect(queue).toHaveLength(2);
-    // Ordered pending-event shape only: no ids, insertion order kept.
-    expect(queue[0]).toEqual({ type: "discharge", scheduledTick: 5000, data: { patientId: "P1", encounterId: "E1", bedId: "B1" } });
-    expect(queue[1]).toEqual({ type: "lab_result", scheduledTick: 3, data: { labOrderId: "LAB-9" } });
+    // Ordered by scheduledTick (ascending), stable for same-tick events.
+    expect(queue[0]).toEqual({ type: "lab_result", scheduledTick: 3, data: { labOrderId: "LAB-9" } });
+    expect(queue[1]).toEqual({ type: "discharge", scheduledTick: 5000, data: { patientId: "P1", encounterId: "E1", bedId: "B1" } });
     expect(raw.admissionMultiplier).toBe(1.7);
     expect(raw.staffAvailabilityModifier).toBe(0.8);
     expect(raw.supplyChainPressure).toBe(0.3);
