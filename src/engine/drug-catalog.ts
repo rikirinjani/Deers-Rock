@@ -19,7 +19,8 @@ export type DrugCategory =
   | "bronchodilator" | "corticosteroid" | "diuretic"
   | "antiemetic" | "ppi" | "h2blocker"
   | "antimalarial" | "antituberculous" | "antivenom" | "vaccine"
-  | "electrolyte" | "fluid" | "blood_product" | "other";
+  | "electrolyte" | "fluid" | "blood_product"
+  | "endocrine" | "antiarrhythmic" | "immunosuppressant" | "chemotherapy" | "anaesthetic" | "mucolytic" | "antispasmodic" | "other";
 
 export type Route = "PO" | "IV" | "IM" | "SC" | "INH" | "PR" | "SL" | "TOP";
 
@@ -175,8 +176,8 @@ export const DRUG_CATALOG: DrugEntry[] = [
   // Antivirals
   { code: "VALA", innName: "Valacyclovir 500mg", category: "antiviral", dose: "500 mg", route: "PO", supplyCode: "MED-VALA", costIdr: 15000, allergens: [], classTag: "antiviral", minMg: 500, maxMg: 1000, maxDailyMg: 3000 },
   // Endocrine
-  { code: "LVT", innName: "Levothyroxine 100mcg", category: "other", dose: "100 mcg", route: "PO", supplyCode: "MED-LVT", costIdr: 1500, allergens: [], classTag: "thyroid_hormone", minMg: 25, maxMg: 100, maxDailyMg: 300 },
-  { code: "PTU", innName: "Propylthiouracil 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-PTU", costIdr: 3000, allergens: [], classTag: "antithyroid", minMg: 50, maxMg: 100, maxDailyMg: 300 },
+  { code: "LVT", innName: "Levothyroxine 100mcg", category: "endocrine", dose: "100 mcg", route: "PO", supplyCode: "MED-LVT", costIdr: 1500, allergens: [], classTag: "thyroid_hormone", minMg: 25, maxMg: 100, maxDailyMg: 300 },
+  { code: "PTU", innName: "Propylthiouracil 100mg", category: "endocrine", dose: "100 mg", route: "PO", supplyCode: "MED-PTU", costIdr: 3000, allergens: [], classTag: "antithyroid", minMg: 50, maxMg: 100, maxDailyMg: 300 },
   { code: "KET", innName: "Ketoconazole 200mg", category: "antifungal", dose: "200 mg", route: "PO", supplyCode: "MED-KET", costIdr: 4000, allergens: [], classTag: "azole", minMg: 200, maxMg: 400, maxDailyMg: 800 },
   // Cardiovascular
   { code: "METO", innName: "Metoprolol 50mg", category: "antihypertensive", dose: "50 mg", route: "PO", supplyCode: "MED-METO", costIdr: 500, allergens: [], classTag: "beta_blocker", minMg: 25, maxMg: 50, maxDailyMg: 200 },
@@ -184,14 +185,14 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "PRA", innName: "Prazosin 1mg", category: "antihypertensive", dose: "1 mg", route: "PO", supplyCode: "MED-PRA", costIdr: 1000, allergens: [], classTag: "alpha_blocker", minMg: 0.5, maxMg: 1, maxDailyMg: 20 },
   { code: "MAG", innName: "Magnesium sulfate 1g", category: "electrolyte", dose: "1 g", route: "IV", supplyCode: "MED-MAG", costIdr: 5000, allergens: [], classTag: "electrolyte", minMg: 1, maxMg: 4, maxDailyMg: 8 },
   // CNS / Psych
-  { code: "DON", innName: "Donepezil 10mg", category: "other", dose: "10 mg", route: "PO", supplyCode: "MED-DON", costIdr: 25000, allergens: [], classTag: "cholinesterase_inhibitor", minMg: 5, maxMg: 10, maxDailyMg: 23 },
-  { code: "MPH", innName: "Methylphenidate 10mg", category: "other", dose: "10 mg", route: "PO", supplyCode: "MED-MPH", costIdr: 15000, allergens: [], classTag: "stimulant", minMg: 5, maxMg: 10, maxDailyMg: 60 },
-  { code: "SUM", innName: "Sumatriptan 50mg", category: "other", dose: "50 mg", route: "PO", supplyCode: "MED-SUM", costIdr: 20000, allergens: [], classTag: "triptyan", minMg: 25, maxMg: 50, maxDailyMg: 200 },
+  { code: "DON", innName: "Donepezil 10mg", category: "antidepressant", dose: "10 mg", route: "PO", supplyCode: "MED-DON", costIdr: 25000, allergens: [], classTag: "cholinesterase_inhibitor", minMg: 5, maxMg: 10, maxDailyMg: 23 },
+  { code: "MPH", innName: "Methylphenidate 10mg", category: "anxiolytic", dose: "10 mg", route: "PO", supplyCode: "MED-MPH", costIdr: 15000, allergens: [], classTag: "stimulant", minMg: 5, maxMg: 10, maxDailyMg: 60 },
+  { code: "SUM", innName: "Sumatriptan 50mg", category: "analgesic", dose: "50 mg", route: "PO", supplyCode: "MED-SUM", costIdr: 20000, allergens: [], classTag: "triptyan", minMg: 25, maxMg: 50, maxDailyMg: 200 },
   { code: "BET", innName: "Betahistine 16mg", category: "other", dose: "16 mg", route: "PO", supplyCode: "MED-BET", costIdr: 8000, allergens: [], classTag: "histamine_analog", minMg: 8, maxMg: 16, maxDailyMg: 48 },
   // Analgesic variant
   { code: "MOR5", innName: "Morphine 5mg", category: "opioid", dose: "5 mg", route: "SC", supplyCode: "MED-MOR5", costIdr: 3000, allergens: ["morphine", "opioid"], classTag: "opioid", minMg: 2.5, maxMg: 5, maxDailyMg: 15 },
   // Antidote
-  { code: "NAC", innName: "N-acetylcysteine 600mg", category: "other", dose: "600 mg", route: "PO", supplyCode: "MED-NAC", costIdr: 8000, allergens: [], classTag: "antidote", minMg: 600, maxMg: 1400, maxDailyMg: 3000 },
+  { code: "NAC", innName: "N-acetylcysteine 600mg", category: "mucolytic", dose: "600 mg", route: "PO", supplyCode: "MED-NAC", costIdr: 8000, allergens: [], classTag: "antidote", minMg: 600, maxMg: 1400, maxDailyMg: 3000 },
   // Ophthalmic
   { code: "TOB", innName: "Tobramycin eye drops", category: "antibiotic", dose: "0.3%", route: "TOP", supplyCode: "MED-TOB", costIdr: 12000, allergens: [], classTag: "aminoglycoside", minMg: 1, maxMg: 2, maxDailyMg: 6 },
   { code: "PREDN", innName: "Prednisolone eye drops", category: "corticosteroid", dose: "1%", route: "TOP", supplyCode: "MED-PREDN", costIdr: 10000, allergens: [], classTag: "corticosteroid", minMg: 1, maxMg: 2, maxDailyMg: 8 },
@@ -206,7 +207,7 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "QUE", innName: "Quetiapine 25mg", category: "antipsychotic", dose: "25 mg", route: "PO", supplyCode: "MED-QUE", costIdr: 10000, allergens: [], classTag: "atypical_antipsychotic", minMg: 25, maxMg: 100, maxDailyMg: 300 },
   { code: "CLP", innName: "Chlorpromazine 25mg", category: "antipsychotic", dose: "25 mg", route: "PO", supplyCode: "MED-CLP", costIdr: 2000, allergens: [], classTag: "typical_antipsychotic", minMg: 25, maxMg: 100, maxDailyMg: 600 },
   // Mood stabilizers
-  { code: "LIT", innName: "Lithium 300mg", category: "other", dose: "300 mg", route: "PO", supplyCode: "MED-LIT", costIdr: 5000, allergens: [], classTag: "mood_stabilizer", minMg: 300, maxMg: 900, maxDailyMg: 1800 },
+  { code: "LIT", innName: "Lithium 300mg", category: "antipsychotic", dose: "300 mg", route: "PO", supplyCode: "MED-LIT", costIdr: 5000, allergens: [], classTag: "mood_stabilizer", minMg: 300, maxMg: 900, maxDailyMg: 1800 },
   { code: "CRB", innName: "Carbamazepine 200mg", category: "anticonvulsant", dose: "200 mg", route: "PO", supplyCode: "MED-CRB", costIdr: 3000, allergens: [], classTag: "anticonvulsant", minMg: 200, maxMg: 400, maxDailyMg: 1200 },
   // Anxiolytics
   { code: "BUS", innName: "Buspirone 5mg", category: "anxiolytic", dose: "5 mg", route: "PO", supplyCode: "MED-BUS", costIdr: 8000, allergens: [], classTag: "anxiolytic", minMg: 5, maxMg: 10, maxDailyMg: 30 },
@@ -228,11 +229,11 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "LNZ", innName: "Linezolid 600mg", category: "antibiotic", dose: "600 mg", route: "IV", supplyCode: "MED-LNZ", costIdr: 120000, allergens: [], classTag: "oxazolidinone", minMg: 600, maxMg: 600, maxDailyMg: 1200 },
   { code: "COL", innName: "Colistin 150mg", category: "antibiotic", dose: "150 mg", route: "IV", supplyCode: "MED-COL", costIdr: 45000, allergens: [], classTag: "polymyxin", minMg: 50, maxMg: 150, maxDailyMg: 300 },
   // Rheumatology
-  { code: "MTX", innName: "Methotrexate 2.5mg", category: "other", dose: "2.5 mg", route: "PO", supplyCode: "MED-MTX", costIdr: 3000, allergens: [], classTag: "dmard", minMg: 2.5, maxMg: 15, maxDailyMg: 25 },
-  { code: "HCQ", innName: "Hydroxychloroquine 200mg", category: "other", dose: "200 mg", route: "PO", supplyCode: "MED-HCQ", costIdr: 4000, allergens: [], classTag: "dmard", minMg: 200, maxMg: 400, maxDailyMg: 600 },
-  { code: "SZA", innName: "Sulfasalazine 500mg", category: "other", dose: "500 mg", route: "PO", supplyCode: "MED-SZA", costIdr: 3000, allergens: ["sulfonamide"], classTag: "dmard", minMg: 500, maxMg: 1000, maxDailyMg: 3000 },
+  { code: "MTX", innName: "Methotrexate 2.5mg", category: "immunosuppressant", dose: "2.5 mg", route: "PO", supplyCode: "MED-MTX", costIdr: 3000, allergens: [], classTag: "dmard", minMg: 2.5, maxMg: 15, maxDailyMg: 25 },
+  { code: "HCQ", innName: "Hydroxychloroquine 200mg", category: "antimalarial", dose: "200 mg", route: "PO", supplyCode: "MED-HCQ", costIdr: 4000, allergens: [], classTag: "dmard", minMg: 200, maxMg: 400, maxDailyMg: 600 },
+  { code: "SZA", innName: "Sulfasalazine 500mg", category: "immunosuppressant", dose: "500 mg", route: "PO", supplyCode: "MED-SZA", costIdr: 3000, allergens: ["sulfonamide"], classTag: "dmard", minMg: 500, maxMg: 1000, maxDailyMg: 3000 },
   // Cardiovascular
-  { code: "DIG", innName: "Digoxin 0.25mg", category: "other", dose: "0.25 mg", route: "PO", supplyCode: "MED-DIG", costIdr: 1000, allergens: [], classTag: "cardiac_glycoside", minMg: 0.125, maxMg: 0.25, maxDailyMg: 0.5 },
+  { code: "DIG", innName: "Digoxin 0.25mg", category: "antiarrhythmic", dose: "0.25 mg", route: "PO", supplyCode: "MED-DIG", costIdr: 1000, allergens: [], classTag: "cardiac_glycoside", minMg: 0.125, maxMg: 0.25, maxDailyMg: 0.5 },
   { code: "SPR", innName: "Spironolactone 25mg", category: "diuretic", dose: "25 mg", route: "PO", supplyCode: "MED-SPR", costIdr: 2000, allergens: [], classTag: "potassium_sparing_diuretic", minMg: 25, maxMg: 50, maxDailyMg: 200 },
   { code: "FEN", innName: "Fenofibrate 200mg", category: "statin", dose: "200 mg", route: "PO", supplyCode: "MED-FEN", costIdr: 5000, allergens: [], classTag: "fibrate", minMg: 200, maxMg: 200, maxDailyMg: 200 },
   { code: "RAM", innName: "Ramipril 2.5mg", category: "antihypertensive", dose: "2.5 mg", route: "PO", supplyCode: "MED-RAM", costIdr: 2000, allergens: [], classTag: "ace_inhibitor", minMg: 1.25, maxMg: 2.5, maxDailyMg: 10 },
@@ -240,19 +241,19 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "LOS50", innName: "Losartan 50mg", category: "antihypertensive", dose: "50 mg", route: "PO", supplyCode: "MED-LOS50", costIdr: 3000, allergens: [], classTag: "arb", minMg: 25, maxMg: 50, maxDailyMg: 100 },
   { code: "AML10", innName: "Amlodipine 10mg", category: "antihypertensive", dose: "10 mg", route: "PO", supplyCode: "MED-AML10", costIdr: 800, allergens: [], classTag: "ccb", minMg: 5, maxMg: 10, maxDailyMg: 10 },
   { code: "VER", innName: "Verapamil 40mg", category: "antihypertensive", dose: "40 mg", route: "PO", supplyCode: "MED-VER", costIdr: 1000, allergens: [], classTag: "ccb", minMg: 40, maxMg: 80, maxDailyMg: 240 },
-  { code: "AMI", innName: "Amiodarone 200mg", category: "other", dose: "200 mg", route: "PO", supplyCode: "MED-AMI", costIdr: 8000, allergens: [], classTag: "antiarrhythmic", minMg: 200, maxMg: 400, maxDailyMg: 600 },
+  { code: "AMI", innName: "Amiodarone 200mg", category: "antiarrhythmic", dose: "200 mg", route: "PO", supplyCode: "MED-AMI", costIdr: 8000, allergens: [], classTag: "antiarrhythmic", minMg: 200, maxMg: 400, maxDailyMg: 600 },
   { code: "NTG", innName: "Nitroglycerin 0.5mg", category: "antihypertensive", dose: "0.5 mg", route: "SL", supplyCode: "MED-NTG", costIdr: 2000, allergens: [], classTag: "nitrate", minMg: 0.3, maxMg: 0.6, maxDailyMg: 1.5 },
   // GI
   { code: "DEX05", innName: "Dexamethasone 0.5mg", category: "corticosteroid", dose: "0.5 mg", route: "PO", supplyCode: "MED-DEX05", costIdr: 1000, allergens: [], classTag: "corticosteroid", minMg: 0.5, maxMg: 2, maxDailyMg: 8 },
-  { code: "SUC", innName: "Sucralfate 1g", category: "other", dose: "1 g", route: "PO", supplyCode: "MED-SUC", costIdr: 2000, allergens: [], classTag: "mucoprotective", minMg: 1000, maxMg: 2000, maxDailyMg: 8000 },
+  { code: "SUC", innName: "Sucralfate 1g", category: "ppi", dose: "1 g", route: "PO", supplyCode: "MED-SUC", costIdr: 2000, allergens: [], classTag: "mucoprotective", minMg: 1000, maxMg: 2000, maxDailyMg: 8000 },
   // Respiratory
   { code: "BUD", innName: "Budesonide inhaler", category: "corticosteroid", dose: "200 mcg", route: "INH", supplyCode: "MED-BUD", costIdr: 45000, allergens: [], classTag: "inhaled_corticosteroid", minMg: 0.2, maxMg: 0.8, maxDailyMg: 1.6 },
   { code: "THE", innName: "Theophylline 100mg", category: "bronchodilator", dose: "100 mg", route: "PO", supplyCode: "MED-THE", costIdr: 3000, allergens: [], classTag: "methylxanthine", minMg: 100, maxMg: 200, maxDailyMg: 600 },
   { code: "IPR2", innName: "Ipratropium bromide neb", category: "bronchodilator", dose: "500 mcg", route: "INH", supplyCode: "MED-IPR2", costIdr: 8000, allergens: [], classTag: "ipi trope", minMg: 0.5, maxMg: 1, maxDailyMg: 2 },
   // Endocrine
-  { code: "DDA", innName: "Desmopressin 10mcg", category: "other", dose: "10 mcg", route: "INH", supplyCode: "MED-DDA", costIdr: 25000, allergens: [], classTag: "vasopressin_analog", minMg: 10, maxMg: 20, maxDailyMg: 40 },
+  { code: "DDA", innName: "Desmopressin 10mcg", category: "endocrine", dose: "10 mcg", route: "INH", supplyCode: "MED-DDA", costIdr: 25000, allergens: [], classTag: "vasopressin_analog", minMg: 10, maxMg: 20, maxDailyMg: 40 },
   { code: "CAL2", innName: "Calcitriol 0.25mcg", category: "electrolyte", dose: "0.25 mcg", route: "PO", supplyCode: "MED-CAL2", costIdr: 5000, allergens: [], classTag: "vitamin_d", minMg: 0.25, maxMg: 0.5, maxDailyMg: 1 },
-  { code: "OCT", innName: "Octreotide 100mcg", category: "other", dose: "100 mcg", route: "SC", supplyCode: "MED-OCT", costIdr: 85000, allergens: [], classTag: "somatostatin_analog", minMg: 50, maxMg: 100, maxDailyMg: 300 },
+  { code: "OCT", innName: "Octreotide 100mcg", category: "endocrine", dose: "100 mcg", route: "SC", supplyCode: "MED-OCT", costIdr: 85000, allergens: [], classTag: "somatostatin_analog", minMg: 50, maxMg: 100, maxDailyMg: 300 },
   // Ophthalmic
   { code: "FLU", innName: "Fluorometholone eye drops", category: "corticosteroid", dose: "0.1%", route: "TOP", supplyCode: "MED-FLU", costIdr: 15000, allergens: [], classTag: "corticosteroid", minMg: 1, maxMg: 2, maxDailyMg: 6 },
   { code: "TIM", innName: "Timolol eye drops 0.5%", category: "antihypertensive", dose: "0.5%", route: "TOP", supplyCode: "MED-TIM", costIdr: 12000, allergens: [], classTag: "beta_blocker", minMg: 1, maxMg: 2, maxDailyMg: 4 },
@@ -269,7 +270,7 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "VK1", innName: "Vitamin K1 10mg", category: "electrolyte", dose: "10 mg", route: "IV", supplyCode: "MED-VK1", costIdr: 5000, allergens: [], classTag: "vitamin", minMg: 5, maxMg: 10, maxDailyMg: 20 },
   { code: "FOL5", innName: "Folic acid 5mg", category: "electrolyte", dose: "5 mg", route: "PO", supplyCode: "MED-FOL5", costIdr: 500, allergens: [], classTag: "vitamin", minMg: 1, maxMg: 5, maxDailyMg: 15 },
   // Pain / Anesthesia
-  { code: "KTR", innName: "Ketorolac 30mg", category: "nsaid", dose: "30 mg", route: "IV", supplyCode: "MED-KET2", costIdr: 5000, allergens: ["NSAID"], classTag: "nsaid", minMg: 15, maxMg: 30, maxDailyMg: 120 },
+  { code: "KTR", innName: "Ketorolac 30mg", category: "nsaid", dose: "30 mg", route: "IV", supplyCode: "MED-KTR", costIdr: 5000, allergens: ["NSAID"], classTag: "nsaid", minMg: 15, maxMg: 30, maxDailyMg: 120 },
   { code: "KET10", innName: "Ketorolac 10mg", category: "nsaid", dose: "10 mg", route: "PO", supplyCode: "MED-KET10", costIdr: 2000, allergens: ["NSAID"], classTag: "nsaid", minMg: 10, maxMg: 20, maxDailyMg: 80 },
   { code: "PET", innName: "Pethidine 50mg", category: "opioid", dose: "50 mg", route: "IM", supplyCode: "MED-PET", costIdr: 3000, allergens: [], classTag: "opioid", minMg: 25, maxMg: 50, maxDailyMg: 200 },
   { code: "FNT", innName: "Fentanyl 50mcg/ml", category: "opioid", dose: "50 mcg", route: "IV", supplyCode: "MED-FNT", costIdr: 25000, allergens: [], classTag: "opioid", minMg: 25, maxMg: 100, maxDailyMg: 400 },
@@ -285,26 +286,85 @@ export const DRUG_CATALOG: DrugEntry[] = [
   { code: "HEP5", innName: "Heparin 5000IU/ml", category: "anticoagulant", dose: "5000 IU", route: "SC", supplyCode: "MED-HEP5", costIdr: 20000, allergens: ["heparin"], classTag: "unfractionated_heparin", minMg: 2500, maxMg: 5000, maxDailyMg: 10000 },
   { code: "HEP10", innName: "Heparin 10000IU/ml", category: "anticoagulant", dose: "10000 IU", route: "IV", supplyCode: "MED-HEP10", costIdr: 30000, allergens: ["heparin"], classTag: "unfractionated_heparin", minMg: 5000, maxMg: 10000, maxDailyMg: 20000 },
   // Immunosuppressants
-  { code: "CYC", innName: "Cyclosporine 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-CYC", costIdr: 85000, allergens: [], classTag: "immunosuppressant", minMg: 50, maxMg: 100, maxDailyMg: 250 },
-  { code: "AZA", innName: "Azathioprine 50mg", category: "other", dose: "50 mg", route: "PO", supplyCode: "MED-AZA", costIdr: 15000, allergens: [], classTag: "immunosuppressant", minMg: 25, maxMg: 50, maxDailyMg: 150 },
+  { code: "CYC", innName: "Cyclosporine 100mg", category: "immunosuppressant", dose: "100 mg", route: "PO", supplyCode: "MED-CYC", costIdr: 85000, allergens: [], classTag: "immunosuppressant", minMg: 50, maxMg: 100, maxDailyMg: 250 },
+  { code: "AZA", innName: "Azathioprine 50mg", category: "immunosuppressant", dose: "50 mg", route: "PO", supplyCode: "MED-AZA", costIdr: 15000, allergens: [], classTag: "immunosuppressant", minMg: 25, maxMg: 50, maxDailyMg: 150 },
   // Urinary
-  { code: "TAM", innName: "Tamsulosin 0.4mg", category: "other", dose: "0.4 mg", route: "PO", supplyCode: "MED-TAM", costIdr: 8000, allergens: [], classTag: "alpha_blocker", minMg: 0.2, maxMg: 0.4, maxDailyMg: 0.8 },
+  { code: "TAM", innName: "Tamsulosin 0.4mg", category: "antihypertensive", dose: "0.4 mg", route: "PO", supplyCode: "MED-TAM", costIdr: 8000, allergens: [], classTag: "alpha_blocker", minMg: 0.2, maxMg: 0.4, maxDailyMg: 0.8 },
   { code: "ALO", innName: "Allopurinol 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-ALO", costIdr: 1000, allergens: [], classTag: "xanthine_oxidase_inhibitor", minMg: 100, maxMg: 300, maxDailyMg: 600 },
   { code: "ALO3", innName: "Allopurinol 300mg", category: "other", dose: "300 mg", route: "PO", supplyCode: "MED-ALO3", costIdr: 2000, allergens: [], classTag: "xanthine_oxidase_inhibitor", minMg: 100, maxMg: 300, maxDailyMg: 600 },
   // Antiarrhythmics
-  { code: "LIDO2", innName: "Lidocaine 2% 10ml", category: "other", dose: "10 ml", route: "IV", supplyCode: "MED-LIDO2", costIdr: 5000, allergens: [], classTag: "antiarrhythmic", minMg: 1, maxMg: 2, maxDailyMg: 3 },
-  { code: "ADE", innName: "Adenosine 6mg", category: "other", dose: "6 mg", route: "IV", supplyCode: "MED-ADE", costIdr: 25000, allergens: [], classTag: "antiarrhythmic", minMg: 6, maxMg: 12, maxDailyMg: 12 },
+  { code: "LIDO2", innName: "Lidocaine 2% 10ml", category: "antiarrhythmic", dose: "10 ml", route: "IV", supplyCode: "MED-LIDO2", costIdr: 5000, allergens: [], classTag: "antiarrhythmic", minMg: 1, maxMg: 2, maxDailyMg: 3 },
+  { code: "ADE", innName: "Adenosine 6mg", category: "antiarrhythmic", dose: "6 mg", route: "IV", supplyCode: "MED-ADE", costIdr: 25000, allergens: [], classTag: "antiarrhythmic", minMg: 6, maxMg: 12, maxDailyMg: 12 },
   // Endocrine emergency
-  { code: "GCG", innName: "Glucagon 1mg", category: "other", dose: "1 mg", route: "IM", supplyCode: "MED-GCG", costIdr: 15000, allergens: [], classTag: "glucagon", minMg: 1, maxMg: 1, maxDailyMg: 1 },
+  { code: "GCG", innName: "Glucagon 1mg", category: "endocrine", dose: "1 mg", route: "IM", supplyCode: "MED-GCG", costIdr: 15000, allergens: [], classTag: "glucagon", minMg: 1, maxMg: 1, maxDailyMg: 1 },
   { code: "CAC", innName: "Calcium chloride 10%", category: "electrolyte", dose: "10 ml", route: "IV", supplyCode: "MED-CAC", costIdr: 3000, allergens: [], classTag: "calcium", minMg: 5, maxMg: 10, maxDailyMg: 20 },
 
   // ── ADR-013: Chapter IX/X expansion drugs ──────────────────────
-  { code: "CSZ", innName: "Cilostazol 100mg", category: "other", dose: "100 mg", route: "PO", supplyCode: "MED-CSZ", costIdr: 8000, allergens: [], classTag: "phosphodiesterase_inhibitor", minMg: 100, maxMg: 200, maxDailyMg: 200 },
+  { code: "CSZ", innName: "Cilostazol 100mg", category: "antiplatelet", dose: "100 mg", route: "PO", supplyCode: "MED-CSZ", costIdr: 8000, allergens: [], classTag: "phosphodiesterase_inhibitor", minMg: 100, maxMg: 200, maxDailyMg: 200 },
   { code: "NBL", innName: "Nebivolol 5mg", category: "antihypertensive", dose: "5 mg", route: "PO", supplyCode: "MED-NBL", costIdr: 12000, allergens: [], classTag: "beta_blocker", minMg: 2.5, maxMg: 5, maxDailyMg: 10 },
   { code: "OSL", innName: "Oseltamivir 75mg", category: "antiviral", dose: "75 mg", route: "PO", supplyCode: "MED-OSL", costIdr: 25000, allergens: [], classTag: "neuraminidase_inhibitor", minMg: 75, maxMg: 75, maxDailyMg: 150 },
-  { code: "TNK", innName: "Tenecteplase 30mg", category: "other", dose: "30 mg", route: "IV", supplyCode: "MED-TNK", costIdr: 350000, allergens: [], classTag: "thrombolytic", minMg: 30, maxMg: 30, maxDailyMg: 30 },
-  { code: "HYS", innName: "Hyoscine 20mg", category: "other", dose: "20 mg", route: "PO", supplyCode: "MED-HYS", costIdr: 3000, allergens: [], classTag: "antispasmodic", minMg: 10, maxMg: 20, maxDailyMg: 60 },
+  { code: "TNK", innName: "Tenecteplase 30mg", category: "anticoagulant", dose: "30 mg", route: "IV", supplyCode: "MED-TNK", costIdr: 350000, allergens: [], classTag: "thrombolytic", minMg: 30, maxMg: 30, maxDailyMg: 30 },
+  { code: "HYS", innName: "Hyoscine 20mg", category: "antispasmodic", dose: "20 mg", route: "PO", supplyCode: "MED-HYS", costIdr: 3000, allergens: [], classTag: "antispasmodic", minMg: 10, maxMg: 20, maxDailyMg: 60 },
   { code: "CLC", innName: "Colchicine 0.5mg", category: "other", dose: "0.5 mg", route: "PO", supplyCode: "MED-CLC", costIdr: 5000, allergens: [], classTag: "anti-inflammatory", minMg: 0.5, maxMg: 1, maxDailyMg: 3 },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ADR-016 M9.4: Expanded formulary — reach 210+ drugs across 12 categories
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Endocrine (thyroid, diabetes, hormone) ─────────────────────
+  { code: "SIT", innName: "Sitagliptin 100mg", category: "antidiabetic", dose: "100 mg", route: "PO", supplyCode: "MED-SIT", costIdr: 30000, allergens: [], classTag: "dpp4_inhibitor", minMg: 100, maxMg: 100, maxDailyMg: 100 },
+  { code: "TRA", innName: "Tramadol 50mg", category: "opioid", dose: "50 mg", route: "PO", supplyCode: "MED-TRAM", costIdr: 2000, allergens: [], classTag: "opioid", minMg: 25, maxMg: 50, maxDailyMg: 200 },
+  { code: "FAS", innName: "Fentanyl patch 25mcg", category: "opioid", dose: "25 mcg", route: "TOP", supplyCode: "MED-FAS", costIdr: 85000, allergens: [], classTag: "opioid", minMg: 12.5, maxMg: 25, maxDailyMg: 50 },
+  { code: "BUP", innName: "Buprenorphine 2mg", category: "opioid", dose: "2 mg", route: "SL", supplyCode: "MED-BUP", costIdr: 45000, allergens: [], classTag: "opioid_partial_agonist", minMg: 2, maxMg: 8, maxDailyMg: 16 },
+
+  // ── Antibiotics — expanded coverage ────────────────────────────
+  { code: "GEN", innName: "Gentamicin 80mg", category: "antibiotic", dose: "80 mg", route: "IV", supplyCode: "MED-GEN", costIdr: 12000, allergens: [], classTag: "aminoglycoside", minMg: 40, maxMg: 80, maxDailyMg: 240 },
+  { code: "MER", innName: "Meropenem 500mg", category: "antibiotic", dose: "500 mg", route: "IV", supplyCode: "MED-MER", costIdr: 95000, allergens: [], classTag: "carbapenem", minMg: 500, maxMg: 1000, maxDailyMg: 3000 },
+  { code: "TET", innName: "Tetracycline 250mg", category: "antibiotic", dose: "250 mg", route: "PO", supplyCode: "MED-TET", costIdr: 2000, allergens: [], classTag: "tetracycline", minMg: 250, maxMg: 500, maxDailyMg: 2000 },
+
+  // ── Antivirals ─────────────────────────────────────────────────
+  { code: "ACY", innName: "Acyclovir 400mg", category: "antiviral", dose: "400 mg", route: "PO", supplyCode: "MED-ACY", costIdr: 8000, allergens: [], classTag: "antiviral", minMg: 200, maxMg: 400, maxDailyMg: 1200 },
+  { code: "ACV", innName: "Acyclovir 5% cream", category: "antiviral", dose: "5%", route: "TOP", supplyCode: "MED-ACV", costIdr: 15000, allergens: [], classTag: "antiviral", minMg: 1, maxMg: 2, maxDailyMg: 6 },
+
+  // ── Antifungals ────────────────────────────────────────────────
+  { code: "FLU2", innName: "Fluconazole 200mg", category: "antifungal", dose: "200 mg", route: "PO", supplyCode: "MED-FLUC", costIdr: 12000, allergens: [], classTag: "azole", minMg: 100, maxMg: 400, maxDailyMg: 800 },
+  { code: "AMP", innName: "Amphotericin B 50mg", category: "antifungal", dose: "50 mg", route: "IV", supplyCode: "MED-AMP", costIdr: 120000, allergens: [], classTag: "polyene", minMg: 25, maxMg: 50, maxDailyMg: 100 },
+
+  // ── Chemotherapy ───────────────────────────────────────────────
+  { code: "5FU", innName: "5-Fluorouracil 500mg", category: "chemotherapy", dose: "500 mg", route: "IV", supplyCode: "MED-5FU", costIdr: 250000, allergens: [], classTag: "antimetabolite", minMg: 250, maxMg: 500, maxDailyMg: 1000 },
+  { code: "CIS", innName: "Cisplatin 50mg", category: "chemotherapy", dose: "50 mg", route: "IV", supplyCode: "MED-CIS", costIdr: 350000, allergens: [], classTag: "platinum_agent", minMg: 25, maxMg: 75, maxDailyMg: 100 },
+  { code: "PAC", innName: "Paclitaxel 100mg", category: "chemotherapy", dose: "100 mg", route: "IV", supplyCode: "MED-PAC", costIdr: 450000, allergens: [], classTag: "taxane", minMg: 50, maxMg: 175, maxDailyMg: 250 },
+
+  // ── Vaccines ───────────────────────────────────────────────────
+  { code: "HVB", innName: "Hepatitis B vaccine", category: "vaccine", dose: "0.5 ml", route: "IM", supplyCode: "MED-HVB", costIdr: 120000, allergens: [], classTag: "recombinant_vaccine", minMg: 0.5, maxMg: 1, maxDailyMg: 3 },
+  { code: "INF", innName: "Influenza vaccine", category: "vaccine", dose: "0.5 ml", route: "IM", supplyCode: "MED-FLUV", costIdr: 85000, allergens: [], classTag: "inactivated_vaccine", minMg: 0.5, maxMg: 0.5, maxDailyMg: 0.5 },
+  { code: "TETV", innName: "Tetanus toxoid", category: "vaccine", dose: "0.5 ml", route: "IM", supplyCode: "MED-TETV", costIdr: 45000, allergens: [], classTag: "toxoid_vaccine", minMg: 0.5, maxMg: 0.5, maxDailyMg: 0.5 },
+
+  // ── Anaesthetics ───────────────────────────────────────────────
+  { code: "PROP", innName: "Propofol 1% 20ml", category: "anaesthetic", dose: "20 ml", route: "IV", supplyCode: "MED-PROP", costIdr: 35000, allergens: [], classTag: "intravenous_anesthetic", minMg: 20, maxMg: 100, maxDailyMg: 300 },
+  { code: "SEVO", innName: "Sevoflurane 100ml", category: "anaesthetic", dose: "100 ml", route: "INH", supplyCode: "MED-SEVO", costIdr: 250000, allergens: [], classTag: "inhaled_anesthetic", minMg: 1, maxMg: 3, maxDailyMg: 5 },
+  { code: "ROCU", innName: "Rocuronium 50mg", category: "anaesthetic", dose: "50 mg", route: "IV", supplyCode: "MED-ROCU", costIdr: 45000, allergens: [], classTag: "neuromuscular_blocker", minMg: 25, maxMg: 50, maxDailyMg: 100 },
+
+  // ── Emergency / Resuscitation ──────────────────────────────────
+  { code: "NAL", innName: "Naloxone 0.4mg", category: "other", dose: "0.4 mg", route: "IV", supplyCode: "MED-NAL", costIdr: 12000, allergens: [], classTag: "opioid_antagonist", minMg: 0.4, maxMg: 2, maxDailyMg: 10 },
+  { code: "ATRO", innName: "Atropine 0.5mg", category: "other", dose: "0.5 mg", route: "IV", supplyCode: "MED-ATRO", costIdr: 3000, allergens: [], classTag: "anticholinergic", minMg: 0.25, maxMg: 1, maxDailyMg: 4 },
+  { code: "EPI", innName: "Epinephrine 1mg/ml", category: "other", dose: "0.3 mg", route: "IM", supplyCode: "MED-EPI", costIdr: 25000, allergens: [], classTag: "vasopressor", minMg: 0.1, maxMg: 0.3, maxDailyMg: 1 },
+  { code: "DAN", innName: "Dantrolene 20mg", category: "other", dose: "20 mg", route: "IV", supplyCode: "MED-DAN", costIdr: 180000, allergens: [], classTag: "muscle_relaxant", minMg: 20, maxMg: 100, maxDailyMg: 360 },
+
+  // ── Hematology / Blood products ────────────────────────────────
+  { code: "EPO", innName: "Epoetin alfa 4000IU", category: "blood_product", dose: "4000 IU", route: "IV", supplyCode: "MED-EPO", costIdr: 250000, allergens: [], classTag: "erythropoietin", minMg: 2000, maxMg: 4000, maxDailyMg: 12000 },
+  { code: "PLT", innName: "Platelet concentrate", category: "blood_product", dose: "1 unit", route: "IV", supplyCode: "MED-PLT", costIdr: 500000, allergens: [], classTag: "blood_product", minMg: 1, maxMg: 1, maxDailyMg: 1 },
+  { code: "FFP", innName: "Fresh frozen plasma", category: "blood_product", dose: "200 ml", route: "IV", supplyCode: "MED-FFP", costIdr: 350000, allergens: [], classTag: "blood_product", minMg: 100, maxMg: 200, maxDailyMg: 600 },
+
+  // ── Antiemetics expanded ───────────────────────────────────────
+  { code: "DAX", innName: "Dexamethasone 2mg", category: "antiemetic", dose: "2 mg", route: "PO", supplyCode: "MED-DAX", costIdr: 2000, allergens: [], classTag: "corticosteroid_antiemetic", minMg: 0.5, maxMg: 2, maxDailyMg: 8 },
+
+  // ── Antispasmodics / GI ────────────────────────────────────────
+  { code: "BSM", innName: "Bismuth subsalicylate 262mg", category: "ppi", dose: "262 mg", route: "PO", supplyCode: "MED-BSM", costIdr: 3000, allergens: ["salicylate"], classTag: "antisecretory", minMg: 262, maxMg: 524, maxDailyMg: 2096 },
+
+  // ── Analgesics expanded ────────────────────────────────────────
+  { code: "ACET", innName: "Paracetamol IV 1g", category: "analgesic", dose: "1 g", route: "IV", supplyCode: "MED-ACET", costIdr: 5000, allergens: [], classTag: "analgesic_antipyretic", minMg: 500, maxMg: 1000, maxDailyMg: 4000 },
+  { code: "KETOR", innName: "Ketorolac IV 30mg", category: "nsaid", dose: "30 mg", route: "IV", supplyCode: "MED-KETOR", costIdr: 5000, allergens: ["NSAID"], classTag: "nsaid", minMg: 15, maxMg: 30, maxDailyMg: 120 },
 ];
 
 /** Lookup by 3-letter code — O(1) */
