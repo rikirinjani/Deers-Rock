@@ -47,8 +47,8 @@ Rework `37f474c` resolved all 9 findings (F1–F9):
 Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier APPROVE (all gates pass). Pushed to main. Issue #5 closed.
 
 ### Validation
-- Test suite: **264 tests pass** (33 files), tsc clean
-- Live box: tick 14,700+, 1,971 patients, RSS ~283 MB / 512 MB
+- Test suite: **300 tests pass** (37 files), tsc clean
+- Live box: tick 16,800+, 1,997 patients, RSS ~283 MB / 512 MB
 - Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
 
 ### Open items
@@ -56,6 +56,7 @@ Verification: tsc clean; **264 tests passed / 1 skipped** (33 files); verifier A
 - Long-term: consider snapshot compression to reduce resume memory footprint
 - Dashboard sub-panel rendering (doctor/pharmacy/nurse panels) — deferred
 - Epic X (International Billing) — design phase, see ROADMAP Epic X
+- Epic IX M9.3 wave 2 — ambulance dispatch + Jasa Raharja incident provenance (deferred)
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
 
