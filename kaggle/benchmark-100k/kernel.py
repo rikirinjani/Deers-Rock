@@ -25,6 +25,13 @@ r = subprocess.run(["npx", "tsc", "--noEmit"], capture_output=True, text=True)
 if r.returncode != 0:
     print("BUILD FAILED:", r.stderr[:1000])
     sys.exit(1)
+print("✓ TypeScript check: PASS")
+
+print("\nEmitting JS to dist/...")
+r = subprocess.run(["npm", "run", "build"], capture_output=True, text=True)
+if r.returncode != 0:
+    print("EMIT FAILED:", r.stderr[:1000])
+    sys.exit(1)
 print("✓ Build: PASS")
 
 # ── Write benchmark JS to file (avoids node -e path issues) ───────────
