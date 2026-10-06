@@ -260,7 +260,7 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     payments: new Map(), inventory: centralSupplyInit(), stockTransactions: new Map(),
     specialtyOrders: new Map(),
     _agentState: { pool: { agents: new Map(), assignments: new Map() } },
-    _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [] },
+    _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [], letterCounter: 0, patientCounter: 0 },
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),

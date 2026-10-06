@@ -6,6 +6,7 @@ import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { assignPayer } from "./finance.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
+import { generatePatient } from "../patient/generator.js";
 
 export interface Poli {
   id: string;
@@ -80,15 +81,26 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     for (const arrival of arrivals) {
       if (arrivals.indexOf(arrival) >= 8) break;
       const dx = arrival.diagnosis;
-      const pat = state.patients.get(arrival.patientId);
+      let pat = state.patients.get(arrival.patientId);
+
+      // ADR-016 D2: Real-patient materialization — referral letters previously
+      // referenced phantom REF-PAT-* IDs. Now materialize a real Patient when
+      // none exists, using the same generator path as walk-ins. This ensures
+      // every encounter references a real Patient entity and payer derives
+      // from the Patient record (ADR-015 D5) instead of re-rolling.
+      if (!pat) {
+        pat = generatePatient(clock.rng);
+        state.patients.set(pat.id, pat);
+      }
+
       const enc: Encounter = {
-        id: `POLI-${clock.tick}-${arrival.patientId}`,
-        patientId: arrival.patientId,
+        id: `POLI-${clock.tick}-${pat.id}`,
+        patientId: pat.id,
         type: "outpatient",
         startTime: clock.hospitalTimeMs,
         endTime: null,
         status: "active",
-        payer: assignPayer(pat ?? { diagnoses: [], identity: undefined }, clock.rng),
+        payer: assignPayer(pat, clock.rng),
         // Phase D: outpatient encounters carry the clinic-visit diagnosis
         // (referral-matched or walk-in pool draw) — the acute reason for the visit.
         primaryDiagnosis: dx.icd,
