@@ -9,6 +9,7 @@ import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
 import { assignPayer } from "./finance.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
+import type { HospitalAgent } from "../agent/types.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -109,6 +110,35 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       roomClassAtAdmission: freeBed.roomClass,
     };
     newEncounters.set(encounter.id, encounter);
+
+    // Epic VI M6.1: Assign attending doctor based on specialty
+    const agentState = (state as unknown as { _agentState?: { pool: { agents: Map<string, HospitalAgent>; assignments: Map<string, string> } } })._agentState;
+    if (agentState) {
+      const dept = targetSpecialty ? (targetSpecialty === "pulmonology" ? "PARU" : targetSpecialty === "pediatrics" ? "ANAK" : targetSpecialty === "obgyn" ? "OBGYN" : targetSpecialty === "neurology" ? "SARAF" : targetSpecialty === "cardiology" ? "JANTUNG" : "PENYAKIT_DALAM") : "DOKTER";
+      const candidates = Array.from(agentState.pool.agents.values())
+        .filter(a => a.department === dept && a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan")
+        .sort((a, b) => {
+          const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
+          const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
+          return countA - countB;
+        });
+      if (candidates.length > 0) {
+        agentState.pool.assignments.set(encounter.id, candidates[0]!.id);
+      }
+      // Assign a nurse
+      const nurseCandidates = Array.from(agentState.pool.agents.values())
+        .filter(a => a.department === "KEPERAWATAN" && a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan")
+        .sort((a, b) => {
+          const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
+          const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
+          return countA - countB;
+        });
+      if (nurseCandidates.length > 0) {
+        const nurseId = nurseCandidates[0]!.id;
+        const nurseAssignKey = `ENC-NURSE-${encounter.id}`;
+        agentState.pool.assignments.set(nurseAssignKey, nurseId);
+      }
+    }
 
     const dischargeDelay = 4320 + Math.floor(clock.rng() * 5760);  // 3-7 days (avg 5)
     queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
