@@ -288,6 +288,7 @@ export function generatePatient(rng?: () => number): Patient {
     vitals: generateVitals(age, gender, rng),
     diagnoses: generateDiagnoses(age, gender, rng),
     medications: [],
+    morgueId: null,
   };
 }
 

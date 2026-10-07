@@ -15,6 +15,8 @@ export interface Patient {
   vitals: Vitals;
   diagnoses: Diagnosis[];
   medications: Medication[];
+  /** Epic VI M6.2: morgue ID if deceased; null if alive */
+  morgueId: string | null;
 }
 
 export type BloodType = "A" | "B" | "AB" | "O";

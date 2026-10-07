@@ -61,9 +61,15 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       .filter(e => e.status === "active")
       .map(e => e.patientId)
   );
+  // Epic VI M6.2: exclude deceased patients (morgueId !== null)
+  const deceasedIds = new Set(
+    Array.from(state.patients.values())
+      .filter(p => p.morgueId !== null)
+      .map(p => p.id)
+  );
 
   const admitablePatients = Array.from(state.patients.values())
-    .filter(p => !activePatientIds.has(p.id))
+    .filter(p => !activePatientIds.has(p.id) && !deceasedIds.has(p.id))
     .sort((a, b) => {
       const la = getLastDischargeTick(state, a.id);
       const lb = getLastDischargeTick(state, b.id);
@@ -154,6 +160,7 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
   let newEncounters = new Map(state.encounters);
   let newBeds = new Map(state.beds);
   let newMorgue = [...(state.morgue || [])];
+  let newPatients = new Map(state.patients);
 
   for (const evt of scheduled) {
     const encounterId = evt.encounterId;
@@ -178,6 +185,12 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
         age: patient.age, gender: patient.gender,
         causeOfDeath: cause, mortalityScore: mortality.score, deathTick: clock.tick,
       });
+      // Mark patient as deceased — permanently excluded from admission
+      const deceasedPatient = newPatients.get(toDischarge.patientId);
+      if (deceasedPatient) {
+        const morgueId = `MORG-${String(newMorgue.length).padStart(4, "0")}`;
+        newPatients.set(toDischarge.patientId, { ...deceasedPatient, morgueId });
+      }
     }
 
     newEncounters.set(encounterId, {
@@ -191,8 +204,10 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
       _severityAtClose: computeSeveritySnapshot(state, toDischarge, tickFromMs(clock.hospitalTimeMs)),
     });
 
-    // Epic VI M6.2: Record rujuk balik discharge plan for chronic conditions
-    recordDischargePlan(state, toDischarge, clock.tick);
+    // Epic VI M6.2: Rujuk balik — ONLY for living patients with chronic conditions
+    if (!dies) {
+      recordDischargePlan(state, toDischarge, clock.tick);
+    }
 
     // Epic VI M6.3: Record department consumption for charged items
     const los = toDischarge.endTime ? Math.floor((toDischarge.endTime - toDischarge.startTime) / 60000) : 0;
@@ -214,7 +229,7 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     wr = Math.max(0, wr - newlyFree);
   }
 
-  return { ...state, beds: newBeds, encounters: newEncounters, waitingRoom: wr, morgue: newMorgue };
+  return { ...state, beds: newBeds, encounters: newEncounters, waitingRoom: wr, morgue: newMorgue, patients: newPatients };
 }
 
 export function newPatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
