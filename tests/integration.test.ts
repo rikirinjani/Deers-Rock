@@ -101,7 +101,8 @@ describe("Integration (Epic IV M4.3)", () => {
     const snap = loadNearestSnapshot(100);
     expect(snap.tick).toBe(100);
     expect(snap.state).not.toBeNull();
-    expect(snap.state!.patients.size).toBe(50);
+    // Snapshot preserves structural invariants; patient count may differ if
+    // DR_ADMISSION_RATE generates new patients during the run — compare fingerprints.
     expect(snap.state!.beds.size).toBe(131);
     expect(stateFingerprint(snap.state!)).toBe(stateFingerprint(w.state));
   });
