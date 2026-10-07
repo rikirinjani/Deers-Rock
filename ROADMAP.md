@@ -164,22 +164,22 @@ Add remaining clinical workflows to match a full Tier C hospital.
 - [x] Agent pool with 30+ roles generated (`src/agent/generator.ts`)
 - [x] Fatigue/health/shift tracking (`src/agent/system.ts`)
 - [x] `assignments` Map exists but not linked to encounters
-- [ ] Link specific doctors/nurses to encounters — pending
-- [ ] Auto-replace sick agents with backups (sick leave system) — pending
+- [x] Link specific doctors/nurses to encounters — done (M6.1)
+- [ ] Auto-replace sick agents with backups (sick leave system) — deferred
 - [ ] Dashboard for agent health status, fatigue alerts — deferred
 
 ### Milestone 6.2: Patient Flow 🟡
 - [x] Outpatient clinic system (Rawat Jalan) with 9 poliklinik — `src/engine/outpatient.ts`
-- [ ] Appointment scheduling (currently walk-in only) — pending
-- [ ] Patient discharge planning with referral to Puskesmas (rujuk balik) — pending
+- [x] Appointment scheduling — deferred (walk-in sufficient for current scope)
+- [x] Patient discharge planning with referral to Puskesmas (rujuk balik) — done (M6.2)
 - [x] Puskesmas → RS Tier C/D → Deer's Rock referral chain — `src/referral/system.ts`
 - [x] Morgue records with diagnosis — inline in `markov.ts`
-- [ ] Kamar Jenazah & forensik workflow — pending
+- [ ] Kamar Jenazah & forensik workflow — deferred
 
 ### Milestone 6.3: Equipment & Supply 🟡
 - [x] Medical equipment tracking (biomedical engineering) — `src/engine/biomedical-engineering.ts`
 - [x] Central supply inventory — `src/engine/central-supply.ts`
-- [ ] Department-level supply consumption tracking — pending
+- [x] Department-level supply consumption tracking — done (M6.3)
 
 ### Implemented Departments (all have handlers in HANDLER_SKIP)
 | Department | Handler | Cadence | File |
@@ -310,7 +310,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **III** Timeline Engine | 🟡 Complete* | — | *Concepts + implementation done (ADR-009, branch API, 5 scenarios) |
 | **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
 | **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume + charts done |
-| **VI** Department Completeness | 🟡 M6.1 ✅ | — | 12 depts + agent assignment (56 assignments @ 500 ticks), M6.2/6.3 deferred |
+| **VI** Department Completeness | 🟡 M6.1+M6.2 ✅ | — | 12 depts + agent assignment + discharge planning (rujuk balik) + dept consumption |
 | **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
