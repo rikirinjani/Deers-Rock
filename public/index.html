@@ -77,7 +77,7 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span>    <button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button><a href=/bi.html style=text-decoration:none><button>📈 BI Dashboard</button></a></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><span id=playStatus style=color:var(--green);font-size:9px>▶ RUNNING</span> <button id=playBtn onclick=togglePlay()>⏸</button> <select id=speedSelect onchange=setSpeed(this.value)" style=background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:2px;font-size:9px;font-family:inherit><option value="1000">1x</option><option value="500">2x</option><option value="200">5x</option></select><button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button><a href=/bi.html style=text-decoration:none><button>📈 BI Dashboard</button></a></div>
   </div>
 
   <div class="loading-overlay" id=loadingOverlay><span class="loading-pulse">⏳ Loading<span class=loading-dots></span></span></div>
@@ -899,7 +899,35 @@ function exportSirsCSV(){
   const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download='deers-rock-sirs-report.csv';a.click();
 }
-refresh();setInterval(refresh,2000);
+let pollInterval = 2000;
+let pollTimer = null;
+let isPlaying = true;
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('playBtn');
+  const status = document.getElementById('playStatus');
+  if (isPlaying) {
+    btn.textContent = '⏸';
+    status.innerHTML = '<span style=color:var(--green)>▶ RUNNING</span>';
+    pollTimer = setInterval(refresh, pollInterval);
+  } else {
+    btn.textContent = '▶';
+    status.innerHTML = '<span style=color:var(--red)>⏸ PAUSED</span>';
+    clearInterval(pollTimer);
+  }
+}
+
+function setSpeed(ms) {
+  pollInterval = parseInt(ms);
+  if (isPlaying) {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(refresh, pollInterval);
+  }
+}
+
+refresh();
+pollTimer = setInterval(refresh, pollInterval);
 </script>
 
 <div id=rReport class=report>
