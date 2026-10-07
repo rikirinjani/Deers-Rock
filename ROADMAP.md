@@ -310,7 +310,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **III** Timeline Engine | 🟡 Complete* | — | *Concepts + implementation done (ADR-009, branch API, 5 scenarios) |
 | **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
 | **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume + charts done |
-| **VI** Department Completeness | 🟡 M6.1+M6.2 ✅ | — | 12 depts + agent assignment + discharge planning (rujuk balik) + dept consumption |
+| **VI** Department Completeness | 🟡 M6.1+M6.2+M6.3 ✅ | — | 12 depts + agent assignment + discharge planning + dept consumption |
 | **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
