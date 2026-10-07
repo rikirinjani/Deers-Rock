@@ -26,6 +26,12 @@ import { buildBiData } from "./bi.js";
 import { createFhirEndpoints } from "./fhir.js";
 import { buildEncounterView, computeIcdOutcomeStats, morgueEncounterIds, tickFromMs } from "../engine/encounter-insights.js";
 import { getSnapshots as getOutcomeSnapshots, clearSnapshots as clearOutcomeSnapshots } from "../engine/outcome-snapshot.js";
+import {
+  createUniverse, getUniverse, getUniverses,
+  createBranch, runBranch, compareBranches,
+  getBranchesForUniverse, getAllBranches,
+  STANDARD_SCENARIOS, runStandardScenario,
+} from "../timeline/engine.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -487,6 +493,33 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/outcomes/snapshots/reset") {
     clearOutcomeSnapshots();
     json(res, { ok: true });
+    return true;
+  }
+  // Epic III: Timeline Engine endpoints
+  if (p === "/api/timeline/universes" && req.method === "GET") {
+    json(res, getUniverses());
+    return true;
+  }
+  if (p.startsWith("/api/timeline/universes/") && p.endsWith("/branches") && req.method === "GET") {
+    const uid = p.replace("/api/timeline/universes/", "").replace("/branches", "");
+    json(res, getBranchesForUniverse(uid));
+    return true;
+  }
+  if (p === "/api/timeline/branches" && req.method === "GET") {
+    json(res, getAllBranches());
+    return true;
+  }
+  if (p === "/api/timeline/scenarios" && req.method === "GET") {
+    json(res, STANDARD_SCENARIOS);
+    return true;
+  }
+  if (p.match(/^\/api\/timeline\/branches\/[^\/]+\/compare$/) && req.method === "GET") {
+    const id1 = url.searchParams.get("id1");
+    const id2 = url.searchParams.get("id2");
+    if (!id1 || !id2) { res.statusCode = 400; json(res, { error: "Missing id1 or id2" }); return true; }
+    const delta = compareBranches(id1, id2);
+    if (!delta) { res.statusCode = 404; json(res, { error: "Branch not found" }); return true; }
+    json(res, delta);
     return true;
   }
   if (p === "/api/summary") {
