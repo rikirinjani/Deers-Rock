@@ -1,0 +1,56 @@
+{
+  "config": {
+    "ticks": 2000,
+    "seed": 42,
+    "patients": 50,
+    "crashAt": 1000,
+    "pruneTtlCharges": "1000",
+    "snapshotRetention": "3"
+  },
+  "ceilings": {
+    "rssMb": 450,
+    "journalMb": 300
+  },
+  "observed": {
+    "maxRssMb": 161.5,
+    "finalJournalMb": 52.5,
+    "finalCharges": 49317,
+    "midCharges": 49317,
+    "dischargedSeen": true,
+    "dischargedAfterResume": 154,
+    "crashed": null,
+    "lastTick": 2000
+  },
+  "gates": {
+    "rssCeiling": true,
+    "journalCeiling": true,
+    "dischargeContinuity": true,
+    "pruningEvidence": true
+  },
+  "samples": [
+    {
+      "tick": 1000,
+      "rssMb": 139.5,
+      "journalMb": 32.9,
+      "charges": 21840,
+      "encounters": 500,
+      "statusDist": {
+        "active": 410,
+        "discharged": 90
+      },
+      "queueLen": 132
+    },
+    {
+      "tick": 2000,
+      "rssMb": 161.5,
+      "journalMb": 52.5,
+      "charges": 49317,
+      "encounters": 677,
+      "statusDist": {
+        "active": 677
+      },
+      "queueLen": 134
+    }
+  ],
+  "verdict": "PASS"
+}

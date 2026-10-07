@@ -1,0 +1,7 @@
+flowchart TD
+  T["Tick engine<br/>1 tick = 1 simulated minute"] --> J["Bounded event journal<br/>SQLite, WAL, 100-tick window"]
+  T --> H["Handler chain<br/>38 domain handlers"]
+  H --> S["Full-state snapshot<br/>every 100 ticks"]
+  J --> R["Replay: nearest snapshot + journaled events"]
+  S --> R
+  S --> K["Retain most recent 5 snapshots"]

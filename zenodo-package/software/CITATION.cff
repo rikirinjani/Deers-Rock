@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this software or dataset in your research, please cite it as described below."
+title: "Deers Rock v0.5.0 - Research Artifact for JAMIA 2026 Manuscript"
+version: "0.5.0"
+date-released: "2026-09-10"
+authors:
+  - family-names: "Rinjani"
+    given-names: "Riki"
+    orcid: "https://orcid.org/0009-0002-9364-2637"
+    affiliation: "Hisfarma IAI (Himpunan Seminar Farmasi Komunitas Ikatan Apoteker Indonesia)"
+license: Apache-2.0
+type: dataset
+doi: "10.5281/zenodo.22699509"
+keywords:
+  - healthcare simulation
+  - deterministic replay
+  - event-driven architecture
+  - micro-simulation
+  - reproducibility
+abstract: >-
+  Frozen research artifact accompanying the JAMIA 2026 manuscript "Deers Rock: A Deterministic
+  Micro-Simulation of a Tier A Referral Hospital in Eastern Indonesia". Contains the final
+  manuscript and the frozen E1 baseline experiment artifacts (10 seeds x 1,000 ticks). Deers Rock
+  is a deterministic, seeded healthcare micro-simulation; all clinical parameters are
+  plausibility-based and uncalibrated, and no clinical-validity or predictive claims are made.
+preferred-citation:
+  type: article
+  title: "Deers Rock: A Deterministic Micro-Simulation of a Tier A Referral Hospital in Eastern Indonesia"
+  authors:
+    - family-names: "Rinjani"
+      given-names: "Riki"
+      orcid: "https://orcid.org/0009-0002-9364-2637"
+  journal: "Journal of the American Medical Informatics Association"
+  year: "2026"

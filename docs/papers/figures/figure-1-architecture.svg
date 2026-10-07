@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Deers Rock system architecture">
+  <rect width="960" height="560" fill="#ffffff"/>
+  <text x="480" y="26" text-anchor="middle" font-size="17" font-weight="bold" fill="#1a1a1a">Deers Rock system architecture</text>
+
+  <!-- main flow boxes -->
+  <g fill="#eef4fb" stroke="#2c7bb6" stroke-width="1.5">
+    <rect x="280" y="52" width="400" height="56" rx="6"/>
+    <rect x="280" y="162" width="400" height="56" rx="6"/>
+    <rect x="280" y="272" width="400" height="56" rx="6"/>
+    <rect x="280" y="382" width="400" height="56" rx="6"/>
+  </g>
+  <g font-size="15" fill="#12324d" text-anchor="middle">
+    <text x="480" y="78">Tick engine</text>
+    <text x="480" y="96" font-size="12" fill="#456">1 tick = 1 simulated minute</text>
+    <text x="480" y="188">Handler chain</text>
+    <text x="480" y="206" font-size="12" fill="#456">38 domain handlers</text>
+    <text x="480" y="298">Full-state snapshot</text>
+    <text x="480" y="316" font-size="12" fill="#456">every 100 ticks</text>
+    <text x="480" y="408">Replay</text>
+    <text x="480" y="426" font-size="12" fill="#456">nearest snapshot + journaled events</text>
+  </g>
+
+  <!-- vertical arrows -->
+  <g stroke="#2c7bb6" stroke-width="1.6" fill="none" marker-end="url(#arr)">
+    <line x1="480" y1="108" x2="480" y2="156"/>
+    <line x1="480" y1="218" x2="480" y2="266"/>
+    <line x1="480" y1="328" x2="480" y2="376"/>
+  </g>
+
+  <!-- journal box (left) -->
+  <rect x="20" y="150" width="220" height="80" rx="6" fill="#fbf3e8" stroke="#e08a2e" stroke-width="1.5"/>
+  <g font-size="14" fill="#6b4310" text-anchor="middle">
+    <text x="130" y="182">Bounded event journal</text>
+    <text x="130" y="200" font-size="12" fill="#8a5a1c">SQLite, WAL mode</text>
+    <text x="130" y="216" font-size="12" fill="#8a5a1c">100-tick rolling window</text>
+  </g>
+  <g stroke="#e08a2e" stroke-width="1.6" fill="none" marker-end="url(#arrO)">
+    <line x1="280" y1="190" x2="246" y2="190"/>
+  </g>
+  <path d="M130 230 L130 410 L274 410" stroke="#e08a2e" stroke-width="1.6" fill="none" marker-end="url(#arrO)" stroke-dasharray="5,4"/>
+
+  <!-- retention box (right) -->
+  <rect x="720" y="272" width="220" height="56" rx="6" fill="#fbf3e8" stroke="#e08a2e" stroke-width="1.5"/>
+  <g font-size="14" fill="#6b4310" text-anchor="middle">
+    <text x="830" y="296">Retain most recent 5</text>
+    <text x="830" y="314" font-size="12" fill="#8a5a1c">snapshots</text>
+  </g>
+  <line x1="680" y1="300" x2="716" y2="300" stroke="#e08a2e" stroke-width="1.6" fill="none" marker-end="url(#arrO)"/>
+
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#2c7bb6"/></marker>
+    <marker id="arrO" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#e08a2e"/></marker>
+  </defs>
+</svg>

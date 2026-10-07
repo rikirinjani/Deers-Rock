@@ -1,0 +1,4 @@
+flowchart LR
+  A["Tick"] --> B["38-handler main pipeline<br/>fixed order; per-handler skip intervals"]
+  B --> C["Post-chain processors<br/>medication administration, order completion, M&amp;M conference"]
+  B --> D["Event-dispatch handlers<br/>lab/radiology results, ED discharge, surgery completion"]

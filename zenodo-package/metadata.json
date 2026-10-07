@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "upload_type": "dataset",
+    "title": "Deers Rock v0.5.0 - Research Artifact for JAMIA 2026 Manuscript",
+    "creators": [
+      {
+        "name": "Rinjani, Riki",
+        "affiliation": "Hisfarma IAI",
+        "orcid": "0009-0002-9364-2637"
+      }
+    ],
+    "description": "Frozen research artifact accompanying the JAMIA 2026 manuscript 'Deers Rock: A Deterministic Micro-Simulation of a Tier A Referral Hospital in Eastern Indonesia'. Contains the final manuscript, the frozen E1 baseline experiment artifacts (10 seeds x 1,000 ticks: length of stay 82.9 +/- 10.4, deaths 4.3 +/- 1.9, mean peak bed occupancy 130.9 of 133 beds (98%), 2/10 disaster-triggered runs), the experiment freeze record, and reproducibility documentation. Deers Rock is an open-source (Apache-2.0) deterministic, seeded healthcare micro-simulation; all clinical parameters are plausibility-based and uncalibrated, and the work makes no clinical-validity or predictive claims.",
+    "keywords": [
+      "healthcare simulation",
+      "deterministic replay",
+      "event-driven architecture",
+      "micro-simulation",
+      "reproducibility",
+      "Indonesia",
+      "hospital operations"
+    ],
+    "license": "Apache-2.0",
+    "language": "eng",
+    "version": "0.5.0",
+    "related_identifiers": [
+      {
+        "relation": "isPartOf",
+        "identifier": "https://github.com/rikirinjani/Deers-Rock",
+        "scheme": "url"
+      }
+    ]
+  }
+}
