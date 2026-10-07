@@ -1,13 +1,10 @@
 """
 GPT-6 Astra assessment of Deer's Rock Hospital Simulation Platform.
-
-Evaluates: core premise, model quality, simulation output (incl. 100k ticks),
-clinical plausibility, determinism, performance, and production readiness.
+Uses the same kbench pattern as review-agent-stack-v4.
 """
 import kbench
 
-# ── Prompt templates ───────────────────────────────────────────────────────
-BASE = """You are a tough but fair principal-engineer assessor reviewing a deterministic hospital simulation platform. The owner wants an honest capability and risk review before relying on it for research or commercial use. Judge on 5 equally-weighted 0-5 criteria: core-premise, model-quality, simulation-output, clinical-plausibility, production-readiness. Be specific; quote evidence where useful. Do not be polite — be useful."""
+BASE = """You are a tough but fair principal-engineer assessor reviewing a deterministic hospital simulation platform. The owner wants an honest capability and risk review before relying on it for research or commercial use. Judge on 5 equally-weighted 0-5 criteria: core-premise, model-quality, simulation-output, clinical-plausibility, production-readiness. Be specific; quote evidence where useful. Do not be polite - be useful."""
 
 SECTIONS = [
     ("core-premise", """
@@ -24,7 +21,7 @@ Review the model quality evidence:
 
 **Formulary:** 205 drugs across 36 categories, with costs from Indonesia's e-catalogue.
 **ICD-10:** 147 diagnosis codes with weighted probability distributions.
-**Protocols:** 165 clinical protocols mapping diagnoses → treatment pathways.
+**Protocols:** 165 clinical protocols mapping diagnoses to treatment pathways.
 **CBG tariffs:** 165 Indonesian Case-Based Grouping tariffs for BPJS billing.
 **Payer mix:** BPJS (82%), Ketenagakerjaan (8%), Private (7%), Self-pay (3%).
 **Tests:** 326 passed, 1 skipped across 42 test files. tsc clean.
@@ -41,13 +38,13 @@ Questions:
 Review the simulation output evidence:
 
 **100k tick benchmark (Kaggle CPU, 2 vCPU, 8GB RAM):**
-- Before fix: 482.72s total, ms/tick grew from 300→4827 (superlinear O(n²))
+- Before fix: 482.72s total, ms/tick grew from 300 to 4827 (superlinear O(n^2))
 - After fix: 33.12s total, ms/tick flat at ~280-330ms (linear O(n))
 - 300 tests pass post-benchmark
 
 **Live run:** 16,800+ ticks, 1,997 patients, RSS ~283 MB / 512 MB
 **State:** 205 drugs, 36 categories, 131 beds, referral system with geo hierarchy
-**Finance:** Claim lifecycle (submitted→verifying→adjudicated→paid|denied)
+**Finance:** Claim lifecycle (submitted -> verifying -> adjudicated -> paid|denied)
 **Referral:** ADR-016 wave 2 — ambulance dispatch (BLS/ALS), Jasa Raharja provenance
 
 Questions:
@@ -79,7 +76,6 @@ def deers_rock_assessment(llm) -> dict:
     """Astra review of the Deer's Rock hospital simulation platform."""
     sections = {}
     errors = 0
-
     for key, ask in SECTIONS:
         try:
             with kbench.chats.new("sec_" + key):
@@ -89,7 +85,6 @@ def deers_rock_assessment(llm) -> dict:
             resp = "[ERROR] " + type(e).__name__ + ": " + str(e)[:300]
             errors += 1
         sections[key] = resp
-
     digest = "\n\n".join("### " + k + "\n" + v[-2000:] for k, v in sections.items())
     try:
         with kbench.chats.new("synthesis"):
@@ -98,30 +93,28 @@ def deers_rock_assessment(llm) -> dict:
     except Exception as e:
         verdict = "[SYNTHESIS ERROR] " + type(e).__name__ + ": " + str(e)[:300]
         errors += 1
-
     lines = ["# Astra review: deers-rock-platform-assessment", ""]
     for key in sections:
         lines += ["## " + key.upper(), "", sections[key], ""]
     lines += ["## VERDICT", "", verdict, ""]
     report = "\n".join(lines)
-
     for p in ["deers-rock-assessment_output.md", "/kaggle/working/deers-rock-assessment_output.md"]:
         try:
             with open(p, "w", encoding="utf-8") as f:
                 f.write(report)
         except Exception:
             pass
-
     for i in range(0, len(report), 3000):
         print(f"---REPORT-CHUNK {i // 3000}---")
         print(report[i:i + 3000])
-
-    kbench.assertions.assert_true(len(sections) == 3, expectation="all review sections produced")
+    kbench.assertions.assert_true(len(sections) == 3,
+                                  expectation="all review sections produced")
     for key in sections:
         kbench.assertions.assert_true(len(sections[key].strip()) > 100,
                                       expectation=f"section {key} non-empty")
-    kbench.assertions.assert_true(errors == 0, expectation="all LLM calls succeeded")
-    kbench.assertions.assert_true(len(verdict.strip()) > 100, expectation="verdict produced")
-
+    kbench.assertions.assert_true(errors == 0,
+                                  expectation="all LLM calls succeeded")
+    kbench.assertions.assert_true(len(verdict.strip()) > 100,
+                                  expectation="verdict produced")
     return {"sections": list(sections), "errors": errors,
             "verdict": verdict[:2500], "report_chars": len(report)}
