@@ -13,7 +13,7 @@ describe("Epic IX M9.3 wave 2 — Ambulance Dispatch", () => {
     expect(state.counter).toBe(0);
   });
 
-  it("dispatches BLS ambulance and calculates cost/ETA", () => {
+  it("dispatches an ambulance and calculates cost/ETA", () => {
     const state = initAmbulanceState();
     const dispatchId = dispatchAmbulance(state, 73, 71, 25, "RJL-0001", 100);
     expect(dispatchId).toBeDefined();
@@ -23,21 +23,24 @@ describe("Epic IX M9.3 wave 2 — Ambulance Dispatch", () => {
     expect(dispatch).toBeDefined();
     expect(dispatch!.status).toBe("en-route");
     expect(dispatch!.distanceKm).toBe(25);
-    // BLS cost: 200k base + 2k/km * 25km = 250k
-    expect(dispatch!.costIdr).toBe(200000 + 2000 * 25);
-    // BLS ETA: 25km / 60kmh * 60 ticks/h = 25 ticks
-    expect(dispatch!.etaTick).toBe(125);
+    // First dispatch gets ALS-001 (prioritized in fleet)
+    expect(dispatch!.ambulanceId).toBe("AMB-ALS-001");
+    // ALS cost: 500k base + 5k/km * 25km = 625k
+    expect(dispatch!.costIdr).toBe(500000 + 5000 * 25);
+    // ALS ETA: 25km / 80kmh * 60 ticks/h ≈ 19 ticks
+    expect(dispatch!.etaTick).toBe(119);
   });
 
-  it("dispatches ALS ambulance with higher cost/speed", () => {
+  it("dispatches second ambulance as BLS", () => {
     const state = initAmbulanceState();
-    const dispatchId = dispatchAmbulance(state, 73, 71, 40, "RJL-0002", 200);
-    expect(dispatchId).toBeDefined();
+    dispatchAmbulance(state, 73, 71, 20, "RJL-0001", 0); // takes ALS-001
+    const dispatchId = dispatchAmbulance(state, 73, 71, 20, "RJL-0002", 0);
     const dispatch = state.dispatches.get(dispatchId!);
-    // ALS cost: 500k base + 5k/km * 40km = 700k
-    expect(dispatch!.costIdr).toBe(500000 + 5000 * 40);
-    // ALS ETA: 40km / 80kmh * 60 = 30 ticks
-    expect(dispatch!.etaTick).toBe(230);
+    expect(dispatch!.ambulanceId).toBe("AMB-BLS-001");
+    // BLS cost: 200k base + 2k/km * 20km = 240k
+    expect(dispatch!.costIdr).toBe(200000 + 2000 * 20);
+    // BLS ETA: 20km / 60kmh * 60 = 20 ticks
+    expect(dispatch!.etaTick).toBe(20);
   });
 
   it("returns null when no ambulance available", () => {
