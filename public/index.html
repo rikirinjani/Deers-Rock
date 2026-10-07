@@ -125,6 +125,8 @@
     <div class=panel><div class=panel-header>🌋 Scenario <span id=scenarioCount style=color:var(--orange)>0</span></div><div class=panel-body><div id=scenarioList></div></div></div>
   </div>
 
+  <div class="panel full"><div class=panel-header>🚑 Encounters <span id=encCount style=color:var(--green)>0</span><input id=encSearch class=panel-search style=width:120px placeholder="Search patient ID..." oninput="onEncSearch(this.value)"></div><div class=panel-body id=encBody style=max-height:420px></div></div>
+
   <div class="panel full"><div class=panel-header>📊 Activity Feed</div><div class=panel-body style=max-height:140px><div class=feed id=feed></div></div></div>
 </div>
 
@@ -176,6 +178,47 @@ function renderSimple(id, cid, items, fn, mx=5){
   cnt.textContent=items.length;
   el.innerHTML=items.length===0?'<div style=color:var(--muted);padding:4px>—</div>'
   :'<table><thead><tr><th>Patient</th><th>Complaint</th><th>Acuity</th></tr></thead><tbody>'+items.slice(0,mx).map(fn).join('')+'</tbody></table>';
+}
+
+// ---- Encounters table (Epic V M5.1): 50 rows/page + patient-ID search ----
+const ENC_PAGE_SIZE = 50;
+let encRows = [];      // latest /api/encounters payload, newest first
+let encPage = 0;       // zero-based current page
+let encQuery = '';     // patient-ID filter (lowercased substring)
+
+function onEncSearch(v){ encQuery=(v||'').trim().toLowerCase(); encPage=0; renderEncTable(); }
+function encPrevPage(){ if(encPage>0){encPage--;renderEncTable();} }
+function encNextPage(){ if(encPage<encTotalPages()-1){encPage++;renderEncTable();} }
+function encFiltered(){ return encQuery?encRows.filter(e=>String(e.patientId||'').toLowerCase().includes(encQuery)):encRows; }
+function encTotalPages(){ return Math.max(1,Math.ceil(encFiltered().length/ENC_PAGE_SIZE)); }
+
+function renderEncTable(){
+  const body=document.getElementById('encBody');
+  if(!body)return;
+  const list=encFiltered();
+  const totalPages=encTotalPages();
+  if(encPage>totalPages-1)encPage=totalPages-1; // clamp when data shrinks between refreshes
+  const start=encPage*ENC_PAGE_SIZE;
+  const slice=list.slice(start,start+ENC_PAGE_SIZE);
+  const cnt=document.getElementById('encCount');
+  if(cnt)cnt.textContent=encQuery?list.length+'/'+encRows.length:String(encRows.length);
+  let html;
+  if(encRows.length===0){html='<div style=color:var(--muted);padding:4px>—</div>';}
+  else if(list.length===0){html='<div style=color:var(--muted);padding:4px>No encounters match that patient ID</div>';}
+  else{
+    html='<table><thead><tr><th>Encounter</th><th>Patient</th><th>Type</th><th>Status</th><th>Payer</th><th>Start</th><th>End</th></tr></thead><tbody>'
+    +slice.map(e=>{
+      const sc=e.status==='active'?'var(--green)':e.status==='transferred'?'var(--yellow)':'var(--muted)';
+      return `<tr><td style=font-size:8px>${e.id}</td><td>${e.patientId}</td><td style=font-size:8px>${e.type}</td><td><span class=badge style="background:rgba(74,222,128,0.10);color:${sc}">${e.status}</span></td><td style=font-size:8px;color:var(--muted)>${e.payer}</td><td style=font-size:8px>${fmtTime(e.startTime)}</td><td style=font-size:8px>${e.endTime?fmtTime(e.endTime):'—'}</td></tr>`;
+    }).join('')
+    +'</tbody></table>';
+  }
+  html+='<div style=display:flex;justify-content:center;align-items:center;gap:4px;padding:3px 0>'
+    +`<button class=page-btn onclick="encPrevPage()" ${encPage===0?'disabled':''}>‹ Prev</button>`
+    +`<span class=page-info>Page ${encPage+1}/${totalPages} · ${list.length} rows</span>`
+    +`<button class=page-btn onclick="encNextPage()" ${encPage>=totalPages-1?'disabled':''}>Next ›</button>`
+    +'</div>';
+  body.innerHTML=html;
 }
 
 let refreshTick=0;
@@ -474,6 +517,10 @@ poliEl.innerHTML=poliVisits.length===0?'<div style=color:var(--muted);padding:4p
   :'<table><thead><tr><th>Patient</th><th>Poli</th><th>Status</th></tr></thead><tbody>'+
   poliVisits.slice(-6).reverse().map(v=>`<tr><td style=font-size:8px>${v.patientId}</td><td style=font-size:7px>${v.poli}</td><td><span class=badge style=background:${v.status==='completed'?'rgba(74,222,128,0.15)':v.status==='in-consultation'?'rgba(56,189,248,0.15)':'rgba(251,191,36,0.15)'};color:${v.status==='completed'?'var(--green)':v.status==='in-consultation'?'var(--accent)':'var(--yellow)'}>${v.status}</span></td></tr>`).join('')+'</tbody></table>'
   +`<div style=font-size:7px;color:var(--muted);padding:2px 4px;border-top:1px solid var(--border)>${poliData.waiting}⏳ ${poliData.consulting}💬 ${poliData.completed}✅</div>`;
+
+// Encounters table (Epic V M5.1) — newest first; renderEncTable applies search/pagination
+encRows=enc.slice().sort((a,b)=>(b.startTime-a.startTime)||(a.id<b.id?-1:1));
+renderEncTable();
 
 // Feed
 const feed=[];
