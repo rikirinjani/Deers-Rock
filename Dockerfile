@@ -4,8 +4,8 @@
 # Multi-stage build: compile TypeScript, then ship only prod deps + dist + public.
 
 # ---- Build stage -----------------------------------------------------------
-# Node 22 slim (major-pinned). Project is tested on node 20 and 22.
-FROM node:22-slim AS build
+# Node 20 slim (major-pinned). Project engines field requires node >=20.
+FROM node:20-slim AS build
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ RUN npm run build
 # Fresh slim image with PRODUCTION deps only. The single runtime dependency is
 # better-sqlite3 (installs from prebuilt binaries — no compiler toolchain
 # needed), so `npm ci --omit=dev` is sufficient for `node dist/cli/index.js up`.
-FROM node:22-slim AS runtime
+FROM node:20-slim AS runtime
 
 ENV NODE_ENV=production \
     DATA_DIR=/data
@@ -48,5 +48,12 @@ USER node
 # - Override with env:  docker run -e PORT=4000 ...
 # - Override with arg:  docker run ... node dist/cli/index.js up 4000
 EXPOSE 3000
+
+# Liveness probe. Node 20 ships global fetch, so no curl/wget needed. Uses
+# /api/status; any response < 500 counts as healthy — 401 is expected when the
+# deployment sets DR_API_KEY (auth proves the server is up; only server-side
+# failures mark the container unhealthy).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||'3000')+'/api/status').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "dist/cli/index.js", "up", "3000"]
