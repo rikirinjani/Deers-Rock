@@ -25,6 +25,7 @@ import { SCENARIO_DEFS } from "../engine/scenario.js";
 import { buildBiData } from "./bi.js";
 import { createFhirEndpoints } from "./fhir.js";
 import { buildEncounterView, computeIcdOutcomeStats, morgueEncounterIds, tickFromMs } from "../engine/encounter-insights.js";
+import { getSnapshots as getOutcomeSnapshots, clearSnapshots as clearOutcomeSnapshots } from "../engine/outcome-snapshot.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -478,6 +479,16 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/bi/workforce") { try { json(res, buildBiData(w).workforce); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
   if (p === "/api/bi/departments") { try { json(res, buildBiData(w).departments); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
   if (p === "/api/bi/trends") { try { json(res, buildBiData(w).trends); } catch (e) { res.statusCode = 500; json(res, { error: String(e) }); } return true; }
+  // Epic VII M7.3: per-tick outcome snapshots
+  if (p === "/api/outcomes/snapshots") {
+    json(res, { count: getOutcomeSnapshots().length, snapshots: getOutcomeSnapshots().slice(-100).reverse() });
+    return true;
+  }
+  if (p === "/api/outcomes/snapshots/reset") {
+    clearOutcomeSnapshots();
+    json(res, { ok: true });
+    return true;
+  }
   if (p === "/api/summary") {
     const ae = Array.from(w.state.encounters.values()).filter(e => e.status === "active");
     json(res, {
