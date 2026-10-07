@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 print("=" * 60)
-print("  Deers-Rock 100k Tick Benchmark")
+print("  Deers-Rock 100k Tick Benchmark + Epic VI Pipeline")
 print("  Started:", datetime.now().isoformat())
 print("=" * 60)
 
@@ -79,35 +79,24 @@ console.log(JSON.stringify({
 print("\n--- Running scaling benchmark ---")
 result = subprocess.run(
     ["node", BENCHMARK_JS],
-    capture_output=True, text=True, timeout=900
+    capture_output=True, text=True, timeout=600
 )
+if result.returncode != 0:
+    print("Benchmark FAILED:", result.stderr[:500])
+    sys.exit(1)
+print(result.stdout[:2000])
 
-print("\nBenchmark output:")
-for line in result.stdout.strip().split('\n'):
-    if line.strip():
-        try:
-            d = json.loads(line)
-            if 'scaling_analysis' in d:
-                print(f"  {d['message']}")
-            elif 'tick' in d:
-                print(f"  tick {d['tick']:>6} | {d['total_seconds']:>6.2f}s total | {d['ms_per_tick']:>6.3f}ms/tick | occ:{d['occupied']} enc:{d['encounters']} morgue:{d['morgue']}")
-            else:
-                print(f"  {line}")
-        except:
-            print(f"  {line}")
-
-if result.stderr:
-    print("\nSTDERR:", result.stderr[:500])
-
-# ── Test suite ─────────────────────────────────────────────────────────
-print("\n--- Running test suite ---")
-r = subprocess.run(["npm", "test"], capture_output=True, text=True, timeout=300)
-for line in r.stdout.split('\n'):
-    if 'passed' in line.lower() or 'failed' in line.lower() or 'Tests' in line or 'Duration' in line:
-        print(line.strip())
-
+# ── Run unit tests ────────────────────────────────────────────────────
+print("\n--- Running unit tests ---")
+r = subprocess.run(
+    ["npx", "vitest", "run", "--reporter=dot"],
+    capture_output=True, text=True, timeout=300
+)
 if r.returncode != 0:
     print(f"Tests FAILED (exit {r.returncode})")
+    # Print last 50 lines of output for debugging
+    lines = r.stderr.split('\n')[-50:]
+    print('\n'.join(lines))
     sys.exit(1)
 print("✓ Tests: PASS")
 
@@ -115,7 +104,7 @@ print("\n" + "=" * 60)
 print("  100k Benchmark Complete")
 print("=" * 60)
 
-# ── Epic I M1.4 Throughput Equilibrium ────────────────────────────────────
+# ── Epic I M1.4 Throughput Equilibrium ────────────────────────────────
 print("\n--- Epic I M1.4: Throughput Equilibrium Test ---")
 throughput_code = '''
 const { createWorld, runWorld } = require("./dist/engine/world.js");

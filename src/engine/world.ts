@@ -42,6 +42,9 @@ import { referralHandler, initReferralState } from "../referral/system.js";
 import { ambulanceHandler, initAmbulanceState } from "../referral/ambulance.js";
 import { jrProvenanceHandler, initJrState } from "../referral/jr-provenance.js";
 import { dischargePlanningHandler } from "./discharge-planning.js";
+import { sickLeaveHandler, initSickLeaveState } from "../agent/system.js";
+import { kamarJenazahHandler, initKamarJenazahState } from "./kamar-jenazah.js";
+import { appointmentHandler, initAppointmentState } from "./appointment-scheduling.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
@@ -95,6 +98,10 @@ export function createWorld(patientCount: number = 100, journalPath?: string, se
   // Epic IX M9.3 wave 2: initialize ambulance fleet and JR provenance
   state._ambulanceState = initAmbulanceState();
   state._jrState = initJrState();
+  // Epic VI: sick leave, kamar jenazah, appointment scheduling
+  state._sickLeaveState = initSickLeaveState();
+  state._kamarJenazahState = initKamarJenazahState();
+  state._appointmentState = initAppointmentState();
 
   const clockSeed = seed ?? Date.now();
   const clock = createClock(60, clockSeed);
@@ -386,6 +393,8 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [learningHandler, 10], [cleanupHandler, 10], [aiOutpatientPharmacyHandler, 3],
   // Epic IX M9.3 wave 2: ambulance + JR provenance (every 5 ticks)
   [ambulanceHandler, 5], [jrProvenanceHandler, 5],
+  // Epic VI: sick leave, kamar jenazah, appointment scheduling
+  [sickLeaveHandler, 10], [kamarJenazahHandler, 60], [appointmentHandler, 3],
   // Epic VI M6.2: discharge planning / rujuk balik (every 10 ticks)
   [dischargePlanningHandler, 10],
 ];

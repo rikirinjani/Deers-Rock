@@ -29,6 +29,12 @@ import { initDialysisState } from "./dialysis.js";
 import type { ScenarioState } from "./scenario.js";
 import { initScenarioState } from "./scenario.js";
 import { centralSupplyInit } from "./central-supply.js";
+import type { SickLeaveState } from "../agent/system.js";
+import { initSickLeaveState } from "../agent/system.js";
+import type { KamarJenazahState } from "./kamar-jenazah.js";
+import { initKamarJenazahState } from "./kamar-jenazah.js";
+import type { AppointmentState } from "./appointment-scheduling.js";
+import { initAppointmentState } from "./appointment-scheduling.js";
 
 export interface MorgueRecord {
   patientId: string;
@@ -131,6 +137,12 @@ export interface HospitalState {
   _radiotherapy: RadiotherapyState;
   _dialysis: DialysisState;
   _scenario: ScenarioState;
+  /** Epic VI M6.1: sick leave tracking for agent replacement */
+  _sickLeaveState: SickLeaveState;
+  /** Epic VI M6.2: kamar jenazah (mortuary) body registry */
+  _kamarJenazahState: KamarJenazahState;
+  /** Epic VI M6.2: appointment scheduling queue */
+  _appointmentState: AppointmentState;
   /** Phase E: macro→micro admission multiplier from adapter (default 1.0). */
   _admissionMultiplier: number;
   /** Phase E: macro→micro staff availability modifier from adapter (default 1.0). */
@@ -277,6 +289,9 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _jrState: { incidents: new Map(), counter: 0 },
     _dischargePlans: new Map<string, DischargePlan>() as unknown as Map<string, DischargePlan>,
     _deptConsumption: new Map<string, DeptConsumption>() as unknown as Map<string, DeptConsumption>,
+    _sickLeaveState: initSickLeaveState(),
+    _kamarJenazahState: initKamarJenazahState(),
+    _appointmentState: initAppointmentState(),
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),

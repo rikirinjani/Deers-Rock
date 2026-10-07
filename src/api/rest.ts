@@ -34,6 +34,8 @@ import {
 } from "../timeline/engine.js";
 import { getConsumptionByDept, getConsumptionByItem, getDeptConsumption, checkReorderAlerts } from "../engine/dept-consumption.js";
 import { getDischargePlans, getFollowUpStats } from "../engine/discharge-planning.js";
+import { getKamarJenazahRecords } from "../engine/kamar-jenazah.js";
+import { getUpcomingAppointments } from "../engine/appointment-scheduling.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -327,10 +329,11 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   }
   if (p === "/api/export/patients.csv") {
     const patients = Array.from(w.state.patients.values());
-    const rows = ["id,name,age,gender,bloodType,rhesus,allergies"];
+    const rows = ["id,name,age,gender,bloodType,rhesus,allergies,morgueId"];
     for (const p of patients) {
       const r = (p as Patient & { rhesus?: string }).rhesus ?? "+";
-      rows.push(`${esc(p.id)},${esc(p.name)},${p.age},${p.gender},${p.bloodType},${r},"${(p.allergies||[]).join(";")}"`);
+      const pid = (p as Patient & { morgueId?: string | null }).morgueId ?? "";
+      rows.push(`${esc(p.id)},${esc(p.name)},${p.age},${p.gender},${p.bloodType},${r},"${(p.allergies||[]).join(";")}",${esc(pid)}`);
     }
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", 'attachment; filename="patients.csv"');
@@ -357,6 +360,39 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     }
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", 'attachment; filename="charges.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
+  // V M5.3: Per-ward patient census CSV
+  if (p === "/api/export/ward-census.csv") {
+    const beds = Array.from(w.state.beds.values());
+    const activeEncs = Array.from(w.state.encounters.values()).filter(e => e.status === "active" && e.type === "inpatient");
+    const rows = ["ward,building,roomClass,patientCount,totalCapacity,occupancyPct"];
+    const wardMap = new Map<string, { occupied: number; total: number }>();
+    for (const bed of beds) {
+      if (!wardMap.has(bed.ward)) wardMap.set(bed.ward, { occupied: 0, total: 0 });
+      const wData = wardMap.get(bed.ward)!;
+      wData.total++;
+      if (bed.patientId) wData.occupied++;
+    }
+    for (const [ward, data] of wardMap) {
+      const pct = data.total > 0 ? Math.round(data.occupied / data.total * 100) : 0;
+      rows.push(`${esc(ward)},${data.occupied},${data.total},${pct}%`);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="ward-census.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
+  // V M5.3: Medical supply consumption CSV
+  if (p === "/api/export/supply-consumption.csv") {
+    const consumption = getDeptConsumption(w.state);
+    const rows = ["department,itemCode,quantity,lastTick"];
+    for (const c of consumption.values()) {
+      rows.push(`${esc(c.department)},${esc(c.itemCode)},${c.quantity},${c.tick}`);
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="supply-consumption.csv"');
     res.end("\uFEFF" + rows.join("\n"));
     return true;
   }
@@ -513,6 +549,26 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
       stats: getFollowUpStats(w.state),
       plans: Array.from(getDischargePlans(w.state).values()).slice(-50).reverse(),
     });
+    return true;
+  }
+  // Epic VI: Kamar jenazah / forensik
+  if (p === "/api/kamar-jenazah" && req.method === "GET") {
+    const records = Array.from(getKamarJenazahRecords(w.state).values());
+    const active = records.filter(r => r.status !== "released");
+    json(res, { total: records.length, active, byStatus: { received: records.filter(r=>r.status==="received").length, stored: records.filter(r=>r.status==="stored").length, released: records.filter(r=>r.status==="released").length }, byForensic: { none: records.filter(r=>r.forensicFlag==="none").length, suspicious: records.filter(r=>r.forensicFlag==="suspicious").length, legal_hold: records.filter(r=>r.forensicFlag==="legal_hold").length, autopsy: records.filter(r=>r.forensicFlag==="autopsy_required").length } });
+    return true;
+  }
+  // Epic VI: Sick leave records
+  if (p === "/api/sick-leave" && req.method === "GET") {
+    const sickState = (w.state as unknown as { _sickLeaveState?: { records: Map<string, any>; counter: number } })._sickLeaveState;
+    const records = sickState ? Array.from(sickState.records.values()) : [];
+    json(res, { total: records.length, active: records.filter(r => r.recoveredTick === null).length, recovered: records.filter(r => r.recoveredTick !== null).length, records: records.slice(-20).reverse() });
+    return true;
+  }
+  // Epic VI: Appointments
+  if (p === "/api/appointments" && req.method === "GET") {
+    const appts = Array.from((w.state as unknown as { _appointmentState?: { appointments: Map<string, any> } })._appointmentState?.appointments?.values() ?? []);
+    json(res, { total: appts.length, byStatus: { scheduled: appts.filter(a=>a.status==="scheduled").length, checked_in: appts.filter(a=>a.status==="checked_in").length, completed: appts.filter(a=>a.status==="completed").length, no_show: appts.filter(a=>a.status==="no_show").length }, upcoming: appts.filter(a => a.status === "scheduled").slice(0, 20) });
     return true;
   }
   // Epic III: Timeline Engine endpoints

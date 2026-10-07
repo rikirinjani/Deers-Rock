@@ -12,6 +12,7 @@ import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 import type { HospitalAgent } from "../agent/types.js";
 import { recordDischargePlan } from "./discharge-planning.js";
 import { recordConsumption } from "./dept-consumption.js";
+import { registerBody } from "./kamar-jenazah.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -179,12 +180,15 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
       const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
       const terminalEvent = mapIcdToTerminalEvent(primaryDx.code, clock.rng);
       const cause = mortality.factors.length > 0 ? mortality.factors.join("; ") : (terminalEvent ?? `${primaryDx.name} complication`);
-      newMorgue.push({
+      const morgueRecord: MorgueRecord = {
         patientId: toDischarge.patientId, encounterId: toDischarge.id,
         primaryDiagnosis: primaryDx.name, icdCode: primaryDx.code,
         age: patient.age, gender: patient.gender,
         causeOfDeath: cause, mortalityScore: mortality.score, deathTick: clock.tick,
-      });
+      };
+      newMorgue.push(morgueRecord);
+      // Register body in kamar jenazah
+      registerBody(state, morgueRecord, clock.tick);
       // Mark patient as deceased — permanently excluded from admission
       const deceasedPatient = newPatients.get(toDischarge.patientId);
       if (deceasedPatient) {
