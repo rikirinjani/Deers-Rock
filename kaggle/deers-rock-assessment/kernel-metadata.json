@@ -3,6 +3,7 @@
   "title": "Deer's Rock Platform Assessment — GPT-6 Astra Review",
   "code_file": "kernel.py",
   "language": "python",
+  "kernel_type": "script",
   "version": "2",
   "is_private": true,
   "enable_gpu": false,
