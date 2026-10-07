@@ -305,14 +305,14 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 
 | Epic | Status | Tests | Notes |
 |------|--------|-------|-------|
-| **I** Core Reliability | ✅ Complete | — | All milestones verified |
+| **I** Core Reliability | ✅ Complete | — | All 5 milestones verified, throughput balanced |
 | **II** Clinical Fidelity | ✅ Complete | — | 205 drugs, 147 ICD, 165 protocols |
-| **III** Timeline Engine | 🔴 Deferred | — | Concepts done, impl deferred |
-| **IV** Data & Interop | 🟡 2/3 MS | — | Integration tests added |
-| **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume done |
+| **III** Timeline Engine | 🟡 Complete* | — | *Concepts + implementation done (ADR-009, branch API, 5 scenarios) |
+| **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
+| **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume + charts done |
 | **VI** Department Completeness | 🟡 ~70% | — | 12 depts implemented, linkage pending |
-| **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, snapshots done |
-| **VIII** ADRs & Governance | 🟡 2/3 MS | — | All ADRs written, terminology mostly done |
+| **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
+| **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
