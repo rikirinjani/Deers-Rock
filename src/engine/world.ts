@@ -56,6 +56,7 @@ import { resetMmConferenceCounter } from "./mm-conference.js";
 import { resetRadiotherapyCounters } from "./radiotherapy.js";
 import { resetBiomedCounter } from "./biomedical-engineering.js";
 import { resetJournalPurgeTick, resetJournalExportTick } from "./journal.js";
+import { takeSnapshot as takeOutcomeSnapshot } from "./outcome-snapshot.js";
 
 export interface World {
   clock: Clock;
@@ -322,6 +323,9 @@ export function step(world: World): World {
   state = mmResult.state;
 
   state = { ...state, _calendarTicks: newClock.tick, _rngSeed: newClock.rngSeed };
+
+  // Epic VII M7.3: per-tick outcome snapshot for time-series analysis
+  takeOutcomeSnapshot(state, newClock.tick);
 
   if (snap && journaling) {
     journalBeginTransaction();
