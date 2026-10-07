@@ -12,7 +12,7 @@ function fhirDateTime(ms: number): string {
 // ─── Patient ────────────────────────────────────────────────────────
 function patientToFhir(patient: Patient): FhirResource {
   const nameParts = patient.name.split(" ");
-  const id = (patient as any).identity;
+  const id = (patient as Patient & { identity?: any }).identity;
   return {
     resourceType: "Patient",
     id: patient.id,
@@ -31,7 +31,7 @@ function patientToFhir(patient: Patient): FhirResource {
     }] : undefined,
     maritalStatus: id ? { text: id.maritalStatus } : undefined,
     extension: [
-      { url: "https://rs-deers-rock.go.id/Extension/blood-type", valueString: `${patient.bloodType}${(patient as any).rhesus ?? "+"}` },
+      { url: "https://rs-deers-rock.go.id/Extension/blood-type", valueString: `${patient.bloodType}${(patient as Patient & { rhesus?: string }).rhesus ?? "+"}` },
       { url: "https://rs-deers-rock.go.id/Extension/religion", valueString: id?.religion },
     ].filter((e: any) => e.valueString),
   };

@@ -4,6 +4,7 @@ import path from "node:path";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import type { World } from "../engine/world.js";
+import type { Patient } from "../patient/schema.js";
 import { formatHospitalTime } from "../engine/clock.js";
 import { generateReport } from "../engine/report.js";
 import { generateSirsReport } from "../engine/sirs-report.js";
@@ -319,7 +320,7 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     const patients = Array.from(w.state.patients.values());
     const rows = ["id,name,age,gender,bloodType,rhesus,allergies"];
     for (const p of patients) {
-      const r = (p as any).rhesus ?? "+";
+      const r = (p as Patient & { rhesus?: string }).rhesus ?? "+";
       rows.push(`${esc(p.id)},${esc(p.name)},${p.age},${p.gender},${p.bloodType},${r},"${(p.allergies||[]).join(";")}"`);
     }
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
