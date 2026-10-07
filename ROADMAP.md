@@ -101,7 +101,7 @@ Deferred. Would add branch orchestration, intervention system, comparison tools,
 
 ---
 
-## Epic IV — Data & Interoperability
+## Epic IV — Data & Interoperability ✅
 
 Make HOE data useful for analytics, reporting, and external system integration.
 
@@ -118,8 +118,8 @@ Make HOE data useful for analytics, reporting, and external system integration.
 - [x] Replace JSON dump with styled HTML tables ✅ (`/report.html`, dark theme)
 - [x] Export to CSV — patients, encounters, charges ✅ (`/api/export/*.csv`)
 - [x] Fix report blood type detection to use `patient.rhesus` ✅
-- [ ] Add charts (ECharts or Chart.js) to reports — deferred
-- [ ] PDF export — deferred
+- [x] Add charts (Chart.js) to main dashboard ✅ (5 charts: occupancy, ward, encounters, clinical, diagnoses)
+- [x] PDF export via browser print dialog ✅
 - See EVALUATION-REPORT §7
 
 ### Milestone 4.3: CI/CD ✅
