@@ -8,5 +8,5 @@
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "kernel_sources": []
+  "commit_message": "GPT-6 Astra-style assessment of Deer's Rock platform"
 }
