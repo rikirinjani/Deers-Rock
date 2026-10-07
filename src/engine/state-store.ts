@@ -4,6 +4,8 @@ import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
 import type { AmbulanceState } from "../referral/ambulance.js";
 import type { JrState } from "../referral/jr-provenance.js";
+import type { DischargePlan } from "../engine/discharge-planning.js";
+import type { DeptConsumption } from "../engine/dept-consumption.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
 import type { MmConference } from "./mm-conference.js";
 import type { BloodBankState } from "./blood-bank.js";
@@ -103,6 +105,10 @@ export interface HospitalState {
    _ambulanceState: AmbulanceState;
    /** Epic IX M9.3 wave 2: Jasa Raharja incident provenance */
    _jrState: JrState;
+   /** Epic VI M6.2: discharge planning / rujuk balik */
+   _dischargePlans: Map<string, DischargePlan>;
+   /** Epic VI M6.3: department-level supply consumption */
+   _deptConsumption: Map<string, DeptConsumption>;
   _icdTop10: IcdPeriodData | null;
   _doctorCaseMemory: Map<string, CaseRecord>;
   _nurseCaseMemory: Map<string, NurseCaseRecord>;
@@ -269,6 +275,8 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [], letterCounter: 0, patientCounter: 0 },
     _ambulanceState: { fleet: new Map(), dispatches: new Map(), counter: 0 },
     _jrState: { incidents: new Map(), counter: 0 },
+    _dischargePlans: new Map<string, DischargePlan>() as unknown as Map<string, DischargePlan>,
+    _deptConsumption: new Map<string, DeptConsumption>() as unknown as Map<string, DeptConsumption>,
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),

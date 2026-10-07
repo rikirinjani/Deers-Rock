@@ -10,6 +10,8 @@ import { getScenarioEffects } from "./scenario.js";
 import { assignPayer } from "./finance.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 import type { HospitalAgent } from "../agent/types.js";
+import { recordDischargePlan } from "./discharge-planning.js";
+import { recordConsumption } from "./dept-consumption.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -188,6 +190,15 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
       // Pure computation: no rng, no tick-loop behavior change (additive).
       _severityAtClose: computeSeveritySnapshot(state, toDischarge, tickFromMs(clock.hospitalTimeMs)),
     });
+
+    // Epic VI M6.2: Record rujuk balik discharge plan for chronic conditions
+    recordDischargePlan(state, toDischarge, clock.tick);
+
+    // Epic VI M6.3: Record department consumption for charged items
+    const los = toDischarge.endTime ? Math.floor((toDischarge.endTime - toDischarge.startTime) / 60000) : 0;
+    if (toDischarge.roomClassAtAdmission) {
+      recordConsumption(state, toDischarge.roomClassAtAdmission.replace(/-/g, "_").toUpperCase(), "BED_DAY", los, clock.tick);
+    }
 
     for (const [bid, bed] of newBeds) {
       if (bed.patientId === toDischarge.patientId) {

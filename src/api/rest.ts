@@ -32,6 +32,8 @@ import {
   getBranchesForUniverse, getAllBranches,
   STANDARD_SCENARIOS, runStandardScenario,
 } from "../timeline/engine.js";
+import { getConsumptionByDept, getConsumptionByItem, getDeptConsumption, checkReorderAlerts } from "../engine/dept-consumption.js";
+import { getDischargePlans, getFollowUpStats } from "../engine/discharge-planning.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -493,6 +495,24 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/outcomes/snapshots/reset") {
     clearOutcomeSnapshots();
     json(res, { ok: true });
+    return true;
+  }
+  // Epic VI M6.3: Department consumption
+  if (p === "/api/departments/consumption" && req.method === "GET") {
+    json(res, {
+      byDept: getConsumptionByDept(w.state),
+      alerts: checkReorderAlerts(w.state),
+      totalEntries: getDeptConsumption(w.state).size,
+    });
+    return true;
+  }
+  // Epic VI M6.2: Discharge planning / rujuk balik
+  if (p === "/api/discharge-plans" && req.method === "GET") {
+    json(res, {
+      total: getDischargePlans(w.state).size,
+      stats: getFollowUpStats(w.state),
+      plans: Array.from(getDischargePlans(w.state).values()).slice(-50).reverse(),
+    });
     return true;
   }
   // Epic III: Timeline Engine endpoints

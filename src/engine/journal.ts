@@ -325,6 +325,8 @@ export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQu
       incidents: mapToArr((state as unknown as { _jrState?: { incidents: Map<string, unknown> } })._jrState?.incidents ?? new Map()),
       counter: (state as unknown as { _jrState?: { counter: number } })._jrState?.counter ?? 0,
     },
+    dischargePlans: mapToArr((state as unknown as { _dischargePlans?: Map<string, unknown> })._dischargePlans ?? new Map()),
+    deptConsumption: mapToArr((state as unknown as { _deptConsumption?: Map<string, unknown> })._deptConsumption ?? new Map()),
   };
   if (durable) {
     // ADR-004 D1: snapshot format version + ordered pending-event list.
@@ -474,6 +476,8 @@ function deserializeState(json: string): HospitalState {
       incidents: arrToMap(d.jrState?.incidents ?? []),
       counter: d.jrState?.counter ?? 0,
     },
+    _dischargePlans: arrToMap(d.dischargePlans ?? []),
+    _deptConsumption: arrToMap(d.deptConsumption ?? []),
     _icdTop10: d.icdTop ?? null,
     _doctorCaseMemory: arrToMap(d.docMem ?? []),
     _nurseCaseMemory: arrToMap(d.nurseMem ?? []),

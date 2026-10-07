@@ -41,6 +41,7 @@ import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
 import { ambulanceHandler, initAmbulanceState } from "../referral/ambulance.js";
 import { jrProvenanceHandler, initJrState } from "../referral/jr-provenance.js";
+import { dischargePlanningHandler } from "./discharge-planning.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
@@ -385,6 +386,8 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [learningHandler, 10], [cleanupHandler, 10], [aiOutpatientPharmacyHandler, 3],
   // Epic IX M9.3 wave 2: ambulance + JR provenance (every 5 ticks)
   [ambulanceHandler, 5], [jrProvenanceHandler, 5],
+  // Epic VI M6.2: discharge planning / rujuk balik (every 10 ticks)
+  [dischargePlanningHandler, 10],
 ];
 
 export function buildHandlers(): HandlerFn[] {
