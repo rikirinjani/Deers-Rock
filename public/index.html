@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deer's Rock — Hospital Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root { --bg:#0b0e14;--surface:#141a24;--surface2:#1c2432;--border:#2a3444;--text:#e2e8f0;--muted:#8896a6;--accent:#38bdf8;--green:#4ade80;--yellow:#facc15;--red:#ef4444;--orange:#fb923c;--purple:#a78bfa;--pink:#f472b6;--teal:#2dd4bf;--rose:#fb7185; }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -128,6 +129,19 @@
   <div class="panel full"><div class=panel-header>🚑 Encounters <span id=encCount style=color:var(--green)>0</span><input id=encSearch class=panel-search style=width:120px placeholder="Search patient ID..." oninput="onEncSearch(this.value)"></div><div class=panel-body id=encBody style=max-height:420px></div></div>
 
   <div class="panel full"><div class=panel-header>📊 Activity Feed</div><div class=panel-body style=max-height:140px><div class=feed id=feed></div></div></div>
+
+  <!-- Charts (Epic IV M4.2) -->
+  <div class="panel full"><div class=panel-header>📈 Analytics</div>
+    <div class=panel-body style=max-height:520px;overflow-y:auto>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px">
+        <div><canvas id=chartOccupancy style=max-height:180px></canvas></div>
+        <div><canvas id=chartWard style=max-height:180px></canvas></div>
+        <div><canvas id=chartEncStatus style=max-height:180px></canvas></div>
+        <div><canvas id=chartClinical style=max-height:180px></canvas></div>
+        <div style=grid-column:1/-1><canvas id=chartDx style=max-height:180px></canvas></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -616,6 +630,68 @@ const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
 a.href=URL.createObjectURL(b);a.download='deers-rock-report.csv';a.click();
 }
 
+async function exportPDF(){
+if(!lastReport)return;
+const r=lastReport;
+// Build printable HTML report
+var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Deers Rock Report</title>';
+html += '<style>body{font-family:monospace;font-size:10px;padding:20px;color:#333}';
+html += 'h1{font-size:16px;margin-bottom:4px}h2{font-size:12px;margin:12px 0 4px;color:#555}';
+html += 'table{width:100%;border-collapse:collapse;margin:8px 0}th,td{border:1px solid #ddd;padding:3px 6px;text-align:left;font-size:9px}';
+html += 'th{background:#f0f0f0}.val{font-weight:bold}.muted{color:#888}</style></head><body>';
+html += '<h1>🏥 Deer\'s Rock — Hospital Statistics Report</h1>';
+html += '<p class="muted">Generated: '+new Date().toISOString()+' | Tick: '+r.tick+' | Time: '+r.hospitalTime+'</p>';
+
+// Census
+html += '<h2>Census</h2><table><tr><th>Metric</th><th>Value</th></tr>';
+html += '<tr><td>Total Patients</td><td class="val">'+r.census.totalPatients+'</td></tr>';
+html += '<tr><td>Active Encounters</td><td class="val">'+r.census.activeEncounters+'</td></tr>';
+html += '<tr><td>Discharged</td><td>'+r.census.dischargedEncounters+'</td></tr>';
+html += '<tr><td>Occupancy Rate</td><td class="val">'+r.census.occupancyRate+'%</td></tr>';
+html += '<tr><td>Available Beds</td><td>'+r.census.availableBeds+'</td></tr>';
+html += '<tr><td>Total Beds</td><td>'+r.census.totalBeds+'</td></tr>';
+html += '<tr><td>Waiting Room</td><td>'+r.census.waitingRoom+'</td></tr>';
+html += '</table>';
+
+// Ward occupancy
+if(r.census.wardOccupancy && r.census.wardOccupancy.length){
+  html += '<h2>Ward Occupancy</h2><table><tr><th>Ward</th><th>Total</th><th>Occupied</th><th>Rate</th></tr>';
+  r.census.wardOccupancy.forEach(function(w){
+    html += '<tr><td>'+w.ward+'</td><td>'+w.total+'</td><td>'+w.occupied+'</td><td>'+w.rate+'%</td></tr>';
+  });
+  html += '</table>';
+}
+
+// Clinical
+if(r.clinical){
+  html += '<h2>Clinical</h2><table><tr><th>Service</th><th>Total</th><th>Completed</th><th>Pending</th></tr>';
+  var c = r.clinical;
+  if(c.lab) html += '<tr><td>Lab</td><td>'+c.lab.total+'</td><td>'+c.lab.resulted+'</td><td>'+c.lab.pending+'</td></tr>';
+  if(c.radiology) html += '<tr><td>Radiology</td><td>'+c.radiology.total+'</td><td>'+c.radiology.resulted+'</td><td>'+c.radiology.pending+'</td></tr>';
+  if(c.pharmacy) html += '<tr><td>Pharmacy</td><td>'+c.pharmacy.total+'</td><td>'+c.pharmacy.administered+'</td><td>'+c.pharmacy.pending+'</td></tr>';
+  if(c.surgery) html += '<tr><td>Surgery</td><td>'+c.surgery.total+'</td><td>'+c.surgery.completed+'</td><td>'+c.surgery.pending+'</td></tr>';
+  html += '</table>';
+}
+
+// Finance
+if(r.finance){
+  html += '<h2>Finance</h2><table><tr><th>Metric</th><th>Value</th></tr>';
+  if(r.finance.totalCharges) html += '<tr><td>Total Charges</td><td class="val">'+r.finance.totalCharges+'</td></tr>';
+  if(r.finance.totalClaims) html += '<tr><td>Total Claims</td><td>'+r.finance.totalClaims+'</td></tr>';
+  if(r.finance.bpjsEfficiency) html += '<tr><td>BPJS Efficiency Ratio</td><td>'+r.finance.bpjsEfficiency.ratio+'</td></tr>';
+  html += '</table>';
+}
+
+html += '<p class="muted" style="margin-top:20px">Deer\'s Rock Hospital Simulation — Deterministic Platform</p>';
+html += '</body></html>';
+
+// Open in new window and trigger print (browser print-to-PDF)
+var win = window.open('', '_blank');
+win.document.write(html);
+win.document.close();
+setTimeout(function(){ win.print(); }, 500);
+}
+
 let journalFilter='';
 async function showJournal(){
 const j=await drFetch('/api/journal?limit=200').then(r=>r.json());
@@ -928,6 +1004,110 @@ function setSpeed(ms) {
 
 refresh();
 pollTimer = setInterval(refresh, pollInterval);
+
+// ── Charts (Epic IV M4.2) ─────────────────────────────────────────────────
+var chartInstances = {};
+function destroyCharts() {
+  for (var k in chartInstances) {
+    try { chartInstances[k].destroy(); } catch(_) {}
+  }
+  chartInstances = {};
+}
+async function loadCharts() {
+  try {
+    var r = await drFetch('/api/report').then(function(x){return x.json()});
+    var report = r;
+    // Bed occupancy donut
+    if (report && report.census) {
+      var ctx1 = document.getElementById('chartOccupancy');
+      if (ctx1) {
+        if (chartInstances.occupancy) chartInstances.occupancy.destroy();
+        chartInstances.occupancy = new Chart(ctx1, {
+          type: 'doughnut',
+          data: {
+            labels: ['Occupied', 'Available'],
+            datasets: [{ data: [report.census.occupiedBeds, report.census.availableBeds],
+              backgroundColor: ['#ef4444', '#22c55e'], borderColor: '#1c2432', borderWidth: 2 }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
+        });
+      }
+      // Ward occupancy bar
+      var ctx2 = document.getElementById('chartWard');
+      if (ctx2 && report.census.wardOccupancy && report.census.wardOccupancy.length) {
+        if (chartInstances.ward) chartInstances.ward.destroy();
+        var wards = report.census.wardOccupancy.slice(0, 10);
+        chartInstances.ward = new Chart(ctx2, {
+          type: 'bar',
+          data: {
+            labels: wards.map(function(w){ return w.ward.replace(/-/g,' ').substring(0,12); }),
+            datasets: [{ label: 'Occupancy %', data: wards.map(function(w){ return w.rate; }),
+              backgroundColor: '#38bdf8', borderRadius: 3 }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
+                      x: { ticks: { font: { size: 7 }, maxRotation: 45 }, grid: { display: false } } }
+        });
+      }
+      // Encounter status pie
+      var ctx3 = document.getElementById('chartEncStatus');
+      if (ctx3 && report.census) {
+        if (chartInstances.encStatus) chartInstances.encStatus.destroy();
+        chartInstances.encStatus = new Chart(ctx3, {
+          type: 'pie',
+          data: {
+            labels: ['Active', 'Discharged'],
+            datasets: [{ data: [report.census.activeEncounters, report.census.dischargedEncounters],
+              backgroundColor: ['#facc15', '#a78bfa'], borderColor: '#1c2432', borderWidth: 2 }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
+        });
+      }
+      // Clinical services bar
+      var ctx4 = document.getElementById('chartClinical');
+      if (ctx4 && report.clinical) {
+        if (chartInstances.clinical) chartInstances.clinical.destroy();
+        var c = report.clinical;
+        chartInstances.clinical = new Chart(ctx4, {
+          type: 'bar',
+          data: {
+            labels: ['Lab', 'Rad', 'Pharm', 'Surg', 'Resp', 'Diet', 'Phys'],
+            datasets: [
+              { label: 'Total', data: [c.lab.total, c.radiology.total, c.pharmacy.total, c.surgery.total, c.respiratory.total, c.dietary.total, c.physicianOrders.total],
+                backgroundColor: '#38bdf8', borderRadius: 3 },
+              { label: 'Completed', data: [c.lab.resulted, c.radiology.resulted, c.pharmacy.administered, c.surgery.completed, c.respiratory.active, c.dietary.active, c.physicianOrders.completed],
+                backgroundColor: '#4ade80', borderRadius: 3 }
+            ]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 8 } } } },
+            scales: { y: { beginAtZero: true, ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
+                      x: { ticks: { font: { size: 7 } }, grid: { display: false } } }
+        });
+      }
+      // Top diagnoses bar
+      var ctx5 = document.getElementById('chartDx');
+      if (ctx5 && report.operations && report.operations.topDiagnoses && report.operations.topDiagnoses.length) {
+        if (chartInstances.dx) chartInstances.dx.destroy();
+        var dx = report.operations.topDiagnoses.slice(0, 8).reverse();
+        chartInstances.dx = new Chart(ctx5, {
+          type: 'bar',
+          data: {
+            labels: dx.map(function(d){ return d.code + ': ' + d.name.substring(0,10); }),
+            datasets: [{ label: 'Count', data: dx.map(function(d){ return d.count; }),
+              backgroundColor: '#fb923c', borderRadius: 3 }]
+          },
+          options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } },
+            scales: { x: { ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
+                      y: { ticks: { font: { size: 7 } }, grid: { display: false } } }
+        });
+      }
+    }
+  } catch(e) { console.warn('Chart load failed', e); }
+}
+// Load charts after first refresh
+setTimeout(loadCharts, 1500);
+// Reload charts on full rebuild
+var _origRefresh = refresh;
 </script>
 
 <div id=rReport class=report>
@@ -937,6 +1117,7 @@ pollTimer = setInterval(refresh, pollInterval);
     <div style=display:flex;gap:4px>
       <button onclick=toggleRawReport()>📄 Raw JSON</button>
       <button onclick=exportCSV()>📥 CSV</button>
+      <button onclick=exportPDF()>📄 PDF</button>
     </div>
   </div>
   <div id=rBody></div>
