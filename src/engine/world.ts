@@ -39,6 +39,8 @@ import { isDurableQueueEnabled } from "./config.js";
 import { scenarioHandler } from "./scenario.js";
 import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
+import { ambulanceHandler, initAmbulanceState } from "../referral/ambulance.js";
+import { jrProvenanceHandler, initJrState } from "../referral/jr-provenance.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
@@ -89,6 +91,9 @@ export function createWorld(patientCount: number = 100, journalPath?: string, se
 
   state._agentState = initialAgentState;
   state._referralState = initialReferralState;
+  // Epic IX M9.3 wave 2: initialize ambulance fleet and JR provenance
+  state._ambulanceState = initAmbulanceState();
+  state._jrState = initJrState();
 
   const clockSeed = seed ?? Date.now();
   const clock = createClock(60, clockSeed);
@@ -378,6 +383,8 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [billingHandler, 5], [edCashierHandler, 3], [inpatientCashierHandler, 5], [outpatientCashierHandler, 5],
   [vitalsUpdateHandler, 1], [icdTrackerHandler, 10], [outcomeHandler, 1],
   [learningHandler, 10], [cleanupHandler, 10], [aiOutpatientPharmacyHandler, 3],
+  // Epic IX M9.3 wave 2: ambulance + JR provenance (every 5 ticks)
+  [ambulanceHandler, 5], [jrProvenanceHandler, 5],
 ];
 
 export function buildHandlers(): HandlerFn[] {

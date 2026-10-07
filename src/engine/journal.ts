@@ -315,6 +315,16 @@ export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQu
       letters: mapToArr(state._referralState.letters),
       incomingQueue: state._referralState.incomingQueue,
     },
+    // Epic IX M9.3 wave 2: ambulance fleet + dispatches
+    ambulanceState: {
+      fleet: mapToArr((state as unknown as { _ambulanceState?: { fleet: Map<string, unknown> } })._ambulanceState?.fleet ?? new Map()),
+      dispatches: mapToArr((state as unknown as { _ambulanceState?: { dispatches: Map<string, unknown> } })._ambulanceState?.dispatches ?? new Map()),
+      counter: (state as unknown as { _ambulanceState?: { counter: number } })._ambulanceState?.counter ?? 0,
+    },
+    jrState: {
+      incidents: mapToArr((state as unknown as { _jrState?: { incidents: Map<string, unknown> } })._jrState?.incidents ?? new Map()),
+      counter: (state as unknown as { _jrState?: { counter: number } })._jrState?.counter ?? 0,
+    },
   };
   if (durable) {
     // ADR-004 D1: snapshot format version + ordered pending-event list.
@@ -453,6 +463,16 @@ function deserializeState(json: string): HospitalState {
       facilities: arrToMap(d.referralState?.facilities ?? []),
       letters: arrToMap(d.referralState?.letters ?? []),
       incomingQueue: d.referralState?.incomingQueue ?? [],
+    },
+    // Epic IX M9.3 wave 2: additive fields — safe for pre-wave snapshots
+    _ambulanceState: {
+      fleet: arrToMap(d.ambulanceState?.fleet ?? []),
+      dispatches: arrToMap(d.ambulanceState?.dispatches ?? []),
+      counter: d.ambulanceState?.counter ?? 0,
+    },
+    _jrState: {
+      incidents: arrToMap(d.jrState?.incidents ?? []),
+      counter: d.jrState?.counter ?? 0,
     },
     _icdTop10: d.icdTop ?? null,
     _doctorCaseMemory: arrToMap(d.docMem ?? []),

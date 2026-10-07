@@ -2,6 +2,8 @@ import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, Phy
 import type { SpecialtyOrder } from "./specialty.js";
 import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
+import type { AmbulanceState } from "../referral/ambulance.js";
+import type { JrState } from "../referral/jr-provenance.js";
 import type { IcdPeriodData } from "./icd-tracker.js";
 import type { MmConference } from "./mm-conference.js";
 import type { BloodBankState } from "./blood-bank.js";
@@ -95,8 +97,12 @@ export interface HospitalState {
   inventory: Map<string, InventoryItem>;
   stockTransactions: Map<string, StockTransaction>;
   specialtyOrders: Map<string, SpecialtyOrder>;
-  _agentState: AgentState;
-  _referralState: ReferralState;
+   _agentState: AgentState;
+   _referralState: ReferralState;
+   /** Epic IX M9.3 wave 2: ambulance dispatch fleet */
+   _ambulanceState: AmbulanceState;
+   /** Epic IX M9.3 wave 2: Jasa Raharja incident provenance */
+   _jrState: JrState;
   _icdTop10: IcdPeriodData | null;
   _doctorCaseMemory: Map<string, CaseRecord>;
   _nurseCaseMemory: Map<string, NurseCaseRecord>;
@@ -261,6 +267,8 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     specialtyOrders: new Map(),
     _agentState: { pool: { agents: new Map(), assignments: new Map() } },
     _referralState: { facilities: new Map(), letters: new Map(), incomingQueue: [], letterCounter: 0, patientCounter: 0 },
+    _ambulanceState: { fleet: new Map(), dispatches: new Map(), counter: 0 },
+    _jrState: { incidents: new Map(), counter: 0 },
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),
