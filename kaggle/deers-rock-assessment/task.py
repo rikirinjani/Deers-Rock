@@ -1,85 +1,39 @@
-"""
-GPT-6 Astra assessment of Deer's Rock Hospital Simulation Platform.
-Uses the same kbench pattern as review-agent-stack-v4.
-"""
 import kbench
 
 BASE = """You are a tough but fair principal-engineer assessor reviewing a deterministic hospital simulation platform. The owner wants an honest capability and risk review before relying on it for research or commercial use. Judge on 5 equally-weighted 0-5 criteria: core-premise, model-quality, simulation-output, clinical-plausibility, production-readiness. Be specific; quote evidence where useful. Do not be polite - be useful."""
 
-SECTIONS = [
-    ("core-premise", """
-Review the core premise: a deterministic, seeded, event-driven hospital micro-simulation for Eastern Indonesia (Makassar, Tier C hospital). It runs 100k ticks in ~33s on commodity CPU, uses AI agents (doctor/nurse/pharmacist) for clinical decisions, and supports counterfactual experimentation via branch replay.
+CONTENT = """Deer's Rock is a deterministic hospital simulation engine for Eastern Indonesia (Makassar, Tier C hospital). Key facts:
 
-Questions:
-1. Is the deterministic-replay + seeded-RNG premise scientifically credible for a hospital simulation?
-2. Does the 1-tick=1-minute time scale make sense for both short-term (ED) and long-term (chronic care) dynamics?
-3. Is a single Tier C hospital in Makassar a defensible scope, or too narrow for generalizable claims?
-4. What are the fundamental limitations of a procedural generator vs. a calibrated digital twin?
-"""),
-    ("model-quality", """
-Review the model quality evidence:
-
-**Formulary:** 205 drugs across 36 categories, with costs from Indonesia's e-catalogue.
-**ICD-10:** 147 diagnosis codes with weighted probability distributions.
-**Protocols:** 165 clinical protocols mapping diagnoses to treatment pathways.
-**CBG tariffs:** 165 Indonesian Case-Based Grouping tariffs for BPJS billing.
-**Payer mix:** BPJS (82%), Ketenagakerjaan (8%), Private (7%), Self-pay (3%).
-**Tests:** 326 passed, 1 skipped across 42 test files. tsc clean.
+**Architecture:** TypeScript event-driven simulation. 1 tick = 1 simulated minute. AI agents (doctor/nurse/pharmacist) make clinical decisions. 29+ API endpoints. FHIR R4 compliant.
+**Tests:** 326 passed / 1 skipped (42 files). tsc clean. CI green.
 **Determinism:** Fixed-seed replay produces identical trajectories (verified).
-**Scaling:** Linear O(n) after event queue fix (14.6x speedup at 100k ticks).
+**100k tick benchmark (Kaggle CPU):** 33.12s total (330ms/tick, linear scaling). Before fix: 482.72s (superlinear O(n^2)).
+**Clinical coverage:** 205 drugs (36 categories), 147 ICD-10 codes, 165 protocols, 165 CBG tariffs.
+**Finance:** Claim lifecycle (submitted->verifying->adjudicated->paid|denied), BPJS/INA-CBG, payer mix (BPJS 82%/Ketenagakerjaan 8%/Private 7%/Self-pay 3%).
+**Referral:** Geo hierarchy (Puskesmas->RS D->RS C->RS B->RS A), ESI-lite triage, ambulance dispatch (BLS/ALS), Jasa Raharja provenance.
+**Live:** 16,800+ ticks, 1,997 patients, RSS 283MB/512MB. All non-Epic-X Epics complete.
+**ADR-016:** Referral & Ambulance Architecture (accepted, wave 1+2 implemented).
+**Epic IX M9.3 wave 2:** Just completed — ambulance dispatch + JR incident provenance.
+**Roadmap:** 10 Epics (I-X). All non-Epic-X complete. Epic X deferred (commercial).
+**Constraints:** No real patient data. Procedural generator. Calibration deferred to research phase."""
 
-Questions:
-1. Is 205 drugs / 147 ICD codes / 165 protocols sufficient for a Tier C hospital sim?
-2. How credible are the claim adjudication rules (INA-CBG causal denials)?
-3. Does the test coverage (326 tests) provide confidence in clinical correctness?
-4. What gaps remain in clinical knowledge that would limit research validity?
-"""),
-    ("simulation-output", """
-Review the simulation output evidence:
-
-**100k tick benchmark (Kaggle CPU, 2 vCPU, 8GB RAM):**
-- Before fix: 482.72s total, ms/tick grew from 300 to 4827 (superlinear O(n^2))
-- After fix: 33.12s total, ms/tick flat at ~280-330ms (linear O(n))
-- 300 tests pass post-benchmark
-
-**Live run:** 16,800+ ticks, 1,997 patients, RSS ~283 MB / 512 MB
-**State:** 205 drugs, 36 categories, 131 beds, referral system with geo hierarchy
-**Finance:** Claim lifecycle (submitted -> verifying -> adjudicated -> paid|denied)
-**Referral:** ADR-016 wave 2 — ambulance dispatch (BLS/ALS), Jasa Raharja provenance
-
-Questions:
-1. Does the 100k-tick performance validate production readiness?
-2. Are the state sizes (patients, encounters, charges) realistic for a Tier C hospital?
-3. Is the claim pipeline (BPJS/INA-CBG) producing economically plausible outputs?
-4. What would a 1M-tick run look like (~5.5 min estimated)?
-"""),
+SECTIONS = [
+    ("core-premise", "Is the deterministic-replay + seeded-RNG premise scientifically credible? Does the 1-tick=1-min scale make sense? Is a single Tier C hospital in Makassar defensible scope? What are the fundamental limitations vs. a calibrated digital twin?"),
+    ("model-quality", "Is 205 drugs / 147 ICD / 165 protocols sufficient? How credible are INA-CBG claim rules? Does 326 tests provide confidence? What gaps limit research validity?"),
+    ("simulation-output", "Does 100k-tick performance (33s, linear) validate production readiness? Are state sizes realistic? Is the claim pipeline economically plausible? What would 1M ticks look like (~5.5 min)?"),
 ]
 
-SYNTH = """
-Synthesize the three review sections into an overall verdict.
-
-For each criterion score (0-5), give:
-- The score
-- One sentence of justification quoting specific evidence
-- One sentence on the biggest remaining risk
-
-Then provide:
-1. A top-3 list of highest-priority fixes
-2. A top-3 list of strongest properties to lead with
-3. An overall verdict: "Ready for research" / "Needs rework" / "Not ready"
-4. Estimated timeline to production readiness if applicable
-"""
+SYNTH = """Synthesize the three sections. For each criterion (0-5): score, one-sentence justification with evidence, one-sentence risk. Then: top-3 fixes, top-3 strengths, overall verdict (Ready/Needs rework/Not ready), timeline to production."""
 
 
-@kbench.task(name="deers-rock-platform-assessment", description="GPT-6 Astra review of Deer's Rock hospital simulation platform")
+@kbench.task(name="deers-rock-platform-assessment", description="GPT-6 Astra review of Deer's Rock hospital simulation")
 def deers_rock_assessment(llm) -> dict:
-    """Astra review of the Deer's Rock hospital simulation platform."""
     sections = {}
     errors = 0
     for key, ask in SECTIONS:
         try:
             with kbench.chats.new("sec_" + key):
-                resp = llm.prompt(BASE + "\n\n" + ask,
+                resp = llm.prompt(BASE + "\n\n" + CONTENT + "\n\n" + ask,
                                   extra_api_params={"max_tokens": 8000})
         except Exception as e:
             resp = "[ERROR] " + type(e).__name__ + ": " + str(e)[:300]
@@ -107,14 +61,10 @@ def deers_rock_assessment(llm) -> dict:
     for i in range(0, len(report), 3000):
         print(f"---REPORT-CHUNK {i // 3000}---")
         print(report[i:i + 3000])
-    kbench.assertions.assert_true(len(sections) == 3,
-                                  expectation="all review sections produced")
+    kbench.assertions.assert_true(len(sections) == 3, expectation="all sections produced")
     for key in sections:
-        kbench.assertions.assert_true(len(sections[key].strip()) > 100,
-                                      expectation=f"section {key} non-empty")
-    kbench.assertions.assert_true(errors == 0,
-                                  expectation="all LLM calls succeeded")
-    kbench.assertions.assert_true(len(verdict.strip()) > 100,
-                                  expectation="verdict produced")
+        kbench.assertions.assert_true(len(sections[key].strip()) > 100, expectation=f"{key} non-empty")
+    kbench.assertions.assert_true(errors == 0, expectation="all LLM calls succeeded")
+    kbench.assertions.assert_true(len(verdict.strip()) > 100, expectation="verdict produced")
     return {"sections": list(sections), "errors": errors,
             "verdict": verdict[:2500], "report_chars": len(report)}
