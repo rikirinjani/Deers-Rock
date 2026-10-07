@@ -69,9 +69,13 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
 
   if (admitablePatients.length === 0) return state;
 
-  // Phase E: macro→micro coupling — admission_surge multiplier from Kronos adapter
-  const baseAdmit = Math.floor(clock.rng() * 3);
-  const scaledAdmit = Math.floor(baseAdmit * state._admissionMultiplier);
+  // Phase E: macro→micro coupling — admission_surge multiplier from Kronos adapter.
+  // Epic I M1.4 throughput balance: base count is 1-3 (min 1 admission per tick when
+  // beds are available) and the total scales with DR_ADMISSION_RATE (default 2.0)
+  // so occupancy reaches meaningful levels. Unset/invalid env falls back to 2.0.
+  const baseAdmit = Math.floor(clock.rng() * 3) + 1; // min 1 admission per tick when beds available
+  const admissionRate = Number(process.env.DR_ADMISSION_RATE) || 2.0;
+  const scaledAdmit = Math.floor(baseAdmit * state._admissionMultiplier * admissionRate);
   const toAdmit = Math.min(availableBeds.length, Math.max(1, scaledAdmit));
   let newBeds = new Map(state.beds);
   let newEncounters = new Map(state.encounters);
