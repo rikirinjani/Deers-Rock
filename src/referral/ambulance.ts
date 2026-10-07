@@ -52,9 +52,9 @@ const TICKS_PER_HOUR = 60; // 1 tick = 1 min
 export function initAmbulanceState(): AmbulanceState {
   return {
     fleet: new Map([
+      ["AMB-ALS-001", { id: "AMB-ALS-001", tier: "ALS", status: "available", location: { provinceCode: 73, regencyCode: 71 }, speedKmh: ALS_SPEED_KMH }],
       ["AMB-BLS-001", { id: "AMB-BLS-001", tier: "BLS", status: "available", location: { provinceCode: 73, regencyCode: 71 }, speedKmh: BLS_SPEED_KMH }],
       ["AMB-BLS-002", { id: "AMB-BLS-002", tier: "BLS", status: "available", location: { provinceCode: 73, regencyCode: 71 }, speedKmh: BLS_SPEED_KMH }],
-      ["AMB-ALS-001", { id: "AMB-ALS-001", tier: "ALS", status: "available", location: { provinceCode: 73, regencyCode: 71 }, speedKmh: ALS_SPEED_KMH }],
     ]),
     dispatches: new Map(),
     counter: 0,
