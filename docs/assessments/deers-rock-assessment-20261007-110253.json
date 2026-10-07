@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-07T11:02:53.928900",
+  "model": "claude-sonnet-4-5-20250929",
+  "sections": [
+    "core-premise",
+    "model-quality",
+    "simulation-output"
+  ],
+  "errors": 0,
+  "report_chars": 308,
+  "report_path": "C:\\Users\\think\\Project_v2\\Deers-Rock\\docs\\assessments\\deers-rock-assessment-20261007-110253.md",
+  "verdict_preview": "[ERROR] PermissionDeniedError: Error code: 403"
+}
