@@ -78,7 +78,7 @@ export function dispatchAmbulance(
   if (!available) return null;
 
   const costIdr = available.tier === "BLS"
-    ? BLS_BASE_COST + ALS_PER_KM * distanceKm
+    ? BLS_BASE_COST + BLS_PER_KM * distanceKm
     : ALS_BASE_COST + ALS_PER_KM * distanceKm;
 
   // ETA in ticks: distance / speed * 60 ticks/hour
