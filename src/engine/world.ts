@@ -8,6 +8,8 @@ import { learningHandler } from "./agent-learning.js";
 import { outpatientHandler } from "./outpatient.js";
 import { runMmConference } from "./mm-conference.js";
 import { icdTrackerHandler } from "./icd-tracker.js";
+import { isInvariantValidationEnabled } from "./config.js";
+import { validateInvariants } from "./invariant-validator.js";
 import { generatePatientPool } from "../patient/generator.js";
 import { labHandler, labResultHandler } from "./lab.js";
 import { medAdminHandler } from "./pharmacy.js";
@@ -355,6 +357,17 @@ export function step(world: World): World {
       journalExportAndPurge(newClock.tick);
     } else if (newClock.tick > 0 && newClock.tick % 100 === 0) {
       journalPurge(newClock.tick);
+    }
+  }
+
+  // ADR-020: invariant validation (every 100 ticks, env-gated)
+  if (isInvariantValidationEnabled() && newClock.tick > 0 && newClock.tick % 100 === 0) {
+    const report = validateInvariants(state);
+    if (!report.pass) {
+      console.warn(`[INVARIANT] tick ${newClock.tick}: ${report.violations.length} violations`);
+      for (const v of report.violations.slice(0, 5)) {
+        console.warn(`  [${v.invariant}] ${v.entity}: ${v.detail}`);
+      }
     }
   }
 

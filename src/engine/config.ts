@@ -27,3 +27,8 @@ export function isBoundedStateEnabled(): boolean {
 export function isLearningFrozen(): boolean {
   return process.env.DR_FREEZE_LEARNING === "1";
 }
+
+/** ADR-020: Enable runtime invariant validation (every 100 ticks) */
+export function isInvariantValidationEnabled(): boolean {
+  return process.env.DR_VALIDATE_INVARIANTS === "1";
+}
