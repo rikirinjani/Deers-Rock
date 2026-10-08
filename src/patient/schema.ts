@@ -36,6 +36,8 @@ export interface Diagnosis {
   code: string;
   name: string;
   active: boolean;
+  /** Lower number = higher priority for primary diagnosis selection. Defaults to 99. */
+  priority?: number;
 }
 
 export interface Medication {

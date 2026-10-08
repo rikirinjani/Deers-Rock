@@ -24,9 +24,44 @@ export type InterventionType =
   | "policy_override"
   | "custom";
 
+/** Per-type schema for intervention param validation (ADR-022) */
+export interface InterventionSchema {
+  required: string[];
+  optional?: string[];
+  validators?: Record<string, (v: unknown) => boolean>;
+}
+
+const INTERVENTION_SCHEMAS: Record<InterventionType, InterventionSchema> = {
+  bed_increase: { required: ["count"], validators: { count: (v) => typeof v === "number" && v > 0 } },
+  staff_reduction: { required: ["reduction"], validators: { reduction: (v) => typeof v === "number" && v >= 0 && v < 1 } },
+  supply_injection: { required: ["drugs", "reduction"], validators: { drugs: (v) => Array.isArray(v), reduction: (v) => typeof v === "number" && v > 0 } },
+  scenario_activate: { required: ["type"], validators: { type: (v) => typeof v === "string" } },
+  policy_override: { required: ["policy", "value"], validators: { policy: (v) => typeof v === "string", value: (v) => typeof v === "number" } },
+  custom: { required: [] },
+};
+
 export interface Intervention {
   type: InterventionType;
   params: Record<string, unknown>;
+}
+
+/** Validate intervention params against schema. Throws on invalid. (ADR-022) */
+export function validateIntervention(intervention: Intervention): void {
+  const schema = INTERVENTION_SCHEMAS[intervention.type];
+  if (!schema) throw new Error(`Unknown intervention type: ${intervention.type}`);
+  for (const field of schema.required) {
+    if (intervention.params[field] === undefined) {
+      throw new Error(`Intervention "${intervention.type}" missing required param: ${field}`);
+    }
+  }
+  if (schema.validators) {
+    for (const [field, validator] of Object.entries(schema.validators)) {
+      const val = intervention.params[field];
+      if (val !== undefined && !validator(val)) {
+        throw new Error(`Intervention "${intervention.type}" param "${field}" failed validation`);
+      }
+    }
+  }
 }
 
 export interface UniverseID {
@@ -184,6 +219,9 @@ export function createBranch(options: {
 }): Branch | null {
   const universe = universes.get(options.universeId);
   if (!universe) return null;
+
+  // ADR-022: Validate intervention params before creating branch
+  validateIntervention(options.intervention);
 
   const snap = loadNearestSnapshot(options.snapshotTick);
   if (!snap.state) return null;

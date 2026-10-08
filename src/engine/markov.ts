@@ -23,9 +23,22 @@ import { registerBody } from "./kamar-jenazah.js";
  */
 export function selectPrimaryDiagnosisCode(patient: Patient | undefined): string {
   if (!patient) return "UNKNOWN";
-  const active = patient.diagnoses.find(d => d.active);
-  const chosen = active ?? patient.diagnoses[0];
-  return chosen ? chosen.code : "UNKNOWN";
+  // ADR-021: Select by explicit priority (lower number = more important),
+  // breaking ties by active status, then array order.
+  // This ensures consistent primary diagnosis regardless of array insertion order.
+  const activeDx = patient.diagnoses.filter(d => d.active);
+  if (activeDx.length === 0) {
+    const fallback = patient.diagnoses[0];
+    return fallback ? fallback.code : "UNKNOWN";
+  }
+  // Sort by priority (default 99 if not set), then by code for determinism
+  activeDx.sort((a, b) => {
+    const pa = a.priority ?? 99;
+    const pb = b.priority ?? 99;
+    if (pa !== pb) return pa - pb;
+    return a.code < b.code ? -1 : a.code > b.code ? 1 : 0;
+  });
+  return activeDx[0]!.code;
 }
 
 const SPECIALTY_TO_WARD: Record<string, string> = {

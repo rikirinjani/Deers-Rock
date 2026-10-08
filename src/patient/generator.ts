@@ -15,6 +15,8 @@ interface ICDMapping {
   maxAge: number;
   genders: Gender[];
   weight: number;
+  /** Priority for primary diagnosis selection. Lower = higher priority. Derived from weight (inverse). */
+  priority?: number;
 }
 
 const ICD10_DIAGNOSES: ICDMapping[] = [
@@ -251,7 +253,7 @@ function generateDiagnoses(age: number, gender: Gender, rng?: () => number): Dia
   for (let i = 0; i < numDiagnoses && pool.length > 0; i++) {
     const dx = pickWeighted(pool, rng);
     if (!selected.find(s => s.code === dx.code)) {
-      selected.push({ code: dx.code, name: dx.name, active: true });
+      selected.push({ code: dx.code, name: dx.name, active: true, priority: dx.priority ?? (100 - dx.weight) });
     }
     pool.splice(pool.indexOf(dx), 1);
   }
