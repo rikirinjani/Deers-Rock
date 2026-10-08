@@ -45,6 +45,7 @@ import { dischargePlanningHandler } from "./discharge-planning.js";
 import { sickLeaveHandler, initSickLeaveState } from "../agent/system.js";
 import { kamarJenazahHandler, initKamarJenazahState } from "./kamar-jenazah.js";
 import { appointmentHandler, initAppointmentState } from "./appointment-scheduling.js";
+import { aiCoderHandler } from "./ai-coder.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
@@ -395,6 +396,8 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [ambulanceHandler, 5], [jrProvenanceHandler, 5],
   // Epic VI: sick leave, kamar jenazah, appointment scheduling
   [sickLeaveHandler, 10], [kamarJenazahHandler, 60], [appointmentHandler, 3],
+  // ADR-018: AI coder validates ICD, assigns DRG, scores completeness
+  [aiCoderHandler, 3],
   // Epic VI M6.2: discharge planning / rujuk balik (every 10 ticks)
   [dischargePlanningHandler, 10],
 ];

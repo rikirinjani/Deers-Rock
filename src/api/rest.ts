@@ -36,6 +36,7 @@ import { getConsumptionByDept, getConsumptionByItem, getDeptConsumption, checkRe
 import { getDischargePlans, getFollowUpStats } from "../engine/discharge-planning.js";
 import { getKamarJenazahRecords } from "../engine/kamar-jenazah.js";
 import { getUpcomingAppointments } from "../engine/appointment-scheduling.js";
+import { getAllCoderProfiles } from "../engine/ai-coder.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -569,6 +570,12 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/appointments" && req.method === "GET") {
     const appts = Array.from((w.state as unknown as { _appointmentState?: { appointments: Map<string, any> } })._appointmentState?.appointments?.values() ?? []);
     json(res, { total: appts.length, byStatus: { scheduled: appts.filter(a=>a.status==="scheduled").length, checked_in: appts.filter(a=>a.status==="checked_in").length, completed: appts.filter(a=>a.status==="completed").length, no_show: appts.filter(a=>a.status==="no_show").length }, upcoming: appts.filter(a => a.status === "scheduled").slice(0, 20) });
+    return true;
+  }
+  // ADR-018: AI Medical Coder — coder profiles + accuracy stats
+  if (p === "/api/coders" && req.method === "GET") {
+    const profiles = getAllCoderProfiles();
+    json(res, { coders: profiles.map(c => ({ name: c.name, specialty: c.specialty, accuracy: c.accuracy, casesProcessed: c.casesProcessed })), totalCharts: w.state.medicalCharts.size, coded: Array.from(w.state.medicalCharts.values()).filter(c => c.status === "coded").length });
     return true;
   }
   // Epic III: Timeline Engine endpoints

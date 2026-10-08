@@ -35,6 +35,8 @@ import type { KamarJenazahState } from "./kamar-jenazah.js";
 import { initKamarJenazahState } from "./kamar-jenazah.js";
 import type { AppointmentState } from "./appointment-scheduling.js";
 import { initAppointmentState } from "./appointment-scheduling.js";
+import type { CoderLearningState } from "./ai-coder.js";
+import { initCoderLearningState } from "./ai-coder.js";
 
 export interface MorgueRecord {
   patientId: string;
@@ -143,6 +145,8 @@ export interface HospitalState {
   _kamarJenazahState: KamarJenazahState;
   /** Epic VI M6.2: appointment scheduling queue */
   _appointmentState: AppointmentState;
+  /** ADR-018: AI coder learning state */
+  _coderLearningState: CoderLearningState;
   /** Phase E: macro→micro admission multiplier from adapter (default 1.0). */
   _admissionMultiplier: number;
   /** Phase E: macro→micro staff availability modifier from adapter (default 1.0). */
@@ -292,6 +296,7 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _sickLeaveState: initSickLeaveState(),
     _kamarJenazahState: initKamarJenazahState(),
     _appointmentState: initAppointmentState(),
+    _coderLearningState: initCoderLearningState(),
     _icdTop10: null,
     _doctorCaseMemory: new Map(),
     _nurseCaseMemory: new Map(),

@@ -3,6 +3,11 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { MedicalChart, SurgeryOrder } from "../patient/schema.js";
 import { getProceduresForDiagnosis } from "./ina-cbg.js";
+import {
+  validateIcdCode, assignDrg, scoreChartCompleteness,
+  recordCoderOutcome, getAllCoderProfiles, initCoderLearningState,
+  type IcdValidationResult, type DrgAssignment,
+} from "./ai-coder.js";
 
 const CODERS = [
   { name: "AI Coder Alpha", specialty: "internal_medicine", accuracy: 0.92 },

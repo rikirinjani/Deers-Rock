@@ -239,6 +239,12 @@ export interface MedicalChart {
   diagnoses: { code: string; name: string; type: "primary" | "secondary" }[];
   procedures: { code: string; name: string; date: number }[];
   coder: string | null;
+  /** ADR-018: Assigned DRG/CBG info */
+  _drg?: { cbgGroup: string; severity: string; sep: number; tariffIdr: number; description: string };
+  /** ADR-018: Completeness score 0–100 */
+  _completeness?: number;
+  /** ADR-018: ICD validation results */
+  _validations?: { code: string; valid: boolean; warning?: string; cbgGroup?: string }[];
 }
 
 // ─── Finance / Billing ───
