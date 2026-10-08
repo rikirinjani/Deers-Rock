@@ -137,7 +137,7 @@ describe("Epic III: Timeline Engine", () => {
 
       const b1 = createBranch({
         universeId: u.id, snapshotTick: snapTick,
-        intervention: { type: "bed_increase", params: { count: 0 } }, // baseline: no change
+        intervention: { type: "bed_increase", params: { count: 1 } }, // baseline: minimal change
       });
       const b2 = createBranch({
         universeId: u.id, snapshotTick: snapTick,
