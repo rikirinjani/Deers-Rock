@@ -266,7 +266,7 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 - [x] Professional charges — doctor/specialist consultation fees (ED acuity, specialty consult)
 - [x] Procedure charges — lab, imaging, surgery, dialysis, radiotherapy with real costs (Phase 1)
 - [x] Bed/day charges — differentiated by ward class (`roomClassAtAdmission` stamp, per 1440-tick day)
-- [ ] AI Medical Records/Coder agent — ICD-10 coding validation, DRG assignment, chart completeness, claim coding (deferred to later wave — static coders suffice for wave 1)
+- [x] AI Medical Records/Coder agent — ICD-10 coding validation, DRG assignment, chart completeness, claim coding (ADR-018, 2026-10-08)
 
 ### Milestone 9.2: Claims & Insurance ✅
 - [x] BPJS model — INA-CBG (ICD-10 → fixed tariff mapping), verified at Phase 2
