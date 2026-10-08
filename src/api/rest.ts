@@ -672,10 +672,11 @@ export function createRestServer(world: () => World): RestServer {
       res.setHeader("Content-Type", MIME[ext] ?? "application/octet-stream");
       fs.readFile(fp, (err, data) => {
         if (err) { res.statusCode = 404; json(res, { error: "Not found" }); return; }
-        if (ext === ".html" && apiKey) {
-          // Inject auth config + global fetch polyfill so ALL dashboards auto-auth
-          const script = '<script>(function(){var k=window.__DR_API_KEY;if(k&&typeof window.fetch!=="undefined"){var f=window.fetch;window.fetch=function(u,o){return f(u,Object.assign({},o,{headers:Object.assign({},o?o.headers:{},{"Authorization":"Bearer "+k}))}})}}})()' +
-            '<script>window.__DR_API_KEY="' + apiKey + '"</script>';
+         if (ext === ".html" && apiKey) {
+           // Inject auth config + global fetch polyfill so ALL dashboards auto-auth
+           // Key MUST be set before the polyfill reads it (scripts execute top-to-bottom).
+           const script = '<script>window.__DR_API_KEY="' + apiKey + '"</script>' +
+             '<script>(function(){var k=window.__DR_API_KEY;if(k&&typeof window.fetch!=="undefined"){var f=window.fetch;window.fetch=function(u,o){return f(u,Object.assign({},o,{headers:Object.assign({},o?o.headers:{},{"Authorization":"Bearer "+k}))}})}})()';
           const html = data.toString("utf8").replace("</head>", script + "</head>");
           res.end(html);
         } else {
