@@ -341,6 +341,23 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     res.end("\uFEFF" + rows.join("\n"));
     return true;
   }
+  // V M5.3: Identity data CSV (PII for reporting)
+  if (p === "/api/export/identity.csv") {
+    const patients = Array.from(w.state.patients.values());
+    const rows = ["id,name,age,gender,bloodType,rhesus,NIK,provinsi,kabupaten,kecamatan,kelurahan,phone,agama,statusKawin,allergies,morgueId"];
+    for (const p of patients) {
+      const ident = (p as Patient & { identity?: { nik?: { value: string }; addressKtp?: { provinsi: string; kabupaten: string; kecamatan: string; kelurahan: string } }; religion?: string; maritalStatus?: string }).identity;
+      const nik = ident?.nik?.value ?? "";
+      const addr = ident?.addressKtp ?? {};
+      const r = (p as Patient & { rhesus?: string }).rhesus ?? "+";
+      const pid = (p as Patient & { morgueId?: string | null }).morgueId ?? "";
+      rows.push([esc(p.id), esc(p.name), p.age, p.gender, p.bloodType, r, esc(nik), esc(addr.provinsi ?? ""), esc(addr.kabupaten ?? ""), esc(addr.kecamatan ?? ""), esc(addr.kelurahan ?? ""), esc(p.phone), esc((ident?.religion ?? "") as string), esc((ident?.maritalStatus ?? "") as string), esc((p.allergies||[]).join(";")), esc(pid)].join(","));
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="identity.csv"');
+    res.end("\uFEFF" + rows.join("\n"));
+    return true;
+  }
   if (p === "/api/export/encounters.csv") {
     const encs = Array.from(w.state.encounters.values());
     const rows = ["id,type,status,patientId,diagnosis,tickIn"];

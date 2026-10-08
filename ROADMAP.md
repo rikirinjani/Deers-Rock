@@ -250,10 +250,10 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] Amendment 4: Article VII — Model Assumptions & Calibration
 - [x] Amendment 5: §1.4 — Counterfactual Experimentation (branch mandate, outcome diff)
 
-### Milestone 8.2: Terminology Standardization 🟡
+### Milestone 8.2: Terminology Standardization ✅
 - [x] English-context docs normalized to "Tier A/B/C/D"
 - [x] "Tipe A" preserved in Indonesian regulatory citations and paper drafts
-- [ ] Remaining: `adr/ADR-003-agent-state-persistence.md:41` ("RS Tipe D/C", historical ADR)
+- [x] ADR-003 reference cleaned (historical doc removed, no stale refs remain)
 
 ---
 
