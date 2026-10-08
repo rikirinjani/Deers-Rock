@@ -71,11 +71,13 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 - [x] Load test: measure tick latency at 500+ patients ✅ (p95=3ms @ 500pt, 500 ticks)
 - [x] 100k tick benchmark: 33.12s on Kaggle CPU, linear scaling confirmed
 
-### Milestone 2.5: Model Calibration 🟡
-- [x] Document mortality risk factor weights with plausible clinical ranges ✅ (ADR-004)
+### Milestone 2.5: Model Calibration ✅
+- [x] Document mortality risk factor weights with plausible clinical ranges (ADR-004)
 - [x] LOS validation doc vs MoH RI Tier A data (`docs/benchmarks/los-validation.md`)
-- [x] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data ✅ (60-70%, above 3% threshold)
-- [ ] Formal validation against real hospital data — deferred to research phase
+- [x] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data (60-70%, above 3% threshold)
+- [x] **Calibration benchmark table** vs Indonesian hospital data (`docs/benchmarks/calibration-benchmarks.md`)
+- [x] **Calibration test suite** — BPJS share 80.2% ✅, allergy rate 68.8% (documented gap), BOR tracking
+- [ ] Formal validation against real hospital data — deferred (aggregate data only available via RISNA login)
 
 ### Milestone 2.6: Scientific Validation Infrastructure ✅
 - [x] Seeded RNG (ADR-008) — 148 `Math.random()` → `clock.rng()`
@@ -316,4 +318,4 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
-**Overall:** 326 tests pass / 1 skipped (42 files). CI green. Retrace clean.
+**Overall:** 351 tests pass / 1 skipped (46 files). CI green. Retrace clean.
