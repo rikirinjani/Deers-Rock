@@ -318,4 +318,4 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
-**Overall:** 351 tests pass / 1 skipped (46 files). CI green. Retrace clean.
+**Overall:** 363 tests pass / 1 skipped (47 files). CI green. Retrace clean.
