@@ -4,6 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
 import type { Patient } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
+import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
 import { mapIcdToSpecialty } from "./clinical-knowledge.js";
 import { getScenarioEffects } from "./scenario.js";
@@ -106,8 +107,8 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   for (let i = 0; i < toAdmit && i < admitablePatients.length; i++) {
     const patient = admitablePatients[i]!;
 
-    const primaryDx = patient.diagnoses.find(d => d.active);
-    const targetSpecialty = primaryDx ? mapIcdToSpecialty(primaryDx.code) : undefined;
+    const primaryDiag = getPrimaryDiagnosis(patient);
+    const targetSpecialty = primaryDiag ? mapIcdToSpecialty(primaryDiag.code) : undefined;
     const targetWard = targetSpecialty ? SPECIALTY_TO_WARD[targetSpecialty] : undefined;
     let freeBed = targetWard
       ? Array.from(newBeds.values()).find(b => b.patientId === null && b.ward === targetWard)
@@ -189,8 +190,8 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
 
     if (dies && patient) {
-      const activeDx = patient.diagnoses.filter(d => d.active);
-      const primaryDx = activeDx[0] || { code: "Z00.0", name: "General examination" };
+      const primaryDiag = getPrimaryDiagnosis(patient);
+      const primaryDx = primaryDiag || { code: "Z00.0", name: "General examination" };
       const terminalEvent = mapIcdToTerminalEvent(primaryDx.code, clock.rng);
       const cause = mortality.factors.length > 0 ? mortality.factors.join("; ") : (terminalEvent ?? `${primaryDx.name} complication`);
       const morgueRecord: MorgueRecord = {

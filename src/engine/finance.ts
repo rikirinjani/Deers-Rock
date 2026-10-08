@@ -6,8 +6,36 @@ import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-gene
 import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 import { isBoundedStateEnabled } from "./config.js";
 import { PRIVATE_TIERS } from "../patient/schema.js";
+import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 
-const ACCIDENT_ICD_CODES = new Set(["S06", "S72", "T14", "T20", "T63"]);
+/**
+ * ADR-025: Expanded accident ICD code detection for Jasa Raharja eligibility.
+ * Covers trauma, injury, poisoning, and external cause codes per ICD-10 chapters.
+ */
+const ACCIDENT_ICD_CODES = new Set([
+  // Trauma (S00-S99) - head, neck, trunk, limb injuries
+  "S00", "S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08", "S09",
+  "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S19",
+  "S20", "S21", "S22", "S23", "S24", "S25", "S26", "S27", "S28", "S29",
+  "S30", "S31", "S32", "S33", "S34", "S35", "S36", "S37", "S38", "S39",
+  "S40", "S41", "S42", "S43", "S44", "S45", "S46", "S47", "S48", "S49",
+  "S50", "S51", "S52", "S53", "S54", "S55", "S56", "S57", "S58", "S59",
+  "S60", "S61", "S62", "S63", "S64", "S65", "S66", "S67", "S68", "S69",
+  "S70", "S71", "S72", "S73", "S74", "S75", "S76", "S77", "S78", "S79",
+  "S80", "S81", "S82", "S83", "S84", "S85", "S86", "S87", "S88", "S89",
+  "S90", "S91", "S92", "S93", "S94", "S95", "S96", "S97", "S98", "S99",
+  // Injury, poisoning & certain other consequences of external causes (T00-T98)
+  "T00", "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09",
+  "T10", "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19",
+  "T20", "T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29",
+  "T30", "T31", "T32", "T33", "T34", "T35", "T36", "T37", "T38", "T39",
+  "T40", "T41", "T42", "T43", "T44", "T45", "T46", "T47", "T48", "T49",
+  "T50", "T51", "T52", "T53", "T54", "T55", "T56", "T57", "T58", "T59",
+  "T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T69",
+  "T70", "T71", "T72", "T73", "T74", "T75", "T76", "T77", "T78", "T79",
+  "T80", "T81", "T82", "T83", "T84", "T85", "T86", "T87", "T88", "T89",
+  "T90", "T91", "T92", "T93", "T94", "T95", "T96", "T97", "T98",
+]);
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
 
 /** ADR-015 D2: one sim-day = 1440 ticks (1 tick = 1 sim-minute). */
@@ -59,8 +87,8 @@ export function assignPayer(
   if (patient.identity?.nationality && patient.identity.nationality !== "WNI") {
     return "Self-pay";
   }
-  const activeDx = patient.diagnoses.find(d => d.active);
-  if (activeDx && ACCIDENT_ICD_CODES.has(activeDx.code)) {
+  const primaryDiag = getPrimaryDiagnosis(patient);
+  if (primaryDiag && ACCIDENT_ICD_CODES.has(primaryDiag.code)) {
     return "Jasa Raharja";
   }
   if (rngDraw) {

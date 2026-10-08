@@ -32,11 +32,11 @@ export interface InterventionSchema {
 }
 
 const INTERVENTION_SCHEMAS: Record<InterventionType, InterventionSchema> = {
-  bed_increase: { required: ["count"], validators: { count: (v) => typeof v === "number" && v > 0 } },
-  staff_reduction: { required: ["reduction"], validators: { reduction: (v) => typeof v === "number" && v >= 0 && v < 1 } },
-  supply_injection: { required: ["drugs", "reduction"], validators: { drugs: (v) => Array.isArray(v), reduction: (v) => typeof v === "number" && v > 0 } },
-  scenario_activate: { required: ["type"], validators: { type: (v) => typeof v === "string" } },
-  policy_override: { required: ["policy", "value"], validators: { policy: (v) => typeof v === "string", value: (v) => typeof v === "number" } },
+  bed_increase: { required: ["count"], validators: { count: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && Number.isInteger(v) } },
+  staff_reduction: { required: ["reduction"], validators: { reduction: (v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v < 1 } },
+  supply_injection: { required: ["drugs", "reduction"], validators: { drugs: (v) => Array.isArray(v), reduction: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 } },
+  scenario_activate: { required: ["type"], validators: { type: (v) => typeof v === "string" && v.length > 0 } },
+  policy_override: { required: ["policy", "value"], validators: { policy: (v) => typeof v === "string" && v.length > 0, value: (v) => typeof v === "number" && Number.isFinite(v) } },
   custom: { required: [] },
 };
 
@@ -336,7 +336,7 @@ export function runBranch(branchId: string, ticks: number): BranchResult | null 
   const universe = universes.get(branch.universeId);
   if (!universe) return null;
 
-  // Load snapshot at parent tick
+  // Load snapshot at parent tick (main journal, no branch_id)
   const snap = loadNearestSnapshot(branch.parentSnapshotTick);
   if (!snap.state) return null;
 

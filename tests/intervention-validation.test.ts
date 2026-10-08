@@ -89,6 +89,27 @@ describe("ADR-022: Intervention Param Validation", () => {
       .toThrow("policy");
   });
 
+  it("rejects Infinity values", () => {
+    expect(() => validateIntervention({ type: "bed_increase", params: { count: Infinity } }))
+      .toThrow("count");
+    expect(() => validateIntervention({ type: "staff_reduction", params: { reduction: Infinity } }))
+      .toThrow("reduction");
+    expect(() => validateIntervention({ type: "policy_override", params: { policy: "x", value: Infinity } }))
+      .toThrow("value");
+  });
+
+  it("rejects NaN values", () => {
+    expect(() => validateIntervention({ type: "bed_increase", params: { count: NaN } }))
+      .toThrow("count");
+    expect(() => validateIntervention({ type: "staff_reduction", params: { reduction: NaN } }))
+      .toThrow("reduction");
+  });
+
+  it("rejects non-integer bed counts", () => {
+    expect(() => validateIntervention({ type: "bed_increase", params: { count: 5.5 } }))
+      .toThrow("count");
+  });
+
   it("accepts custom intervention with any params", () => {
     expect(() => validateIntervention({ type: "custom", params: { anything: true } }))
       .not.toThrow();

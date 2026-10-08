@@ -59,10 +59,13 @@ export function initJournal(dbPath?: string): void {
     CREATE INDEX IF NOT EXISTS idx_journal_entity ON world_journal(entity_type, entity_id);
 
     CREATE TABLE IF NOT EXISTS world_snapshots (
-      tick       INTEGER PRIMARY KEY,
+      tick       INTEGER NOT NULL,
+      branch_id  TEXT DEFAULT NULL,
       state      TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (tick, branch_id)
     );
+    CREATE INDEX IF NOT EXISTS idx_snap_tick ON world_snapshots(tick);
   `);
 
   insertStmt = db.prepare(
@@ -72,9 +75,9 @@ export function initJournal(dbPath?: string): void {
     insertStmt!.run(tick, htime, type, entityType, entityId, payload);
   };
 
-  saveSnapStmt = db.prepare("INSERT OR REPLACE INTO world_snapshots (tick, state) VALUES (?, ?)");
-  loadSnapStmt = db.prepare("SELECT tick, state FROM world_snapshots WHERE tick <= ? ORDER BY tick DESC LIMIT 1");
-  listSnapsStmt = db.prepare("SELECT tick, created_at FROM world_snapshots ORDER BY tick ASC");
+  saveSnapStmt = db.prepare("INSERT OR REPLACE INTO world_snapshots (tick, branch_id, state) VALUES (?, ?, ?)");
+  loadSnapStmt = db.prepare("SELECT tick, state FROM world_snapshots WHERE tick <= ? AND (branch_id = ? OR branch_id IS NULL) ORDER BY tick DESC LIMIT 1");
+  listSnapsStmt = db.prepare("SELECT tick, branch_id, created_at FROM world_snapshots ORDER BY tick ASC");
 }
 
 export function journalBeginTransaction(): void {
@@ -198,12 +201,12 @@ export function journalPurge(currentTick: number): void {
   if (cutoff > 0) {
     try {
       const deleted = db.prepare("DELETE FROM world_journal WHERE tick < ?").run(cutoff);
-      const allSnaps = db.prepare("SELECT tick FROM world_snapshots ORDER BY tick ASC").all() as { tick: number }[];
+      const allSnaps = db.prepare("SELECT tick, branch_id FROM world_snapshots ORDER BY tick ASC").all() as { tick: number; branch_id: string | null }[];
       const retention = snapshotRetentionCount();
       if (allSnaps.length > retention) {
         const toRemove = allSnaps.slice(0, allSnaps.length - retention);
         for (const s of toRemove) {
-          db.prepare("DELETE FROM world_snapshots WHERE tick = ?").run(s.tick);
+          db.prepare("DELETE FROM world_snapshots WHERE tick = ? AND branch_id = ?").run(s.tick, s.branch_id);
         }
       }
       if (deleted.changes > 1000) {
@@ -268,7 +271,7 @@ function deserializeLearning(d: { byDiagnosis?: [string, unknown][] } | null): L
   };
 }
 
-export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQueue | SnapshotQueueEvent[]): void {
+export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQueue | SnapshotQueueEvent[], branchId?: string): void {
   if (!saveSnapStmt) return;
   const durable = isDurableQueueEnabled();
   const data: Record<string, unknown> = {
@@ -343,7 +346,7 @@ export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQu
       data.activeMacroDisaster = state._activeMacroDisaster;
     }
   }
-  saveSnapStmt.run(tick, JSON.stringify(data));
+  saveSnapStmt.run(tick, branchId ?? null, JSON.stringify(data));
 }
 
 /** Ordered pending-event entry persisted in v2 snapshots (no ids). */
@@ -394,9 +397,9 @@ export interface SnapshotInfo {
   state: HospitalState | null;
 }
 
-export function loadNearestSnapshot(tick: number): SnapshotInfo {
+export function loadNearestSnapshot(tick: number, branchId?: string): SnapshotInfo {
   if (!loadSnapStmt) return { tick, state: null };
-  const row = loadSnapStmt.get(tick) as { tick: number; state: string } | undefined;
+  const row = loadSnapStmt.get(tick, branchId ?? null) as { tick: number; state: string } | undefined;
   if (!row) return { tick, state: null };
   const state = deserializeState(row.state);
   // ADR-004 review follow-up: strip the transient durable-queue props here

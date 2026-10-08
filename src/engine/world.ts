@@ -350,7 +350,7 @@ export function step(world: World): World {
       // ADR-004 D1 flag plumbing: thread the live queue through so the
       // snapshot can persist pending events. saveSnapshot itself gates on
       // DR_DURABLE_QUEUE, so OFF-mode bytes are unchanged.
-      saveSnapshot(newClock.tick, state, world.queue);
+      saveSnapshot(newClock.tick, state, world.queue); // branchId=null for main universe
     }
     journalCommitTransaction();
     if (newClock.tick > 0 && newClock.tick % 500 === 0) {
