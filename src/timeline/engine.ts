@@ -10,7 +10,7 @@
  */
 
 import { createWorld, runWorld, resumeWorld } from "../engine/world.js";
-import { loadNearestSnapshot, saveSnapshot, listSnapshots } from "../engine/journal.js";
+import { loadNearestSnapshot, saveSnapshot, listSnapshots, openBranchJournal, closeBranchJournal, getBranchJournalPath } from "../engine/journal.js";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
@@ -77,6 +77,13 @@ export interface OutcomeDelta {
 const universes = new Map<string, UniverseID>();
 const branches = new Map<string, Branch>();
 const branchResults = new Map<string, BranchResult>();
+
+/** Reset in-memory state (for testing) */
+export function resetTimelineState(): void {
+  universes.clear();
+  branches.clear();
+  branchResults.clear();
+}
 
 // ── Standard Scenarios (M3.5) ──────────────────────────────────────────────
 
@@ -295,27 +302,36 @@ export function runBranch(branchId: string, ticks: number): BranchResult | null 
   const snap = loadNearestSnapshot(branch.parentSnapshotTick);
   if (!snap.state) return null;
 
-  // Resume world from snapshot
-  let world = resumeWorld(snap.state, snap.tick, "");
+  // Open isolated branch journal (ADR-019)
+  const dataDir = process.env.DATA_DIR ?? ".";
+  openBranchJournal(branchId, dataDir);
 
-  // Apply intervention
-  applyIntervention(world, branch.intervention);
+  try {
+    // Resume world from snapshot
+    let world = resumeWorld(snap.state, snap.tick, "");
 
-  // Run specified ticks
-  const startTick = world.clock.tick;
-  for (let i = 0; i < ticks; i++) {
-    world = runWorld(world, 1);
+    // Apply intervention
+    applyIntervention(world, branch.intervention);
+
+    // Run specified ticks
+    const startTick = world.clock.tick;
+    for (let i = 0; i < ticks; i++) {
+      world = runWorld(world, 1);
+    }
+
+    // Collect outcomes
+    const result = collectBranchResult(world, ticks, startTick, branchId);
+    branch.result = result;
+    branchResults.set(branchId, result);
+
+    return result;
+  } finally {
+    // Close branch journal (persists to disk)
+    closeBranchJournal(branchId);
   }
-
-  // Collect outcomes
-  const result = collectBranchResult(world, ticks, startTick);
-  branch.result = result;
-  branchResults.set(branchId, result);
-
-  return result;
 }
 
-function collectBranchResult(world: ReturnType<typeof createWorld>, ticksRun: number, startTick: number): BranchResult {
+function collectBranchResult(world: ReturnType<typeof createWorld>, ticksRun: number, startTick: number, branchId: string): BranchResult {
   const state = world.state;
   const discharges = Array.from(state.encounters.values()).filter(e => e.status === "discharged");
   const losValues = discharges.map(e => (e.endTime ?? e.startTime) - e.startTime);
@@ -333,7 +349,7 @@ function collectBranchResult(world: ReturnType<typeof createWorld>, ticksRun: nu
       totalCharges: state.charges.size,
       activeEncounters: activePatients.length,
     },
-    journalPath: "",
+    journalPath: getBranchJournalPath(branchId, process.env.DATA_DIR ?? "."),
   };
 }
 
@@ -387,7 +403,11 @@ export function runStandardScenario(scenario: StandardScenario): ScenarioResult 
       patients: world.state.patients.size,
       encounters: world.state.encounters.size,
       deaths: world.state.morgue.length,
-      avgLOS: 0, // simplified
+      avgLOS: (() => {
+        const d = Array.from(world.state.encounters.values()).filter(e => e.status === "discharged" && e.type === "inpatient");
+        const los = d.map(e => (e.endTime! - e.startTime) / 1440);
+        return los.length > 0 ? los.reduce((a: number, b: number) => a + b, 0) / los.length : 0;
+      })(),
       peakOccupancy: Array.from(world.state.beds.values()).filter(b => b.patientId).length,
       totalCharges: world.state.charges.size,
       activeEncounters: Array.from(world.state.encounters.values()).filter(e => e.status === "active").length,

@@ -1,4 +1,4 @@
-# Deer's Rock HOE — Roadmap
+﻿# Deer's Rock HOE — Roadmap
 
 **Last updated:** 2026-10-07
 **Steward:** Coordinator OC
@@ -90,16 +90,16 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 
 ## Epic III — Timeline Engine (Deferred)
 
-Enable controlled counterfactual experiments by treating snapshots as Points of Rewind from which Branch Timelines diverge.
+Controlled counterfactual experiments: snapshot → branch → intervene → run → compare outcomes.
 
-**Status:** Concepts accepted (ADR-009). Implementation deferred until Epic 0 (stability) and Epic I (clinical fidelity) reach sufficient maturity.
+**Status:** All milestones complete. ADR-009 + ADR-019 implemented, 14 tests green.
 
 ### Milestone 3.1: Terminology & Modeling ✅
 - [x] Concepts defined (ADR-009): Universe, Seed, Point of Rewind, Branch, Timeline, Genealogy
 - [x] Slogan: "Counterfactuals by Construction"
 
-### Milestone 3.2-3.5: Implementation 🔴
-Deferred. Would add branch orchestration, intervention system, comparison tools, standard scenarios.
+### Milestone 3.2-3.5: Implementation ✅
+- [x] Universe creation/get/list, Branch create/run/compare, 5 standard scenarios, ADR-019 journal isolation, avgLOS fix, 14 tests
 
 ---
 
@@ -309,7 +309,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 |------|--------|-------|-------|
 | **I** Core Reliability | ✅ Complete | — | All 5 milestones verified, throughput balanced |
 | **II** Clinical Fidelity | ✅ Complete | — | 205 drugs, 147 ICD, 165 protocols |
-| **III** Timeline Engine | 🟡 Complete* | — | *Concepts + implementation done (ADR-009, branch API, 5 scenarios) |
+| **III** Timeline Engine | ✅ Complete | — | Branch engine + ADR-019 isolation + 5 scenarios + 14 tests |
 | **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
 | **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume + charts done |
 | **VI** Department Completeness | 🟡 M6.1+M6.2+M6.3 ✅ | — | 12 depts + agent assignment + discharge planning + dept consumption |
@@ -318,4 +318,4 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
-**Overall:** 363 tests pass / 1 skipped (47 files). CI green. Retrace clean.
+**Overall:** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.

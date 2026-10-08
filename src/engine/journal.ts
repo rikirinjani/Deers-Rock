@@ -518,4 +518,82 @@ function deserializeState(json: string): HospitalState {
 
 export function closeJournal(): void {
   if (db) { db.close(); db = null; insertStmt = null; stmt = null; saveSnapStmt = null; loadSnapStmt = null; listSnapsStmt = null; }
+  // Also close any open branch journals
+  for (const [id, bdb] of branchJournals) {
+    bdb.db.close();
+  }
+  branchJournals.clear();
+}
+
+// ── Branch Journal Isolation (ADR-019) ─────────────────────────────────────
+const branchJournals = new Map<string, { db: Database.Database; insertStmt: Database.Statement }>();
+
+/** Open an isolated journal for a branch (read-only snapshot DB, separate event log) */
+export function openBranchJournal(branchId: string, dataDir: string): void {
+  if (branchJournals.has(branchId)) return; // already open
+  const dir = path.join(dataDir, "branches", branchId);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const dbPath = path.join(dir, "journal.db");
+  const bdb = new Database(dbPath, {});
+  bdb.pragma("journal_mode = DELETE");
+  bdb.pragma("synchronous = NORMAL");
+  bdb.exec(`
+    CREATE TABLE IF NOT EXISTS world_journal (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      tick       INTEGER NOT NULL,
+      timestamp  INTEGER NOT NULL,
+      event_type TEXT NOT NULL,
+      entity_type TEXT NOT NULL DEFAULT '',
+      entity_id  TEXT NOT NULL DEFAULT '',
+      payload    TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_journal_tick ON world_journal(tick);
+    CREATE INDEX IF NOT EXISTS idx_journal_type ON world_journal(event_type);
+  `);
+  const insertStmt = bdb.prepare(
+    "INSERT INTO world_journal (tick, timestamp, event_type, entity_type, entity_id, payload) VALUES (?, ?, ?, ?, ?, ?)"
+  );
+  branchJournals.set(branchId, { db: bdb, insertStmt });
+}
+
+/** Get the active branch journal for appending events */
+export function getBranchJournal(branchId: string): { db: Database.Database; insertStmt: Database.Statement } | null {
+  return branchJournals.get(branchId) ?? null;
+}
+
+/** Close a branch journal and persist */
+export function closeBranchJournal(branchId: string): void {
+  const entry = branchJournals.get(branchId);
+  if (!entry) return;
+  entry.db.close();
+  branchJournals.delete(branchId);
+}
+
+/** Get the path to a branch's journal file */
+export function getBranchJournalPath(branchId: string, dataDir: string): string {
+  return path.join(dataDir, "branches", branchId, "journal.db");
+}
+
+/** Check if a branch journal exists on disk */
+export function branchJournalExists(branchId: string, dataDir: string): boolean {
+  return fs.existsSync(path.join(dataDir, "branches", branchId, "journal.db"));
+}
+
+/** List all branch journal paths */
+export function listBranchJournals(dataDir: string): { id: string; path: string; rowCount: number }[] {
+  const branchesDir = path.join(dataDir, "branches");
+  if (!fs.existsSync(branchesDir)) return [];
+  const results: { id: string; path: string; rowCount: number }[] = [];
+  for (const bid of fs.readdirSync(branchesDir)) {
+    const jpath = path.join(branchesDir, bid, "journal.db");
+    if (!fs.existsSync(jpath)) continue;
+    try {
+      const bdb = new Database(jpath, { readonly: true });
+      const row = (bdb.prepare("SELECT COUNT(*) as c FROM world_journal").get() as { c: number }).c;
+      bdb.close();
+      results.push({ id: bid, path: jpath, rowCount: row });
+    } catch { /* skip corrupt journals */ }
+  }
+  return results;
 }
