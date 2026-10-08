@@ -390,29 +390,69 @@ function everyN(fn: HandlerFn, n: number): HandlerFn {
   };
 }
 
+/**
+ * ADR-024: Handler Execution Phases
+ *
+ * Handlers are grouped into logical phases. Within each phase, handlers
+ * run in the exact order listed. Phase ordering is critical for correctness:
+ *   Phase 1: Patient lifecycle (admission, generation, vitals)
+ *   Phase 2: Clinical departments (lab, pharmacy, radiology, surgery, etc.)
+ *   Phase 3: Support services (dietary, social work, blood bank, etc.)
+ *   Phase 4: Finance & records (billing, medical records, AI coder)
+ *   Phase 5: Meta (MM conference, outcomes, cleanup, learning)
+ *
+ * Each handler has a skip cadence (N): runs every N ticks.
+ * Handlers with N=1 run every tick; higher N reduce CPU load.
+ */
 const HANDLER_SKIP: [HandlerFn, number][] = [
-  [admissionHandler, 1], [outpatientHandler, 3], [newPatientHandler, 15],
-  [agentHandler, 1], [referralHandler, 15], [scenarioHandler, 5],
-  [emergencyHandler, 1], [labHandler, 1], [aiClinicalPharmacyHandler, 2],
-  [aiNurseHandler, 1], [aiDoctorHandler, 4],
-  [radiologyHandler, 2], [surgeryHandler, 3], [respiratoryHandler, 2],
-  [dietaryHandler, 3], [socialWorkHandler, 5],
-  [bloodBankHandler, 5], [microbiologyHandler, 5], [pathologyHandler, 5],
-  [cssdHandler, 5], [biomedHandler, 5],
-  [ipcHandler, 5], [clinicalNutritionHandler, 3], [radiotherapyHandler, 5],
-  [dialysisHandler, 5],
-  [centralSupplyHandler, 3], [medicalRecordsHandler, 3], [specialtyHandler, 2],
-  [billingHandler, 5], [edCashierHandler, 3], [inpatientCashierHandler, 5], [outpatientCashierHandler, 5],
-  [vitalsUpdateHandler, 1], [icdTrackerHandler, 10], [outcomeHandler, 1],
-  [learningHandler, 10], [cleanupHandler, 10], [aiOutpatientPharmacyHandler, 3],
-  // Epic IX M9.3 wave 2: ambulance + JR provenance (every 5 ticks)
-  [ambulanceHandler, 5], [jrProvenanceHandler, 5],
-  // Epic VI: sick leave, kamar jenazah, appointment scheduling
-  [sickLeaveHandler, 10], [kamarJenazahHandler, 60], [appointmentHandler, 3],
-  // ADR-018: AI coder validates ICD, assigns DRG, scores completeness
-  [aiCoderHandler, 3],
-  // Epic VI M6.2: discharge planning / rujuk balik (every 10 ticks)
-  [dischargePlanningHandler, 10],
+  // ── Phase 1: Patient Lifecycle ────────────────────────────────────────────
+  [admissionHandler, 1],        // Assign beds, create encounters
+  [newPatientHandler, 15],      // Generate new patients
+  [agentHandler, 1],            // Update agent health/fatigue
+  [vitalsUpdateHandler, 1],     // Drift vitals
+  [emergencyHandler, 1],        // ED triage
+  [outpatientHandler, 3],       // Outpatient visits
+  // ── Phase 2: Clinical Departments ─────────────────────────────────────────
+  [labHandler, 1],              // Lab orders & results
+  [aiClinicalPharmacyHandler, 2], // AI pharmacy (medication administration)
+  [aiNurseHandler, 1],          // AI nurse assessments
+  [aiDoctorHandler, 4],         // AI doctor consultations
+  [radiologyHandler, 2],        // Radiology orders
+  [surgeryHandler, 3],          // Surgery scheduling
+  [respiratoryHandler, 2],      // Respiratory therapy
+  [dietaryHandler, 3],          // Dietary consultations
+  [socialWorkHandler, 5],       // Social work
+  [bloodBankHandler, 5],        // Blood bank
+  [microbiologyHandler, 5],     // Microbiology
+  [pathologyHandler, 5],        // Pathology
+  [cssdHandler, 5],             // CSSD (sterilization)
+  [biomedHandler, 5],           // Biomed engineering
+  [ipcHandler, 5],              // Infection control
+  [clinicalNutritionHandler, 3],// Clinical nutrition
+  [radiotherapyHandler, 5],     // Radiotherapy
+  [dialysisHandler, 5],         // Dialysis
+  // ── Phase 3: Support & Supply ─────────────────────────────────────────────
+  [centralSupplyHandler, 3],    // Central supply consumption
+  [referralHandler, 15],        // Referral letter workflow
+  [ambulanceHandler, 5],        // Emergency transport
+  [jrProvenanceHandler, 5],     // JR accident tracking
+  // ── Phase 4: Finance & Records ───────────────────────────────────────────
+  [billingHandler, 5],          // Daily billing
+  [edCashierHandler, 3],        // ED cashier
+  [inpatientCashierHandler, 5], // Inpatient cashier
+  [outpatientCashierHandler, 5],// Outpatient cashier
+  [medicalRecordsHandler, 3],   // Medical records (AI coder)
+  [aiCoderHandler, 3],          // ADR-022: AI medical coder
+  [icdTrackerHandler, 10],      // ICD-10 tracking
+  // ── Phase 5: Meta & Cleanup ──────────────────────────────────────────────
+  [dischargePlanningHandler, 10], // Rujuk balik / discharge planning
+  [sickLeaveHandler, 10],       // Agent sick leave
+  [kamarJenazahHandler, 60],    // Morgue / forensik
+  [appointmentHandler, 3],      // Appointment scheduling
+  [scenarioHandler, 5],         // Macro scenario effects
+  [outcomeHandler, 1],          // Track outcomes
+  [learningHandler, 10],        // Agent learning
+  [cleanupHandler, 10],         // Prune old data
 ];
 
 export function buildHandlers(): HandlerFn[] {
