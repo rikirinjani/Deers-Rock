@@ -1,0 +1,20 @@
+{
+  "name": "@deers-rock/adapter-khanza",
+  "version": "0.5.0",
+  "description": "Deer's Rock ↔ SIMRS-Khanza adapter — synthetic data pipeline for benchmarking",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "benchmark": "tsx src/benchmark/run.ts"
+  },
+  "dependencies": {
+    "@deers-rock/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
