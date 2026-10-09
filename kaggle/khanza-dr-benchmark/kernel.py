@@ -1,6 +1,6 @@
 """
-SIMRS-Khanza ↔ Deer's Rock Benchmark
-Pure Python — no npm/npm install needed. Uses pre-built dist/ from DR repo.
+SIMRS-Khanza <-> Deer's Rock Benchmark
+Pure Python -- no npm, no git clone. Uses pre-built dist/ from DR repo.
 """
 import json
 import os
@@ -15,59 +15,51 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def run_dr_simulation(target_ticks=100000, patients=200, seed=42):
-    """Run DR simulation using node directly (dist already emitted)."""
+    """Run DR simulation using node directly against pre-built dist/."""
     REPO_DIR = "/kaggle/working/Deers-Rock"
 
     if not os.path.exists(REPO_DIR):
         subprocess.run(["git", "clone", "https://github.com/rikirinjani/Deers-Rock.git", REPO_DIR],
                        capture_output=True)
 
-    # Write benchmark script
-    js_code = f'''
-const {{ createWorld, runWorld }} = require("./dist/engine/world.js");
-const w = createWorld({patients}, undefined, {seed});
-const checkpoints = [];
-const CHECKPOINT_INTERVAL = 10000;
-const TARGET = {target_ticks};
-const start = process.hrtime.bigint();
-
-for (let tick = 1; tick <= TARGET; tick++) {{
-  runWorld(w, 1);
-  if (tick % CHECKPOINT_INTERVAL === 0 || tick === TARGET) {{
-    const elapsed = Number(process.hrtime.bigint() - start) / 1e6;
-    const msPerTick = elapsed / tick;
-    const occupied = Array.from(w.state.beds.values()).filter(b => b.patientId).length;
-    checkpoints.push({{
-      tick,
-      patients: w.state.patients.size,
-      encounters: w.state.encounters.size,
-      charges: w.state.charges.size,
-      claims: w.state.insuranceClaims.size,
-      morgue: w.state.morgue.length,
-      occupiedBeds: occupied,
-      totalBeds: w.state.beds.size,
-      agents: w.state._agentState.pool.agents.size,
-      inventoryItems: w.state.inventory.size,
-      elapsedMs: Math.round(elapsed),
-      msPerTick: parseFloat(msPerTick.toFixed(3)),
-    }});
-  }}
-}}
-
-const totalMs = Number(process.hrtime.bigint() - start) / 1e6;
-const final = checkpoints[checkpoints.length - 1];
-console.log(JSON.stringify({{
-  total_ticks: TARGET,
-  total_ms: Math.round(totalMs),
-  ms_per_tick: parseFloat((totalMs / TARGET).toFixed(3)),
-  checkpoints,
-  final,
-}}}));
-'''
-
+    # Write benchmark JS to temp file
+    js_lines = [
+        "const { createWorld, runWorld } = require('./dist/engine/world.js');",
+        "const w = createWorld(" + str(patients) + ", undefined, " + str(seed) + ");",
+        "const checkpoints = [];",
+        "const CHECKPOINT_INTERVAL = 10000;",
+        "const TARGET = " + str(target_ticks) + ";",
+        "const start = process.hrtime.bigint();",
+        "for (let tick = 1; tick <= TARGET; tick++) {",
+        "  runWorld(w, 1);",
+        "  if (tick % CHECKPOINT_INTERVAL === 0 || tick === TARGET) {",
+        "    const elapsed = Number(process.hrtime.bigint() - start) / 1e6;",
+        "    const msPerTick = elapsed / tick;",
+        "    const occupied = Array.from(w.state.beds.values()).filter(b => b.patientId).length;",
+        "    checkpoints.push({",
+        "      tick, patients: w.state.patients.size, encounters: w.state.encounters.size,",
+        "      charges: w.state.charges.size, claims: w.state.insuranceClaims.size,",
+        "      morgue: w.state.morgue.length, occupiedBeds: occupied,",
+        "      totalBeds: w.state.beds.size, agents: w.state._agentState.pool.agents.size,",
+        "      inventoryItems: w.state.inventory.size,",
+        "      elapsedMs: Math.round(elapsed),",
+        "      msPerTick: parseFloat(msPerTick.toFixed(3)),",
+        "    });",
+        "  }",
+        "}",
+        "const totalMs = Number(process.hrtime.bigint() - start) / 1e6;",
+        "const final = checkpoints[checkpoints.length - 1];",
+        "console.log(JSON.stringify({",
+        "  total_ticks: TARGET,",
+        "  total_ms: Math.round(totalMs),",
+        "  ms_per_tick: parseFloat((totalMs / TARGET).toFixed(3)),",
+        "  checkpoints,",
+        "  final,",
+        "}));",
+    ]
     js_path = "/kaggle/working/_dr_bench.cjs"
     with open(js_path, "w") as f:
-        f.write(js_code)
+        f.write("\n".join(js_lines))
 
     r = subprocess.run(["node", js_path], capture_output=True, text=True, cwd=REPO_DIR)
     if r.returncode != 0:
@@ -75,7 +67,7 @@ console.log(JSON.stringify({{
     try:
         return json.loads(r.stdout)
     except Exception as e:
-        return {"error": f"JSON parse: {e}", "stdout": r.stdout[:500]}
+        return {"error": "JSON parse: " + str(e), "stdout": r.stdout[:500]}
 
 
 def export_to_khanza(data):
@@ -158,39 +150,40 @@ def main():
     sim_ms = (time.time() - t0) * 1000
     if "error" in data:
         print("FATAL:", data["error"])
-        return
+        sys.exit(1)
 
     total_ms = data.get("total_ms", 0)
     ms_per_tick = data.get("ms_per_tick", 0)
-    print(f"  Done in {sim_ms/1000:.1f}s (DR ran {total_ms/1000:.1f}s)")
-    print(f"  {ms_per_tick} ms/tick, {1000/ms_per_tick:.1f} ticks/sec")
+    print("  Done in %.1fs (DR ran %.1fs)" % (sim_ms/1000, total_ms/1000))
+    print("  %.3f ms/tick, %.1f ticks/sec" % (ms_per_tick, 1000/ms_per_tick))
 
     # Export
     print("\n[2/4] Khanza schema export...")
     khanza = export_to_khanza(data)
-    print(f"  Patients: {khanza['pasien_count']}")
-    print(f"  Charges: {khanza['jurnal_entries']}")
-    print(f"  Claims: {khanza['claims_count']}")
-    print(f"  Beds: {khanza['beds_occupied']}/{khanza['beds_total']}")
+    print("  Patients: %d" % khanza["pasien_count"])
+    print("  Charges: %d" % khanza["jurnal_entries"])
+    print("  Claims: %d" % khanza["claims_count"])
+    print("  Beds: %d/%d" % (khanza["beds_occupied"], khanza["beds_total"]))
 
     # Accounting
     print("\n[3/4] Accounting cycle...")
     acct = run_accounting(data)
-    print(f"  Revenue: Rp {acct['total_revenue']:,.0f}")
-    print(f"  Net Income: Rp {acct['net_income']:,.0f}")
-    print(f"  Balance: {'OK' if acct['balance_check'] else 'MISMATCH'}")
+    print("  Revenue: Rp %s" % "{:,.0f}".format(acct["total_revenue"]))
+    print("  Net Income: Rp %s" % "{:,.0f}".format(acct["net_income"]))
+    print("  Balance: %s" % ("OK" if acct["balance_check"] else "MISMATCH"))
 
     # Parity
     print("\n[4/4] Claim parity...")
     parity = check_parity(data)
-    print(f"  {parity['matches']}/{parity['total_compared']} matches ({parity['accuracy_rate']*100:.1f}%)")
+    print("  %d/%d matches (%.1f%%)" % (parity["matches"], parity["total_compared"], parity["accuracy_rate"]*100))
 
     # Disasters
     print("\n[+] Disaster scenarios...")
     disasters = simulate_disasters()
     for d in disasters:
-        print(f"  {d['scenario']}: +{d['patients_admitted']} admitted, "
-              f"{d['patients_dead']} dead, beds {d['bed_occupancy_before']}→{d['bed_occupancy_after']}")
+        print("  %s: +%d admitted, %d dead, beds %d->%d" % (
+            d["scenario"], d["patients_admitted"], d["patients_dead"],
+            d["bed_occupancy_before"], d["bed_occupancy_after"]))
 
     # Report
     report = {
@@ -219,10 +212,10 @@ def main():
     with open(path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
-    print(f"\n{'='*60}")
-    print(f"  COMPLETE — {report['simulation']['ms_per_tick']}ms/tick")
-    print(f"  Report: {path}")
-    print(f"{'='*60}")
+    print("\n" + "=" * 60)
+    print("  COMPLETE -- %.3f ms/tick" % ms_per_tick)
+    print("  Report:", path)
+    print("=" * 60)
 
 
 if __name__ == "__main__":
