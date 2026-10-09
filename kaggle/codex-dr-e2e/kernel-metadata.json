@@ -1,12 +1,12 @@
 {
   "id": "rikirinjani/codex-dr-e2e-integration-v1",
-  "title": "CODEX↔DR E2E Integration v1",
+  "title": "CODEX\u00e2\u2020\u201dDR E2E Integration v1",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "1",
+  "version": "2",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "CODEX↔DR E2E: integration test with outcome/severity/transferred mapping"
+  "commit_message": "CODEX\u00e2\u2020\u201dDR E2E: integration test with outcome/severity/transferred mapping"
 }
