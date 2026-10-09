@@ -1,12 +1,12 @@
 {
-  "id": "rikirinjani/khanza-dr-benchmark-v1",
-  "title": "Khanza↔DR Benchmark v1",
+  "id": "rikirinjani/khanza-dr-benchmark-v2",
+  "title": "Khanza DR Benchmark v2",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "1",
+  "version": "2",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "SIMRS-Khanza ↔ Deer's Rock E2E benchmark"
+  "commit_message": "SIMRS-Khanza \u00e2\u2020\u201d Deer's Rock E2E benchmark"
 }
