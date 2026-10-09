@@ -19,9 +19,7 @@ os.chdir(REPO_DIR)
 print("\nInstalling dependencies...")
 r = subprocess.run(["npm", "install"], capture_output=True, text=True)
 if r.returncode != 0:
-    print("NPM INSTALL STDOUT:", r.stdout[-2000:])
     print("NPM INSTALL STDERR:", r.stderr[-2000:])
-    # Try alternative: npm ci
     print("Trying npm ci as fallback...")
     r2 = subprocess.run(["npm", "ci"], capture_output=True, text=True)
     if r2.returncode != 0:
@@ -65,7 +63,7 @@ console.log(JSON.stringify({ results }));
 """)
 
 print("\n--- Running benchmark ---")
-result = subprocess.run([sys.executable, "-c", 'import json,subprocess,sys\nr=subprocess.run([sys.executable,"' + BENCHMARK_JS + '"],capture_output=True,text=True)\nprint(r.stdout)\nif r.returncode!=0: print("ERR:",r.stderr); sys.exit(1)'], capture_output=True, text=True, timeout=300)
+result = subprocess.run(["node", BENCHMARK_JS], capture_output=True, text=True, timeout=300)
 print(result.stdout[:4000])
 if result.returncode != 0:
     print("BENCHMARK FAILED:", result.stderr)
