@@ -30,5 +30,24 @@ export function isLearningFrozen(): boolean {
 
 /** ADR-020: Enable runtime invariant validation (every 100 ticks) */
 export function isInvariantValidationEnabled(): boolean {
+  // Production mode: force invariants ON regardless of env var
+  if (process.env.NODE_ENV === "production") return true;
   return process.env.DR_VALIDATE_INVARIANTS === "1";
+}
+
+/** ADR-025: Check if we should fail-fast on invariant violations (prod/default) */
+export function isInvariantFailFast(): boolean {
+  // Always fail-fast in production; opt-out only with explicit flag
+  if (process.env.NODE_ENV === "production") return true;
+  return process.env.DR_INVARIANT_FAIL_FAST !== "0";
+}
+
+/** Log an invariant violation audit event */
+export function logInvariantViolation(violation: { invariant: string; entity: string; detail: string; tick?: number }): void {
+  const msg = `[INVARIANT VIOLATION] tick=${violation.tick ?? "?"} inv=${violation.invariant} entity=${violation.entity}: ${violation.detail}`;
+  if (isInvariantFailFast()) {
+    console.error(msg);
+    throw new Error(msg);
+  }
+  console.warn(msg);
 }

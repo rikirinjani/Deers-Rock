@@ -12,6 +12,7 @@
  * 5. Charge-encounter linkage: every charge references a valid encounter
  */
 import type { HospitalState } from "./state-store.js";
+import { logInvariantViolation } from "./config.js";
 
 export interface InvariantViolation {
   invariant: string;
@@ -143,13 +144,12 @@ export function assertInvariants(state: HospitalState, label = "state"): void {
   }
 }
 
-/** Log invariants (for debug builds) */
-export function logInvariants(state: HospitalState, label = "state"): void {
+/** Log invariants (for debug builds) — uses audit log + optional fail-fast */
+export function logInvariants(state: HospitalState, label = "state", tick?: number): void {
   const report = validateInvariants(state);
   if (!report.pass) {
-    console.warn(`[INVARIANT WARNING] ${label}: ${report.violations.length} violations`);
     for (const v of report.violations) {
-      console.warn(`  [${v.invariant}] ${v.entity}: ${v.detail}`);
+      logInvariantViolation({ ...v, tick });
     }
   }
 }

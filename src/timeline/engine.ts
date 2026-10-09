@@ -28,15 +28,17 @@ export type InterventionType =
 export interface InterventionSchema {
   required: string[];
   optional?: string[];
+  /** ADR-025: Reject unknown fields (strict mode) */
+  strict?: boolean;
   validators?: Record<string, (v: unknown) => boolean>;
 }
 
 const INTERVENTION_SCHEMAS: Record<InterventionType, InterventionSchema> = {
-  bed_increase: { required: ["count"], validators: { count: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && Number.isInteger(v) } },
-  staff_reduction: { required: ["reduction"], validators: { reduction: (v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v < 1 } },
-  supply_injection: { required: ["drugs", "reduction"], validators: { drugs: (v) => Array.isArray(v), reduction: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 } },
-  scenario_activate: { required: ["type"], validators: { type: (v) => typeof v === "string" && v.length > 0 } },
-  policy_override: { required: ["policy", "value"], validators: { policy: (v) => typeof v === "string" && v.length > 0, value: (v) => typeof v === "number" && Number.isFinite(v) } },
+  bed_increase: { required: ["count"], strict: true, validators: { count: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && Number.isInteger(v) } },
+  staff_reduction: { required: ["reduction"], strict: true, validators: { reduction: (v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v < 1 } },
+  supply_injection: { required: ["drugs", "reduction"], strict: true, validators: { drugs: (v) => Array.isArray(v), reduction: (v) => typeof v === "number" && Number.isFinite(v) && v > 0 } },
+  scenario_activate: { required: ["type"], strict: true, validators: { type: (v) => typeof v === "string" && v.length > 0 } },
+  policy_override: { required: ["policy", "value"], strict: true, validators: { policy: (v) => typeof v === "string" && v.length > 0, value: (v) => typeof v === "number" && Number.isFinite(v) } },
   custom: { required: [] },
 };
 
@@ -49,6 +51,15 @@ export interface Intervention {
 export function validateIntervention(intervention: Intervention): void {
   const schema = INTERVENTION_SCHEMAS[intervention.type];
   if (!schema) throw new Error(`Unknown intervention type: ${intervention.type}`);
+  // ADR-025: Strict mode — reject unknown fields
+  if (schema.strict) {
+    const allowed = new Set([...schema.required, ...(schema.optional ?? [])]);
+    for (const key of Object.keys(intervention.params)) {
+      if (!allowed.has(key)) {
+        throw new Error(`Intervention "${intervention.type}" rejects unknown field: ${key} (strict mode)`);
+      }
+    }
+  }
   for (const field of schema.required) {
     if (intervention.params[field] === undefined) {
       throw new Error(`Intervention "${intervention.type}" missing required param: ${field}`);
