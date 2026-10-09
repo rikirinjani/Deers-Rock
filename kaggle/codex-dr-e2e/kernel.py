@@ -40,7 +40,7 @@ def map_encounter(encounter, patient, chart):
 
     # Procedures
     procedures = []
-    for p in (chart.get("procedures") or []):
+    for p in (chart or {}).get("procedures") or []:
         proc = {"code": p["code"], "codingSystem": "icd9cm", "description": p.get("name")}
         if p.get("date"):
             proc["date"] = iso_date(p["date"], epoch_ms)
