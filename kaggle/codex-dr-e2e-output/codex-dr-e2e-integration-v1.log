@@ -1,0 +1,34 @@
+[{"stream_name":"stdout","time":0.719681512,"data":"============================================================\n"}
+,{"stream_name":"stdout","time":0.719760706,"data":"  CODEX DR E2E Integration Test v3 (Pure Python)\n"}
+,{"stream_name":"stdout","time":0.719766943,"data":"  Started: 2026-10-09T09:18:04.505359\n"}
+,{"stream_name":"stdout","time":0.719769477,"data":"============================================================\n"}
+,{"stream_name":"stdout","time":0.72117221,"data":"\n"}
+,{"stream_name":"stdout","time":0.721208893,"data":"Mapper results:\n"}
+,{"stream_name":"stdout","time":0.721214294,"data":"  outcome_meninggal: status=meninggal icuDays=2 ventHours=24 dx=['I21.0', 'I10']\n"}
+,{"stream_name":"stdout","time":0.721218236,"data":"  outcome_sembuh: status=sembuh icuDays=0 dx=['I10', 'E11.9']\n"}
+,{"stream_name":"stdout","time":0.721221884,"data":"  outcome_transfer: status=transfer dx=['J45']\n"}
+,{"stream_name":"stdout","time":0.721225441,"data":"  backward_compat: status=sembuh dx=[]\n"}
+,{"stream_name":"stdout","time":0.721229026,"data":"  active_encounter: status=masih_dirawat dx=[]\n"}
+,{"stream_name":"stdout","time":0.721232627,"data":"\n"}
+,{"stream_name":"stdout","time":0.721235813,"data":"Validations:\n"}
+,{"stream_name":"stdout","time":0.72123959,"data":"  [PASS] outcome_meninggal\n"}
+,{"stream_name":"stdout","time":0.721243558,"data":"  [PASS] outcome_meninggal_severity\n"}
+,{"stream_name":"stdout","time":0.721247197,"data":"  [PASS] outcome_sembuh\n"}
+,{"stream_name":"stdout","time":0.721250526,"data":"  [PASS] outcome_transfer\n"}
+,{"stream_name":"stdout","time":0.721254671,"data":"  [PASS] backward_compat\n"}
+,{"stream_name":"stdout","time":0.721258263,"data":"  [PASS] active_encounter\n"}
+,{"stream_name":"stdout","time":0.721261989,"data":"\n"}
+,{"stream_name":"stdout","time":0.72126508,"data":"[INA-CBG parity] Testing I10 grouping...\n"}
+,{"stream_name":"stdout","time":0.721268642,"data":"  codex-interpretum not at /kaggle/working/codex-interpretum, skipping\n"}
+,{"stream_name":"stdout","time":0.721604071,"data":"\n"}
+,{"stream_name":"stdout","time":0.721618726,"data":"============================================================\n"}
+,{"stream_name":"stdout","time":0.721622471,"data":"  Result: ALL PASSED\n"}
+,{"stream_name":"stdout","time":0.721626242,"data":"  Report: /kaggle/working/codex-dr-e2e-result.json\n"}
+,{"stream_name":"stdout","time":0.721629892,"data":"============================================================\n"}
+,{"stream_name":"stderr","time":3.616452358,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":3.6164913260000002,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":4.013045496,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":4.01307743,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":5.724312197,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":6.990474939,"data":"[NbConvertApp] Writing 325733 bytes to __results__.html\n"}
+]

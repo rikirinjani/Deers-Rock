@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-10-09T09:18:04.506991",
+  "version": "3",
+  "results": [
+    {
+      "test": "outcome_meninggal",
+      "dischargeStatus": "meninggal",
+      "icuDays": 2,
+      "ventilatorHours": 24,
+      "diagnoses": [
+        "I21.0",
+        "I10"
+      ]
+    },
+    {
+      "test": "outcome_sembuh",
+      "dischargeStatus": "sembuh",
+      "icuDays": 0,
+      "diagnoses": [
+        "I10",
+        "E11.9"
+      ]
+    },
+    {
+      "test": "outcome_transfer",
+      "dischargeStatus": "transfer",
+      "diagnoses": [
+        "J45"
+      ]
+    },
+    {
+      "test": "backward_compat",
+      "dischargeStatus": "sembuh",
+      "hasSupportingData": false
+    },
+    {
+      "test": "active_encounter",
+      "dischargeStatus": "masih_dirawat",
+      "lengthOfStay": 1
+    }
+  ],
+  "checks": {
+    "outcome_meninggal": true,
+    "outcome_meninggal_severity": true,
+    "outcome_sembuh": true,
+    "outcome_transfer": true,
+    "backward_compat": true,
+    "active_encounter": true,
+    "ina_cbq_parity": false
+  },
+  "group_result": {
+    "skipped": true,
+    "reason": "requires codex-interpretum assets"
+  },
+  "all_passed": true
+}
