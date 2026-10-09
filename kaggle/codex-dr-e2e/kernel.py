@@ -191,6 +191,7 @@ def main():
     enc_active = dict(ENCOUNTER_RECOVERED)
     enc_active["status"] = "active"
     enc_active["endTime"] = None
+    enc_active.pop("outcome", None)  # active encounters have no outcome yet
     r5 = map_encounter(enc_active, PATIENT, CHART_I10)
     results.append({
         "test": "active_encounter",
