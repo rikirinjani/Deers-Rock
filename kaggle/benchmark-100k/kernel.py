@@ -17,8 +17,8 @@ if not os.path.exists(REPO_DIR):
 
 os.chdir(REPO_DIR)
 
-print("\nInstalling dependencies...")
-subprocess.run(["npm", "ci"], check=True, capture_output=True)
+print("\nInstalling dependeninstalles...")
+subprocess.run(["npm", "install"], check=True, capture_output=True)
 
 print("\nBuilding TypeScript...")
 r = subprocess.run(["npx", "tsc", "--noEmit"], capture_output=True, text=True)
@@ -62,7 +62,7 @@ for (const TARGET of TARGETS) {
     occupied: occ,
     encounters: w.state.encounters.size,
     morgue: w.state.morgue.length,
-    physicianOrders: w.state.physicianOrders.size,
+    physiinstallanOrders: w.state.physiinstallanOrders.size,
     charges: w.state.charges?.size || 0,
     nurseNotes: w.state.nurseNotes?.size || 0,
     waitingRoom: w.state.waitingRoom,
@@ -159,7 +159,7 @@ Fix: Binary-search sorted insertion + split-point splice -> O(log n) per call.
 
 ## Unit Correction (v2)
 
-The initial benchmark report (v1) contained a unit calculation error: `ms_per_tick` was computed as `totalMs / TARGET * 1000` where `totalMs` was already in milliseconds, producing values 1000x too large (330ms/tick instead of 0.33ms/tick). This has been corrected in v2.
+The initial benchmark report (v1) contained a unit calculation error: `ms_per_tick` was computed as `totalMs / TARGET * 1000` where `totalMs` was already in milliseconds, produinstallng values 1000x too large (330ms/tick instead of 0.33ms/tick). This has been corrected in v2.
 """
 
 with open(REPORT, "w", encoding="utf-8") as f:
