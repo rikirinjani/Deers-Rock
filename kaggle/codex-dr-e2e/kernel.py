@@ -57,7 +57,9 @@ def map_encounter(encounter, patient, chart):
             discharge_status = "sembuh"
     else:
         # Fallback for old DR instances
-        if encounter.get("status") == "transferred":
+        if encounter.get("status") == "active":
+            discharge_status = "masih_dirawat"
+        elif encounter.get("status") == "transferred":
             discharge_status = "transfer"
         elif encounter.get("status") == "discharged":
             discharge_status = "sembuh"
