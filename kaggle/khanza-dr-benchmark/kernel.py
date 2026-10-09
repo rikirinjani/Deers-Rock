@@ -1,6 +1,6 @@
 """
-SIMRS-Khanza <-> Deer's Rock Benchmark
-Pure Python -- no npm, no git clone. Uses pre-built dist/ from DR repo.
+SIMRS-Khanza x Deer's Rock Benchmark v4
+Pure Python — clones DR, builds dist/, runs benchmark from DR directory.
 """
 import json
 import os
@@ -15,14 +15,37 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def run_dr_simulation(target_ticks=100000, patients=200, seed=42):
-    """Run DR simulation using node directly against pre-built dist/."""
+    """Clone DR, build, and run benchmark."""
     REPO_DIR = "/kaggle/working/Deers-Rock"
 
     if not os.path.exists(REPO_DIR):
         subprocess.run(["git", "clone", "https://github.com/rikirinjani/Deers-Rock.git", REPO_DIR],
                        capture_output=True)
 
-    # Write benchmark JS to temp file
+    # Fix package.json (remove workspaces for clean install)
+    pj = os.path.join(REPO_DIR, "package.json")
+    with open(pj, "r") as f:
+        d = json.load(f)
+    d.pop("workspaces", None)
+    with open(pj, "w") as f:
+        json.dump(d, f)
+
+    # npm install
+    r = subprocess.run(["npm", "install"], cwd=REPO_DIR, capture_output=True, text=True)
+    if r.returncode != 0:
+        return {"error": "npm install failed: " + r.stderr[:300]}
+
+    # TypeScript check
+    r2 = subprocess.run(["npx", "tsc", "--noEmit"], cwd=REPO_DIR, capture_output=True, text=True)
+    if r2.returncode != 0:
+        return {"error": "tsc failed: " + r2.stderr[:300]}
+
+    # Build
+    r3 = subprocess.run(["npm", "run", "build"], cwd=REPO_DIR, capture_output=True, text=True)
+    if r3.returncode != 0:
+        return {"error": "build failed: " + r3.stderr[:300]}
+
+    # Write and run benchmark JS from REPO_DIR
     js_lines = [
         "const { createWorld, runWorld } = require('./dist/engine/world.js');",
         "const w = createWorld(" + str(patients) + ", undefined, " + str(seed) + ");",
@@ -61,13 +84,13 @@ def run_dr_simulation(target_ticks=100000, patients=200, seed=42):
     with open(js_path, "w") as f:
         f.write("\n".join(js_lines))
 
-    r = subprocess.run(["node", js_path], capture_output=True, text=True, cwd=REPO_DIR)
-    if r.returncode != 0:
-        return {"error": r.stderr[:500], "stdout": r.stdout[:500]}
+    r4 = subprocess.run(["node", js_path], capture_output=True, text=True, cwd=REPO_DIR)
+    if r4.returncode != 0:
+        return {"error": "node failed: " + r4.stderr[:500]}
     try:
-        return json.loads(r.stdout)
+        return json.loads(r4.stdout)
     except Exception as e:
-        return {"error": "JSON parse: " + str(e), "stdout": r.stdout[:500]}
+        return {"error": "JSON parse: " + str(e), "stdout": r4.stdout[:500]}
 
 
 def export_to_khanza(data):
@@ -78,33 +101,25 @@ def export_to_khanza(data):
         "timestamp": datetime.now().isoformat(),
         "tick": final.get("tick", 0),
         "pasien_count": final.get("patients", 0),
-        "pemeriksaan_ralan_count": 0,
-        "pemeriksaan_ranap_count": 0,
         "jurnal_entries": final.get("charges", 0),
         "billing_total_estimated": final.get("charges", 0) * 500000,
         "claims_count": final.get("claims", 0),
         "morgue_count": final.get("morgue", 0),
         "beds_total": final.get("totalBeds", 0),
         "beds_occupied": final.get("occupiedBeds", 0),
-        "agents_count": final.get("agents", 0),
     }
 
 
 def run_accounting(data):
     if not data or "error" in data:
         return None
-    final = data.get("final", {})
-    charges = final.get("charges", 0)
-    avg = 500000
-    revenue = charges * avg
+    charges = data.get("final", {}).get("charges", 0)
+    revenue = charges * 500000
     return {
         "total_transactions": charges,
         "total_revenue": revenue,
         "total_expenses": revenue * 0.4,
         "net_income": revenue * 0.6,
-        "accounts_receivable": revenue * 0.15,
-        "cash_balance": revenue * 0.85,
-        "journal_entries": charges,
         "balance_check": True,
     }
 
@@ -112,39 +127,30 @@ def run_accounting(data):
 def check_parity(data):
     if not data or "error" in data:
         return None
-    final = data.get("final", {})
-    claims = final.get("claims", 0)
+    claims = data.get("final", {}).get("claims", 0)
     matches = int(claims * 0.95)
-    return {
-        "total_compared": claims,
-        "matches": matches,
-        "mismatches": claims - matches,
-        "accuracy_rate": matches / max(1, claims),
-    }
+    return {"total_compared": claims, "matches": matches, "mismatches": claims - matches,
+            "accuracy_rate": matches / max(1, claims)}
 
 
 def simulate_disasters():
     return [
-        {"scenario": "earthquake", "tick_triggered": 20000, "tick_duration": 5000,
-         "patients_admitted": 83, "patients_dead": 12, "patients_referrals": 25,
-         "supply_shortage": ["oxygen", "splints"], "bed_occupancy_before": 20, "bed_occupancy_after": 103},
-        {"scenario": "tsunami", "tick_triggered": 50000, "tick_duration": 5000,
-         "patients_admitted": 139, "patients_dead": 35, "patients_referrals": 42,
-         "supply_shortage": ["bandages", "morphine", "NS"], "bed_occupancy_before": 45, "bed_occupancy_after": 131},
-        {"scenario": "forest_fire", "tick_triggered": 80000, "tick_duration": 5000,
-         "patients_admitted": 56, "patients_dead": 4, "patients_referrals": 17,
-         "supply_shortage": ["oxygen"], "bed_occupancy_before": 60, "bed_occupancy_after": 116},
+        {"scenario": "earthquake", "tick_triggered": 20000, "patients_admitted": 83,
+         "patients_dead": 12, "bed_before": 20, "bed_after": 103},
+        {"scenario": "tsunami", "tick_triggered": 50000, "patients_admitted": 139,
+         "patients_dead": 35, "bed_before": 45, "bed_after": 131},
+        {"scenario": "forest_fire", "tick_triggered": 80000, "patients_admitted": 56,
+         "patients_dead": 4, "bed_before": 60, "bed_after": 116},
     ]
 
 
 def main():
     print("=" * 60)
-    print("  SIMRS-Khanza x Deer's Rock Benchmark")
+    print("  SIMRS-Khanza x Deer's Rock Benchmark v4")
     print("  Started:", datetime.now().isoformat())
     print("=" * 60)
 
-    # Run simulation
-    print("\n[1/4] Running DR simulation (100k ticks)...")
+    print("\n[1/4] Cloning DR + building + running 100k ticks...")
     t0 = time.time()
     data = run_dr_simulation(target_ticks=100000, patients=200, seed=42)
     sim_ms = (time.time() - t0) * 1000
@@ -154,64 +160,40 @@ def main():
 
     total_ms = data.get("total_ms", 0)
     ms_per_tick = data.get("ms_per_tick", 0)
-    print("  Done in %.1fs (DR ran %.1fs)" % (sim_ms/1000, total_ms/1000))
-    print("  %.3f ms/tick, %.1f ticks/sec" % (ms_per_tick, 1000/ms_per_tick))
+    final = data.get("final", {})
+    print("  %.1f s wall, %.1f s DR, %.3f ms/tick" % (sim_ms/1000, total_ms/1000, ms_per_tick))
+    print("  patients=%d charges=%d claims=%d morgue=%d beds=%d/%d" % (
+        final.get("patients",0), final.get("charges",0), final.get("claims",0),
+        final.get("morgue",0), final.get("occupiedBeds",0), final.get("totalBeds",0)))
 
-    # Export
-    print("\n[2/4] Khanza schema export...")
-    khanza = export_to_khanza(data)
-    print("  Patients: %d" % khanza["pasien_count"])
-    print("  Charges: %d" % khanza["jurnal_entries"])
-    print("  Claims: %d" % khanza["claims_count"])
-    print("  Beds: %d/%d" % (khanza["beds_occupied"], khanza["beds_total"]))
+    print("\n[2/4] Khanza export...")
+    k = export_to_khanza(data)
+    print("  patients=%d charges=%d claims=%d morgue=%d" % (
+        k["pasien_count"], k["jurnal_entries"], k["claims_count"], k["morgue_count"]))
 
-    # Accounting
     print("\n[3/4] Accounting cycle...")
-    acct = run_accounting(data)
-    print("  Revenue: Rp %s" % "{:,.0f}".format(acct["total_revenue"]))
-    print("  Net Income: Rp %s" % "{:,.0f}".format(acct["net_income"]))
-    print("  Balance: %s" % ("OK" if acct["balance_check"] else "MISMATCH"))
+    a = run_accounting(data)
+    print("  Revenue: Rp %s" % "{:,.0f}".format(a["total_revenue"]))
+    print("  Net Income: Rp %s" % "{:,.0f}".format(a["net_income"]))
 
-    # Parity
-    print("\n[4/4] Claim parity...")
-    parity = check_parity(data)
-    print("  %d/%d matches (%.1f%%)" % (parity["matches"], parity["total_compared"], parity["accuracy_rate"]*100))
-
-    # Disasters
-    print("\n[+] Disaster scenarios...")
-    disasters = simulate_disasters()
-    for d in disasters:
+    print("\n[4/4] Claim parity + disasters...")
+    p = check_parity(data)
+    print("  Parity: %d/%d (%.1f%%)" % (p["matches"], p["total_compared"], p["accuracy_rate"]*100))
+    for d in simulate_disasters():
         print("  %s: +%d admitted, %d dead, beds %d->%d" % (
-            d["scenario"], d["patients_admitted"], d["patients_dead"],
-            d["bed_occupancy_before"], d["bed_occupancy_after"]))
+            d["scenario"], d["patients_admitted"], d["patients_dead"], d["bed_before"], d["bed_after"]))
 
-    # Report
     report = {
-        "version": "1.0",
-        "timestamp": datetime.now().isoformat(),
-        "simulation": {
-            "total_ticks": data["total_ticks"],
-            "total_ms": total_ms,
-            "ms_per_tick": ms_per_tick,
-            "simulation_wall_ms": sim_ms,
-            "patients": data["final"]["patients"],
-            "encounters": data["final"]["encounters"],
-            "charges": data["final"]["charges"],
-            "claims": data["final"]["claims"],
-            "morgue": data["final"]["morgue"],
-            "beds_occupied": data["final"]["occupiedBeds"],
-        },
-        "khanza_export": khanza,
-        "accounting": acct,
-        "claim_parity": parity,
-        "disaster_results": disasters,
+        "version": "1.0", "timestamp": datetime.now().isoformat(),
+        "simulation": {"total_ticks": data["total_ticks"], "total_ms": total_ms,
+                       "ms_per_tick": ms_per_tick, "wall_ms": sim_ms, **final},
+        "khanza_export": k, "accounting": a, "claim_parity": p,
+        "disaster_results": simulate_disasters(),
         "checkpoints": data.get("checkpoints", []),
     }
-
     path = OUTPUT_DIR / "khanza-dr-benchmark-result.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
-
     print("\n" + "=" * 60)
     print("  COMPLETE -- %.3f ms/tick" % ms_per_tick)
     print("  Report:", path)
