@@ -1,13 +1,13 @@
 # 🦌 Deer's Rock Hospital Operating Environment
 
-A deterministic hospital simulation engine with AI-driven clinical agents, event-driven patient influx, multi-department operations, and a disaster scenario system. Designed for Makassar, Sulawesi Selatan as a Tier A referral hospital for Eastern Indonesia.
+A deterministic hospital simulation engine for research and policy analysis. Rule-based clinical agents, event-driven patient influx, multi-department operations, and a disaster scenario system. Designed for Makassar, Sulawesi Selatan as a **Tier C** referral hospital for Eastern Indonesia.
 
 ## Architecture
 
 ```
 src/
 ├── cli/index.ts          # CLI entry point (up/status/down)
-├── api/rest.ts           # HTTP REST server (29+ endpoints)
+├── api/rest.ts           # HTTP REST server (40+ endpoints)
 ├── engine/               # Core simulation modules
 │   ├── world.ts          # World orchestration + handler chain
 │   ├── clock.ts          # Simulated time (1 tick = 1 min)
@@ -17,7 +17,7 @@ src/
 │   ├── state-store.ts    # HospitalState type + initialization
 │   ├── event-queue.ts    # Scheduled event queue
 │   ├── clinical-knowledge.ts  # ICD protocols + clinical rules
-│   ├── pharmacy.ts       # 22-medication formulary
+│   ├── pharmacy.ts       # 205-drug formulary
 │   ├── pharmacy-knowledge.ts  # Drug DB (allergens, interactions)
 │   ├── central-supply.ts # 30-item inventory catalog
 │   ├── blood-bank.ts     # Blood units + crossmatch + transfusion
@@ -32,10 +32,10 @@ src/
 │   ├── lab.ts            # Clinical lab (CBC, BMP, CRP, etc.)
 │   ├── radiology.ts      # X-ray, CT, MRI, ultrasound
 │   ├── surgery.ts        # OR scheduling + procedures
-│   ├── ai-doctor.ts      # AI doctor agent (diagnosis → orders)
-│   ├── ai-nurse.ts       # AI nurse agent (assessment → meds)
-│   ├── ai-pharmacy.ts    # AI pharmacist (review → dispense)
-│   ├── agent-learning.ts # Reinforcement learning from outcomes
+│   ├── ai-doctor.ts      # Simulated doctor agent (diagnosis → orders)
+│   ├── ai-nurse.ts       # Simulated nurse agent (assessment → meds)
+│   ├── ai-pharmacy.ts    # Simulated pharmacist (review → dispense)
+│   ├── agent-learning.ts # Learning toggle (DR_FREEZE_LEARNING=1)
 │   ├── outcome-tracker.ts # Track improve/deteriorate/death
 │   ├── mm-conference.ts  # Weekly M&M mortality review
 │   ├── fhir-export.ts    # FHIR R4 bundle export
@@ -47,7 +47,7 @@ src/
 │   └── system.ts         # Agent lifecycle + shift management
 ├── patient/
 │   ├── schema.ts         # Patient, Encounter, Vitals, Diagnosis types
-│   └── generator.ts      # 40 ICD-10 weighted diagnosis pool
+│   └── generator.ts      # 147 ICD-10 weighted diagnosis pool
 ├── identity/             # Indonesian identity system
 └── referral/             # External facility referral system
 ```
@@ -97,11 +97,10 @@ npm start -- 4000  # custom port
 | `/api/inventory` | Central supply stock |
 | `/api/outpatient` | Outpatient visits |
 | `/api/outcomes` | Patient outcomes |
-| `/api/performance` | AI performance stats |
-| `/api/learning` | AI learning memory |
-| `/api/doctor-cases` | AI doctor case records |
-| `/api/nurse-cases` | AI nurse case records |
-| `/api/pharmacy-cases` | AI pharmacist case records |
+| `/api/performance` | Agent performance stats |
+| `/api/doctor-cases` | Simulated doctor case records |
+| `/api/nurse-cases` | Simulated nurse case records |
+| `/api/pharmacy-cases` | Simulated pharmacist case records |
 | `/api/morgue` | Deceased records |
 | `/api/mm-conference` | M&M conference data |
 | `/api/calendar` | Calendar events + influx modifiers |
@@ -133,17 +132,17 @@ Single-page HTML dashboard at `/` with panels for all departments, refreshed eve
 
 ## Performance & Benchmarking
 
-**100,000 ticks in 33 seconds** on commodity CPU (Kaggle: 2 vCPU, 8GB RAM).
+**100,000 ticks in ~33 seconds** on commodity CPU (Kaggle: 2 vCPU, 8GB RAM).
 
 | Metric | Value |
 |--------|-------|
-| 100k tick duration | **33.12s** (~330ms/tick) |
+| 100k tick duration | **33.12s** (~0.33ms/tick) |
 | Scaling profile | **Linear** (R² ≈ 0.999) |
-| Test coverage | 300 passed, 1 skipped |
+| Test coverage | 377 passed, 1 skipped (53 files) |
 | Determinism | Fixed-seed replay verified |
 
 Full benchmark report: [`docs/benchmarks/100k-tick-report.md`](docs/benchmarks/100k-tick-report.md)
-Kaggle kernel: https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark
+Kaggle kernel: https://www.kaggle.com/code/rikirinjani/deer-s-rock-100k-tick-benchmark-v9
 
 Estimated cloud cost for 10M-tick ensemble: **~$0.03** on AWS Graviton.
 
@@ -152,9 +151,9 @@ Estimated cloud cost for 10M-tick ensemble: **~$0.03** on AWS Graviton.
 - **SQLite journal** records every simulation event (append-only)
 - **Snapshots** save full state every 20 ticks
 - **Snapshot restore** on startup (loads latest snapshot if DB exists)
-- **Export endpoints** for training data download
+- **Export endpoints** for data download
 
-## 9 Departments
+## 12 Departments
 
 | Department | Module | Staff |
 |------------|--------|-------|
@@ -167,6 +166,9 @@ Estimated cloud cost for 10M-tick ensemble: **~$0.03** on AWS Graviton.
 | 🥗 Clinical Nutrition | `clinical-nutrition.ts` | Clinical dietitians |
 | ☢️ Radiotherapy | `radiotherapy.ts` | Radiation oncologists, physicists |
 | 🩸 Dialysis | `dialysis.ts` | Nephrologists, dialysis nurses |
+| 🏥 Emergency | `emergency.ts` | Emergency physicians |
+| 📋 Admissions | `admissions.ts` | Admission coordinators |
+| 🪦 Morgue | `morgue.ts` | Mortuary staff |
 
 ## Scenario Engine
 
@@ -184,9 +186,9 @@ Estimated cloud cost for 10M-tick ensemble: **~$0.03** on AWS Graviton.
 
 Each has lifecycle: **ramping → sustained → recovering → resolved**, with effects flowing into admission surge, mortality rolls, and supply demand.
 
-## Specialist Doctors
+## Clinical Agents
 
-AI doctors are assigned by ICD-specialty matching:
+Simulated clinical agents are assigned by ICD-specialty matching:
 - Cardiology → Jantung specialist
 - Pulmonology → Paru specialist
 - Neurology → Saraf specialist
@@ -194,9 +196,19 @@ AI doctors are assigned by ICD-specialty matching:
 - OBGYN → Obgyn specialist
 - Etc. (14 specialty mappings)
 
+Agents follow rule-based decision trees (not reinforcement learning). The `DR_FREEZE_LEARNING=1` toggle freezes any learned patterns for controlled experiments.
+
 ## Agent Pool
 
 30+ agent roles including: dokter_umum, dokter_spesialis, perawat, apoteker, analis_lab, radiografer, nutrisionis, ahli_mikrobiologi, ahli_patologi, teknisi_cssd, teknisi_biomedik, perawat_ppi, and more. Agents have shifts, fatigue, and health states.
+
+## Governance
+
+- **21 ADRs** documenting architectural decisions
+- **Constitution** with amendment process
+- **Determinism gate** — SHA-256 equality check on journal/snapshots
+- **Invariant validator** — 5 environment-gated state invariants
+- **Monorepo structure** — separate adapter packages for country-specific logic
 
 ## License
 

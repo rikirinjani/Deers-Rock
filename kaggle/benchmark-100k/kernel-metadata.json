@@ -1,12 +1,12 @@
 {
-  "id": "rikirinjani/deers-rock-100k-tick-benchmark",
-  "title": "Deers-Rock 100k Tick Benchmark",
+  "id": "rikirinjani/deers-rock-100k-tick-benchmark-v9",
+  "title": "Deer's Rock 100k Tick Benchmark v9",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "2",
+  "version": "9",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "Epic V-IX full pipeline bench"
+  "commit_message": "Fix benchmark unit error: 0.33ms/tick (was mislabeled 330ms)"
 }

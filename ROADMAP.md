@@ -54,7 +54,7 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 ### Milestone 2.2: Formulary Expansion ✅
 - [x] Expand from 22 to 205 drugs across 36 categories (ADR-010, ADR-012, M9.4)
 - [x] Add drug-drug and drug-diagnosis interaction rules (~100 pairs)
-- [x] Ensure pharmacy allergy detection is testable (>3% allergy rate — actual: 60-70%)
+- [ ] Ensure pharmacy allergy detection is testable — calibration gap: simulation rate 60-70% vs real 3-5% (documented in calibration-benchmarks.md; flagged by reviewer 2026-10-09)
 
 ### Milestone 2.3: AI Test Coverage ✅
 - [x] Maintain AI Doctor tests (action selection, duplication prevention) ✅
@@ -74,7 +74,7 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 ### Milestone 2.5: Model Calibration ✅
 - [x] Document mortality risk factor weights with plausible clinical ranges (ADR-004)
 - [x] LOS validation doc vs MoH RI Tier A data (`docs/benchmarks/los-validation.md`)
-- [x] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data (60-70%, above 3% threshold)
+- [ ] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data — **open gap**: simulation shows 60-70%, real prevalence is 3-5% (documented in calibration-benchmarks.md)
 - [x] **Calibration benchmark table** vs Indonesian hospital data (`docs/benchmarks/calibration-benchmarks.md`)
 - [x] **Calibration test suite** — BPJS share 80.2% ✅, allergy rate 68.8% (documented gap), BOR tracking
 - [ ] Formal validation against real hospital data — deferred (aggregate data only available via RISNA login)
@@ -279,10 +279,10 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 ### Milestone 9.3: Referral System Redesign 🟡
 - [x] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A (tier function, catchment band, distanceKm) — ADR-016 wave 1
 - [x] ED walk-in / self-referral with ESI-based routing (ESI-lite table, level 5 reintroduced, fast-track ESI 4-5 → POLI) — ADR-016 wave 1
-- [x] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — wave 2 code written (`src/referral/jr-provenance.ts`)
+- [x] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — wave 2 code written (\src/referral/jr-provenance.ts\), **unbenchmarked**
 - [x] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia (catchmentBand function, sender province filter) — ADR-016 wave 1
 - [x] Referral capacity: limited specialist slots per day (REFERRAL_DAILY_SLOT_BUDGET=5, FIFO drain, age-out→returned) — ADR-016 wave 1
-- [x] Ambulance system: BLS/ALS dispatch, tracking, costing — wave 2 code written (`src/referral/ambulance.ts`)
+- [x] Ambulance system: BLS/ALS dispatch, tracking, costing — wave 2 code written (\src/referral/ambulance.ts\), **unbenchmarked**
 - [x] Real-patient linkage: phantom REF-PAT-* eliminated, real Patient materialized at letter→arrival — ADR-016 wave 1
 - [x] Fixed draw count discipline (6 draws per fire, counter-based IDs) — ADR-016 wave 1
 
@@ -315,7 +315,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **VI** Department Completeness | 🟡 M6.1+M6.2+M6.3 ✅ | — | 12 depts + agent assignment + discharge planning + dept consumption |
 | **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
-| **IX** Financial & Referral | 🟡 3/4 MS | — | Wave 2 code written, benchmark pending |
+| **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
 **Overall:** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.

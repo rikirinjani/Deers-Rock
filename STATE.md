@@ -56,7 +56,7 @@
 
 **Root cause:** EventQueue `dueEvents()` did two O(n) filters per tick. With 13k+ events in queue, total O(n²) complexity.
 **Fix:** Binary-search sorted insertion + split-point splice → O(log n) per call.
-**Verdict:** Linear scaling confirmed. ms/tick flat at ~280–330ms across all scales.
+**Verdict:** Linear scaling confirmed. ms/tick flat at ~0.28–0.33ms across all scales.
 Evidence: `docs/adr/evidence/ADR-004-100k-kaggle/`
 
 ### Sandbox Module (untracked → committed)
@@ -64,7 +64,7 @@ Evidence: `docs/adr/evidence/ADR-004-100k-kaggle/`
 - CI was failing due to missing module; now all green
 
 ### Current State
-- Tests: **300 passed / 1 skipped** (37 files), tsc clean
+- Tests: **300 passed / 1 skipped** (53 files), tsc clean
 - Live box: tick 16,800+, 1,997 patients, RSS ~283 MB / 512 MB
 - Formulary: **205 drugs**, 36 categories
 - CI: **green** on `72bd5a6`
@@ -88,7 +88,7 @@ Evidence: `docs/adr/evidence/ADR-004-100k-kaggle/`
 - Issue closed
 
 ### Validation
-- Test suite: **300 tests pass** (37 files), tsc clean
+- Test suite: **377 tests pass** (53 files), tsc clean
 - Load test (500 patients × 500 ticks): p50 1.29ms, p95 3.02ms, max 10.34ms
 
 ## Run: 2026-10-02 — P1-6 Option A (mutate-in-place charge append)
