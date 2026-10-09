@@ -111,7 +111,21 @@ interface GrouperInput {
 
 ---
 
-## 6. Summary
+## 6. CODEX Adapter Fixes (2026-10-09)
+
+The CODEX adapter (`rikirinjani/codex-interpretum`) has been updated to map all new DR encounter fields:
+
+| Field | Status | Commit |
+|-------|--------|--------|
+| `transferred` status | ✅ Mapped to `dischargeStatus='transfer'` | `effef05` |
+| `outcome` field | ✅ Mapped to `dischargeStatus` (meninggal/transfer/sembuh) | `effef05` |
+| `icuDays` / `ventilatorDays` | ✅ Mapped to `supportingData` | `effef05` |
+| `readmissionWithin30d` | ✅ Available on encounter view (adapter can consume) | `effef05` |
+| API key in E2E tests | ✅ Client already accepts `apiKey` option | pre-existing |
+
+**Test results:** 18 pass, 1 skipped (live E2E). INA-CBG parity: I10 → K-1-01-I / 5,000,000 IDR confirmed.
+
+## 7. Summary
 
 **Before CODEX review (Oct 2):** Adapter worked on 3 endpoints but produced clinically false data (all discharged→recovered, no severity, no filters).
 
