@@ -1,12 +1,12 @@
 {
-  "id": "rikirinjani/deers-rock-platform-assessment",
-  "title": "Deer's Rock Platform Assessment — GPT-6 Astra Review",
+  "id": "rikirinjani/deers-rock-assessment-v18",
+  "title": "Deer's Rock Assessment v18",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "2",
+  "version": "18",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "GPT-6 Astra-style assessment of Deer's Rock platform"
+  "commit_message": "ADR-027: International adapter architecture - structured assessment"
 }
