@@ -1,10 +1,10 @@
 {
-  "id": "rikirinjani/khanza-dr-benchmark-v10",
-  "title": "Khanza DR Benchmark v10",
+  "id": "rikirinjani/khanza-dr-benchmark-v14",
+  "title": "Khanza DR Benchmark v14",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "13",
+  "version": "14",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
