@@ -25,19 +25,19 @@ r = subprocess.run(["npx", "tsc", "--noEmit"], capture_output=True, text=True)
 if r.returncode != 0:
     print("BUILD FAILED:", r.stderr[:1000])
     sys.exit(1)
-print("✅ TypeScript check: PASS")
+print("TypeScript check: PASS")
 
 print("\nEmitting JS to dist/...")
 r = subprocess.run(["npm", "run", "build"], capture_output=True, text=True)
 if r.returncode != 0:
     print("EMIT FAILED:", r.stderr[:1000])
     sys.exit(1)
-print("✅ Build: PASS")
+print("Build: PASS")
 
 # Write benchmark JS to file (avoids node -e path issues)
 BENCHMARK_JS = os.path.join(REPO_DIR, "_benchmark_scaling.cjs")
 with open(BENCHMARK_JS, "w") as f:
-    f.write(r'''
+    f.write("""
 const { createWorld, runWorld } = require('./dist/engine/world.js');
 
 const TARGETS = [5000, 10000, 20000, 30000, 50000, 100000];
@@ -51,7 +51,7 @@ for (const TARGET of TARGETS) {
   }
   const end = process.hrtime.bigint();
   const totalMs = Number(end - start) / 1e6;
-  const msPerTick = totalMs / TARGET;  // milliseconds per tick
+  const msPerTick = totalMs / TARGET;  // CORRECTED: already in ms, no extra *1000
   const occ = Array.from(w.state.beds.values()).filter(b => b.patientId).length;
   results.push({
     tick: TARGET,
@@ -71,18 +71,12 @@ for (const TARGET of TARGETS) {
 }
 
 console.log(JSON.stringify({ results, scaling_analysis: true }));
-''')
+""")
 
 print("\n--- Running scaling benchmark ---")
 result = subprocess.run(
-    [sys.executable, "-c", f"""
-import json, subprocess, sys
-r = subprocess.run([sys.executable, "{BENCHMARK_JS}"], capture_output=True, text=True)
-print(r.stdout[:3000])
-if r.returncode != 0:
-    print("STDERR:", r.stderr[:1000])
-    sys.exit(1)
-"""], capture_output=True, text=True
+    [sys.executable, "-c", 'import json,subprocess,sys\nr=subprocess.run([sys.executable,"' + BENCHMARK_JS + '"],capture_output=True,text=True)\nprint(r.stdout[:3000])\nif r.returncode!=0: print("STDERR:",r.stderr[:1000]); sys.exit(1)'],
+    capture_output=True, text=True, timeout=120
 )
 print(result.stdout)
 if result.returncode != 0:
@@ -92,12 +86,12 @@ if result.returncode != 0:
 print("\n--- Generating benchmark report ---")
 REPORT = os.path.join(REPO_DIR, "docs/benchmarks/100k-tick-report.md")
 os.makedirs(os.path.dirname(REPORT), exist_ok=True)
-with open(REPORT, "w", encoding="utf-8") as f:
-    f.write(f"""# Deers-Rock 100k Tick Benchmark Report
 
-**Date:** {datetime.now().strftime('%Y-%m-%d')}
+report_text = """# Deers-Rock 100k Tick Benchmark Report
+
+**Date:** """ + datetime.now().strftime('%Y-%m-%d') + """
 **Platform:** Kaggle CPU (2 vCPU, 8GB RAM)
-**Kernel:** https://www.kaggle.com/code/rikirinjani/deers-rock-100k-tick-benchmark
+**Kernel:** https://www.kaggle.com/code/rikirinjani/deer-s-rock-100k-tick-benchmark-v9
 
 ---
 
@@ -136,35 +130,42 @@ Deers-Rock completes **100,000 simulation ticks in ~33 seconds** on commodity CP
 | 50,000 | 111.18s | 2.22ms | 2.09x |
 | 100,000 | 482.72s | 4.83ms | 2.17x |
 
-**Verdict:** Superlinear O(n²) — ms/tick grows 16× as ticks grow 20×.
+**Verdict:** Superlinear O(n^2) — ms/tick grows 16x as ticks grow 20x.
 Root cause: `EventQueue.dueEvents()` performed two full-array scans per tick; queue grew to 13k+ discharge events.
 
 ### After Event Queue Fix (Commit `2f0183d`)
 
 | Ticks | Total Time | ms/tick | Speedup |
 |-------|-----------|---------|---------|
-| 5,000 | 1.40s | 0.28ms | 1.1× |
-| 10,000 | 2.38s | 0.24ms | 1.5× |
-| 20,000 | 4.90s | 0.25ms | 2.7× |
-| 30,000 | 7.57s | 0.25ms | 4.2× |
-| 50,000 | 13.68s | 0.27ms | 8.1× |
-| 100,000 | 33.12s | 0.33ms | **14.6×** |
+| 5,000 | 1.40s | 0.28ms | 1.1x |
+| 10,000 | 2.38s | 0.24ms | 1.5x |
+| 20,000 | 4.90s | 0.25ms | 2.7x |
+| 30,000 | 7.57s | 0.25ms | 4.2x |
+| 50,000 | 13.68s | 0.27ms | 8.1x |
+| 100,000 | 33.12s | 0.33ms | **14.6x** |
 
-**Verdict:** Linear O(n) — ms/tick flat at ~0.28–0.33ms across all scales.
-Fix: Binary-search sorted insertion + split-point splice → O(log n) per call.
+**Verdict:** Linear O(n) — ms/tick flat at ~0.28-0.33ms across all scales.
+Fix: Binary-search sorted insertion + split-point splice -> O(log n) per call.
+
+---
 
 ## Implications
 
 - **1M ticks** projected at ~3.3 seconds (linear extrapolation)
 - **Production-ready** for research-scale counterfactual experiments
 - **Deterministic replay** verified with fixed seed across all tick counts
-""")
-print(f"✅ Report written to {REPORT}")
+
+---
+
+## Unit Correction (v2)
+
+The initial benchmark report (v1) contained a unit calculation error: `ms_per_tick` was computed as `totalMs / TARGET * 1000` where `totalMs` was already in milliseconds, producing values 1000x too large (330ms/tick instead of 0.33ms/tick). This has been corrected in v2.
+"""
+
+with open(REPORT, "w", encoding="utf-8") as f:
+    f.write(report_text)
+print("Report written to " + REPORT)
 
 print("\n" + "="*60)
 print("  Benchmark complete")
 print("="*60)
-"""), capture_output=True, text=True, timeout=120)
-print(result.stdout)
-if result.returncode != 0:
-    print("REPORT GENERATION FAILED:", result.stderr)

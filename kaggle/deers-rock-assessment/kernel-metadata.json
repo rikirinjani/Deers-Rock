@@ -1,12 +1,12 @@
 {
-  "id": "rikirinjani/deers-rock-assessment-v18",
-  "title": "Deer's Rock Assessment v18",
+  "id": "rikirinjani/deers-rock-assessment-v19",
+  "title": "Deer's Rock Assessment v19",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "18",
+  "version": "19",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "ADR-027: International adapter architecture - structured assessment"
+  "commit_message": "Review response: benchmark fix + README rewrite + calibration gaps"
 }

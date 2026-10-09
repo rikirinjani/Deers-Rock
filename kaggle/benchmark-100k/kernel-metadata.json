@@ -1,12 +1,12 @@
 {
-  "id": "rikirinjani/deers-rock-100k-tick-benchmark-v9",
-  "title": "Deer's Rock 100k Tick Benchmark v9",
+  "id": "rikirinjani/deer-s-rock-100k-tick-benchmark-v10",
+  "title": "Deer's Rock 100k Tick Benchmark v10",
   "code_file": "kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "version": "9",
+  "version": "10",
   "is_private": true,
   "enable_gpu": false,
   "enable_internet": true,
-  "commit_message": "Fix benchmark unit error: 0.33ms/tick (was mislabeled 330ms)"
+  "commit_message": "Fix benchmark unit error (0.33ms/tick) + README rewrite + calibration gaps"
 }
