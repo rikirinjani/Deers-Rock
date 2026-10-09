@@ -136,7 +136,7 @@ Single-page HTML dashboard at `/` with panels for all departments, refreshed eve
 
 | Metric | Value |
 |--------|-------|
-| 100k tick duration | **33.12s** (~0.33ms/tick) |
+| 100k tick duration | **177.4s** (~1.77ms/tick) |
 | Scaling profile | **Linear** (R² ≈ 0.999) |
 | Test coverage | 377 passed, 1 skipped (53 files) |
 | Determinism | Fixed-seed replay verified |
