@@ -1,0 +1,28 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-report-final-verification",
+  "timestamp": "2026-10-14T06:44:15.364140+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 240,
+  "tool_calls": 6,
+  "key_files": [
+    "C:\\Users\\think\\khanza_benchmark_report_R5.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-report-final-verification",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................--.-..-.........-.--...-........-.--...-........................................-.--...-",
+  "action": "Final report write-up for R5: verified khanza_benchmark_report_R5.md end-to-end (412 lines, §0-§14 complete and coherent), fixed one cross-section inconsistency (§1 determinism line now cites B3 encounter hash 84991ca4... per P4-D2, aligning with §14), confirmed all RC-1..RC-13 rewrites present (three-source reframe, 33.3ms/visit + two throughputs, B-subset P2-BC-TOTAL, invalidated-not-closed §4, 82.7% PPN-inclusive drug share §5, §11 no-in-flight, §12 999-vs-1000 restated, §13 Astra paper-safe boundary, Rp 24,884,947 scope bridge, FK correction, agent/human split), §14 P4 close-out (D2/line-diff/B3-edge/E2-burst/D3-manifest) present. R3 report kept intact as superseded record. Report is the handoff artifact; autonomous scope now exhausted, remaining items human-gated."
+}

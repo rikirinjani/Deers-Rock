@@ -1,0 +1,31 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p1-oracle-hardening-demo",
+  "timestamp": "2026-10-13T20:38:11.884748+00:00",
+  "agent": "orchestrator",
+  "outcome": "partial",
+  "duration_s": 5400,
+  "tool_calls": 88,
+  "key_files": [
+    "C:\\Users\\think\\khanza_r5_task_p1_oracle.md",
+    "C:\\Users\\think\\khanza_r5_task_p1_oracle_evidence.md",
+    "C:\\Users\\think\\AppData\\Local\\Temp\\opencode\\sampled_real_form_diff_r5.py",
+    "C:\\Users\\think\\Agentic Layer\\qms\\records\\verifications\\VER-2026-10-13-DR-KHANZA-R5-P1-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p1-oracle-hardening-demo",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................--.-..-..........-.-.-.-.........--...--........-.--...-........................................-.--...-",
+  "action": "R5-P1 task-before-hands: wrote P1 oracle task doc with 8 ACs + rubric first, then executed. Built hardened oracle tool sampled_real_form_diff_r5.py (freeze baseline w/ per-visit sha256+source-table fingerprint, per-date staged reset w/ r5_stage_* backup+restore, durable .state.json state machine, exclusive .lock pid-file w/ stale reclaim, pinned per-run paths, aligned eligibility predicate, JVM rc in mismatch predicate, strict parse, DBUTIL_FORCE_ROOT guard in dbutil.py). Set up sik_r5 clone (mysqldump 180MB), pointed harness database.ini at the clone, ran 50-visit fresh demo: freeze PASS, kill -9 at 2 BILLED, resume restored+re-billed all 44 PENDING to DONE. AC-1/3/4/5/6/8 PASS. AC-2 PARTIAL (live sik byte-stable pre/post 1464593/34895128580; form save not redirected to clone). AC-7 0/50 FAIL: headless form-save gate akunrows=0 rejects save on clone -> frozen consumer baseline correctly diverges 50/50 -> tool refused a false 0/50 (the validated independence property). Gates green on live post-demo. Honest verdict: PARTIAL/RESTORED, clean 0/50 form-equivalence open pending payment-master population. Dropped clone, restored ini, no live service reading it."
+}

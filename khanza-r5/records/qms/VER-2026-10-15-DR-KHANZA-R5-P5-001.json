@@ -1,0 +1,29 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-15-DR-KHANZA-R5-P5-001",
+  "date": "2026-10-15",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P5: executable fail-closed enforcement + report consistency",
+  "task_doc": "C:\\Users\\think\\khanza_r5_task_p5_failclosed.md",
+  "trigger": "Astra re-assessment run 4769794 (43/100): 'mismatches, nonzero JVM exits, timeouts, and missing settlement rows must fail the process'",
+  "evidence": [
+    "p-chain/r5_p5_failclosed_20261015T2200Z.md",
+    "khanza_benchmark_report_R5.md (§15)",
+    "khanza_r5_release_manifest.md (P5 tool SHAs)",
+    "khanza_r5_task_p5_failclosed.md §4 rubric (all 8 ACs PASS)"
+  ],
+  "checks": [
+    "AC-1: STRATA demo exit 4; drift demo exit 1; clean pass exit 0 — PASS",
+    "AC-2: BILLED conditional on rc==0 && all sukses; FAILED batches restored from stage backup, run stops — PASS",
+    "AC-3: eligibility-based OUT-OF-ENVELOPE classification, CSV column, PARTIAL-NOT-COVERED verdict, drift rate in-envelope only — PASS",
+    "AC-4: consumer rebill gated behind --repair-consumer; default REPAIR-SKIPPED — PASS",
+    "AC-5: per-run stage tables r5_stage_<runid>_*; dropped at finalize; live target shows 0 stage tables — PASS",
+    "AC-6: builder manifest flags removed; shared-source limit stated in docstring — PASS",
+    "AC-7: R5 report consistency patches (§5 footnote, §13 MySQL 8.0.46, §14 line-diff/E2/B3-edge, new §15) + manifest SHA update — PASS",
+    "AC-8: evidence + rubric + QMS + trace — PASS"
+  ],
+  "documented_limitation": "Drift demo mismatch was produced by B-subset fixture behavior (form output differs from frozen consumer baseline); the tamper's causal role is not established. The proven property is the exit contract: any in-envelope mismatch fails the process with exit 1.",
+  "ops_finding": "Live oracle runs require DBUTIL_FORCE_ROOT=1 (benchmark user lacks CREATE for per-run stage tables); pre-P5 global root-created stage tables had masked this.",
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents), gates re-verified live post-demo (charge_delta PASS; three_count A==C exact; ledger 356,355 / Rp 34,870,243,633; harness restored to sik; scratch DBs dropped)"
+}

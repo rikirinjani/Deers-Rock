@@ -1,0 +1,30 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p4-agentblock-closeout",
+  "timestamp": "2026-10-14T06:40:09.783780+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 5400,
+  "tool_calls": 58,
+  "key_files": [
+    "C:\\Users\\think\\khanza_r5_task_p4_agentblock.md",
+    "C:\\Users\\think\\khanza_benchmark_report_R5.md",
+    "C:\\Users\\think\\khanza_r5_release_manifest.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p4-agentblock-closeout",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": ".........................................-.-.-.-.........--...--........-.--...-........................................-.--...-",
+  "action": "P4 agent-runnable block (task-first: wrote khanza_r5_task_p4_agentblock.md with 5 ACs + rubric, then executed all 5 solo, no subagents). D2 B3 replay PASS: re-derived B3 365d encounter set byte-identical to canonical (sha256 84991ca4..., 86101 visits/285126 lines), archived p-chain/b3_encounter_sha256.txt. LD line-diff PASS: added --line-diff to charge_delta_p2.py (per-visit per-component quantity, drug+proc only); clean canonical LINE-DELTA=0 PASS, same-price qty misallocation FAILs with named GAP [P2-LINE-DELTA]; pure code-label swap documented limit (billing has no code col). B3 edge strata PASS: authored 5 STRATA- visits (embalase/tuslah/half-PPN/zero-fee/GT3PROC) FK-safe on scratch sik_p2, P1 oracle --allow-strata reports all 5 not-covered (out-of-envelope), no crash/false pass. E2 burst PASS: consumer measured 916 v/min cold scratch (2000-visit slice, 64.2ms/visit) vs ~1802 warm B3, correcting the '5x burst headroom' framing to 'warm ceiling, not 5x speedup'. D3 packaging PASS: khanza_r5_release_manifest.md pins Khanza jar SHA-256, JDK 17.0.20.1, MySQL 8.0.46, B3 encounter hash, ledger 356355/Rp34.87B, 4 gate-tool SHAs, seeds. No live-DB mutation: all demos on scratch fixtures, harness ini restored to sik, scratch DBs dropped, live charge_delta still PASS. Updated R5 report §14 + §12 + human-gated table."
+}

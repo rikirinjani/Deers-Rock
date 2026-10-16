@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-16T05:20:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "R5-P6 as handed off: harness never retargeted, hollow fixture, false-pass checks, live ledger polluted by a test key",
+  "what_went_wrong": [
+    "Harness target: the suite (and the P5/P6 handoff) 'pointed the harness at the fixture' by editing /opt/simrs-khanza/setting/database.ini. The harness (cwd run-env) and consumer read setting/database.xml (AES-encrypted DATABASE), which stayed on live sik. Any form run that relied on the database.ini edit had the oracle resetting the fixture while the form talked to live sik. Today's runs were checked: the 4 visits touched have identical content hashes in sik and the restored clone, status_bayar unchanged (the form refused to save because the visits were already paid in sik). Historical runs that used the same pattern (e.g. r5_clone_harness.sh -> sik_r5, r5a_smoke akunrows=1 sukses=false) are NOT re-verified here.",
+    "Fixture: sik_p6 (described as 'populated') left 570 reference tables empty that are populated in sik, including akun_bayar (0 vs 7 rows; 1,098 orphan detail_nota_jalan rows). No visit could bill on it. Its 5 STRATA- visits had reg rows but no billing/drug/procedure rows, so they were out-of-envelope only by emptiness. No visit in sik has nonzero embalase/tuslah at all.",
+    "Suite design: A5 and A7 could exit 2 through the eligibility gate before reaching MISSING-REG / EMPTY-BASELINE; A8 compared a hash over the STRATA visits while killing a run on other visits; A9 required stage tables to exist after runs that drop them (contradicting A12); A10 rebuilt the live sik_bench ledger window from the fixture with no restore; no billing check had the mandatory --freeze-only pass (every run would exit 3); A10c's BEGIN..END trigger created via mysql -e never existed, so its first PASS was produced by an unrelated close() bug.",
+    "Live state: /tmp/r6_suite.sh (2026-10-16 03:12 UTC, previous session) inserted STALE-TEST-KEY/drug/ZZFAKE/Rp 1 into live sik_bench.dr_charge_ledger and never removed it: the pinned gate 356,355 / Rp 34,870,243,633 read 356,356 / ...634 at the start of this session.",
+    "Code (P6 patches, found before/by the corrected suite): FAILED-path stage_restore omitted stage= (restore read a nonexistent r5_stage_stage_* table after DELETE), restore result ignored (restored=True asserted); _content_hash used 'SELECT key, *' (MySQL 1064 -> every stage backup failed); stage_drop re-check called dbutil.scalar(force_root=) which did not exist (every verified drop reported failure); dbutil.session.close() closed stdin then communicate() raised (every clean build reported FAIL-CLOSED); builder tax step re-queried the uncommitted ledger on a second connection (stale/zero tax); _kill_process_group judged death by the bash wrapper not the group, and no SIGTERM handler existed (start_new_session orphaned the JVM on oracle kill); a restore exception was an uncaught traceback and finalize always dropped the stage tables (only copy of pre-reset rows)."
+  ],
+  "root_cause": "Checks were written against assumed environment behaviour (which config file the harness reads, what the fixture contains, which gate a given exit code comes from) and were never run end-to-end before being described as ready; exit codes were asserted without the gate-specific log line that proves which path produced them.",
+  "detection": "Pre-run source review of the handed-off suite and patches, then the corrected suite itself on 2026-10-16 (orchestrator, this session).",
+  "correction": {
+    "fixture": "sik_p6f = full mysqldump clone of sik + the 5 STRATA- reg rows; benchmark@localhost granted the same DML as on sik. Clean visits switched to DR-cohort 2026/10/01/800085, 800128 (billed sukses=true 2026-10-12); out-of-envelope visits switched to the 4 real >2-procedure visits.",
+    "harness_target": "khanza-r5/tools/p6_dbxml.py retargets BOTH database.xml copies (backup + round-trip verify) and restores them in the suite's EXIT trap; the suite aborts if the retarget or the pre-run 'sik' probe does not verify.",
+    "suite": "Every check asserts the gate-specific log line plus exit code; A10 uses a scratch ledger copy inside the fixture; live guards assert sik_bench ledger hash and database.xml targets unchanged.",
+    "code": "All listed defects patched in sampled_real_form_diff_r5.py, dbutil.py, build_dr_charge_ledger_p2.py (khanza-r5/tools).",
+    "live_ledger": "STALE-TEST-KEY row deleted with owner approval 2026-10-16 05:25 UTC; ledger verified 356,355 / Rp 34,870,243,633"
+  },
+  "agent": "orchestrator",
+  "status": "corrected"
+}

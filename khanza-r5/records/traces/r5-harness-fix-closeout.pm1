@@ -1,0 +1,30 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-harness-fix-closeout",
+  "timestamp": "2026-10-13T21:31:47.342931+00:00",
+  "agent": "orchestrator",
+  "outcome": "partial",
+  "duration_s": 4200,
+  "tool_calls": 41,
+  "key_files": [
+    "C:\\Users\\think\\khanza_r5_harness_fix_closeout.md",
+    "C:\\Users\\think\\AppData\\Local\\Temp\\opencode\\BilingHarness.java",
+    "C:\\Users\\think\\Agentic Layer\\qms\\records\\verifications\\VER-2026-10-13-DR-KHANZA-R5-P1-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-harness-fix-closeout",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................--.-..-..........-.-.-.-.........--...--........-.--...-........................................-.--...-",
+  "action": "R5 harness fix: shipped BilingHarness.java v4 (reaper clicks save-confirm YES button instead of only disposing modals + bounded 30s wait for billing.sukses=true), recompiled on-box. A/B tested vs live + clone. Pinned via bytecode+live run that the form's ralan save VERIFIES the note (nota_jalan, 'Data billing sudah terverifikasi') but leaves billing settlement at 0 rows / status_bayar=Belum Bayar on these outpatient visits - i.e. the form does NOT write the billing settlement rows; those come from the consumer/settlement step that built the baseline. Corrected conclusion: the clean 0/N form-vs-billing target is the wrong comparison; the real fix is the P2 three-source restructure (compare form save-output tables vs consumer billing). P1 independence+crash-safety still proven. Restored box: ini->sik, sik_r5 dropped, live sik re-billed to canonical (800190: 14/Rp85250), charge_delta PASS. Wrote khanza_r5_harness_fix_closeout.md + updated VER record."
+}

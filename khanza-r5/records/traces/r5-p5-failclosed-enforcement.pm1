@@ -1,0 +1,33 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p5-failclosed-enforcement",
+  "timestamp": "2026-10-15T22:38:49.759686+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 2400,
+  "tool_calls": 45,
+  "key_files": [
+    "C:\\Users\\think\\khanza_benchmark_report_R5.md",
+    "C:\\Users\\think\\khanza_r5_release_manifest.md",
+    "C:\\Users\\think\\khanza_r5_task_p5_failclosed.md",
+    "C:\\Users\\think\\AppData\\Local\\Temp\\opencode\\sampled_real_form_diff_r5.py",
+    "C:\\Users\\think\\AppData\\Local\\Temp\\opencode\\build_dr_charge_ledger_p2.py",
+    "C:\\Users\\think\\Agentic Layer\\qms\\records\\verifications\\VER-2026-10-15-DR-KHANZA-R5-P5-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p5-failclosed-enforcement",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................---..-...........--...--........--.-..-.........................................-.--...-",
+  "action": "P5 fail-closed enforcement + report consistency: patched oracle (exit contract 1/4/0, conditional BILLED+restore+stop, eligibility-based OUT-OF-ENVELOPE, gated repair, per-run stage tables) and builder (manifest flags removed); STRATA demo exit 4 / drift demo exit 1 / clean exit 0 on scratch+live; R5 §15 + §5/§13/§14 consistency patches; manifest tool SHAs updated; gates re-verified live; QMS VER-...P5-001"
+}

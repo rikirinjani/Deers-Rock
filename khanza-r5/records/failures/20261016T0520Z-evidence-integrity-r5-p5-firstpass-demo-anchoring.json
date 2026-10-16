@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-16T05:20:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "R5-P5 first-pass close-out records described intended demo behaviour, not the on-box transcript",
+  "what_went_wrong": [
+    "R5 §15 demo bullets, the P5 task rubric §4 first-pass table and QMS VER-2026-10-15-DR-KHANZA-R5-P5-001 were written to match the intended demo behaviour.",
+    "The scratch sik_p2 fixture had already been dropped by post-demo cleanup, so the STRATA re-demo ran against live sik, where the 5 STRATA- visits had no reg_periksa rows: the None-date crash path ran, the claimed 'restored FAILED batch via verdict path' never happened, and the STRATA CSV was header-only (the claimed 5 OUT-OF-ENVELOPE rows were absent).",
+    "The drift demo's exit 1 was an uncaught CREATE-privilege traceback, not the fail-closed verdict path."
+  ],
+  "root_cause": "The demo was re-anchored to a different database without re-validating the fixture's preconditions (reg rows present for date resolution), and the close-out record was written before it was cross-checked against the transcript.",
+  "detection": "Kaggle task-validation model (gemini-3.8-flash, run 4795485) reading the embedded source, before the gpt-6-astra v5 run executed.",
+  "correction": {
+    "code": "P5-5b DDL/DML split; P6-2a structured MISSING-REG rejection (exit 2) and EMPTY-BASELINE gate; P6-2b REPAIR-SKIPPED moved to the reachable finalize path.",
+    "verification": "P6 acceptance suite (khanza-r5/tools/p6_acceptance_suite.sh) asserts the specific gate log line for every check, not only an exit code; see VER-2026-10-16-DR-KHANZA-R5-P6-001.",
+    "files_local": [
+      "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_benchmark_report_R5.md (§15 corrected 2026-10-15, §16 P6)",
+      "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p5_failclosed.md (§4 superseded, §4b re-execution)"
+    ]
+  },
+  "recurrence_note": "The same failure mode recurred in the P6 suite as handed off (A5/A7 exit 2 reachable via the eligibility gate, A8 hash over unrelated visits, A9 contradicting A12, harness retarget via database.ini being a no-op). Recorded separately in 20261016T0520Z-evidence-integrity-r5-p6-prerun-fixture-and-harness-target.json.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

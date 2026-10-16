@@ -1,0 +1,48 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-16-DR-KHANZA-R5-P6-001",
+  "date": "2026-10-16",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P6: executable acceptance suite on a disposable full-clone fixture",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p6_acceptance.md",
+  "trigger": "Astra v5 run 4795743 (43/100): transaction, timeout-kill, verified restore, frozen-baseline, resume-binding and stage-drop defects; v5 validation model run 4795485 caught P5 first-pass evidence defects",
+  "evidence": [
+    "/opt/dr-benchmark/p-chain/r5_p6_acceptance_20261016T051552Z.md (local copy khanza-r5/evidence/p6/)",
+    "khanza-r5/evidence/p6/r5_p6_logs_20261016T051552Z.tgz",
+    "khanza-r5/evidence/p6/r5_p6_acceptance_20261016T045914Z.md, ...050520Z.md, ...051009Z.md (earlier runs 15/3, 17/1, 17/1)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §16",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P6 re-pin)",
+    "khanza-r5/docs/khanza_r5_task_p6_acceptance.md §4 rubric"
+  ],
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "ee74ceee62e81f9f0e391f2f92e1214a0998dad38939a222b9f4f94069fdd65c",
+    "dbutil.py": "f85958b4213e43db34bfd7a09089b094334b21312ec68a19692553a9d88f40b0",
+    "build_dr_charge_ledger_p2.py": "57a0adbca96e24879824b8ef98da16cd84fe644834261a3723f37aab18ab1546",
+    "p6_acceptance_suite.sh": "a2212fdcd62405bf96851ee6f386241786c0af377c0dec2867677c6a122b0f91",
+    "p6_dbxml.py": "469c698e01fb95eba09714e78de096eaa4625fc47814c4055743a6973c0225a9"
+  },
+  "checks": [
+    "AC-1 suite green: 18/18 PASS (A0-A13) — PASS",
+    "AC-2 no traceback: MISSING-REG / EMPTY-BASELINE structured exit 2 past the eligibility gate; 0 tracebacks — PASS",
+    "AC-3 transaction: stale key deleted, tax consistent, injected mid-build failure rolled back byte-identical — PASS",
+    "AC-4 writer-dead: group-level proof + 0 java (timeout path and SIGTERM-handler path) — PASS",
+    "AC-5 restore: STAGE-RESTORED-VERIFIED on every restore, 0 mismatch (amended: A8 re-bills, so post!=pre by design) — PASS",
+    "AC-6 no overclaim: verified drop / STAGE-KEEP — PASS",
+    "AC-7 report/manifest: §16 + re-pin with pin-drift disclosure — PASS",
+    "AC-8 records: this record, trace, two failure records — PASS"
+  ],
+  "findings": [
+    "Harness/consumer read setting/database.xml, not database.ini; earlier clone-mode form runs relying on database.ini are unproven (not re-verified).",
+    "Handed-off sik_p6 fixture hollow (570 empty reference tables); replaced by sik_p6f full clone.",
+    "Live sik_bench ledger carried a stray STALE-TEST-KEY row from the previous session's suite (356,356 vs pinned 356,355).",
+    "P5 manifest pins did not match the tools deployed on the VPS at P6 start."
+  ],
+  "live_gates_post": "after cleanup 05:26 UTC: charge_delta PASS (all deltas 0); three_count A==C 31,750 / Rp 3,113,533,580 (B-subset P2-BC-TOTAL FAIL as documented); ledger 356,355 / Rp 34,870,243,633 (pinned); both database.xml copies on sik",
+  "open_items": [
+    "--window ALL scoping of the 354 Stage-A visits not tested",
+    "Earlier clone-mode form runs that relied on database.ini are unproven (not re-verified)"
+  ],
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents); local and VPS tool hashes verified identical after each deploy",
+  "cleanup": "STALE-TEST-KEY row deleted (1 row); sik_p6 and sik_p6f dropped; benchmark grant on sik_p6f revoked (owner-approved 2026-10-16)"
+}
