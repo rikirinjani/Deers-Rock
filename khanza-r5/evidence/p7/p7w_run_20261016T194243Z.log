@@ -1,0 +1,13 @@
+[19:46:25] ALIGNED-PREDICATE: 1 visits from p7w_visit.txt, all eligible (AC-6)
+[19:46:26] FROZEN 1 visits -> /opt/dr-benchmark/results/p7w_20261016T194243Z/B3_oracle_run_r5/baseline_frozen (sha256_all=88de9bf67d6efd5e)
+[19:46:26] verify-frozen: PASS
+[19:46:26] FREEZE-ONLY exit 0 (administrative mode; no billing comparison performed; P6-2c)
+[19:46:26] ALIGNED-PREDICATE: 1 visits from p7w_visit.txt, all eligible (AC-6)
+[19:46:27] verify-frozen: PASS
+[19:46:29] stage-backup 1 visits -> r5_stage_B3_p7w_20261016T194243Z_* (12 output tables + reg.status_bayar)
+[19:46:30] stage-content-hash r5_stage_B3_p7w_20261016T194243Z (sha256=0affc182a74588c4...)
+[19:46:30] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[19:46:38] date 2026-10-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[19:46:39] stage-drop r5_stage_B3_p7w_20261016T194243Z_* verified (0 remaining; box left clean)
+[19:46:39] artifact written: /opt/dr-benchmark/results/p7w_20261016T194243Z/B3_sampled_form_diff_r5.md
+[19:46:39] FINAL: sampled_rows=1 in_envelope=1 out_of_envelope=0 failed_batches=0 drift(in-envelope)=0 parse_errors=0 stage_drop_verified=True (P5-1/P6)

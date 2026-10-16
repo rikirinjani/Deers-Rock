@@ -28,7 +28,7 @@ Scope: DR-generated hospital data (`reg_periksa` with `no_rkm_medis LIKE 'DR%'`,
 | Source | Table(s) | Written by | Role |
 |---|---|---|---|
 | **A — consumer settlement** | `sik.billing` value rows | KhanzaBillingConsumer | The asserted surface |
-| **B — real-form save output** | `nota_jalan` / `detail_nota_jalan` / `piutang_pasien` + `reg_periksa.status_bayar` | The Khanza `DlgBilingRalan` save path (headless harness) | **Independent** third source; NOT `billing` |
+| **B — real-form save output** | `nota_jalan` / `detail_nota_jalan` / `piutang_pasien` + `reg_periksa.status_bayar` | The Khanza `DlgBilingRalan` save path (headless harness) | **Independent** third source; ~~NOT `billing`~~ **[§18: audited — the same save also writes `billing`]** |
 | **C — DR ground-truth ledger** | `sik_bench.dr_charge_ledger` | P2 builder (DR tariff authority) | Expected-charge reference |
 
 The headline gate is **A == C** (consumer vs DR ground truth). **B is a genuine, independent
@@ -57,9 +57,12 @@ the pipeline is deterministic and reproducible. What the result does and does no
 
 **NOT claimed (scoped out / human-gated / structural limit):**
 - Not a proof that Khanza bills correctly at population scale (outpatient, single HMS).
-- **Not a `billing`-level form-settlement equivalence**: the headless form save writes the
+- ~~**Not a `billing`-level form-settlement equivalence**: the headless form save writes the
   verification layer (`nota_jalan`/`detail_nota_jalan`), not the consumer's `billing` settlement
-  rows, so B is a subset, not A. (P1 close-out, §13.)
+  rows, so B is a subset, not A. (P1 close-out, §13.)~~ **[§18: withdrawn — a row-level audit
+  shows the form's save writes `billing` (17 rows for the audited visit) as well as the nota
+  rows, so the oracle's billing comparison IS a same-encounter form-vs-consumer check on the
+  sampled visits. What remains unclaimed: population-wide equivalence beyond the samples.]**
 - External validity (real-source calibration, payer mix, diagnosis calibration, 2nd-HMS) is
   NOT TESTED (human-gated, §human-gated table).
 
@@ -346,10 +349,14 @@ data + partners beyond this repository.
 > establish population-wide billing correctness, representative hospital performance, or
 > generalization to other care settings, payers or HMS products."
 
-- **B is a subset, not A (P1 close-out):** the headless Khanza save writes the verification
+- ~~**B is a subset, not A (P1 close-out):** the headless Khanza save writes the verification
   layer (`nota_jalan`/`detail_nota_jalan`/`piutang_pasien` + `status_bayar`), **not** the
   consumer's `billing` settlement rows. So a true `billing`-level form-equivalence (A==B) is
-  **not claimable** by this harness; B is reported as a verified subset (`P2-BC-TOTAL`).
+  **not claimable** by this harness; B is reported as a verified subset (`P2-BC-TOTAL`).~~
+  **[§18: withdrawn — the form's save writes `billing` too (audited). Restated limit: the
+  same-encounter comparison covers the sampled, re-billed visits only; three_count's B is a
+  note-level total over whichever visits were re-saved, so `P2-BC-TOTAL` stays a subset
+  comparison by construction.]**
   The 999-visit sample is a *consumer-oracle* re-bill, stated as measurement, not population proof.
 - **Price-mapping correctness — tested at one point (F8), not exhaustively:** the DR tariff is
   the price authority and F8 proved a wrong price trips charge_delta end-to-end; the other 684
@@ -654,3 +661,73 @@ verified to have used the clone.
 
 **Manifest:** gate tools and builder re-pinned (`charge_delta` `584e36c5…`, `three_count`
 `9ff4396c…`, builder `7f6e79c4…`) plus `p6_run_suite_fresh.sh` and `p6_strata_recheck.sh`.
+
+## 18. P7: fail-closed gates, write provenance, integer tax, live guards (2026-10-17, new)
+
+Driven by Astra v6 (gpt-6-astra run 4818826, **52/100**, +9 vs v5; `evidence/astra_v6_4818826_output.md`).
+Task: `docs/khanza_r5_task_p7_failclosed_gates.md`. Every v6 code claim acted on below was
+checked against the source first; all held.
+
+**Result: suite 21/21 PASS** on a fresh full-clone fixture via `p6_run_suite_fresh.sh`
+(`evidence/p7/r5_p6_acceptance_20261016T195113Z.md`), and the suite's exit code now means
+something (A14 proves a failing check exits 1).
+
+**1. Live ledger rebuilt and re-pinned (owner-approved, P7 §5 option A).** The live
+`sik_bench.dr_charge_ledger` was backed up to `dr_charge_ledger_bak_20261017` (content hash
+verified identical) and rebuilt from live `sik` with the pinned builder `--window ALL`
+(`evidence/p7/r5_p7_ledger_rebuild_*.md`). Diff against the backup: 0 keys added or lost,
+0 amount or unit-price changes, 1 quantity corrected (2026/10/01/000298 B000000240, 23 → 25),
+260,800 `source` labels filled. Rows and total unchanged: **356,355 / Rp 34,870,243,633**. New
+content hash `a66a3a54…` equals the 2026-10-16 scratch rebuild (reproducible).
+`charge_delta --line-diff` now **PASS** on both windows; §14's LINE-DELTA statement holds again.
+
+**2. Write provenance — the form writes `billing` (retracts the B-subset caveat).** A
+row-level audit (AFTER INSERT/DELETE triggers recording the account and connection) on a
+throwaway clone, while one visit was billed through the real form
+(`evidence/p7/r5_p7_write_provenance_*.md`):
+
+| Table | Operation | Account | Rows |
+|---|---|---|---|
+| billing, nota_jalan, detail_nota_jalan | DELETE | root (the oracle's reset) | 17 / 1 / 1 |
+| nota_jalan | INSERT | benchmark (the harness JVM, one connection) | 1 |
+| **billing** | INSERT | **benchmark** | **17** |
+| detail_nota_jalan | INSERT | benchmark | 1 |
+
+`BilingHarness.java` contains no SQL; it opens Khanza's `DlgBilingRalan` and clicks Save. So
+**Khanza's own save path writes `billing`**, the same 17 value rows the consumer wrote. The R5
+statements that the form writes "the verification layer, not `billing`" (§0 table, §1, §13)
+are struck through and annotated. Likely origin (not proven): P1's clone-mode runs pointed the
+harness via `database.ini`, so the form actually ran on live `sik`, where those visits were
+already paid; it refused to save, and the clone showed no form-written `billing`.
+**Consequence:** the oracle's billing comparison is a same-encounter form-vs-consumer check on
+every sampled, re-billed visit. Still unclaimed: equivalence beyond the samples. Open: whether
+the R4 0/999 sample (run on live `sik`, where the form did save) already measured exactly that;
+it was run with a pre-R5 oracle and is not re-examined here.
+
+**3. Fail-closed fixes (Astra v6 defects D1–D3, D5, D6).**
+- *Suite exit code (D1):* the suite now ends `exit 0` only when FAIL = 0 (it used to end on an
+  `echo`). A14: forced fail → exit 1, forced pass → exit 0.
+- *Restore without a hash (D2):* `stage_restore` returns False with `STAGE-RESTORE-UNVERIFIED`
+  (it returned True). A15 deletes the hash mid-run: exit 4, `restored=False`, 13 stage tables
+  kept (`STAGE-KEEP`), then used to put the visits back.
+- *three_count (D3):* exit 0 for PASS or PARTIAL as documented (the old expression returned 1
+  for PARTIAL); `--verify-form-save` now makes an absent B a FAIL (it was parsed and ignored).
+  Contract test 4/4 (`tools/p7_three_count_contract_test.py`).
+- *Integer tax (D5):* the builder computes `(subtotal × 11 + 50) // 100`. Before switching, the
+  consumer's `Math.round(subttl * 0.11)` was compared with the integer rule over all 70,056
+  real drug subtotals: **0 differences, 0 missing tax rows, 0 stored deviations**
+  (`tools/p7_tax_rule_check.py`). A10b is exact: tolerance 0, missing and orphan tax rows
+  detected. The integer builder run `--window ALL` into an empty scratch table reproduces the
+  live ledger byte-identically (`a66a3a54…`; `evidence/p7/r5_p7_integer_builder_all_check.txt`).
+- *Live guards (D6):* A13 also requires identical CHECKSUMs of live `sik.billing`,
+  `nota_jalan`, `detail_nota_jalan`, `piutang_pasien`, `detail_piutang_pasien` and
+  `reg_periksa` before and after the suite (held). A billing run against `sik` now needs
+  `--allow-live`; A16 asserts the refusal (`LIVE-TARGET-REFUSED`, exit 3).
+
+**Not done in P7 (deferred, Astra v6):** interruption *during* restoration; hard-crash resume
+with a surviving JVM; concurrent-overlap isolation; making FAILED/unrestored batches retryable;
+re-validating pre-P6 clone-mode runs; C1–C4.
+
+**Live state after P7:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
+ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); charge_delta and line-diff PASS on
+both windows; three_count A == C on both windows.

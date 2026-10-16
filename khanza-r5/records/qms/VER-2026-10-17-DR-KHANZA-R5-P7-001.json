@@ -1,0 +1,44 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-17-DR-KHANZA-R5-P7-001",
+  "date": "2026-10-17",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P7: fail-closed gates, write provenance, integer tax, live guards, live ledger rebuild",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p7_failclosed_gates.md",
+  "trigger": "Astra v6 (gpt-6-astra run 4818826, 52/100 'Needs targeted rework'); validation model gemini-3.8-flash run 4818700",
+  "evidence": [
+    "khanza-r5/evidence/p7/r5_p6_acceptance_20261016T195113Z.md (suite 21/21, fresh fixture)",
+    "khanza-r5/evidence/p7/r5_p7_write_provenance_20261016T194243Z.md (audited form run)",
+    "khanza-r5/evidence/p7/r5_p7_ledger_rebuild_20261016T193747Z.md (live ledger backup + rebuild + gates)",
+    "khanza-r5/evidence/p7/r5_p7_integer_builder_all_check.txt (integer builder reproduces live ledger)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §18 (+ §0/§1/§13 annotations)",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P7 re-pin, ledger content hash)"
+  ],
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "9bc6f79d4fbf004c582a93f9b62a1a7fac733e73fa96443aecd6107520e22e91",
+    "three_count_reconcile_p2.py": "b0d5971fb1ff5c731f0f383289c54211fa12112ed8a9c97a2b889eaaa38a6200",
+    "build_dr_charge_ledger_p2.py": "84c49f0dce1b30d4ebf710d16fb56be4f5ded3db1cf621b11792057db3718798",
+    "p6_acceptance_suite.sh": "325b333ac409663b5e8c6de2aaa7d89f57538b71238ca597a06fc64ee742a626"
+  },
+  "checks": [
+    "AC-1 suite fails closed: A14 forced fail -> exit 1, forced pass -> exit 0; full run 21/21 — PASS",
+    "AC-2 restore fails closed on a missing hash: A15 STAGE-RESTORE-UNVERIFIED, exit 4, restored=False, stage tables kept — PASS",
+    "AC-3 three_count exit contract + working --verify-form-save: contract test 4/4 — PASS",
+    "AC-4 write provenance: audited form run, the form's JVM account wrote 17 billing rows + nota rows — PASS",
+    "AC-5 integer tax: integer rule = consumer rule on 70,056 subtotals; exact A10b; integer builder reproduces live ledger byte-identically — PASS",
+    "AC-6 live guards: six live sik output-table checksums equal pre/post; live target refused without --allow-live (A16) — PASS",
+    "AC-7 records — PASS"
+  ],
+  "findings": [
+    "The R5 B-subset caveat ('the form writes the verification layer, not billing') is false: Khanza's own save path writes billing; the oracle's billing comparison is a same-encounter form-vs-consumer check on sampled visits",
+    "The live ledger was rebuilt from source (owner-approved): 0 key/amount/unit-price changes, 1 quantity corrected, 260,800 source labels filled; line-diff PASS on both windows"
+  ],
+  "live_state_post": "databases sik, sik_bench; database.xml copies on sik; ledger 356,355 / Rp 34,870,243,633, content a66a3a54...; backup table sik_bench.dr_charge_ledger_bak_20261017 kept",
+  "open_items": [
+    "Interruption during restoration; hard-crash resume with a surviving JVM; concurrent-overlap isolation; retryable FAILED/unrestored batches (P8)",
+    "Whether the R4 0/999 sample already measured same-encounter form-vs-consumer billing (pre-R5 oracle, not re-examined)",
+    "Re-validation of pre-P6 clone-mode runs; C1-C4"
+  ],
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents); local and VPS tool hashes verified identical after deploy"
+}

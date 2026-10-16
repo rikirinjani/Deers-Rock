@@ -445,8 +445,11 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
             log("stage-restore %d visits STAGE-RESTORED-VERIFIED (content hash "
                 "matches pre-reset)" % len(nrs))
     else:
-        log("stage-restore %d visits (pre-reset hash file absent; restore applied, "
-            "NOT hash-verified)" % len(nrs))
+        # P7-2: no pre-reset hash means the restore cannot be verified, so it does
+        # not count as one (before P7 this returned True — fail-open).
+        ok = False
+        log("STAGE-RESTORE-UNVERIFIED %d visits: pre-reset hash file absent; data "
+            "re-applied but NOT verified — treated as a failed restore" % len(nrs))
     return ok
 
 
@@ -688,8 +691,17 @@ def main():
                     help="P6-2a: proceed even if a sampled visit has 0 consumer "
                          "value rows. DEFAULT fails closed on an empty baseline "
                          "(a missing-settlement run would otherwise pass 0==0).")
+    ap.add_argument("--allow-live", action="store_true",
+                    help="P7-6: permit a billing run (which resets and re-bills visits) "
+                         "against the live database 'sik'. DEFAULT refuses.")
     args = ap.parse_args()
     db = args.db_name
+    # P7-6: a billing run DELETEs the sampled visits' output rows before re-billing
+    # them. Against live `sik` that must be a deliberate choice, never a default.
+    if db == "sik" and not (args.freeze_only or args.verify_frozen or args.allow_live):
+        print("LIVE-TARGET-REFUSED: a billing run resets output rows; --db-name sik "
+              "requires --allow-live (use a disposable clone for tests)")
+        return 3
 
     tool = dbutil.Tool("sampled_real_form_diff_r5")
     rdir = os.path.join(dbutil.RESULTS_ROOT, tool.run_id)

@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-17T03:00:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "The P6 acceptance suite could not fail by exit code, and a core report caveat rested on a mis-targeted run",
+  "what_went_wrong": [
+    "p6_acceptance_suite.sh ended with an echo and no exit on FAIL, so the wrapper reported 'suite exit=0' regardless of results; '18/18' rested only on printed counts.",
+    "stage_restore returned True when the pre-reset hash file was missing (fail-open); three_count's exit expression returned 1 for the documented exit-0 PARTIAL case; --verify-form-save was parsed and ignored.",
+    "R5 stated in three places that the headless form writes the verification layer, not billing. An audited form run shows Khanza's save writes billing. The claim likely came from P1 clone-mode runs whose form actually ran on live sik (database.ini mis-target), where already-paid visits were not saved."
+  ],
+  "root_cause": "Exit codes and return values were reported as evidence without a test that the failure path can trigger; a structural claim was derived from an observation on a target whose identity had not been verified.",
+  "detection": "Astra v6 (gpt-6-astra run 4818826) source read; each claim re-verified against the code by the orchestrator on 2026-10-17 before fixing.",
+  "correction": {
+    "code": "Suite exits non-zero on any FAIL (A14 self-test); restore without a hash fails closed (A15); three_count exit contract fixed and --verify-form-save enforced (contract test 4/4); exact integer tax; live sik checksums + --allow-live guard (A13/A16).",
+    "report": "R5 §0/§1/§13 B-subset statements struck through and annotated; §18 added.",
+    "verification": "Suite 21/21 on a fresh fixture (evidence/p7/r5_p6_acceptance_20261016T195113Z.md); audited provenance run (evidence/p7/r5_p7_write_provenance_*.md)."
+  },
+  "rule": "Every gate or suite whose result is cited must have a demonstrated failing case for its exit code; a structural claim about what a system writes must come from an audit on a verified target.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

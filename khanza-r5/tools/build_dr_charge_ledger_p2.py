@@ -275,7 +275,10 @@ def main():
         #    (stale keys, pre-DELETE amounts; zero tax on a first build).
         n = 0
         for nr, s in sorted(drug_sub.items()):
-            tax = irup(float(s or 0) * 0.11)
+            # P7-5: exact integer half-up (no float). Identical to the consumer's
+            # Math.round(subttl * 0.11) on all 70,056 real drug subtotals
+            # (tools/p7_tax_rule_check.py, 2026-10-17: 0 differences).
+            tax = (int(s or 0) * 11 + 50) // 100
             if tax > 0:
                 buf.append("('%s','tax','PPN11',1,%d,%d,'Khanza_rule_not_DR_modelled')"
                            % (nr, tax, tax))

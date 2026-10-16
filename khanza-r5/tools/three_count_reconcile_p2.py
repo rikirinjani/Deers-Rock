@@ -37,6 +37,9 @@ Gate:
                  Exit 0 (PARTIAL) is acceptable and labelled; exit 1 on any
                  A vs C disagreement or any A!=B where B is verified.
 
+  --verify-form-save : B is required; a cohort with no form-save rows FAILS (exit 1)
+                 instead of returning PARTIAL.
+
 Usage: python3 three_count_reconcile.py --stage A [--window 2026-10|ALL]
        [--cohort dr|all] [--verify-form-save]
 """
@@ -250,6 +253,12 @@ def main():
     else:
         partial = True  # B NOT-VERIFIED: ledger+consumer agree, form save not present.
         log("B NOT-VERIFIED: no form-save rows for cohort; A==C still required, B not compared.")
+        if verify_form:
+            # --verify-form-save: B is REQUIRED, so its absence fails the gate (P7-3;
+            # before P7 the flag was parsed and then ignored).
+            gate_pass = False
+            findings.append(("B-REQUIRED", "note",
+                             "--verify-form-save given but no form-save rows exist for the cohort"))
 
     for code, comp, detail in findings:
         log("GAP [%s] %s: %s" % (code, comp, detail))
@@ -276,9 +285,10 @@ def main():
             f.write("- GAP [%s] %s: %s\n" % (code, comp, detail))
         f.write("- verdict: %s\n" % verdict)
     log("wrote %s" % rep)
-    # exit: 0 for PASS or PARTIAL, 1 for FAIL
+    # exit: 0 for PASS or PARTIAL, 1 for FAIL (P7-3: the former expression returned 1
+    # for PARTIAL — A==C with B absent — contradicting this contract and the docstring)
     tool.close()
-    return 0 if (gate_pass and not partial or gate_pass and b_verified) else 1
+    return 0 if gate_pass else 1
 
 
 if __name__ == "__main__":

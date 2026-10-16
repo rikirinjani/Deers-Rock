@@ -24,16 +24,23 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 
 | Tool | SHA-256 |
 |---|---|
-| `sampled_real_form_diff_r5.py` (P5 fail-closed + P6-2a..g + P6-4 group kill/SIGTERM handler + verified restore/drop) | `ee74ceee62e81f9f0e391f2f92e1214a0998dad38939a222b9f4f94069fdd65c` |
+| `sampled_real_form_diff_r5.py` (P5 fail-closed + P6 + P7: missing pre-reset hash fails closed (`STAGE-RESTORE-UNVERIFIED`); live target needs `--allow-live`) | `9bc6f79d4fbf004c582a93f9b62a1a7fac733e73fa96443aecd6107520e22e91` |
 | `dbutil.py` (P5-5b split + P6-3 `session()` single-session transaction; `query/scalar(force_root=)`) | `f85958b4213e43db34bfd7a09089b094334b21312ec68a19692553a9d88f40b0` |
 | `charge_delta_per_component_p2.py` (P2 + P4 line-diff; §17 `--window ALL` = whole DR cohort) | `584e36c57e467e46f9cf3e7e3f7b8a923960fd5c811ee17073d10d8d4e63c753` |
-| `three_count_reconcile_p2.py` (P2 independent B; §17 `--window ALL` = whole DR cohort) | `9ff4396cde9db8aa4f71b6702467a934741293a04a640ce14ba06b14a2c2f436` |
-| `build_dr_charge_ledger_p2.py` (P6-3 single-session cohort replace; tax from in-build subtotals; §17 ALL scope) | `7f6e79c41bed6f85a86c0c378dc5da247194e44497d358435cdac14b1beff727` |
-| `p6_acceptance_suite.sh` (P6 18-check suite) | `a2212fdcd62405bf96851ee6f386241786c0af377c0dec2867677c6a122b0f91` |
+| `three_count_reconcile_p2.py` (P2 independent B; §17 ALL scope; P7 exit contract (0 for PASS/PARTIAL) + working `--verify-form-save`) | `b0d5971fb1ff5c731f0f383289c54211fa12112ed8a9c97a2b889eaaa38a6200` |
+| `build_dr_charge_ledger_p2.py` (P6-3 single-session replace; §17 ALL scope; P7 exact integer tax `(s*11+50)//100`) | `84c49f0dce1b30d4ebf710d16fb56be4f5ded3db1cf621b11792057db3718798` |
+| `p6_acceptance_suite.sh` (P7: 21 checks, exits non-zero on any FAIL) | `325b333ac409663b5e8c6de2aaa7d89f57538b71238ca597a06fc64ee742a626` |
 | `p6_dbxml.py` (verified `database.xml` retarget/restore) | `469c698e01fb95eba09714e78de096eaa4625fc47814c4055743a6973c0225a9` |
 | `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown) | `d11cd16f5f17508aa6cd645f6606d071357f2052c5afeb99ad3bc4afcbba851e` |
 | `p6_strata_recheck.sh` (§17 edge-strata re-check on a verified target) | `1fdc29cbec027131021b34ea5787b8508686fdb2276ebd27a02d52703b191e7b` |
+| `p7_ledger_rebuild.sh` (live ledger backup + rebuild + gates, owner-approved) | `6a9233d6d0778fd98fd9bf002e770f69f8d8c4910310eed6c8dfe7201f168d03` |
+| `p7_write_provenance.sh` (audited form run: who writes billing) | `70f3f1fbcd6927421d4bdec4c115c585489d2461a5c0fd6c9a4fcd4fd60d9f1c` |
+| `p7_tax_rule_check.py` (consumer vs integer tax rule over all subtotals) | `fd1a1ec2cb12b9a4ef18a059e538a900504ea7fda2800c426c4995e9fa9e07a5` |
+| `p7_three_count_contract_test.py` (three_count exit-code contract) | `3857538f01eb1a927e2d47e4ba3ab07e1b191450caec4430178c37862723466a` |
 
+> P7 (2026-10-17) re-pins the oracle (`ee74ceee…`→`9bc6f79d…`), three_count (`9ff4396c…`→`b0d5971f…`),
+> builder (`7f6e79c4…`→`84c49f0d…`) and suite (`a2212fdc…`→`325b333a…`). See R5 §18.
+>
 > §17 (2026-10-16, later the same day) re-pins the two gate tools and the builder after the
 > `--window ALL` fix (gate pins `84604d95…` / `01abcb72…` and builder `57a0adbc…` superseded).
 > Ledger reproducibility: a full `--window ALL` rebuild from source into a scratch copy

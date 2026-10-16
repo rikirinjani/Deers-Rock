@@ -1,4 +1,18 @@
-# Session Handoff — DR→Khanza E2E Benchmark (2026-10-16)
+# Session Handoff — DR→Khanza E2E Benchmark (2026-10-16, updated 2026-10-17)
+
+## Update 2026-10-17 (read this first)
+- **Astra v6 = 52/100** (run 4818826, +9). Output: `evidence/astra_v6_4818826_output.md`.
+- **P7 done** (`docs/khanza_r5_task_p7_failclosed_gates.md`, R5 §18): suite 21/21 and now
+  fails closed; restore fails closed on a missing hash; three_count exit contract fixed;
+  exact integer tax; live `sik` guards + `--allow-live`.
+- **Live ledger rebuilt** (owner-approved): backup `sik_bench.dr_charge_ledger_bak_20261017`;
+  new content `a66a3a54…`, totals unchanged; line-diff PASS.
+- **The form writes `billing`** (audited): R5's B-subset caveat is withdrawn (§18 item 2).
+- **Next:** push `kaggle/deers-rock-assessment/task_r7_reassess.py` (Astra v7) with
+  `PYTHONUTF8=1 kaggle b t push dr-khanza-e2e-full-assessment -f task_r7_reassess.py`, then
+  `kaggle b t run dr-khanza-e2e-full-assessment -m gpt-6-astra`. P8 = the deferred items in
+  the P7 doc's "Out of scope" list.
+
 
 Supersedes `khanza_R5P5P6_session_handoff_20261015.md` (kept for history — several of its
 statements turned out wrong; see "Corrections to the previous handoff").

@@ -5,6 +5,9 @@
 # also produce), A10 runs on a SCRATCH ledger copy (never the live sik_bench
 # ledger), and an EXIT trap restores the live harness config / A2 price /
 # A10 trigger even if the suite dies part-way.
+# P7 (2026-10-17): the suite EXITS NON-ZERO on any FAIL (it used to end on an echo);
+# A14 self-tests that exit path, A15 a fail-closed restore with a missing hash, A16 the
+# live-target refusal; A10b checks tax exactly; A13 also guards live sik output tables.
 set -u
 cd /opt/Deers-Rock/tools
 export DBUTIL_FORCE_ROOT=1
@@ -21,6 +24,13 @@ res() { echo "$1" | tee -a "$OUT"; }
 cnt() { local n; n=$(grep -ac "$1" "$2" 2>/dev/null); echo "${n:-0}"; }
 javacount() { pgrep -f "BilingHarness" | wc -l | tr -d ' '; }
 SQL() { mysql -uroot -N -e "$1"; }
+
+# P7-1 exit-path self-test (no DB, no config): P7_EXIT_TEST=fail must exit 1, =pass exit 0
+if [ -n "${P7_EXIT_TEST:-}" ]; then
+  OUT=/dev/null
+  check 99 "exit-path self-test" $([ "$P7_EXIT_TEST" = "pass" ] && echo 0 || echo 1)
+  [ "$FAIL" = "0" ] && exit 0 || exit 1
+fi
 
 # The harness/consumer read setting/database.xml (AES-encrypted DATABASE),
 # NOT database.ini: retarget via p6_dbxml.py (backup + verify), restore on EXIT.
@@ -58,6 +68,10 @@ print("%d:%s" % (len(rows), h.hexdigest()))
 PY
 }
 LIVE_LEDGER_PRE=$(ledger_hash sik_bench)
+# P7-6: live sik output tables must be untouched by the whole suite
+live_sik() { SQL "CHECKSUM TABLE sik.billing, sik.nota_jalan, sik.detail_nota_jalan, sik.piutang_pasien, sik.detail_piutang_pasien, sik.reg_periksa EXTENDED" | awk '{print $2}' | tr '\n' ':'; }
+LIVE_SIK_PRE=$(live_sik)
+res "live guard pre: sik output-table checksums $LIVE_SIK_PRE"
 XML_PRE=$($DBXML probe 2>&1 | awk '{print $NF}' | sort -u | tr '\n' ' ')
 res "live guard pre: sik_bench ledger $LIVE_LEDGER_PRE · database.xml targets: $XML_PRE"
 if [ "$XML_PRE" != "sik " ]; then res "ABORT: database.xml not on sik before the suite"; exit 3; fi
@@ -223,6 +237,45 @@ D2=$(cnt "stage-drop r5_stage_B2_r6_a9_\* verified" /tmp/r6_a9_B2.log)
 check 9 "A9 B3/B2 under one RUN_ID used disjoint prefixes and each verified-dropped its own" $([ "$P3" -ge 1 ] && [ "$P2" -ge 1 ] && [ "$D3" -ge 1 ] && [ "$D2" -ge 1 ] && echo 0 || echo 1)
 res "A9 backup B3=$P3 B2=$P2 · verified-drop B3=$D3 B2=$D2"
 
+echo "=== A15: pre-reset hash missing at restore time -> STAGE-RESTORE-UNVERIFIED, FAILED, stage tables kept, exit 4 ==="
+freeze r6_a15 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a15 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a15.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "stage-content-hash" /tmp/r6_a15.log 2>/dev/null && break; sleep 0.25; done
+rm -f /opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5/stage_content_hash_*.json
+wait $PID; RC=$?
+UNV=$(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a15.log); KEEP=$(cnt "STAGE-KEEP" /tmp/r6_a15.log)
+STG=$(SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5_stage_B3_r6_a15%';")
+RST=$(python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5/.state.json'));print(','.join(str(b.get('restored')) for b in st['batches'].values()))" 2>/dev/null)
+grep -a "STAGE-RESTORE-UNVERIFIED\|STAGE-KEEP\|FAILED (" /tmp/r6_a15.log | head -3 | cut -c1-200 | tee -a "$OUT"
+check 15 "A15 missing pre-reset hash -> STAGE-RESTORE-UNVERIFIED + exit 4 + restored=False + stage tables kept (STAGE-KEEP)" $([ "$UNV" -ge 1 ] && [ "$RC" = "4" ] && [ "$KEEP" -ge 1 ] && [ "$STG" -gt 0 ] && [ "$RST" = "False" ] && echo 0 || echo 1)
+res "A15 exit=$RC unverified_lines=$UNV stage_keep_lines=$KEEP stage_tables_kept=$STG restored=$RST java_after=$(javacount)"
+# put the two visits back from the kept stage tables, then drop them (the fixture must end clean)
+python3 - "$FX" <<'PY' >> /tmp/r6_a15_cleanup.log 2>&1
+import sys, json
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx = sys.argv[1]; rd = '/opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5'
+st = json.load(open(rd + '/.state.json'))
+nrs = [v for b in st['batches'].values() for v in b['visits']]
+o.stage_restore(nrs, fx, rd, print, 'r6_a15', stage='B3')
+print('stage_drop', o.stage_drop(fx, 'r6_a15', print, stage='B3'))
+PY
+res "A15 cleanup: $(tail -1 /tmp/r6_a15_cleanup.log)"
+
+echo "=== A16: billing run against live sik without --allow-live -> LIVE-TARGET-REFUSED, exit 3 ==="
+env RUN_ID=r6_a16 python3 sampled_real_form_diff_r5.py --db-name sik --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a16.log 2>&1
+RC=$?
+REF=$(cnt "LIVE-TARGET-REFUSED" /tmp/r6_a16.log)
+check 16 "A16 live target refused without --allow-live (exit 3, LIVE-TARGET-REFUSED)" $([ "$RC" = "3" ] && [ "$REF" -ge 1 ] && echo 0 || echo 1)
+res "A16 exit=$RC refused_lines=$REF"
+
+echo "=== A14: suite exit path — a failing check must make the suite exit non-zero ==="
+P7_EXIT_TEST=fail bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EF=$?
+P7_EXIT_TEST=pass bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EP=$?
+check 14 "A14 suite exit path: forced fail -> exit 1, forced pass -> exit 0" $([ "$EF" = "1" ] && [ "$EP" = "0" ] && echo 0 || echo 1)
+res "A14 forced-fail exit=$EF forced-pass exit=$EP"
+
 echo "=== A10: builder single-session transaction on a SCRATCH ledger (${FX}.dr_charge_ledger) ==="
 SQL "DROP TABLE IF EXISTS ${FX}.dr_charge_ledger; CREATE TABLE ${FX}.dr_charge_ledger LIKE sik_bench.dr_charge_ledger; INSERT INTO ${FX}.dr_charge_ledger SELECT * FROM sik_bench.dr_charge_ledger;
      DROP TABLE IF EXISTS ${FX}.dr_tariff; CREATE TABLE ${FX}.dr_tariff LIKE sik_bench.dr_tariff; INSERT INTO ${FX}.dr_tariff SELECT * FROM sik_bench.dr_tariff;"
@@ -237,9 +290,10 @@ SQL "INSERT IGNORE INTO ${FX}.dr_charge_ledger VALUES ('2026/10/01/999999','drug
 env RUN_ID=r6_a10b python3 build_dr_charge_ledger_p2.py --window 2026-10 > /tmp/r6_a10b.log 2>&1
 RCB=$?
 STALE=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger WHERE no_rawat='2026/10/01/999999';")
-TAXBAD=$(SQL "SELECT COUNT(*) FROM (SELECT t.no_rawat, t.amount ta, COALESCE(SUM(d.amount),0) ds FROM ${FX}.dr_charge_ledger t LEFT JOIN ${FX}.dr_charge_ledger d ON d.no_rawat=t.no_rawat AND d.component='drug' WHERE t.component='tax' AND t.no_rawat LIKE '2026/10/%' GROUP BY t.no_rawat, t.amount) x WHERE ABS(ta - ds*0.11) > 1;")
-check 10b "A10b stale in-window key (drug+tax) gone after rebuild; every window tax row = 11% of its own drug subtotal" $([ "$RCB" = "0" ] && [ "$STALE" = "0" ] && [ "$TAXBAD" = "0" ] && echo 0 || echo 1)
-res "A10b exit=$RCB stale_rows=$STALE tax_rows_inconsistent=$TAXBAD"
+TAXBAD=$(SQL "SELECT COUNT(*) FROM (SELECT d.no_rawat, SUM(d.amount) ds FROM ${FX}.dr_charge_ledger d WHERE d.component='drug' AND d.no_rawat LIKE '2026/10/%' GROUP BY d.no_rawat) x LEFT JOIN ${FX}.dr_charge_ledger t ON t.no_rawat=x.no_rawat AND t.component='tax' WHERE (x.ds*11+50) DIV 100 > 0 AND (t.no_rawat IS NULL OR t.amount <> (x.ds*11+50) DIV 100);")
+TAXORPHAN=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger t WHERE t.component='tax' AND t.no_rawat LIKE '2026/10/%' AND NOT EXISTS (SELECT 1 FROM ${FX}.dr_charge_ledger d WHERE d.no_rawat=t.no_rawat AND d.component='drug');")
+check 10b "A10b stale in-window key (drug+tax) gone after rebuild; every window visit with drugs has exactly one tax row = (drug subtotal x 11 + 50) div 100, no orphan tax rows (tolerance 0)" $([ "$RCB" = "0" ] && [ "$STALE" = "0" ] && [ "$TAXBAD" = "0" ] && [ "$TAXORPHAN" = "0" ] && echo 0 || echo 1)
+res "A10b exit=$RCB stale_rows=$STALE tax_wrong_or_missing=$TAXBAD tax_orphan=$TAXORPHAN"
 # mid-build failure: a trigger rejects the first tax row (tax is built LAST, so
 # the DELETE and all registration/procedure/drug REPLACEs are already in the
 # open transaction). The ledger must be byte-identical afterwards.
@@ -281,7 +335,9 @@ $DBXML restore >> /tmp/r6_dbxml.log 2>&1
 LIVE_LEDGER_POST=$(ledger_hash sik_bench)
 XML_POST=$($DBXML probe 2>&1 | awk '{print $NF}' | sort -u | tr '\n' ' ')
 res "live guard post: sik_bench ledger $LIVE_LEDGER_POST · database.xml targets: $XML_POST"
-check 13 "live sik_bench ledger untouched + both database.xml copies restored to sik" $([ "$LIVE_LEDGER_PRE" = "$LIVE_LEDGER_POST" ] && [ "$XML_POST" = "sik " ] && echo 0 || echo 1)
+LIVE_SIK_POST=$(live_sik)
+res "live guard post: sik output-table checksums $LIVE_SIK_POST"
+check 13 "live sik_bench ledger + live sik output tables (billing, nota_jalan, detail_nota_jalan, piutang, reg_periksa) untouched; both database.xml copies on sik" $([ "$LIVE_LEDGER_PRE" = "$LIVE_LEDGER_POST" ] && [ "$LIVE_SIK_PRE" = "$LIVE_SIK_POST" ] && [ "$XML_POST" = "sik " ] && echo 0 || echo 1)
 
 {
   echo ""
@@ -293,3 +349,5 @@ check 13 "live sik_bench ledger untouched + both database.xml copies restored to
 tar czf /opt/dr-benchmark/p-chain/r5_p6_logs_${TS}.tgz /tmp/r6_a*.log /tmp/r6_fz_*.log 2>/dev/null
 echo "=== P6 SUITE DONE: PASS=$PASS FAIL=$FAIL ==="
 echo "evidence: $OUT"
+# P7-1: the suite fails closed — any FAIL makes the exit code non-zero
+[ "$FAIL" = "0" ] && exit 0 || exit 1

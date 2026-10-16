@@ -58,13 +58,15 @@ clone-mode runs; C1-C4 external validity.
 ## 4. Rubric cross-check (fill at close)
 | AC | Evidence | PASS/FAIL | Notes |
 |---|---|---|---|
-| AC-1 fail-closed suite | | | |
-| AC-2 fail-closed restore | | | |
-| AC-3 three_count contract | | | |
-| AC-4 write provenance | | | |
-| AC-5 integer tax | | | |
-| AC-6 live guards | | | |
-| AC-7 records | | | |
+| AC-1 fail-closed suite | `evidence/p7/r5_p6_acceptance_20261016T195113Z.md` A14 | PASS | Forced fail → exit 1, forced pass → exit 0; full run 21/21, wrapper `suite exit=0`. The wrapper itself was not run with a failing suite (A14 tests the suite's exit path; the wrapper propagates `$RC`). |
+| AC-2 fail-closed restore | A15 | PASS | `STAGE-RESTORE-UNVERIFIED`, exit 4, `restored=False`, 13 stage tables kept, then used to restore and dropped. |
+| AC-3 three_count contract | `tools/p7_three_count_contract_test.py` | PASS | 4/4 fixture cases; `--verify-form-save` now enforces B. |
+| AC-4 write provenance | `evidence/p7/r5_p7_write_provenance_*.md` | PASS | Form's JVM account wrote 17 `billing` rows + nota rows; R5 §0/§1/§13 struck through and annotated; §18 item 2. |
+| AC-5 integer tax | A10b; `tools/p7_tax_rule_check.py` | PASS | Integer rule = consumer rule on all 70,056 subtotals; exact A10b with missing/orphan detection; the integer builder `84c49f0d…` run `--window ALL` into an EMPTY scratch table reproduces the live ledger byte-identically (`a66a3a54…`; `evidence/p7/r5_p7_integer_builder_all_check.txt`). |
+| AC-6 live guards | A13, A16 | PASS | Six live `sik` output-table CHECKSUMs equal pre/post; `--db-name sik` refused without `--allow-live`. |
+| AC-7 records | R5 §18, manifest, this rubric, QMS P7-001, trace, failure record | PASS | Astra v7 task build: see §7 below. |
+
+**P7 = PASS.** Ledger decision (§5) executed as option A, owner-approved 2026-10-17.
 
 Scoring: P7 = PASS iff AC-1, AC-2, AC-4 and AC-6 PASS (the fail-closed and provenance
 evidence Astra asked for) and the rest PASS with logged evidence.
@@ -90,3 +92,10 @@ builder actually produced).
 3. Patches P7-1, P7-2, P7-3, P7-5, P7-6 locally → syntax check → deploy, hashes compared.
 4. Suite on a fresh fixture via `p6_run_suite_fresh.sh`; fix real failures, re-run.
 5. Records (P7-7), Astra v7 task build.
+
+## 7. Astra v7 task
+Built 2026-10-17 by `tools/kaggle/build_astra_task_r7.py` →
+`kaggle/deers-rock-assessment/task_r7_reassess.py` (~257 KB; v6 was 233 KB). Embeds the v6
+verdict, R5 §16–§18, this doc, the 21/21 transcript, the provenance audit, the ledger rebuild,
+the integer-builder check, the manifest and every gate/oracle/suite source. Not pushed: run it
+when Kaggle quota allows (`PYTHONUTF8=1` is required for the push on Windows).
