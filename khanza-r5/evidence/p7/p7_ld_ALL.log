@@ -1,0 +1,14 @@
+[19:39:05] === P2 charge delta per component (window=ALL cohort=dr line-diff=True) ===
+[19:39:05] cohort visits: 86455
+[19:39:23] Khanza total: 34870243633 | DR ledger total: 34870243633 | overall delta: 0
+[19:39:23]   registration: khanza=864550000 ledger=864550000 delta=0
+[19:39:23]   procedure: khanza=5155096300 ledger=5155096300 delta=0
+[19:39:23]   drug: khanza=25991529526 ledger=25991529526 delta=0
+[19:39:23]   tax: khanza=2859067807 ledger=2859067807 delta=0
+[19:39:23] integer rupiah; Tolerance Rp 0; 'other' bucket gated
+[19:39:23] unexplained-delta count: 0
+[19:39:41] line-diff (P4-LD): per-visit per-component quantities all match — LINE-DELTA=0
+[19:39:41] gate (all deltas == 0, other == 0, LINE-DELTA == 0): PASS
+[19:39:41] wrote /opt/dr-benchmark/results/p7_gates_20261016T193747Z_ALL_ld/stageA_G2_validation_p2.md
+[19:39:42] per-visit CSV: /opt/dr-benchmark/results/p7_gates_20261016T193747Z_ALL_ld/stageA_charge_delta_p2_per_visit.csv
+[19:39:42] === P2 charge delta PASS in 37s ===

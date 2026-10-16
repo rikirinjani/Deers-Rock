@@ -17,7 +17,7 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | MySQL server | version | 8.0.46-0ubuntu0.24.04.4 |
 | MySQL client / mysqldump | version | 8.0.46-0ubuntu0.24.04.4 |
 | Canonical B3 encounter set | SHA-256 | `84991ca4b143ada732c3679e991b5ab6edb5de52699c4e8695d45f551fab7b08` (285,126 lines, 86,101 visits; re-derived in P4-D2) |
-| DR ground-truth ledger | rows / amount | 356,355 rows / Rp 34,870,243,633 (P2 builder output, byte-for-byte reproducible). A stray `STALE-TEST-KEY` test row (356,356 / …634) found 2026-10-16 was removed; verified back at the pin (R5 §16) |
+| DR ground-truth ledger | rows / amount / content | 356,355 rows / Rp 34,870,243,633 · content SHA-256 `a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7` (rows ordered by no_rawat, component, code; `\|`-joined). **Rebuilt 2026-10-17 (P7 §5 option A, owner-approved)** from live `sik` with the pinned builder `7f6e79c4…` `--window ALL`; identical to a scratch rebuild of 2026-10-16, i.e. reproducible. Superseded content `d2b65d8e5c4d5d07abbcf915a9c2cf5603ec8e9f608e0ce0883d6a9542509f12` kept as `sik_bench.dr_charge_ledger_bak_20261017` (diff: 1 quantity 23→25 on 2026/10/01/000298 B000000240, 260,800 `source` NULL→filled; 0 key/amount/unit-price changes). `charge_delta --line-diff` now PASS on both windows. |
 | Live billing snapshot | rows / amount | 1,464,593 rows / Rp 34,895,128,580 |
 
 ## Pinned gate/oracle tool SHAs (the verification surface)
