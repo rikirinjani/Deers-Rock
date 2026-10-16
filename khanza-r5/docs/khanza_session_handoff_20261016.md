@@ -26,7 +26,8 @@ statements turned out wrong; see "Corrections to the previous handoff").
 1. **Live ledger rebuild?** One pinned row (2026/10/01/000298, drug B000000240) has quantity
    23 vs 25 in source and billing (amount correct). A `--window ALL` rebuild reproduces
    every key/amount/price and fixes it, and fills 260,800 NULL `source` labels — but changes
-   the pinned ledger's content hash. Not done; R5 §17 item 2.
+   the pinned ledger's content hash. Not done; R5 §17 item 2. **Owner decision
+   (2026-10-16): keep the pin as-is for now; decide after the Astra v6 result.**
 2. Push `khanza-r5-p6` to GitHub? (Not pushed.)
 
 ## Agent-runnable work left
