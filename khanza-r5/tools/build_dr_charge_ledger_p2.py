@@ -92,7 +92,9 @@ _TARIFF_STATUS = "none"
 def window_predicate(window):
     """SQL fragment for the cohort window (fix P2-3)."""
     if window == "ALL":
-        return "rp.no_rawat LIKE '____/__/__/8_____%'"  # generated-marker prefix 8
+        # the whole cohort (cohort_predicate scopes it), incl. the 354 Stage-A
+        # October visits that lack the generated 8-prefix
+        return "1=1"
     # default / 2026-10
     return "rp.no_rawat LIKE '2026/10/%'"
 
@@ -174,7 +176,7 @@ def main():
     # ---- TRANSACTIONAL cohort replacement (P2-6 + P6-3 genuine single session) ----
     log("transactional replace (single-session, P6-3): deleting cohort ...")
     if not sess.exec("START TRANSACTION; DELETE FROM dr_charge_ledger WHERE "
-                     + ("no_rawat LIKE '____/__/__/8_____'" if args.window == "ALL"
+                     + ("1=1" if args.window == "ALL"
                         else "no_rawat LIKE '2026/10/%'") + ";"):
         sess.rollback()
         sess.close()
@@ -213,9 +215,7 @@ def main():
             "SELECT rj.no_rawat, rj.kd_jenis_prw, COUNT(*) q, "
             "SUM(CASE WHEN rj.biaya_rawat IS NULL THEN 0 ELSE CAST(rj.biaya_rawat AS SIGNED) END) psum "
             "FROM rawat_jl_dr rj JOIN reg_periksa rp ON rp.no_rawat=rj.no_rawat "
-            "AND rp.no_rawat LIKE " + ("'____/__/__/8_____%'" if args.window == "ALL"
-                                        else "'2026/10/%'")
-            + " WHERE %s AND rj.kd_jenis_prw IS NOT NULL AND rj.kd_jenis_prw<>'' "
+            "AND " + wp + " WHERE %s AND rj.kd_jenis_prw IS NOT NULL AND rj.kd_jenis_prw<>'' "
               "GROUP BY rj.no_rawat, rj.kd_jenis_prw" % cp)
         n = 0
         for nr, kdp, q, psum in proc:
@@ -246,9 +246,7 @@ def main():
             "FROM detail_pemberian_obat d "
             "LEFT JOIN databarang b ON b.kode_brng=d.kode_brng "
             "JOIN reg_periksa rp ON rp.no_rawat=d.no_rawat "
-            "AND rp.no_rawat LIKE " + ("'____/__/__/8_____%'" if args.window == "ALL"
-                                        else "'2026/10/%'")
-            + " WHERE %s GROUP BY d.no_rawat, d.kode_brng" % cp)
+            "AND " + wp + " WHERE %s GROUP BY d.no_rawat, d.kode_brng" % cp)
         n = 0
         drug_sub = {}  # P6-3: per-visit drug subtotal of THIS build (for step 4)
         for nr, kdb, q, psum in drugs:

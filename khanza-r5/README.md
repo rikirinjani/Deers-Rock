@@ -7,7 +7,7 @@ stay in [`../khanza-benchmark-asset/`](../khanza-benchmark-asset/).
 
 | Folder | Contents |
 |---|---|
-| `tools/` | The deployed tools (source of truth; VPS copy is `/opt/Deers-Rock/tools/`): `sampled_real_form_diff_r5.py` (oracle), `dbutil.py`, `build_dr_charge_ledger_p2.py`, `charge_delta_per_component_p2.py`, `three_count_reconcile_p2.py`, `p6_acceptance_suite.sh`, `p6_smoke_a1.sh`, `p6_dbxml.py` |
+| `tools/` | The deployed tools (source of truth; VPS copy is `/opt/Deers-Rock/tools/`): `sampled_real_form_diff_r5.py` (oracle), `dbutil.py`, `build_dr_charge_ledger_p2.py`, `charge_delta_per_component_p2.py`, `three_count_reconcile_p2.py`, `p6_acceptance_suite.sh`, `p6_run_suite_fresh.sh` (one command: fixture → suite → teardown), `p6_strata_recheck.sh`, `p6_smoke_a1.sh`, `p6_dbxml.py` |
 | `tools/scripts/` | One-off R5/P5/P6 VPS probe/demo scripts (historical; not part of the pipeline) |
 | `tools/kaggle/` | Astra task builders (`build_astra_task_r5.py`, `build_astra_task_r5p5.py`) and the v5 task source |
 | `docs/` | R5 report, P5/P6 task docs, release manifest, Astra-r4 fix list, the 2026-10-15 session handoff |
@@ -21,8 +21,15 @@ Connection details live in `.vps.env` (gitignored; key at `~/.ssh/id_ed25519_dr_
 ```bash
 . khanza-r5/.vps.env
 scp $VPS_OPTS -P $VPS_PORT khanza-r5/tools/<file> root@$VPS_HOST:/opt/Deers-Rock/tools/
-ssh $VPS_OPTS -p $VPS_PORT root@$VPS_HOST 'bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh'
+ssh $VPS_OPTS -p $VPS_PORT root@$VPS_HOST 'bash /opt/Deers-Rock/tools/p6_run_suite_fresh.sh'
 ```
+
+`p6_run_suite_fresh.sh` builds the disposable `sik_p6f` fixture (~3 min), runs the suite
+(~6 min) and always revokes the grant and drops the fixture afterwards.
+
+**Keep everything here.** The old working folder `%TEMP%\opencode` was deleted by a temp
+cleanup on 2026-10-16 (~1,790 files not gathered here are gone locally; many have copies
+on the VPS under `/opt/dr-benchmark/` and `/tmp/`). Never treat a temp folder as storage.
 
 Long runs: launch detached (`setsid nohup … &`) and poll the console log; an SSH
 drop must not kill a run that has reset visits.

@@ -1,0 +1,42 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-16-DR-KHANZA-R5-P6-002",
+  "date": "2026-10-16",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 post-P6: --window ALL fix, ledger reproducibility, P4 edge-strata re-check, current-pin suite re-run",
+  "supplements": "VER-2026-10-16-DR-KHANZA-R5-P6-001",
+  "evidence": [
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §17 (and the §14/§16 annotations it references)",
+    "khanza-r5/evidence/window_all/ (live --window ALL gates, scratch builder rebuilds, line-diff)",
+    "khanza-r5/evidence/p4_strata_recheck/r5_p4_strata_recheck_20261016T054138Z.md",
+    "khanza-r5/evidence/p6/r5_p6_acceptance_20261016T054920Z.md (18/18 on current pins)",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (§17 re-pin)"
+  ],
+  "tool_sha256": {
+    "charge_delta_per_component_p2.py": "584e36c57e467e46f9cf3e7e3f7b8a923960fd5c811ee17073d10d8d4e63c753",
+    "three_count_reconcile_p2.py": "9ff4396cde9db8aa4f71b6702467a934741293a04a640ce14ba06b14a2c2f436",
+    "build_dr_charge_ledger_p2.py": "7f6e79c41bed6f85a86c0c378dc5da247194e44497d358435cdac14b1beff727",
+    "p6_run_suite_fresh.sh": "d11cd16f5f17508aa6cd645f6606d071357f2052c5afeb99ad3bc4afcbba851e",
+    "p6_strata_recheck.sh": "1fdc29cbec027131021b34ea5787b8508686fdb2276ebd27a02d52703b191e7b"
+  },
+  "checks": [
+    "--window ALL reproduced as MySQL 1064 before the fix; after: charge_delta delta 0 over 86,455 visits; three_count A==C 356,355 / Rp 34,870,243,633 — PASS",
+    "--window 2026-10 unchanged after the fix (regression) — PASS",
+    "Builder --window ALL rebuild into scratch: keys, amounts, unit prices identical to the pinned ledger; planted stale keys removed — PASS (differs in one quantity and in source labels, disclosed)",
+    "P4 edge strata on a verified database.xml target: >2-proc (4 real visits) and authored embalase/tuslah visits BILLED sukses=true, OUT-OF-ENVELOPE, exit 4 — PASS; ZEROFEE/HALFPPN not re-tested",
+    "Full suite on current pins via one-command fixture build/teardown: 18/18 — PASS"
+  ],
+  "findings": [
+    "Astra v5's ALL-predicate finding was correct; the handoff (and R5 §16) had dismissed it — retracted",
+    "Pinned ledger row 2026/10/01/000298 drug has quantity 23 vs 25 in source and billing (amount correct); line-diff flags it; live ledger not rewritten (owner decision)",
+    "P4's edge-strata form runs hit live sik (database.ini); its §14 claim is superseded by the §17 re-check",
+    "In this Khanza configuration embalase/tuslah on a dispensing row do not appear on the outpatient bill"
+  ],
+  "open_items": [
+    "Owner decision: rebuild the live ledger (corrects the one quantity, fills source labels) or keep the pin as-is",
+    "ZEROFEE / HALFPPN strata need a consumer-billed baseline to test",
+    "Pre-P6 clone-mode form runs (P1 sik_r5, P4 sik_p2) not individually re-verified"
+  ],
+  "result": "PASS (with disclosed findings)",
+  "verifier": "orchestrator solo stream (no subagents); scratch DBs sik_wtest, sik_p4r, sik_p6f dropped; temporary grants revoked; live gates re-run"
+}

@@ -56,8 +56,12 @@ Buckets = COMPONENTS + ("other",)
 
 
 def window_predicate(window):
-    return ("no_rawat LIKE '____/__/__/8_____%" if window == "ALL"
-            else "no_rawat LIKE '2026/10/%'")
+    # ALL = the whole cohort: no date restriction, the cohort predicate scopes
+    # it. (The former generated-marker pattern '____/__/__/8_____%' was missing
+    # its closing quote — every --window ALL run died with MySQL 1064 — and, even
+    # quoted, it skipped the 354 Stage-A October visits, which do not carry the
+    # 8-prefix: 86,101 of the 86,455 DR visits the ledger holds.)
+    return "1=1" if window == "ALL" else "no_rawat LIKE '2026/10/%'"
 
 
 def cohort_predicate(cohort):

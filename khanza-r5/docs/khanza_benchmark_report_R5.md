@@ -391,13 +391,17 @@ P4; all on scratch fixtures with no live-DB mutation:
   *quantity* (drug+procedure) **in aggregate**, not code-level line items. Clean canonical ledger →
   `LINE-DELTA=0`; a same-price quantity misallocation → `GAP [P2-LINE-DELTA]` + named
   `LINE-DELTA`. Pure same-price code-*label* swaps remain a documented limit
-  (`sik.billing` stores item names, not codes).
+  (`sik.billing` stores item names, not codes). **[§17: the current live ledger is NOT
+  LINE-DELTA=0 — one row, 2026/10/01/000298 drug, has quantity 23 vs 25 in source/billing.]**
 - **B3 edge strata — agent-tested (P5 behavior):** 5 authored STRATA- visits (embalase, tuslah,
   half-rupiah PPN, zero-fee, ≥3-proc) run through the real form on a scratch clone; the P1
   oracle (`--allow-strata`) reports all 5 as **not-covered** — post-P5 this is
   *eligibility-based* classification at load time (a `classification=OUT-OF-ENVELOPE`
   column in the result CSV), not attempt-based: verdict `PARTIAL-NOT-COVERED`, exit 4, no
-  crash, no false pass.
+  crash, no false pass. **[§17: this run did NOT reach the clone — the harness was pointed
+  via `database.ini`, which it does not read, so the form ran on live `sik` where the
+  STRATA- visits did not exist; TUSLAH/HALFPPN had registration rows only. Superseded by the
+  §17 re-check.]**
 - **E2 bounded burst — measured:** the consumer sustained **916 v/min** on a cold scratch
   target (2,000-visit slice; wall-clock 65.5 ms/visit incl. per-visit I/O vs consumer-internal
   64.2 ms/visit, both figures kept, P5-7) vs ~1,802 v/min warm at B3. **Corrects the
@@ -568,11 +572,11 @@ there was diagnosed to a code or test-design defect and fixed before the next ru
   Rp 34,870,243,634 against the pinned 356,355 / …633. P6 did not touch it (A13); removed with
   owner approval at 05:25 UTC (1 row) → ledger back to 356,355 / Rp 34,870,243,633.
 
-**Corrections to earlier sections:** the "unterminated `--window ALL` SQL literal" in §15
-was a misread (the closing quote is present; the `%` sits inside the SQL string) — not a
-defect. The §15 "single-session transaction" follow-up is closed by P6-3 (A10/A10b/A10c).
-The `--window ALL` scoping question for the 354 Stage-A visits raised in the v5 source read
-was **not tested by P6** and remains open.
+**Corrections to earlier sections:** ~~the "unterminated `--window ALL` SQL literal" in §15
+was a misread~~ — **retracted in §17: the literal WAS unterminated** (Astra v5 was right; this
+sentence repeated the handoff without checking the source). The §15 "single-session
+transaction" follow-up is closed by P6-3 (A10/A10b/A10c). The `--window ALL` scoping
+question for the 354 Stage-A visits is resolved in §17.
 
 **Live gates after P6 (2026-10-16 05:20 UTC):** charge_delta PASS (all deltas 0);
 three_count A == C = 31,750 rows / Rp 3,113,533,580 (B-subset `P2-BC-TOTAL` FAIL as
@@ -588,3 +592,65 @@ measurement, not population proof. P6 proves the enforcement suite on a clone, n
 settlement equivalence.
 
 **Manifest:** tool SHAs re-pinned to the P6 build (see `khanza_r5_release_manifest.md`).
+
+## 17. Post-P6 corrections and re-checks (2026-10-16, new)
+
+Done while preparing the Astra v6 task; each item was checked against code or a run, not
+taken from a handoff.
+
+**1. `--window ALL` — Astra v5 was right (retracts the §16 sentence).** Both gate tools built
+`"no_rawat LIKE '____/__/__/8_____%"` with no closing quote; every `--window ALL` run of
+`charge_delta` and `three_count` died with MySQL 1064 (reproduced live before the fix). The
+pattern was also wrong in scope: it matches 86,101 of the 86,455 DR visits and skips the 354
+Stage-A October visits (§2), and the builder hard-coded it in its DELETE and its
+procedure/drug queries. Fix: `ALL` = no date restriction (`1=1`), the cohort predicate scopes
+it; the builder uses one shared predicate. Live results after the fix
+(`evidence/window_all/`):
+- charge_delta `--window ALL`: 86,455 visits, all four component deltas 0, PASS (totals
+  sum to Rp 34,870,243,633).
+- three_count `--window ALL`: A == C = **356,355 rows / Rp 34,870,243,633** — the ledger pin.
+  B (verified form-save subset) = 1,068 notes / Rp 413,944,708; `P2-BC-TOTAL` FAIL as
+  documented in §15.
+- `--window 2026-10` unchanged (31,750 / Rp 3,113,533,580, delta 0).
+
+**2. Ledger reproducibility, and one latent ledger defect.** A full `--window ALL` rebuild
+from live `sik` into a scratch copy (two stale keys planted first, both removed) gives
+356,355 rows with **the same keys, amounts and unit prices** as the pinned ledger. It differs
+in: (a) `source` — 260,800 pinned rows outside October carry `NULL` from an older builder;
+the rebuild writes `dr_tariff`; (b) **one quantity: pinned row `2026/10/01/000298` drug
+`B000000240` has quantity 23 while its own amount is 745,800 = 25 × 29,832 and both source
+(`detail_pemberian_obat.jml`) and billing say 25.** `charge_delta --line-diff` flags it
+(`LINE-DELTA … khanza_qty=25 ledger_qty=23` → FAIL), so §14's "clean canonical ledger →
+LINE-DELTA=0" does not hold for the current ledger. Its origin is not established. The
+live ledger has **not** been rewritten (owner decision); the default gate (amounts) stays
+PASS because the amount is correct.
+
+**3. P4 edge strata (§14) — re-checked on a verified target.** P4 had pointed the harness at
+its clone via `database.ini`, so its form runs hit live `sik`, where the `STRATA-` visits did
+not exist (explaining its "5/5 sukses=false, 0 value rows"); TUSLAH/HALFPPN were
+registration-only and the eligibility predicate does not look at fee or PPN. Re-check
+(`evidence/p4_strata_recheck/`, `tools/p6_strata_recheck.sh`):
+- **>2 procedures:** 4 real visits (P6 A3/A6) billed `sukses=true` through the form on the
+  clone, classified `OUT-OF-ENVELOPE`, exit 4.
+- **Embalase / tuslah** (no such rows exist in the real data): two visits authored as copies
+  of DR visit 800085 with embalase 2500 / tuslah 1500 on the drug line; full clone,
+  `database.xml` retarget verified. Both `BILLED`, `sukses=true`, `OUT-OF-ENVELOPE`, exit 4,
+  verified stage drop, `database.xml` back on `sik`. **The form's bill was identical to the
+  template** (drug Rp 2,640 + PPN Rp 290; no embalase/tuslah line): in this Khanza
+  configuration those charges do not reach the outpatient bill, so these strata carry no
+  observable billing difference here.
+- ZEROFEE / HALFPPN are in-envelope by the predicate and need a consumer-billed baseline;
+  **not re-tested.**
+
+**4. Suite re-run on the current pins.** After the builder/gate changes the suite was re-run
+end-to-end with `tools/p6_run_suite_fresh.sh` (fresh full clone → suite → teardown):
+**18/18 PASS** (`evidence/p6/r5_p6_acceptance_20261016T054920Z.md`); fixture dropped and the
+temporary grant revoked by the wrapper.
+
+**5. Scope note.** Every pre-P6 form run described as running "on a scratch clone" via
+`database.ini` (P1 clone-mode demos on `sik_r5`, P4 on `sik_p2`) should be read as having run
+the form against live `sik` (the P5 demos already stated live `sik`); only §16/§17 runs are
+verified to have used the clone.
+
+**Manifest:** gate tools and builder re-pinned (`charge_delta` `584e36c5…`, `three_count`
+`9ff4396c…`, builder `7f6e79c4…`) plus `p6_run_suite_fresh.sh` and `p6_strata_recheck.sh`.

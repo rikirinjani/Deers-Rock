@@ -26,12 +26,22 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 |---|---|
 | `sampled_real_form_diff_r5.py` (P5 fail-closed + P6-2a..g + P6-4 group kill/SIGTERM handler + verified restore/drop) | `ee74ceee62e81f9f0e391f2f92e1214a0998dad38939a222b9f4f94069fdd65c` |
 | `dbutil.py` (P5-5b split + P6-3 `session()` single-session transaction; `query/scalar(force_root=)`) | `f85958b4213e43db34bfd7a09089b094334b21312ec68a19692553a9d88f40b0` |
-| `charge_delta_per_component_p2.py` (P2 + P4 line-diff; unchanged) | `84604d9592eb22c77427abb0e7361c53b263072503b2d12466166a59ceeaeaf3` |
-| `three_count_reconcile_p2.py` (P2 independent B; unchanged) | `01abcb724d8d6c6eb41c0b53e4b6a71b57f2a09bfd51b7ed3ec6ec257aba9110` |
-| `build_dr_charge_ledger_p2.py` (P6-3 single-session cohort replace; tax from in-build subtotals) | `57a0adbca96e24879824b8ef98da16cd84fe644834261a3723f37aab18ab1546` |
+| `charge_delta_per_component_p2.py` (P2 + P4 line-diff; §17 `--window ALL` = whole DR cohort) | `584e36c57e467e46f9cf3e7e3f7b8a923960fd5c811ee17073d10d8d4e63c753` |
+| `three_count_reconcile_p2.py` (P2 independent B; §17 `--window ALL` = whole DR cohort) | `9ff4396cde9db8aa4f71b6702467a934741293a04a640ce14ba06b14a2c2f436` |
+| `build_dr_charge_ledger_p2.py` (P6-3 single-session cohort replace; tax from in-build subtotals; §17 ALL scope) | `7f6e79c41bed6f85a86c0c378dc5da247194e44497d358435cdac14b1beff727` |
 | `p6_acceptance_suite.sh` (P6 18-check suite) | `a2212fdcd62405bf96851ee6f386241786c0af377c0dec2867677c6a122b0f91` |
 | `p6_dbxml.py` (verified `database.xml` retarget/restore) | `469c698e01fb95eba09714e78de096eaa4625fc47814c4055743a6973c0225a9` |
+| `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown) | `d11cd16f5f17508aa6cd645f6606d071357f2052c5afeb99ad3bc4afcbba851e` |
+| `p6_strata_recheck.sh` (§17 edge-strata re-check on a verified target) | `1fdc29cbec027131021b34ea5787b8508686fdb2276ebd27a02d52703b191e7b` |
 
+> §17 (2026-10-16, later the same day) re-pins the two gate tools and the builder after the
+> `--window ALL` fix (gate pins `84604d95…` / `01abcb72…` and builder `57a0adbc…` superseded).
+> Ledger reproducibility: a full `--window ALL` rebuild from source into a scratch copy
+> reproduces all 356,355 keys and every amount and unit price of the pinned ledger; it differs
+> in one quantity (the pinned row 2026/10/01/000298 drug is wrong, 23 vs 25) and in
+> `source` labels (260,800 pinned rows carry NULL from an older builder). "Byte-for-byte" now
+> holds for keys/amounts/prices, not for the whole row. See R5 §17.
+>
 > P6 (2026-10-16) supersedes the P5 pins `70f37ba3…` (oracle), `7ce404a1…` (dbutil) and
 > `6f81ec1f…` (builder). **Pin drift found:** at the start of P6 the VPS carried none of
 > those — it had an intermediate P6 build (`785beb35…`, `a1a3f701…`, `d0b79425…`, copies

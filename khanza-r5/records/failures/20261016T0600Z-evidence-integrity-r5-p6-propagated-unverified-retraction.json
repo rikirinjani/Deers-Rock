@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-16T06:00:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "R5 §16 repeated an unverified handoff claim that dismissed a correct external finding (--window ALL predicate)",
+  "what_went_wrong": [
+    "The 2026-10-15 handoff stated Astra v5's 'unterminated ALL-predicate SQL literal' finding was a misread ('closing quotes are present (verified in source)').",
+    "R5 §16 (written 2026-10-16 by the orchestrator) repeated that as 'a misread ... not a defect' without opening the source. The source line is \"no_rawat LIKE '____/__/__/8_____%\" — no closing quote; every --window ALL run of charge_delta and three_count died with MySQL 1064.",
+    "The same predicate, once quoted, also covered only 86,101 of the 86,455 DR visits (skipping the 354 Stage-A visits), and the builder's ALL path hard-coded the same pattern in its DELETE and its procedure/drug queries.",
+    "Follow-on checks the same day found two more statements that had never been verified: R5 §14 'clean canonical ledger -> LINE-DELTA=0' (the live ledger has one row with quantity 23 vs 25 in source and billing) and §14's 'edge strata run through the real form on a scratch clone' (the form ran on live sik via database.ini)."
+  ],
+  "root_cause": "A handoff assertion was treated as verified because it said 'verified in source'; the claim contradicted an external assessor and was not re-checked against the code before being written into the report.",
+  "detection": "Orchestrator, while preparing the Astra v6 task (reading the v5 verdict against the current source), 2026-10-16.",
+  "correction": {
+    "code": "window_predicate ALL = '1=1' (whole DR cohort, scoped by the cohort predicate) in charge_delta / three_count / builder; builder DELETE and procedure/drug queries use the shared predicate.",
+    "verification": "Live --window ALL: charge_delta delta 0 over 86,455 visits; three_count A==C 356,355 / Rp 34,870,243,633. Builder --window ALL into a scratch copy reproduces all keys/amounts/prices of the pinned ledger. P4 edge strata re-checked on a verified database.xml target (evidence/p4_strata_recheck).",
+    "report": "R5 §16 sentence struck through and pointed at §17; §14 statements annotated; §17 added; manifest re-pinned."
+  },
+  "rule": "A claim that dismisses an external finding must be re-verified against the artifact before it is repeated, regardless of how the source of the claim labels it.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

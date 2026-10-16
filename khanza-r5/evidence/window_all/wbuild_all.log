@@ -1,0 +1,15 @@
+[05:37:11] window=ALL cohort=dr fallback=False require-tariff=False
+[05:37:11] dr_tariff authority rows: 685
+[05:37:11] transactional replace (single-session, P6-3): deleting cohort ...
+[05:37:18] registration rows: 86455
+[05:37:25] procedure rows: 86455
+[05:37:33] drug rows: 113389
+[05:37:35] tax rows: 70056 (cohort-scoped to window=ALL)
+[05:37:35] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+[05:37:36] dr_charge_ledger rows per component:
+[05:37:36]   registration  86455 rows  amount=864550000
+[05:37:36]   procedure     86455 rows  amount=5155096300
+[05:37:36]   drug         113389 rows  amount=25991529526
+[05:37:36]   tax           70056 rows  amount=2859067807
+[05:37:38] artifact written: /opt/dr-benchmark/results/wbuild_all/dr_charge_ledger_p2.csv
+[05:37:39] done: ledger built (window=ALL cohort=dr integer=OK)

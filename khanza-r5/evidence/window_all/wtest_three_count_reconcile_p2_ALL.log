@@ -1,0 +1,13 @@
+[05:36:29] === P2 three-count reconcile (window=ALL cohort=dr) ===
+[05:36:30] cohort visits: 86455
+[05:36:37] Count A (consumer sik.billing): rows=356355 amount=34870243633
+[05:36:37] Count B (real-form save (NOTA/PIUTANG) VERIFIED): rows=1068 amount=413944708
+[05:36:37] Count C (DR ledger sik_bench): rows=356355 amount=34870243633
+[05:36:37]   registration: A=86455/864550000 C=86455/864550000
+[05:36:37]   procedure: A=86455/5155096300 C=86455/5155096300
+[05:36:37]   drug: A=113389/25991529526 C=113389/25991529526
+[05:36:37]   tax: A=70056/2859067807 C=70056/2859067807
+[05:36:37]   B total paid=413944708 notes=1068 vs C total=34870243633 rows=356355 (independent check)
+[05:36:37] GAP [P2-BC-TOTAL] note: B (form-save note total) != C (ledger): B=413944708 C=34870243633 (independent third-source disagreement)
+[05:36:37] gate: FAIL (A==B==C where B verified; B verified)
+[05:36:37] wrote /opt/dr-benchmark/results/wtest_20261016T053608Z_ALL/stageA_G2_validation_p2.md

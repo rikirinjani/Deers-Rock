@@ -1,0 +1,4 @@
+[05:44:34] ALLOW-STRATA (B3): 2 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2026/10/01/890001', '2026/10/01/890002']
+[05:44:35] FROZEN 2 visits -> /opt/dr-benchmark/results/p4r_20261016T054138Z/B3_oracle_run_r5/baseline_frozen (sha256_all=93e9d79430d430a9)
+[05:44:36] verify-frozen: PASS
+[05:44:36] FREEZE-ONLY exit 0 (administrative mode; no billing comparison performed; P6-2c)
