@@ -58,6 +58,12 @@ statements turned out wrong; see "Corrections to the previous handoff").
 - Every claim that dismisses an external finding gets re-checked against the artifact before
   it is repeated (failure record 20261016T0600Z).
 
+## Commercialization (for later)
+A brainstorm on commercial potential (assets, blockers, ranked directions, scorecard,
+validation steps with stop criteria) lives in the doc "Deers-Rock × Khanza —
+Commercialization Considerations": https://claude.ai/code/artifact/b07a4278-ece7-4fb9-a052-0e7924b6c57a
+Revisit after the Astra v6 result or the first vendor interviews.
+
 ## Records
 R5 §16–§17; manifest (§17 re-pin); QMS `VER-2026-10-16-DR-KHANZA-R5-P6-001` + `-P6-002`;
 failure records `20261016T0520Z-*` (2) and `20261016T0600Z-*`; traces `r5-p6-acceptance`,
