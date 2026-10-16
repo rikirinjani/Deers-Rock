@@ -52,7 +52,11 @@ statements turned out wrong; see "Corrections to the previous handoff").
 
 ## How to run things
 - VPS access: `. khanza-r5/.vps.env` (gitignored; key `~/.ssh/id_ed25519_dr_vps`), then
-  `ssh $VPS_OPTS -p $VPS_PORT root@$VPS_HOST …`. Long runs: `setsid nohup … &`, poll the log.
+  `ssh $VPS_OPTS -p $VPS_PORT root@$VPS_HOST …`. Long runs: launch fully detached so nothing
+  holds the SSH session open — `(setsid nohup bash job.sh > /tmp/job.log 2>&1 < /dev/null &)` as
+  its own ssh call, then poll the log in separate calls. A job chained with `&&` before `&`, or
+  left attached to the session's output, keeps the connection open and later surfaces as a
+  late "exit code 255" background notification (2026-10-16: about a dozen, all harmless).
 - Any form run on a scratch DB: grant `benchmark@localhost` DML on it, then
   `p6_dbxml.py retarget <db>` … `p6_dbxml.py restore` (in an EXIT trap). Never `database.ini`.
 - Every claim that dismisses an external finding gets re-checked against the artifact before
