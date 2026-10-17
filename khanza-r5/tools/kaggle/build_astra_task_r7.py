@@ -169,8 +169,45 @@ CONTENT = (
     + "\n\n".join(tool_sources)
 )
 
+# ---------------------------------------------------------------------------
+# Task template. One template serves the full run (all six sections + synthesis)
+# and the budget split (--step 1|2|3): a step runs a SUBSET of the same section
+# calls with the same BASE/CONTENT/asks; step 3 also runs the synthesis, fed the
+# same digest a full run would build (last 2,500 chars of every section, in the
+# canonical order), taking steps 1-2 from their saved outputs. A $10/day model
+# quota cannot fit a full run (~$11-12), so the split keeps the score comparable.
+# ---------------------------------------------------------------------------
+import re
+import sys
+
+ORDER = [k for k, _ in SECTIONS]
+STEPS = {1: ["claim-honesty"],
+         2: ["gate-correctness", "oracle-validity", "reproducibility"],
+         3: ["e2e-design", "external-validity"]}
+
+
+def load_prior(step):
+    """Section texts of earlier steps, from evidence/astra_v7_step<N>_*_output.md."""
+    prior = {}
+    for s in range(1, step):
+        hits = sorted(EVID.glob("astra_v7_step%d_*_output.md" % s))
+        if not hits:
+            raise SystemExit("step %d output not found in evidence/ — run step %d first" % (s, s))
+        text = read(hits[-1])
+        for key in STEPS[s]:
+            m = re.search(r"^## %s\n" % re.escape(key.upper()), text, re.M)
+            if not m:
+                raise SystemExit("section %s missing from %s" % (key, hits[-1].name))
+            rest = text[m.end():]
+            nxt = [rest.find("\n## %s\n" % k.upper()) for k in ORDER] + [rest.find("\n## VERDICT\n")]
+            nxt = [i for i in nxt if i >= 0]
+            prior[key] = rest[:min(nxt)].strip() if nxt else rest.strip()
+    return prior
+
+
 body = '''"""
 GPT-6 Astra v7 assessment of the DR->Khanza E2E billing benchmark (post P1-P7 remediation).
+%s
 All evidence/report/task-doc/v6-verdict/manifest/tool and suite sources embedded inline.
 Assessment history: 4701365 = 35/100; 4769794 = 43/100; 4795743 = 43/100; 4818826 = 52/100.
 """
@@ -188,9 +225,12 @@ CONTENT = %r
 
 SECTIONS = %r
 SYNTH = %r
+ORDER = %r
+PRIOR = %r
+LABEL = %r
 
 
-@kbench.task(name="dr-khanza-e2e-full-assessment", description="GPT-6 v7 assessment of DR->Khanza E2E benchmark after P1-P7 remediation")
+@kbench.task(name="dr-khanza-e2e-full-assessment", description="GPT-6 v7 assessment of DR->Khanza E2E benchmark after P1-P7 remediation" + LABEL)
 def dr_khanza_e2e_assessment(llm) -> dict:
     """Astra v7 assessment of the DR->Khanza E2E benchmark."""
     sections = {}
@@ -204,18 +244,23 @@ def dr_khanza_e2e_assessment(llm) -> dict:
             resp = "[ERROR] " + type(e).__name__ + ": " + str(e)[:300]
             errors += 1
         sections[key] = resp
-    digest = "\\n\\n".join("### " + k + "\\n" + v[-2500:] for k, v in sections.items())
-    try:
-        with kbench.chats.new("synthesis"):
-            verdict = llm.prompt(SYNTH + "\\n\\n" + digest[:20000],
-                                 extra_api_params={"max_tokens": 10000})
-    except Exception as e:
-        verdict = "[SYNTHESIS ERROR] " + type(e).__name__ + ": " + str(e)[:300]
-        errors += 1
-    lines = ["# Astra v7 assessment: dr-khanza-e2e-full-assessment (post P1-P7)", ""]
+    verdict = ""
+    if SYNTH:
+        allsec = dict(PRIOR)
+        allsec.update(sections)
+        digest = "\\n\\n".join("### " + k + "\\n" + allsec[k][-2500:] for k in ORDER if k in allsec)
+        try:
+            with kbench.chats.new("synthesis"):
+                verdict = llm.prompt(SYNTH + "\\n\\n" + digest[:20000],
+                                     extra_api_params={"max_tokens": 10000})
+        except Exception as e:
+            verdict = "[SYNTHESIS ERROR] " + type(e).__name__ + ": " + str(e)[:300]
+            errors += 1
+    lines = ["# Astra v7 assessment: dr-khanza-e2e-full-assessment (post P1-P7)" + LABEL, ""]
     for key in sections:
         lines += ["## " + key.upper(), "", sections[key], ""]
-    lines += ["## VERDICT", "", verdict, ""]
+    if SYNTH:
+        lines += ["## VERDICT", "", verdict, ""]
     report = "\\n".join(lines)
     for p in ["dr-khanza-e2e-full-assessment_output.md", "/kaggle/working/dr-khanza-e2e-full-assessment_output.md"]:
         try:
@@ -226,15 +271,16 @@ def dr_khanza_e2e_assessment(llm) -> dict:
     for i in range(0, len(report), 3000):
         print(f"---REPORT-CHUNK {i // 3000}---")
         print(report[i:i + 3000])
-    kbench.assertions.assert_true(len(sections) == 6,
-                                  expectation="all six assessment sections produced")
+    kbench.assertions.assert_true(len(sections) == len(SECTIONS),
+                                  expectation="all requested assessment sections produced")
     for key in sections:
         kbench.assertions.assert_true(len(sections[key].strip()) > 100,
                                       expectation=f"section {key} non-empty")
     kbench.assertions.assert_true(errors == 0,
                                   expectation="all LLM calls succeeded")
-    kbench.assertions.assert_true(len(verdict.strip()) > 100,
-                                  expectation="verdict produced")
+    if SYNTH:
+        kbench.assertions.assert_true(len(verdict.strip()) > 100,
+                                      expectation="verdict produced")
     return {"sections": list(sections), "errors": errors,
             "verdict": verdict[:2500], "report_chars": len(report)}
 
@@ -257,10 +303,27 @@ try:
 except Exception as _e:
     print("IMPORT-RUN skipped/failed (expected at creation-time):",
           type(_e).__name__, str(_e)[:300])
-''' % (BASE, CONTENT, SECTIONS, SYNTH)
+'''
 
-out = R5.parent / "kaggle" / "deers-rock-assessment" / "task_r7_reassess.py"
-out.write_text(body, encoding="utf-8")
-(HERE / "task_r7_reassess.py").write_text(body, encoding="utf-8")
+step = int(sys.argv[sys.argv.index("--step") + 1]) if "--step" in sys.argv else 0
+if step:
+    keys = STEPS[step]
+    sections = [(k, a) for k, a in SECTIONS if k in keys]
+    synth = SYNTH if step == 3 else ""
+    prior = load_prior(step) if step == 3 else {}
+    label = " [step %d/3: %s%s]" % (step, ", ".join(keys), " + synthesis" if synth else "")
+    note = ("BUDGET SPLIT step %d of 3 (sections: %s%s). Same BASE, CONTENT and section asks as a "
+            "full run; the three steps together equal one full assessment." % (step, ", ".join(keys), "; plus the synthesis over all six" if synth else ""))
+    name = "task_r7_step%d.py" % step
+else:
+    sections, synth, prior, label = SECTIONS, SYNTH, {}, ""
+    note = "Full run: all six sections + synthesis."
+    name = "task_r7_reassess.py"
+
+text = body % (note, BASE, CONTENT, sections, synth, ORDER, prior, label)
+out = R5.parent / "kaggle" / "deers-rock-assessment" / name
+out.write_text(text, encoding="utf-8")
+(HERE / name).write_text(text, encoding="utf-8")
 print("wrote %s (%d bytes)" % (out, out.stat().st_size))
-print("CONTENT chars: %d (v6 task file was 233,384 bytes)" % len(CONTENT))
+print("sections: %s · synthesis: %s · prior sections embedded: %s" % ([k for k, _ in sections], bool(synth), list(prior)))
+print("CONTENT chars: %d" % len(CONTENT))
