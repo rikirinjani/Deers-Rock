@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-17T21:00:00Z",
+  "category": "evidence-integrity",
+  "severity": "minor",
+  "title": "Astra v7 synthesis was fed an empty claim-honesty section (builder picked the gemini validation file)",
+  "what_went_wrong": [
+    "build_astra_task_r7.py load_prior() took sorted(glob('astra_v7_step1_*_output.md'))[-1]. The glob also matches astra_v7_step1_validation_gemini_4880116_output.md, which sorts after the astra file and has an empty CLAIM-HONESTY section.",
+    "The merged v7 task (Kaggle version 9) therefore embedded PRIOR = {'claim-honesty': ''}; the synthesis (gpt-6-astra run 4894730) stated 'The claim-honesty section is empty' and scored claim-honesty 6/10 from the other sections' contradictions.",
+    "The dry run with a fake model checked section splitting and the synthesis digest keys, but not that the embedded prior text was non-empty."
+  ],
+  "root_cause": "A selection-by-glob over a folder holding two kinds of outputs with a shared prefix; no assertion that an embedded prior section is non-empty.",
+  "detection": "The orchestrator read the v7 verdict text before reporting it (2026-10-18 local) and traced the 'section is empty' remark to the embedded PRIOR.",
+  "impact": "None on the score arithmetic: step 1's real claim-honesty score is also 6/10 (run 4880158), so v7 = round(35 x 10/6) = 58/100 either way. The synthesis did not read step 1's findings. Owner chose to accept 58 with this caveat rather than spend ~$0.5 of the $8 monthly budget on a synthesis re-run.",
+  "correction": {
+    "code": "load_prior() excludes '_validation_' files; rebuilt task embeds claim-honesty (11,747 chars).",
+    "record": "As-run task reconstructed as tools/kaggle/task_r7_merged_asrun_v9.py (258,648 bytes, the size Kaggle accepted); caveat recorded in evidence/astra_v7_merged_4894730_NOTE.md.",
+    "verification": "Rebuilt merged task: PRIOR claim-honesty length 11,747, starts with step 1's '6/10' verdict line."
+  },
+  "rule": "When a builder embeds earlier outputs, assert each embedded section is non-empty and name the source file in the build log; never select evidence by an unqualified glob in a folder of mixed output kinds.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

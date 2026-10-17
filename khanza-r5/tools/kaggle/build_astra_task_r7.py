@@ -190,7 +190,10 @@ def load_prior(step):
     """Section texts of earlier steps, from evidence/astra_v7_step<N>_*_output.md."""
     prior = {}
     for s in range(1, step):
-        hits = sorted(EVID.glob("astra_v7_step%d_*_output.md" % s))
+        # astra outputs only: the glob also matches astra_v7_step<N>_validation_gemini_*,
+        # which sorts last and has empty sections (defect found 2026-10-18, run 4894730)
+        hits = sorted(p for p in EVID.glob("astra_v7_step%d_*_output.md" % s)
+                      if "_validation_" not in p.name)
         if not hits:
             raise SystemExit("step %d output not found in evidence/ — run step %d first" % (s, s))
         text = read(hits[-1])
@@ -202,6 +205,9 @@ def load_prior(step):
             nxt = [rest.find("\n## %s\n" % k.upper()) for k in ORDER] + [rest.find("\n## VERDICT\n")]
             nxt = [i for i in nxt if i >= 0]
             prior[key] = rest[:min(nxt)].strip() if nxt else rest.strip()
+            if not prior[key]:
+                raise SystemExit("section %s is empty in %s" % (key, hits[-1].name))
+            print("prior %s: %d chars from %s" % (key, len(prior[key]), hits[-1].name))
     return prior
 
 
@@ -212,6 +218,7 @@ All evidence/report/task-doc/v6-verdict/manifest/tool and suite sources embedded
 Assessment history: 4701365 = 35/100; 4769794 = 43/100; 4795743 = 43/100; 4818826 = 52/100.
 """
 import os
+import re
 
 os.environ.setdefault("LLM_DEFAULT", "gpt-6-astra")
 os.environ.setdefault("LLM_DEFAULT_JUDGE", "gpt-6-astra")
@@ -228,6 +235,10 @@ SYNTH = %r
 ORDER = %r
 PRIOR = %r
 LABEL = %r
+EXPECT = %r
+MAXTOK = %r
+# section heading, tolerant of numbering/bold, e.g. "## 2. **GATE-CORRECTNESS** (re-read)"
+HEAD = r"^#+\\s*(?:\\d+[.)]\\s*)?\\**\\s*%%s\\b[^\\n]*$"
 
 
 @kbench.task(name="dr-khanza-e2e-full-assessment", description="GPT-6 v7 assessment of DR->Khanza E2E benchmark after P1-P7 remediation" + LABEL)
@@ -235,15 +246,28 @@ def dr_khanza_e2e_assessment(llm) -> dict:
     """Astra v7 assessment of the DR->Khanza E2E benchmark."""
     sections = {}
     errors = 0
+    raw = ""
     for key, ask in SECTIONS:
         try:
             with kbench.chats.new("sec_" + key):
                 resp = llm.prompt(BASE + "\\n\\n" + CONTENT + "\\n\\n" + ask,
-                                  extra_api_params={"max_tokens": 8000})
+                                  extra_api_params={"max_tokens": MAXTOK})
         except Exception as e:
             resp = "[ERROR] " + type(e).__name__ + ": " + str(e)[:300]
             errors += 1
-        sections[key] = resp
+        if key == "merged":
+            # one call answered every key in EXPECT under '## KEY' headings: split it
+            raw = resp
+            for k in EXPECT:
+                m = re.search(HEAD %% re.escape(k.upper()), resp, re.M)
+                if not m:
+                    continue
+                rest = resp[m.end():]
+                ends = [mm.start() for k2 in EXPECT if k2 != k
+                        for mm in [re.search(HEAD %% re.escape(k2.upper()), rest, re.M)] if mm]
+                sections[k] = (rest[:min(ends)] if ends else rest).strip()
+        else:
+            sections[key] = resp
     verdict = ""
     if SYNTH:
         allsec = dict(PRIOR)
@@ -261,6 +285,8 @@ def dr_khanza_e2e_assessment(llm) -> dict:
         lines += ["## " + key.upper(), "", sections[key], ""]
     if SYNTH:
         lines += ["## VERDICT", "", verdict, ""]
+    if raw:
+        lines += ["## RAW MERGED RESPONSE", "", raw, ""]
     report = "\\n".join(lines)
     for p in ["dr-khanza-e2e-full-assessment_output.md", "/kaggle/working/dr-khanza-e2e-full-assessment_output.md"]:
         try:
@@ -271,7 +297,7 @@ def dr_khanza_e2e_assessment(llm) -> dict:
     for i in range(0, len(report), 3000):
         print(f"---REPORT-CHUNK {i // 3000}---")
         print(report[i:i + 3000])
-    kbench.assertions.assert_true(len(sections) == len(SECTIONS),
+    kbench.assertions.assert_true(all(k in sections for k in EXPECT),
                                   expectation="all requested assessment sections produced")
     for key in sections:
         kbench.assertions.assert_true(len(sections[key].strip()) > 100,
@@ -305,8 +331,25 @@ except Exception as _e:
           type(_e).__name__, str(_e)[:300])
 '''
 
+maxtok = 8000
 step = int(sys.argv[sys.argv.index("--step") + 1]) if "--step" in sys.argv else 0
-if step:
+if "--merged" in sys.argv:
+    # Owner-approved 2026-10-18: the monthly model budget dropped to $8, and five separate
+    # section calls (~$1.73 each, 143k input) cannot fit. After step 1, ONE call with the same
+    # BASE/CONTENT answers the five remaining section asks verbatim; then the usual synthesis
+    # over all six. Same evidence; less depth per section than v6/step 1 (comparability caveat).
+    keys = [k for k in ORDER if k not in STEPS[1]]
+    merged_ask = ("BUDGET-MERGED CALL: answer ALL FIVE assessment asks below in this one response, "
+                  "in this order, each under its own heading line written exactly as shown "
+                  "(e.g. '## GATE-CORRECTNESS'). Give each section comparable depth and end each "
+                  "with its own 0-10 score.\n\n"
+                  + "\n\n".join("## %s\n%s" % (k.upper(), a.strip()) for k, a in SECTIONS if k in keys))
+    sections, synth, prior = [("merged", merged_ask)], SYNTH, load_prior(2)
+    label = " [merged finish: %s in one call + synthesis]" % ", ".join(keys)
+    note = ("BUDGET MERGE after step 1 (claim-honesty, run 4880158). Same BASE and CONTENT; the five "
+            "remaining section asks are answered in ONE call, then the synthesis over all six.")
+    name, maxtok = "task_r7_merged.py", 20000
+elif step:
     keys = STEPS[step]
     sections = [(k, a) for k, a in SECTIONS if k in keys]
     synth = SYNTH if step == 3 else ""
@@ -320,7 +363,8 @@ else:
     note = "Full run: all six sections + synthesis."
     name = "task_r7_reassess.py"
 
-text = body % (note, BASE, CONTENT, sections, synth, ORDER, prior, label)
+expect = keys if "--merged" in sys.argv else [k for k, _ in sections]
+text = body % (note, BASE, CONTENT, sections, synth, ORDER, prior, label, expect, maxtok)
 out = R5.parent / "kaggle" / "deers-rock-assessment" / name
 out.write_text(text, encoding="utf-8")
 (HERE / name).write_text(text, encoding="utf-8")

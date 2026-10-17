@@ -1,6 +1,16 @@
 # Session Handoff — DR→Khanza E2E Benchmark (2026-10-17)
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
+
+> **UPDATE 2026-10-18 — Astra v7 is DONE: 58/100 "Needs targeted rework"** (6/6/6/6/7/4).
+> The budget is now **$8 for the whole month** (not $10/day), so steps 2–3 were replaced by
+> one owner-approved merged call (run 4894730, $2.389; see
+> `evidence/astra_v7_merged_4894730_NOTE.md` for the method, caveats and the synthesis
+> empty-prior defect). About **$5.4** is left this month (spent: $2.389 astra + $0.257 gemini
+> validation). A future assessment should use `--merged` style (~$2.5), not 5–6 separate
+> 143k-token calls. The freeze in §2 is lifted; §2's step 2/3 plan is superseded.
+> The P8 list in §3 still applies; v7's own top issues are in the NOTE's source output
+> (§3 "Top three remaining issues", §7 next step).
 Everything referenced lives in `C:\Users\think\Project_v2\Deers-Rock\khanza-r5\`
 (git branch `khanza-r5-p6`, pushed to the **public** repo `rikirinjani/Deers-Rock`).
 
