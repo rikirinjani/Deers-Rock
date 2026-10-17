@@ -8,7 +8,20 @@
 - **Live ledger rebuilt** (owner-approved): backup `sik_bench.dr_charge_ledger_bak_20261017`;
   new content `a66a3a54…`, totals unchanged; line-diff PASS.
 - **The form writes `billing`** (audited): R5's B-subset caveat is withdrawn (§18 item 2).
-- **Next:** push `kaggle/deers-rock-assessment/task_r7_reassess.py` (Astra v7) with
+- **Astra v7 runs as a 3-step budget split** ($10/day quota < ~$11-12 full run).
+  `python khanza-r5/tools/kaggle/build_astra_task_r7.py --step N` builds `task_r7_stepN.py`
+  (same BASE/CONTENT/asks as a full run). **Step 1 done** (claim-honesty 6/10, run 4880158,
+  $1.72; `evidence/astra_v7_step1_4880158_output.md`).
+  **Plan for 2026-10-18 (owner-approved):** run step 2 (gate-correctness, oracle-validity,
+  reproducibility; max $5.49), read its actual cost from the run.json, then run step 3
+  (e2e-design, external-validity + synthesis; max $4.23) the same day **only if ≥ $4.23
+  remains**, else the next day. Build step 3 only AFTER step 2's output is saved as
+  `evidence/astra_v7_step2_<run>_output.md` (step 3 embeds it). **Do not change any
+  evidence, report or tool until step 3 has run.** Fixes noted from step 1 (for P8): A11's
+  "every restore hash-verified" label vs A15's deliberate unverified restore; per-property
+  statuses instead of blanket PASS; stale `crash_safe=YES`; note that VPS timestamps are UTC.
+- **Superseded:** the single full-run push below no longer fits the quota. Push
+  `kaggle/deers-rock-assessment/task_r7_reassess.py` (Astra v7) with
   `PYTHONUTF8=1 kaggle b t push dr-khanza-e2e-full-assessment -f task_r7_reassess.py`, then
   `kaggle b t run dr-khanza-e2e-full-assessment -m gpt-6-astra`. P8 = the deferred items in
   the P7 doc's "Out of scope" list.
