@@ -1,0 +1,15 @@
+set -e
+cd /opt/dr-benchmark
+echo "=== akun_bayar / set_akun_ralan on live vs clone ==="
+echo "live akun_bayar: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.akun_bayar;")"
+echo "r5   akun_bayar: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik_r5.akun_bayar;")"
+echo "live set_akun_ralan: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.set_akun_ralan;")"
+echo "r5   set_akun_ralan: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.set_akun_ralan;")"
+echo "=== did the LIVE save actually write? check piutang/nota (the form writes multiple tables) ==="
+V="2026/10/01/800190"
+echo "live billing: $(mysql -uroot -N -e "SELECT COUNT(*), COALESCE(SUM(totalbiaya),0) FROM sik.billing WHERE no_rawat='$V';")"
+echo "live piutang_pasien: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.piutang_pasien WHERE no_rawat='$V';")"
+echo "live nota_jalan: $(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.nota_jalan WHERE no_rawat='$V';")"
+echo "=== the 'Nota' dialog on live = save succeeded and offered print. But billing=0 rows? ==="
+echo "check: maybe the form saves to a different billing table or with a date-suffix"
+mysql -uroot -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema='sik' AND table_name LIKE '%billing%';"

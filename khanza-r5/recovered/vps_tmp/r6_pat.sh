@@ -1,0 +1,5 @@
+echo "=== sample no_rkm_medis values ==="
+mysql -uroot -N -e "SELECT DISTINCT no_rkm_medis FROM sik.reg_periksa WHERE no_rkm_medis IS NOT NULL AND no_rkm_medis<>"""" LIMIT 8;"
+echo ""
+echo "=== count non-null no_rkm_medis ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.reg_periksa WHERE no_rkm_medis IS NOT NULL AND no_rkm_medis<>"""";"

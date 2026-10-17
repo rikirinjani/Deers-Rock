@@ -1,0 +1,10 @@
+echo "=== does sik_p2 exist? ==="
+mysql -uroot -N -e "SHOW DATABASES LIKE '"'"'sik_p2'"'"';"
+echo "=== can we recreate a minimal scratch fixture from sik? ==="
+echo "(check sik row counts for reg_periksa + key tables)"
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.reg_periksa;"
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.billing;"
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.detail_nota_jalan;"
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik_piutang_pasien;" 2>/dev/null || mysql -uroot -N -e "SELECT COUNT(*) FROM sik.piutang_pasien;"
+echo "=== is there a scratch-creation script on box? ==="
+find /opt/dr-benchmark /opt/Deers-Rock -name "*.sh" 2>/dev/null | grep -iE "scratch|clone|sik_p2|fixture|sik_p" | head

@@ -1,0 +1,13 @@
+set -e
+echo "=== compare canonical live 2026-10 DR ledger total vs fixture rebuilt ==="
+echo "live sik_bench canonical 2026-10 DR cohort ledger:"
+mysql -uroot -N -e "SELECT COALESCE(SUM(l.amount),0) FROM sik_bench.dr_charge_ledger l JOIN sik.reg_periksa rp ON rp.no_rawat=l.no_rawat WHERE rp.no_rawat LIKE '2026/10/%' AND rp.no_rkm_medis LIKE 'DR%';"
+echo "live canonical consumer 2026-10 DR cohort billing total:"
+mysql -uroot -N -e "SELECT COALESCE(SUM(b.totalbiaya),0) FROM sik.billing b JOIN sik.reg_periksa rp ON rp.no_rawat=b.no_rawat WHERE rp.no_rawat LIKE '2026/10/%' AND rp.no_rkm_medis LIKE 'DR%' AND (b.biaya>0 OR b.totalbiaya>0) AND b.status NOT LIKE 'Ttl%';"
+echo "=== fixture (p2) 2026-10 DR consumer billing total ==="
+mysql -uroot -N -e "SELECT COALESCE(SUM(b.totalbiaya),0) FROM sik_p2.billing b JOIN sik_p2.reg_periksa rp ON rp.no_rawat=b.no_rawat WHERE rp.no_rawat LIKE '2026/10/%' AND rp.no_rkm_medis LIKE 'DR%' AND (b.biaya>0 OR b.totalbiaya>0) AND b.status NOT LIKE 'Ttl%';"
+echo "=== does the fixture have the 2026-10 DR reg_periksa rows? ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik_p2.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis LIKE 'DR%';"
+echo "=== does the fixture have rawat_jl_dr / detail_pemberian_obat for 2026-10 DR? ==="
+mysql -uroot -N -e "SELECT 'dpo', COUNT(*) FROM sik_p2.detail_pemberian_obat d JOIN sik_p2.reg_periksa rp ON rp.no_rawat=d.no_rawat WHERE rp.no_rawat LIKE '2026/10/%' AND rp.no_rkm_medis LIKE 'DR%';"
+mysql -uroot -N -e "SELECT 'rjd', COUNT(*) FROM sik_p2.rawat_jl_dr rj JOIN sik_p2.reg_periksa rp ON rp.no_rawat=rj.no_rawat WHERE rp.no_rawat LIKE '2026/10/%' AND rp.no_rkm_medis LIKE 'DR%';"

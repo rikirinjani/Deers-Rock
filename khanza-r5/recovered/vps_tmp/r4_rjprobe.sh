@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "=== rawat_jl_dr rows for 2026/10/05/000001 ==="
+mysql -uroot -N -B sik -e "SELECT * FROM rawat_jl_dr WHERE no_rawat='2026/10/05/000001'"
+echo "=== billing rows for that visit (value rows) ==="
+mysql -uroot -N -B sik -e "SELECT noindex,status,nm_perawatan,biaya,jumlah,totalbiaya FROM billing WHERE no_rawat='2026/10/05/000001' AND (biaya>0 OR totalbiaya>0) AND status NOT LIKE 'Ttl%'"
+echo "=== jns_perawatan RJ00861 ==="
+mysql -uroot -N -B sik -e "SELECT kd_jenis_prw,nm_perawatan,total_byrdr FROM jns_perawatan WHERE kd_jenis_prw='RJ00861'"
+echo "=== visit reg ==="
+mysql -uroot -N -B sik -e "SELECT no_rawat,no_rkm_medis,kd_dokter,stts,status_lanjut FROM reg_periksa WHERE no_rawat='2026/10/05/000001'"
+echo "=== rawat_jl_dr distinct status? columns ==="
+mysql -uroot -N -B sik -e "SHOW COLUMNS FROM rawat_jl_dr"

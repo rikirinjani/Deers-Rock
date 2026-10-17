@@ -1,0 +1,8 @@
+echo "=== current live sik billing state for the 4 real + 5 strata visits ==="
+mysql -uroot -N -e "SELECT no_rawat, COUNT(*) c, COALESCE(SUM(totalbiaya),0) s FROM sik.billing WHERE no_rawat IN ('2026/10/01/000254','2026/10/01/000289','STRATA-EMBALASE','STRATA-TUSLAH','STRATA-HALFPPN','STRATA-ZEROFEE','STRATA-GT3PROC') GROUP BY no_rawat;"
+echo ""
+echo "=== are STRATA- no_rawat present in live reg_periksa? ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.reg_periksa WHERE no_rawat LIKE '"'"'STRATA-%'"'"';"
+echo ""
+echo "=== databarang ralan B000001135 (should be canonical 34584) ==="
+mysql -uroot -N -e "SELECT ralan FROM sik.databarang WHERE kode_brng='"'"'B000001135'"'"';"

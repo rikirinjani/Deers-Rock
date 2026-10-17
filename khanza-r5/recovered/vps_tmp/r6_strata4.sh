@@ -1,0 +1,6 @@
+echo "=== count of STRATA- in sik_p6 ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik_p6.reg_periksa WHERE no_rawat LIKE '"'"'STRATA-%'"'"';"
+echo "=== the 5 rows (if any) ==="
+mysql -uroot sik_p6 -N -e "SELECT no_rawat, tgl_registrasi, status_bayar, no_rkm_medis FROM reg_periksa WHERE no_rawat LIKE '"'"'STRATA-%'"'"' ORDER BY no_rawat;"
+echo "=== total reg_periksa in sik_p6 ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik_p6.reg_periksa;"

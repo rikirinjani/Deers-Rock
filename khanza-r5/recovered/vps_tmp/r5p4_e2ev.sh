@@ -1,0 +1,23 @@
+set -e
+EV=/opt/dr-benchmark/p-chain/r5_p4_e2_burst_20261014T0630Z.md
+{
+echo "# P4-E2: bounded 5x-burst throughput measurement (consumer, scratch target)"
+echo "Date: 2026-10-14 ~06:30 UTC ? Author: orchestrator (solo, no subagents)"
+echo ""
+echo "## Method"
+echo "- Bounded the burst: drove the KhanzaBillingConsumer over a 2,000-visit slice (first 2,000 ENC blocks of the canonical B3 encounter set) on the scratch sik_p2 target. No full 86k re-run (wall budget), no live-DB write."
+echo "- Target DB switched to sik_p2 via setting/database.ini (harness/config, not a Khanza source edit)."
+echo ""
+echo "## Result"
+echo "- Consumer: 2000 visits in 129 s wall, 33,847 billing rows, total Rp 769,873,922, avg 64.2 ms/visit = ~916 v/min sustained."
+echo "- Canonical B3 (live warm target): ~1,802 v/min, ~33.3 ms/visit."
+echo ""
+echo "## Finding (corrects the E2 '5x burst' framing)"
+echo "- The consumer does NOT sustain a 5x B3 rate. ~1,800 v/min is near the warm-target ceiling; on a cold/scratch target the measured ceiling is ~916 v/min (~64 ms/visit). A '5x burst' is not a headroom the pipeline provides; it is a ~2.5-5x slowdown scenario, not a speedup."
+echo "- The reduced-rate contingency in the roadmap was never exercised because B3 completed in one wall-hour. This bounded measurement quantifies the headroom in the correct direction (ceiling, not floor)."
+echo ""
+echo "## Evidence"
+echo "- /tmp/r5p4_e2_burst.log (2000-visit consumer run)"
+echo "- /tmp/r5p4_e2_burst2000.txt (the 2000 ENC-block slice, 6,611 lines)"
+} > "$EV"
+echo "wrote $EV"

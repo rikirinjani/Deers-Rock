@@ -1,0 +1,5 @@
+echo "=== databarang B000001135 (all price cols) ==="
+mysql -uroot -e "SELECT kode_brng, h_beli, h_jual, ralan FROM sik.databarang WHERE kode_brng='"'"'B000001135'"'"';"
+echo ""
+echo "=== does B000001135 exist at all? ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM sik.databarang WHERE kode_brng='"'"'B000001135'"'"';"

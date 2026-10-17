@@ -1,0 +1,23 @@
+set -e
+echo "=== P4-LD restore log (clean re-verify) ==="
+grep -E "LINE-DELTA|gate" /tmp/ld2r.log 2>/dev/null | head -5
+echo "=== P4-LD evidence file ==="
+TS="r5p4_line_diff"
+EV="/opt/dr-benchmark/p-chain/r5_p4_line_diff_20261014T0245Z.md"
+{
+echo "# P4-LD: per-visit line-diff gate (same-price wrong-code-quantity)"
+echo "Date: 2026-10-14 ~02:45 UTC ? Author: orchestrator (solo, no subagents)"
+echo ""
+echo "## Gate design"
+echo "- --line-diff mode of charge_delta_per_component_p2.py compares per-visit per-component QUANTITY (drug+procedure only) between consumer (sik.billing.jumlah) and ledger (dr_charge_ledger.quantity)."
+echo "- Registration/tax excluded from line-diff (no per-line consumer quantity, would be schema false-positives); amount-gated only."
+echo ""
+echo "## Results"
+echo "- Clean canonical ledger (356,355 / Rp 34,870,243,633): LINE-DELTA=0, gate PASS."
+echo "- Fault (move 2 units of drug quantity off B000000240 on 2026/10/01/000298, same unit price, amount unchanged): GAP [P2-LINE-DELTA] 1, LINE-DELTA 2026/10/01/000298 drug khanza_qty=25 ledger_qty=23 delta=2, gate FAIL."
+echo "- Restore from dr_charge_ledger_p2bak -> clean PASS, ledger back to 356,355 / Rp 34,870,243,633."
+echo ""
+echo "## Known limit (honest, out of P4 scope)"
+echo "- A same-price swap that preserves per-visit per-component QUANTITY (only the code label changes, quantity unchanged) remains blind to both the amount gate and the line-diff: sik.billing has no code column (only nm_perawatan names), so code-LABEL identity is not an available independent signal. P4-LD closes the quantity-misallocation gap; pure code-label identity stays a documented limit."
+} > "$EV"
+echo "wrote $EV"

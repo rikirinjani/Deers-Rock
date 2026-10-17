@@ -1,0 +1,5 @@
+echo "=== find the diagnosa/penyakit table ==="
+mysql -uroot -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema='"'"'sik'"'"' AND table_name LIKE '"'"'%diag%'"'"';"
+mysql -uroot -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema='"'"'sik'"'"' AND table_name LIKE '"'"'%penyak%'"'"';"
+echo "=== total tables in sik ==="
+mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"'"'sik'"'"';"
