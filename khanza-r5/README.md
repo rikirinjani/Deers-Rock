@@ -10,7 +10,7 @@ stay in [`../khanza-benchmark-asset/`](../khanza-benchmark-asset/).
 | `tools/` | The deployed tools (source of truth; VPS copy is `/opt/Deers-Rock/tools/`): `sampled_real_form_diff_r5.py` (oracle), `dbutil.py`, `build_dr_charge_ledger_p2.py`, `charge_delta_per_component_p2.py`, `three_count_reconcile_p2.py`, `p6_acceptance_suite.sh`, `p6_run_suite_fresh.sh` (one command: fixture → suite → teardown), `p6_strata_recheck.sh`, `p6_smoke_a1.sh`, `p6_dbxml.py` |
 | `tools/scripts/` | One-off R5/P5/P6 VPS probe/demo scripts (historical; not part of the pipeline) |
 | `tools/kaggle/` | Astra task builders (`build_astra_task_r5.py`, `build_astra_task_r5p5.py`) and the v5 task source |
-| `docs/` | R5 report, P5/P6 task docs, release manifest, Astra-r4 fix list, the 2026-10-15 session handoff |
+| `docs/` | R5 report, P5/P6/P7 task docs, release manifest, Astra-r4 fix list, session handoffs (**start with `khanza_session_handoff_20261017.md`**) |
 | `evidence/` | Astra v5 output (43/100), P6 acceptance results pulled from the VPS, pre-deploy copies of the VPS tools |
 | `records/` | Copies of the QMS verification records and pm1 traces (originals stay in their home repos) |
 

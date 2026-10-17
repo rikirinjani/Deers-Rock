@@ -1,4 +1,4 @@
-# Session Handoff — DR→Khanza E2E Benchmark (2026-10-16, updated 2026-10-17)
+# Session Handoff — DR→Khanza E2E Benchmark (2026-10-16) — SUPERSEDED by khanza_session_handoff_20261017.md
 
 ## Update 2026-10-17 (read this first)
 - **Astra v6 = 52/100** (run 4818826, +9). Output: `evidence/astra_v6_4818826_output.md`.
