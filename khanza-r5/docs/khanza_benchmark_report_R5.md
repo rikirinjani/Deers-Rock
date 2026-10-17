@@ -9,7 +9,7 @@ Scope: DR-generated hospital data (`reg_periksa` with `no_rkm_medis LIKE 'DR%'`,
 
 ## 0. R5 close-out banner (new)
 
-- **P1 — oracle hardening (crash-safety + frozen baseline): PASS.** The hardened oracle
+- **P1 — oracle hardening (~~crash-safety~~ recovery from one injected `kill -9` + frozen baseline): PASS.** *(P8-A3: this was one demonstrated fault, not a general crash-safety property; before P8 a resume did not prove a surviving harness JVM dead — see §19.)* The hardened oracle
   (`sampled_real_form_diff_r5.py`) holds an immutable per-visit sha256 baseline, resets by
   per-date staged backup+restore, and survives an injected `kill -9` mid-run (resume restores
   the interrupted batch and re-bills it; no visit left unbilled). It **refused a false 0/N**
@@ -52,7 +52,7 @@ the pipeline is deterministic and reproducible. What the result does and does no
   consumer settlement matches the DR ground-truth ledger with 0 unexplained deltas.
 - Fault detection: F1–F8 + 0.1% mutation all trip the named gate + full revert-to-green (§6);
   P2 adversarial adds delete-row / offsetting / non-October / fail-closed-tariff detection.
-- Crash-safety: P1 oracle survives a mid-run `kill -9` and re-bills the interrupted batch (§0).
+- ~~Crash-safety:~~ Recovery from injected faults: P1 oracle survives a mid-run `kill -9` and re-bills the interrupted batch (§0); P8 suite A18–A21 add corrupt hash metadata, a surviving writer, interrupted restore and retry (§19). Untested fault modes are not claimed.
 - Restore: D1 snapshot-based billing-table recovery, damage→restore→gates-green (§9).
 
 **NOT claimed (scoped out / human-gated / structural limit):**
@@ -592,8 +592,9 @@ stability cannot be asserted). After cleanup (05:26 UTC): same gate results; led
 356,355 / Rp 34,870,243,633 (pinned); `sik_p6` and `sik_p6f` dropped; the temporary
 `benchmark` grant on `sik_p6f` revoked; both `database.xml` copies on `sik`.
 
-**Unchanged honesty limits:** B-settlement equivalence is structurally unclaimable;
-same-price wrong-code swaps stay invisible to the quantity line-diff; external validity
+**Unchanged honesty limits:** ~~B-settlement equivalence is structurally unclaimable;~~
+*(withdrawn in §18 item 2: the audited form save writes `billing`; what B can and cannot
+show is restated there — P8-A3)* same-price wrong-code swaps stay invisible to the quantity line-diff; external validity
 (C1–C4, cross-machine D2, DOI) is NOT TESTED; the 999-visit sample is a consumer-oracle
 measurement, not population proof. P6 proves the enforcement suite on a clone, not
 settlement equivalence.
@@ -731,3 +732,90 @@ re-validating pre-P6 clone-mode runs; C1–C4.
 **Live state after P7:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
 ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); charge_delta and line-diff PASS on
 both windows; three_count A == C on both windows.
+
+## 19. P8: claim wording, gate defects, recovery fault injection (2026-10-18, new)
+
+Driven by Astra v7 (**58/100**, "Needs targeted rework"; step 1 run 4880158 + merged run
+4894730, method and caveats in `evidence/astra_v7_merged_4894730_NOTE.md`). Task:
+`docs/khanza_r5_task_p8_claims_gates_recovery.md` (packs A+B+C, scope agreed with the owner).
+Each v7 code claim acted on was checked against the source first (task doc §0, D1–D10); all
+held. One (D6, delete scope) was dormant: every live ledger row is DR-cohort.
+Timestamps in this section and in the evidence files are UTC; document dates are local (UTC+7).
+
+**Result: suite 29/29 PASS** on a fresh full-clone fixture via `p6_run_suite_fresh.sh`
+(`evidence/p8/r5_p6_acceptance_20261017T225851Z.md`; 21 P7 checks + 8 new). The summary
+now lists each check with the one property it asserts. A PASS covers only that property on
+that fixture. Recovery unit test 11/11 (`evidence/p8/r5_p8_recovery_unit_test.txt`).
+
+**1. Recovery fault injection (pack C; Astra v7's top next step).** All of these run through the
+same oracle and wrapper as every other check, on the disposable `sik_p6f` clone:
+- *A18a, corrupt hash metadata:* a truncated stage hash file used to raise a traceback in
+  `stage_restore`. Now it gives `STAGE-RESTORE-UNVERIFIED (hash file unreadable)`, exit 4,
+  `restored=False`, stage tables kept. A file describing another batch (prefix or visit set)
+  or a non-hex hash is treated the same way (unit test).
+- *A18b, wrong hash:* a valid file with a wrong sha256 gives `STAGE-RESTORE-MISMATCH`, exit 4,
+  stage tables kept. Both A18 cleanups put the original file back, and their restore is
+  verified.
+- *A19, surviving writer:* SIGKILL to the oracle mid-harness (its signal handler cannot run)
+  left 3 harness processes alive. Before P8 a resume waited on the bash wrapper's pid only,
+  then deleted the pid file and restored even if the JVM was still running. Now the resume
+  kills every recorded harness group and any BilingHarness process naming a run visit, then
+  requires none left *and* the visits' output unchanged over a quiet interval (5 s). Only then
+  does it restore. Run: `killed=['448791:dead'] … quiet=true`, verified restore, re-bill
+  exit 0, 0 java left. A group that will not die, or output still changing, gives
+  `WRITER-ALIVE`, no restore, exit 4 (unit test; a fixture cannot produce an unkillable
+  process on demand).
+- *A20, interrupted restore:* a resume SIGKILLed half-way through restoring (test hook
+  `R5_FAULT_RESTORE_PAUSE_S`; `billing` restored, 11 tables pending) is redone by the next
+  resume: `STAGE-RESTORED-VERIFIED`, re-bill exit 0, no mismatch. The restore is idempotent
+  (DELETE+REPLACE from the kept stage tables, then hash-verified).
+- *A21, retry:* a timed-out batch stays FAILED on a plain resume (exit 4).
+  `--retry-failed` re-bills it only from a hash-verified pre-reset state, then exits 0.
+
+**2. Gate defects (pack B).**
+- *A10b/A10d, tax-row count:* A10b's amount query does not see a duplicate tax row whose
+  amount is correct (A10d measured `amount_query=0`). A10b now also requires exactly one tax
+  row per window visit with drugs (zero when the expected tax is 0). A10d plants a duplicate
+  and a wrong amount; both are caught.
+- *`p7_tax_rule_check.py`* exits 1 on any defect (it always exited 0), detects duplicate
+  tax rows and takes `--db`. A10d proves exit 1 on both planted defects and exit 0 on the
+  clean ledger. On the live ledger: PASS, 0 defects.
+- *Builder delete scope (A10e):* the DELETE now uses the window **and** the cohort, as the
+  inserts do (`--window ALL` was `WHERE 1=1`). A non-DR row survives a DR rebuild of window
+  2026-10 and of ALL. The first version joined a utf8mb4 column to Khanza's latin1
+  `reg_periksa.no_rawat`, which lost the index (a 31k-row DELETE ran ~30 min). It was caught
+  when suite run 1 stalled; that run was stopped and torn down (live state verified unchanged).
+  The join now converts the ledger side into reg_periksa's charset: `eq_ref`, 0.07 s for the
+  window, 26 s for the whole ALL rebuild in A10e.
+- *Float (B5):* `irup()` uses exact Decimal half-up instead of `floor(float + 0.5)`.
+  three_count's paid sum uses Decimal half-up instead of `int(round(float()))` (banker's
+  rounding). On live `sik` 1 of 1,095 paid sums is fractional and none ends in .5, so no
+  amount changes. The P8 builder `--window ALL` into an empty scratch ledger reproduces the
+  live ledger byte-identically (`a66a3a54…`; `evidence/p8/r5_p8_builder_all_check.txt`).
+- *Suite hygiene:* earlier results and logs are moved to `results/archive/<UTC>/`, not
+  deleted. `FX=sik` / `FX=sik_bench` are refused before any DB access (A17,
+  `LIVE-FIXTURE-REFUSED`).
+
+**3. Claim wording (pack A).**
+- A11 used to claim "every restore across the suite hash-verified" while A15 deliberately
+  restores unverified. It now covers every restore *outside* A15/A18a/A18b (9 verified, 0
+  mismatch, 0 unverified) and requires those three to produce exactly their 3 deliberate
+  failures. A15's cleanup restore is now verified too.
+- The oracle no longer writes `crash_safe=YES`. Result files carry measured counts (`recovery:
+  batches, billed, failed, failed_restored_verified, unrestored, retried`). Its docstring
+  claims recovery only from the injected fault modes.
+- Struck through or annotated: §0 P1 "crash-safety" and the §1 crash-safety bullet (one
+  demonstrated `kill -9`, not a general property); the §16 line "B-settlement equivalence is
+  structurally unclaimable" (withdrawn in §18); the builder docstring "integer rupiah
+  end-to-end … no float" (now states where rounding happens).
+
+**Still not claimed:** behaviour under fault modes not injected (power loss, MySQL crash,
+disk full, a writer that ignores SIGKILL); concurrent-overlap isolation; re-validation of
+pre-P6 clone-mode runs; matched-encounter B–C reconciliation and the R4 0/999 re-examination
+(pack E); third-party reproducibility (pack D: `stagea_common.py`, Java sources and STRATA SQL
+are not published); C1–C4.
+
+**Live state after P8:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
+ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); live `sik` output-table checksums
+equal before/after the suite; three_count A == C (Rp 3,113,533,580, 31,750 rows), B 151
+notes / Rp 49,903,019 (documented B-subset state, exit 1); tax check PASS.

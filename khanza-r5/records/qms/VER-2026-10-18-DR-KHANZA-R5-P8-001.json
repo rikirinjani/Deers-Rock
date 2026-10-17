@@ -1,0 +1,48 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-18-DR-KHANZA-R5-P8-001",
+  "date": "2026-10-18",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P8: claim wording, gate defects, recovery fault injection",
+  "task_doc": "C:\Users\think\Project_v2\Deers-Rock\khanza-r5\docs\khanza_r5_task_p8_claims_gates_recovery.md",
+  "trigger": "Astra v7 (gpt-6-astra step 1 run 4880158 + merged run 4894730, 58/100 'Needs targeted rework')",
+  "evidence": [
+    "khanza-r5/evidence/p8/r5_p6_acceptance_20261017T225851Z.md (suite 29/29, fresh fixture)",
+    "khanza-r5/evidence/p8/r5_p8_recovery_unit_test.txt (11/11)",
+    "khanza-r5/evidence/p8/r5_p8_builder_all_check.txt (P8 builder reproduces live ledger a66a3a54...)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §19 (+ §0/§1/§16 annotations)",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P8 re-pin)"
+  ],
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "2aa3ef22cea42cdd2f79a2351a410ccaf3f452d0e3705e17c410428f87d9f6d8",
+    "three_count_reconcile_p2.py": "3f6ca5203b20e8c04b810191ecb5b3112091750e7e8ef0646ba598adab740fcf",
+    "build_dr_charge_ledger_p2.py": "736506c3c9d3093cc5a71a2ff7b020ae4c5db4e26ef387806d28916d17ffbbab",
+    "p6_acceptance_suite.sh": "fc53f8ebe617caf98d970240b4010fa6bc83b9e28cfc6660539993c102af1ae2",
+    "p7_tax_rule_check.py": "049e76809111038971140139404061db73d913db42272d95f866862a1e453c0f",
+    "p8_recovery_unit_test.py": "a2d4c5068058fe3b66a47e497c1d692997d2f85bd2a5c6d7a0e2b9f65c94cbb6",
+    "p8_builder_all_check.sh": "2200a40be3ec3e566cf96453f30d0aced03827c644e3fffac9562bc510552778"
+  },
+  "checks": [
+    "AC-1 wording: per-property summary, no crash_safe field, A11 relabelled, stale report lines annotated — PASS",
+    "AC-2 tax gates: A10b cardinality + A10d planted duplicate/wrong tax caught; tax check exits 1 on defects, 0 on clean; live tax check 0 defects — PASS",
+    "AC-3 scope: A10e non-DR row survives 2026-10 and ALL rebuilds; P8 builder reproduces live ledger byte-identically — PASS",
+    "AC-4 suite hygiene: earlier results archived; FX=sik/sik_bench refused (A17) — PASS",
+    "AC-5 recovery: A18a/A18b/A19/A20/A21 through the wrapper on the clone; unit test 11/11; live sik checksums equal pre/post — PASS",
+    "AC-6 records — PASS; v8 assessment pending owner confirmation of spend"
+  ],
+  "findings": [
+    "Before P8 a resume after a SIGKILLed oracle could restore under a still-running harness JVM (A19 found 3 survivors)",
+    "A10b's amount query cannot see a duplicate correct-amount tax row (A10d measured 0)",
+    "A corrupt stage hash file raised a traceback in stage_restore instead of failing closed",
+    "P8's first cohort-scoped DELETE lost its index on a utf8mb4-to-latin1 join (~30 min); caught by suite run 1, fixed before evidence"
+  ],
+  "live_state_post": "databases sik, sik_bench; database.xml copies on sik; ledger 356,355 / Rp 34,870,243,633, content a66a3a54...; backup table sik_bench.dr_charge_ledger_bak_20261017 kept; three_count A==C, B 151 notes (documented B-subset state)",
+  "open_items": [
+    "Pack D reproducibility (stagea_common.py with secrets removed, Java sources, STRATA SQL)",
+    "Pack E matched-encounter B-C reconciliation; R4 0/999 re-examination",
+    "Concurrent-overlap isolation; re-validation of pre-P6 clone-mode runs; C1-C4",
+    "Astra v8 (merged method, ~$2.5 of ~$5.4 monthly budget left)"
+  ],
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents); local (LF) and VPS tool hashes verified identical after deploy"
+}

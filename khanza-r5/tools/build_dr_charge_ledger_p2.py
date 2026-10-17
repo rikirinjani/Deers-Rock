@@ -19,8 +19,10 @@ P2 changes vs the legacy builder:
       and every such row is stamped source=legacy so downstream gates see it.
       An empty-but-readable dr_tariff table still falls back (legacy) unless the
       flag is required via --require-tariff.
-  INTEGER RUPIAH (fix P2-5): all money is integer rupiah end-to-end. No DOUBLE,
-      no float truncation. Registration fee is whole-rupiah half-up; per-occurrence
+  INTEGER RUPIAH (fix P2-5): every stored amount is an integer rupiah (INT
+      columns). Source values are rounded half-up with exact Decimal arithmetic
+      (P8-B5; before P8 irup() went through a binary float), and tax is the
+      integer rule (s*11+50)//100 (P7-5). Registration fee is whole-rupiah half-up; per-occurrence
       quantities are summed (COUNT of occurrences), not MAX(price)*count.
   FULL WINDOW (fix P2-3): --window {2026-10|ALL} (default 2026-10 = canonical),
       --cohort {dr|all} (default dr). No hard-coded month literal in the SQL.
@@ -51,13 +53,15 @@ DR_REG_FEE = 10000  # DR's own clinic registration fee (whole rupiah), not polik
 
 
 def irup(x):
-    """Integer-rupiah: half-up to whole rupiah (Java Math.round semantics)."""
+    """Integer-rupiah: half-up to whole rupiah. P8-B5: exact decimal arithmetic on
+    the value's text (no binary float); identical to floor(x + 0.5) for the
+    non-negative prices the sources hold."""
+    from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
     try:
-        f = float(x or 0)
-    except (TypeError, ValueError):
+        return int(Decimal(str(x if x is not None else 0).strip() or "0")
+                   .quantize(Decimal(1), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError):
         return 0
-    import math
-    return int(math.floor(f + 0.5))
 
 
 def load_tariff_strict(tool, log):
@@ -174,10 +178,26 @@ def main():
             del buf[:]
 
     # ---- TRANSACTIONAL cohort replacement (P2-6 + P6-3 genuine single session) ----
+    # P8-B3: delete exactly what the inserts below rebuild — the window AND the
+    # cohort. Pre-P8 the DELETE ignored --cohort (WHERE 1=1 for ALL), so a DR
+    # rebuild would silently drop non-DR rows. Rows with no reg_periksa row are
+    # orphans of this ledger and are deleted too (the A10b stale-key case).
+    # The ledger's no_rawat is utf8mb4 while Khanza's reg_periksa.no_rawat is latin1:
+    # joining on the raw columns converts the reg_periksa side and loses its index (a
+    # 31k-row window DELETE took ~30 min). Convert the ledger side into reg_periksa's
+    # charset instead (no_rawat values are ASCII, so the conversion is lossless).
+    rp_cs = dbutil.scalar(SIC_DB,
+        "SELECT character_set_name FROM information_schema.columns WHERE "
+        "table_schema=DATABASE() AND table_name='reg_periksa' AND column_name='no_rawat'")
+    on = ("rp.no_rawat = CONVERT(l.no_rawat USING %s)" % rp_cs) if rp_cs else \
+        "rp.no_rawat = l.no_rawat"
+    dscope = "1=1" if args.window == "ALL" else "l.no_rawat LIKE '2026/10/%'"
+    delete_sql = ("DELETE l FROM dr_charge_ledger l LEFT JOIN " + SIC_DB + ".reg_periksa rp "
+                  "ON " + on + " WHERE " + dscope + " AND (rp.no_rawat IS NULL OR "
+                  + (cp % ()) + ")")
+    log("delete scope (P8-B3): %s" % delete_sql)
     log("transactional replace (single-session, P6-3): deleting cohort ...")
-    if not sess.exec("START TRANSACTION; DELETE FROM dr_charge_ledger WHERE "
-                     + ("1=1" if args.window == "ALL"
-                        else "no_rawat LIKE '2026/10/%'") + ";"):
+    if not sess.exec("START TRANSACTION; " + delete_sql + ";"):
         sess.rollback()
         sess.close()
         log("FAIL-CLOSED: single-session replace could not open (last=%s)"

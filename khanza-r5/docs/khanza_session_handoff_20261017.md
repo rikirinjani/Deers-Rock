@@ -2,6 +2,15 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (later) — P8 DONE** (packs A+B+C; task doc
+> `docs/khanza_r5_task_p8_claims_gates_recovery.md`, R5 §19): suite **29/29** on a fresh
+> fixture (`evidence/p8/`), recovery unit test 11/11, P8 builder reproduces `a66a3a54…`, live
+> state unchanged, manifest re-pinned (local LF = VPS), QMS P8-001, retrace clean. Deploy
+> trap: Windows working copies may be CRLF — deploy `tr -d '\r'` copies and compare LF hashes.
+> **Next:** Astra v8 = `python khanza-r5/tools/kaggle/build_astra_task_r8.py` → push/run
+> `task_r8_merged.py` (expected ~$2.9, max ~$3.45 + ~$0.3 gemini validation; needs the
+> owner's OK). Not done: packs D (reproducibility closure) and E (matched encounters, R4 0/999).
+>
 > **UPDATE 2026-10-18 — Astra v7 is DONE: 58/100 "Needs targeted rework"** (6/6/6/6/7/4).
 > The budget is now **$8 for the whole month** (not $10/day), so steps 2–3 were replaced by
 > one owner-approved merged call (run 4894730, $2.389; see

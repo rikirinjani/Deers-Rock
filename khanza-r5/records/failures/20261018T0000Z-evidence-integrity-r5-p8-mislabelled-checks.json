@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-18T00:00:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "P7 checks whose labels claimed more than they asserted, a tax check that could not fail, and an unproven resume writer-death",
+  "what_went_wrong": [
+    "A11 was labelled 'every restore across the suite hash-verified' while A15 deliberately produced an unverified restore that A11 did not count.",
+    "A10b was labelled 'exactly one tax row' but only flagged tax rows with a wrong amount; a duplicate correct-amount tax row passed.",
+    "p7_tax_rule_check.py printed DIFF/MISSING/STORED counts and always exited 0, yet was cited as a check.",
+    "The oracle wrote crash_safe=YES into every result file unconditionally.",
+    "The builder's DELETE ignored --cohort (WHERE 1=1 for --window ALL) while inserts were cohort-scoped; dormant because the live ledger holds only DR rows.",
+    "On resume the oracle waited on the bash wrapper's pid only, then removed the pid file and restored, even if the JVM writer was still alive; a corrupt hash file raised a traceback in stage_restore.",
+    "Found during P8 testing: the first cohort-scoped DELETE joined a utf8mb4 column to latin1 reg_periksa.no_rawat, which lost the index (a 31k-row DELETE ran ~30 min). Caught by the suite's runtime before any evidence was recorded; the run was stopped and its fixture torn down."
+  ],
+  "root_cause": "Check labels were written from intent rather than from the assertion actually coded, and no negative test existed for cardinality, for the tax check's exit code, or for a SIGKILLed oracle leaving a live writer.",
+  "detection": "Astra v7 (gpt-6-astra runs 4880158 and 4894730); each claim re-verified against source by the orchestrator on 2026-10-18 before fixing (P8 task doc §0 D1-D10). The join regression was detected by the P8 suite run 1 stalling in A10b.",
+  "correction": {
+    "code": "A11 relabelled and recomputed excluding A15/A18a/A18b, which are counted separately (must total 3); A10b adds a tax-row-count query and A10d plants a duplicate and a wrong tax row; p7_tax_rule_check exits 1 on any defect (+ duplicate detection, --db); crash_safe replaced by measured recovery counts; builder DELETE uses window AND cohort with the join converted into reg_periksa's charset (eq_ref, 0.07s); resume reap_writers kills recorded groups and any BilingHarness naming a run visit, then requires a quiet interval before restoring (WRITER-ALIVE otherwise); stage_restore treats an unreadable/foreign hash file as unverified; --retry-failed.",
+    "verification": "p8_recovery_unit_test.py 11/11; P8 suite on a fresh sik_p6f fixture (A10d, A10e, A17, A18a/b, A19, A20, A21 added); p8_builder_all_check.sh reproduces the live ledger content hash."
+  },
+  "rule": "A check's label may state only what its assertion tests; every cited check needs a planted-defect case proving it can fail; a resume must prove the previous writer dead, not wait on a wrapper pid.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

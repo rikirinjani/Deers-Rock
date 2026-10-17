@@ -1,0 +1,14 @@
+# P8 recovery unit test (VPS, 2026-10-17 23:09 UTC; tool sha a2d4c5068058fe3b, oracle sha 2aa3ef22cea42cdd)
+PASS  C1 truncated JSON -> unverified, no exception                  got=False want=False marker=hash file unreadable
+PASS  C1 foreign pfx -> unverified                                   got=False want=False marker=does not describe this batch
+PASS  C1 different visit set -> unverified                           got=False want=False marker=does not describe this batch
+PASS  C1 non-hex sha256 -> unverified                                got=False want=False marker=does not describe this batch
+PASS  C1 valid file, different content -> mismatch                   got=False want=False marker=STAGE-RESTORE-MISMATCH
+PASS  C1 valid file, same content -> verified                        got=True want=True marker=STAGE-RESTORED-VERIFIED
+PASS  P7 missing file -> unverified                                  got=False want=False marker=pre-reset hash file absent
+PASS  C2 unkillable harness group -> WRITER-ALIVE                    got=False want=False marker=WRITER-ALIVE
+PASS  C2 writers gone but output still changing -> WRITER-ALIVE      got=False want=False marker=quiet=False
+PASS  C2 writers gone, output quiet -> proof                         got=True want=True marker=WRITER-DEAD-PROOF (resume, P8-C2)
+PASS  C2 pid file removed only after the proof                       got=False want=False
+P8 recovery unit test: 11/11 cases PASS
+exit=0

@@ -1,0 +1,29 @@
+{
+  "pm1_version": 1,
+  "session_id": "retrace-r5-v7-step1-outputs",
+  "timestamp": "2026-10-17T23:12:09.330123+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\evidence\\astra_v7_step1_4880158_output.md",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\evidence\\astra_v7_step1_validation_gemini_4880116_output.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "retrace-r5-v7-step1-outputs",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................-.--...-........................................-.--...-",
+  "action": "Retroactive trace: Astra v7 step 1 outputs (claim-honesty 6/10, run 4880158; gemini validation 4880116), committed in 3381ccd without a trace."
+}

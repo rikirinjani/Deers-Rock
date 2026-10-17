@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""sampled_real_form_diff_r5.py — R5-P1 hardened oracle (independent, crash-safe).
+"""sampled_real_form_diff_r5.py — R5-P1 hardened oracle (independent; recovers from the
+fault modes the acceptance suite injects — not a general crash-safety claim, P8-A2).
 
 Hardening over the canonical sampled_real_form_diff.py (addresses the four
 Astra-scored gaps: baseline independence, unsafe reset, sampling, crash safety):
@@ -67,6 +68,19 @@ Astra-scored gaps: baseline independence, unsafe reset, sampling, crash safety):
          and waits for death (writer-dead proof) before any restore proceeds.
                 Stage tables are per-run and dropped at finalize; a mid-run
                 crash keeps them for resume.
+
+  P8 recovery hardening:
+  P8-C1  an unreadable, truncated or foreign stage hash file is STAGE-RESTORE-
+         UNVERIFIED (fail-closed), never a traceback or a verified restore.
+  P8-C2  resume first kills every recorded harness group and every BilingHarness
+         process naming a run visit, then requires none left and the visits'
+         output unchanged over a quiet interval (R5_WRITER_QUIET_S, default 5);
+         otherwise WRITER-ALIVE, no restore, exit 4.
+  P8-C3  restore is idempotent (DELETE+REPLACE from the kept stage tables, then
+         hash-verified), so a restore killed half-way is redone on resume.
+         R5_FAULT_RESTORE_PAUSE_S is a test-only hook that pauses mid-restore.
+  P8-C4  --retry-failed re-bills a FAILED batch only from a hash-verified
+         pre-reset state; without it FAILED batches stay failed.
 
 Usage:
   python3 sampled_real_form_diff_r5.py --stage B3 --db-name sik_r5 \
@@ -416,12 +430,19 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
     clean restore."""
     pfx = _stage_prefix(run_id, stage)
     inl = ",".join("'%s'" % n for n in nrs)
+    pause = float(os.environ.get("R5_FAULT_RESTORE_PAUSE_S", "0") or 0)
     try:
-        for t, key in RESET_TABLES.items():
+        for i, (t, key) in enumerate(RESET_TABLES.items()):
             s = "%s_%s" % (pfx, t)
             dbutil.execute(db, "DELETE FROM %s WHERE %s IN (%s)" % (t, key, inl))
             dbutil.execute(db, "REPLACE INTO %s SELECT * FROM %s WHERE %s IN (%s)"
                                % (t, s, key, inl))
+            if pause and i == 0:
+                # P8-C3 fault-injection hook (inert unless the env var is set): hold
+                # the restore half-applied so a test can kill the process here
+                log("RESTORE-FAULT-PAUSE %s_*: %s restored, %d tables pending; "
+                    "sleeping %.0fs" % (pfx, t, len(RESET_TABLES) - 1, pause))
+                time.sleep(pause)
         dbutil.execute(db,
             "UPDATE reg_periksa rp JOIN %s_reg sr ON rp.no_rawat=sr.no_rawat "
             "SET rp.status_bayar=sr.status_bayar WHERE rp.no_rawat IN (%s)" % (pfx, inl))
@@ -434,8 +455,22 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
     # P6-2e: verify the restored content matches the pre-reset hash.
     hpath = os.path.join(rundir, "stage_content_hash_%s.json" % pfx)
     ok = True
+    pre, bad = None, None
     if os.path.exists(hpath):
-        pre = json.load(open(hpath)).get("sha256")
+        # P8-C1: a truncated/garbled/foreign hash file is unverifiable, not a crash
+        try:
+            meta = json.load(open(hpath))
+            pre = meta.get("sha256")
+            if meta.get("pfx") != pfx or sorted(meta.get("nrs") or []) != sorted(nrs) \
+                    or not re.fullmatch(r"[0-9a-f]{64}", str(pre)):
+                bad = "hash file does not describe this batch (pfx/nrs/sha256 invalid)"
+        except Exception as e:
+            bad = "hash file unreadable (%s)" % type(e).__name__
+    if bad:
+        ok = False
+        log("STAGE-RESTORE-UNVERIFIED %d visits: %s; data re-applied but NOT "
+            "verified — treated as a failed restore" % (len(nrs), bad))
+    elif pre is not None:
         post = _content_hash(nrs, db, log)
         if pre != post:
             ok = False
@@ -611,6 +646,96 @@ def _on_terminate(signum, frame):
     os._exit(4)
 
 
+def _harness_writers(nrs):
+    """P8-C2: live processes that can write these visits' billing rows: any
+    BilingHarness JVM (or its faketime/bash wrapper) whose command line names one
+    of the visits. Returns {pid: pgid}. Linux /proc only."""
+    want = set(nrs)
+    found = {}
+    for d in os.listdir("/proc"):
+        if not d.isdigit() or int(d) == os.getpid():
+            continue
+        try:
+            with open("/proc/%s/cmdline" % d, "rb") as f:
+                argv = f.read().decode("utf-8", "replace").split("\0")
+            if "BilingHarness" not in " ".join(argv) or not want & set(" ".join(argv).split()):
+                continue
+            found[int(d)] = os.getpgid(int(d))
+        except (OSError, ValueError):
+            continue
+    return found
+
+
+def _kill_pgid(pgid, grace_s=10):
+    """SIGTERM -> SIGKILL on a process group we did not spawn in this process
+    (a crashed run's harness); True when the group is proven empty."""
+    for sig, wait_s in ((signal.SIGTERM, grace_s), (signal.SIGKILL, 10)):
+        if not _group_alive(pgid):
+            return True
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            return True
+        except OSError:
+            return False
+        for _ in range(int(wait_s * 4)):
+            if not _group_alive(pgid):
+                return True
+            time.sleep(0.25)
+    return not _group_alive(pgid)
+
+
+def reap_writers(st, rundir, db, log, dates, quiet_s=None):
+    """P8-C2: before a resume restores anything, prove no writer survives from a
+    crashed run. A SIGKILLed oracle cannot run its signal handler, so its harness
+    (own session) keeps running. Kill every recorded harness group and every
+    BilingHarness process naming a run visit, then require (a) none remain and
+    (b) the visits' output content is unchanged over a quiet interval.
+    Returns True (proof logged) or False (WRITER-ALIVE: caller must not restore)."""
+    nrs = sorted({v for b in st["batches"].values() for v in b["visits"]})
+    groups = set()
+    pidfs = []
+    for d in dates:
+        pidf = os.path.join(rundir, "harness_%s.log.pid" % d.replace("-", "_"))
+        if os.path.exists(pidf):
+            pidfs.append(pidf)
+            try:
+                groups.add(int(open(pidf).read().strip() or 0))
+            except ValueError:
+                pass
+    groups.discard(0)
+    groups |= set(_harness_writers(nrs).values())
+    killed = []
+    for g in sorted(groups):
+        if _group_alive(g):
+            ok = _kill_pgid(g)
+            killed.append("%d:%s" % (g, "dead" if ok else "ALIVE"))
+    left = _harness_writers(nrs)
+    alive_groups = [g for g in groups if _group_alive(g)]
+    pending = [v for b in st["batches"].values()
+               if b.get("status") in ("STAGED", "RESET") for v in b["visits"]]
+    quiet = True
+    if pending and not left and not alive_groups:
+        qs = float(os.environ.get("R5_WRITER_QUIET_S", "5") if quiet_s is None else quiet_s)
+        h1 = _content_hash(pending, db, log)
+        time.sleep(qs)
+        quiet = h1 == _content_hash(pending, db, log)
+    if left or alive_groups or not quiet:
+        log("WRITER-ALIVE (P8-C2): harness writers=%s groups_alive=%s quiet=%s "
+            "killed=%s — restore withheld, run stops (fail-closed exit 4)"
+            % (sorted(left), alive_groups, quiet, killed))
+        return False
+    for pidf in pidfs:
+        try:
+            os.remove(pidf)
+        except OSError:
+            pass
+    log("WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=%d killed=%s "
+        "harness_writers=0 quiet=%s" % (len(groups), killed or "none",
+                                         "true" if pending else "n/a"))
+    return True
+
+
 def rebill_via_consumer(nr, db, rundir, log):
     tgl, jam = None, None
     for r in dbutil.query(db, "SELECT tgl_registrasi, COALESCE(jam_reg,'08:00:00') "
@@ -694,6 +819,10 @@ def main():
     ap.add_argument("--allow-live", action="store_true",
                     help="P7-6: permit a billing run (which resets and re-bills visits) "
                          "against the live database 'sik'. DEFAULT refuses.")
+    ap.add_argument("--retry-failed", action="store_true",
+                    help="P8-C4: on resume, re-bill FAILED batches whose pre-reset "
+                         "state is (or can now be) hash-verified. DEFAULT keeps "
+                         "FAILED batches failed.")
     args = ap.parse_args()
     db = args.db_name
     # P7-6: a billing run DELETEs the sampled visits' output rows before re-billing
@@ -837,25 +966,30 @@ def main():
     # restore+rebill any non-BILLED batch.
     if not verify_frozen(rundir, db, log):
         log("RESUME blocked: frozen baseline failed verification (AC-3)"); return 3
-    # reap a lingering harness from a crashed run
-    for d in dates:
-        pidf = os.path.join(rundir, "harness_%s.log.pid" % d.replace("-", "_"))
-        if os.path.exists(pidf):
-            try:
-                hp = int(open(pidf).read().strip() or 0)
-                if _pid_alive(hp):
-                    log("RESUME: waiting for lingering harness pid %d (date %s)"
-                        % (hp, d))
-                    for _ in range(240):
-                        if not _pid_alive(hp):
-                            break
-                        time.sleep(5)
-                os.remove(pidf)
-            except Exception:
-                pass
+    # P8-C2: reap a lingering harness from a crashed run and PROVE no writer is
+    # left before any restore (pre-P8 this waited on the bash wrapper's pid only,
+    # then removed the pid file and restored even if the JVM was still running).
+    if not reap_writers(st, rundir, db, log, dates):
+        release_lock(rundir)
+        return 4
     failed = False
     for d in dates:
         b = st["batches"].get(d)
+        if b and b["status"] == "FAILED" and args.retry_failed:
+            # P8-C4: retry a FAILED batch only from a hash-verified pre-reset state
+            if b.get("restored") is not True:
+                if not stage_restore(b["visits"], db, rundir, log, tool.run_id,
+                                     stage=st.get("stage")):
+                    log("date %s: RETRY-REFUSED (restore not hash-verified; stays "
+                        "FAILED)" % d)
+                    failed = True
+                    break
+                b["restored"] = True
+            log("date %s: RETRY-FAILED (P8-C4): previous failure '%s'; pre-reset "
+                "state verified -> re-billing" % (d, b.get("fail_reason", "?")))
+            b["retried_from"] = b.get("fail_reason", "?")
+            b["status"] = "PENDING"
+            save_state(rundir, st)
         if not b or b["status"] in ("BILLED", "FAILED"):
             if b and b["status"] == "FAILED":
                 failed = True
@@ -1111,11 +1245,20 @@ def _finalize(st, rundir, db, tool, log, repair_consumer=False):
                    .strftime("%Y-%m-%dT%H:%M:%SZ"),
                    "baseline=frozen (sha256_all=%s)\n" % man["sha256_all"]))
         f.write("- visits=%d sampled_rows=%d in_envelope=%d out_of_envelope=%d "
-                "failed_batches=%d drift(in-envelope)=%d rate=%.4f parse_errors=%d "
-                "crash_safe=YES\n"
+                "failed_batches=%d drift(in-envelope)=%d rate=%.4f parse_errors=%d\n"
                 % (len(st["nrs"]), len(results), len(in_env_results),
                    len(out_of_env), len(failed_batches), len(drift), rate,
                    len(parse_errors)))
+        # P8-A2: measured recovery properties of THIS run, not a blanket crash_safe
+        f.write("- recovery: batches=%d billed=%d failed=%d failed_restored_verified=%d "
+                "unrestored=%d retried=%d\n"
+                % (len(st["batches"]),
+                   sum(1 for b in st["batches"].values() if b.get("status") == "BILLED"),
+                   sum(1 for b in st["batches"].values() if b.get("status") == "FAILED"),
+                   sum(1 for b in st["batches"].values()
+                       if b.get("status") == "FAILED" and b.get("restored") is True),
+                   len(unrestored),
+                   sum(1 for b in st["batches"].values() if b.get("retried_from"))))
         f.write("- stage-drop-verified=%s (P6-2e)\n" % ("YES" if drop_ok else "NO"))
         if out_of_env:
             f.write("- OUT-OF-ENVELOPE (excluded from drift; P5-3 eligibility-"

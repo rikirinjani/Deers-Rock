@@ -44,6 +44,7 @@ Usage: python3 three_count_reconcile.py --stage A [--window 2026-10|ALL]
        [--cohort dr|all] [--verify-form-save]
 """
 import os, sys, time
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import dbutil
 
 RUN_ID = os.environ.get("RUN_ID", "test")
@@ -129,9 +130,13 @@ def count_form_save(in_clause):
             "FROM detail_nota_jalan WHERE no_rawat IN (%s) "
             "GROUP BY no_rawat" % in_clause)
         for nr, paid in rows:
+            # P8-B5: exact Decimal half-up (was int(round(float())), i.e. binary
+            # float + banker's rounding). On live sik 1 of 1,095 paid sums is
+            # fractional and none ends in .5, so no amount changes.
             try:
-                paid_int = int(round(float(paid or 0)))
-            except (TypeError, ValueError):
+                paid_int = int(Decimal(str(paid if paid is not None else 0))
+                               .quantize(Decimal(1), rounding=ROUND_HALF_UP))
+            except (InvalidOperation, ValueError):
                 paid_int = 0
             d = by.setdefault("note", {"rows": 0, "amount": 0})
             d["rows"] += 1

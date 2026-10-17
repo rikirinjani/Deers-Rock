@@ -67,3 +67,12 @@ nonzero failure propagation, and preserved evidence before declaring success."
 ## 4. Rubric cross-check (fill at close)
 | AC | Evidence | PASS/FAIL | Notes |
 |---|---|---|---|
+| AC-1 wording | suite summary table (one row per property); oracle result files carry `recovery:` counts, no `crash_safe`; A11 relabelled; R5 §0/§1/§16 struck through or annotated; builder docstring | PASS | |
+| AC-2 tax gates | A10b count query + A10d (duplicate: count query 1, amount query 0, tax check exit 1; wrong amount: both catch it; clean exit 0 before/after); live tax check PASS, 0 defects | PASS | Named A10d, not A10c (A10c already exists: the mid-build trigger) |
+| AC-3 scope | A10e: non-DR row survives 2026-10 and ALL rebuilds; `evidence/p8/r5_p8_builder_all_check.txt` reproduces `a66a3a54…` byte-identically | PASS | First version's cross-charset join lost the index; fixed before any evidence was recorded |
+| AC-4 suite hygiene | "previous suite results/logs archived … (73 entries)"; A17 exit 3 for sik and sik_bench | PASS | |
+| AC-5 recovery | A18a, A18b, A19 (3 survivors killed, quiet proof), A20 (SIGKILL mid-restore, redone), A21 (retry only with the flag); unit test 11/11 covers WRITER-ALIVE and foreign hash files; A13 live checksums equal | PASS | Unkillable writer only in the unit test |
+| AC-6 records + v8 | R5 §19, manifest P8 re-pin (local = VPS), QMS VER-2026-10-18-DR-KHANZA-R5-P8-001, failure record 20261018T0000Z, pm1 trace, retrace; v8 run pending the owner's confirmation of spend | PARTIAL | v8 not yet run |
+
+Evidence: `evidence/p8/r5_p6_acceptance_20261017T225851Z.md` (29/29), `evidence/p8/r5_p8_recovery_unit_test.txt`,
+`evidence/p8/r5_p8_builder_all_check.txt`. R5 report §19.

@@ -8,17 +8,26 @@
 # P7 (2026-10-17): the suite EXITS NON-ZERO on any FAIL (it used to end on an echo);
 # A14 self-tests that exit path, A15 a fail-closed restore with a missing hash, A16 the
 # live-target refusal; A10b checks tax exactly; A13 also guards live sik output tables.
+# P8 (2026-10-18): A10b also checks tax-row cardinality and A10d plants a duplicate and a
+# wrong tax row (both must be caught); A10e proves a DR rebuild keeps a non-DR row; A11
+# no longer claims "every restore" (A15/A18's deliberate unverified restores are
+# counted separately); A17 refuses a live fixture; A18-A21 inject recovery faults
+# (corrupt hash, surviving writer, interrupted restore, retry of a FAILED batch);
+# earlier results are archived, never deleted.
 set -u
 cd /opt/Deers-Rock/tools
 export DBUTIL_FORCE_ROOT=1
 FX=${FX:-sik_p6f}  # fixture DB: full clone of sik + 5 STRATA- reg rows
+# P8-B4: the suite mutates its fixture with direct SQL; never let that be a live DB
+case "$FX" in sik|sik_bench|mysql|information_schema|performance_schema|sys|"")
+  echo "LIVE-FIXTURE-REFUSED: FX=$FX is not a disposable fixture (use a clone such as sik_p6f)"; exit 3;; esac
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p /opt/dr-benchmark/p-chain
 OUT=/opt/dr-benchmark/p-chain/r5_p6_acceptance_${TS}.md
-PASS=0; FAIL=0
+PASS=0; FAIL=0; SUMMARY=""
 check() {
-  if [ "$3" = "0" ]; then echo "A$1: PASS — $2" | tee -a "$OUT"; PASS=$((PASS+1));
-  else echo "A$1: FAIL — $2" | tee -a "$OUT"; FAIL=$((FAIL+1)); fi
+  if [ "$3" = "0" ]; then echo "A$1: PASS — $2" | tee -a "$OUT"; PASS=$((PASS+1)); SUMMARY="$SUMMARY| A$1 | PASS | $2 |"$'\n';
+  else echo "A$1: FAIL — $2" | tee -a "$OUT"; FAIL=$((FAIL+1)); SUMMARY="$SUMMARY| A$1 | **FAIL** | $2 |"$'\n'; fi
 }
 res() { echo "$1" | tee -a "$OUT"; }
 cnt() { local n; n=$(grep -ac "$1" "$2" 2>/dev/null); echo "${n:-0}"; }
@@ -97,7 +106,11 @@ printf "2026/03/14/000001\n2026/05/12/000001\n2026/07/22/000004\n2026/09/09/0000
 printf "2026/10/01/800085\n2026/10/01/800128\n" > /tmp/r6_clean.txt
 printf "NO-SUCH-REG-ROW\n" > /tmp/r6_missing.txt
 printf "STRATA-ZEROFEE\n" > /tmp/r6_strata_zero.txt
-rm -rf /opt/dr-benchmark/results/r6_*; rm -f /tmp/r6_a*.log /tmp/r6_fz_*.log
+# P8-B4: archive the previous run's results and logs instead of deleting them
+ARCH=/opt/dr-benchmark/results/archive/$TS; mkdir -p "$ARCH"
+mv /opt/dr-benchmark/results/r6_* "$ARCH"/ 2>/dev/null
+mv /tmp/r6_a*.log /tmp/r6_fz_*.log /tmp/r6_*.saved "$ARCH"/ 2>/dev/null
+res "previous suite results/logs archived to $ARCH ($(ls "$ARCH" | wc -l) entries)"
 
 ORACLE="python3 sampled_real_form_diff_r5.py --db-name ${FX}"
 # a billing run requires a frozen baseline from a prior --freeze-only pass on
@@ -242,7 +255,8 @@ freeze r6_a15 B3 --visits-file /tmp/r6_clean.txt
 env RUN_ID=r6_a15 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a15.log 2>&1 &
 PID=$!
 for _ in $(seq 1 240); do grep -q "stage-content-hash" /tmp/r6_a15.log 2>/dev/null && break; sleep 0.25; done
-rm -f /opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5/stage_content_hash_*.json
+H15=$(ls /opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5/stage_content_hash_*.json 2>/dev/null | head -1)
+[ -n "$H15" ] && cp "$H15" /tmp/r6_a15_hash.saved && rm -f "$H15"
 wait $PID; RC=$?
 UNV=$(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a15.log); KEEP=$(cnt "STAGE-KEEP" /tmp/r6_a15.log)
 STG=$(SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5_stage_B3_r6_a15%';")
@@ -250,7 +264,9 @@ RST=$(python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/r6_a1
 grep -a "STAGE-RESTORE-UNVERIFIED\|STAGE-KEEP\|FAILED (" /tmp/r6_a15.log | head -3 | cut -c1-200 | tee -a "$OUT"
 check 15 "A15 missing pre-reset hash -> STAGE-RESTORE-UNVERIFIED + exit 4 + restored=False + stage tables kept (STAGE-KEEP)" $([ "$UNV" -ge 1 ] && [ "$RC" = "4" ] && [ "$KEEP" -ge 1 ] && [ "$STG" -gt 0 ] && [ "$RST" = "False" ] && echo 0 || echo 1)
 res "A15 exit=$RC unverified_lines=$UNV stage_keep_lines=$KEEP stage_tables_kept=$STG restored=$RST java_after=$(javacount)"
-# put the two visits back from the kept stage tables, then drop them (the fixture must end clean)
+# put the two visits back from the kept stage tables (hash file put back first, so this
+# cleanup restore is itself hash-verified), then drop them (the fixture must end clean)
+[ -n "$H15" ] && cp /tmp/r6_a15_hash.saved "$H15"
 python3 - "$FX" <<'PY' >> /tmp/r6_a15_cleanup.log 2>&1
 import sys, json
 sys.path.insert(0, '/opt/Deers-Rock/tools')
@@ -270,6 +286,106 @@ REF=$(cnt "LIVE-TARGET-REFUSED" /tmp/r6_a16.log)
 check 16 "A16 live target refused without --allow-live (exit 3, LIVE-TARGET-REFUSED)" $([ "$RC" = "3" ] && [ "$REF" -ge 1 ] && echo 0 || echo 1)
 res "A16 exit=$RC refused_lines=$REF"
 
+# ---- P8-C: recovery fault injection (through the same oracle the wrapper runs) ----
+# cleanup helper: put a batch back from its kept stage tables with its saved hash file
+# (so the cleanup restore is itself verified), then verified-drop the stage tables
+restore_kept() { local rid=$1 hfile=$2 saved=$3
+  [ -n "$hfile" ] && [ -f "$saved" ] && cp "$saved" "$hfile"
+  python3 - "$FX" "$rid" <<'PY'
+import sys, json
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]; rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+st = json.load(open(rd + '/.state.json'))
+nrs = [v for b in st['batches'].values() for v in b['visits']]
+print('restore_verified', o.stage_restore(nrs, fx, rd, print, rid, stage='B3'))
+print('stage_drop', o.stage_drop(fx, rid, print, stage='B3'))
+PY
+}
+restored_flags() { python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/$1/B3_oracle_run_r5/.state.json'));print(','.join(str(b.get('restored')) for b in st['batches'].values()))" 2>/dev/null; }
+
+echo "=== A18a: garbled pre-reset hash file -> STAGE-RESTORE-UNVERIFIED (no traceback), FAILED, kept, exit 4 ==="
+freeze r6_a18 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a18 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a18.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "stage-content-hash" /tmp/r6_a18.log 2>/dev/null && break; sleep 0.25; done
+H18=$(ls /opt/dr-benchmark/results/r6_a18/B3_oracle_run_r5/stage_content_hash_*.json 2>/dev/null | head -1)
+[ -n "$H18" ] && cp "$H18" /tmp/r6_a18_hash.saved && printf '{"pfx": "r5_stage_B3_r6_a18", "sha2' > "$H18"
+wait $PID; RC=$?
+UNV=$(cnt "STAGE-RESTORE-UNVERIFIED .*hash file unreadable" /tmp/r6_a18.log); TB=$(cnt "Traceback" /tmp/r6_a18.log)
+KEEP=$(cnt "STAGE-KEEP" /tmp/r6_a18.log); RST=$(restored_flags r6_a18)
+grep -a "STAGE-RESTORE-UNVERIFIED\|STAGE-KEEP" /tmp/r6_a18.log | head -2 | cut -c1-200 | tee -a "$OUT"
+restore_kept r6_a18 "$H18" /tmp/r6_a18_hash.saved > /tmp/r6_a18_cleanup.log 2>&1
+CL=$(grep -c "restore_verified True\|stage_drop True" /tmp/r6_a18_cleanup.log)
+check 18a "A18a garbled hash file -> 'hash file unreadable' UNVERIFIED, no traceback, exit 4, restored=False, STAGE-KEEP; cleanup restore verified + dropped" $([ -n "$H18" ] && [ "$UNV" -ge 1 ] && [ "$TB" = "0" ] && [ "$RC" = "4" ] && [ "$RST" = "False" ] && [ "$KEEP" -ge 1 ] && [ "$CL" = "2" ] && echo 0 || echo 1)
+res "A18a exit=$RC unverified_unreadable=$UNV tracebacks=$TB restored=$RST stage_keep=$KEEP cleanup_ok_lines=$CL"
+
+echo "=== A18b: hash file valid but with a wrong sha256 -> STAGE-RESTORE-MISMATCH, FAILED, kept, exit 4 ==="
+freeze r6_a18b B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a18b R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a18b.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "stage-content-hash" /tmp/r6_a18b.log 2>/dev/null && break; sleep 0.25; done
+H18B=$(ls /opt/dr-benchmark/results/r6_a18b/B3_oracle_run_r5/stage_content_hash_*.json 2>/dev/null | head -1)
+[ -n "$H18B" ] && cp "$H18B" /tmp/r6_a18b_hash.saved && python3 -c "import json,sys;p=sys.argv[1];m=json.load(open(p));m['sha256']='0'*64;json.dump(m,open(p,'w'))" "$H18B"
+wait $PID; RC=$?
+MM=$(cnt "STAGE-RESTORE-MISMATCH" /tmp/r6_a18b.log); TB=$(cnt "Traceback" /tmp/r6_a18b.log)
+KEEP=$(cnt "STAGE-KEEP" /tmp/r6_a18b.log); RST=$(restored_flags r6_a18b)
+restore_kept r6_a18b "$H18B" /tmp/r6_a18b_hash.saved > /tmp/r6_a18b_cleanup.log 2>&1
+CL=$(grep -c "restore_verified True\|stage_drop True" /tmp/r6_a18b_cleanup.log)
+check 18b "A18b wrong sha256 in hash file -> STAGE-RESTORE-MISMATCH, no traceback, exit 4, restored=False, STAGE-KEEP; cleanup restore verified + dropped" $([ -n "$H18B" ] && [ "$MM" -ge 1 ] && [ "$TB" = "0" ] && [ "$RC" = "4" ] && [ "$RST" = "False" ] && [ "$KEEP" -ge 1 ] && [ "$CL" = "2" ] && echo 0 || echo 1)
+res "A18b exit=$RC mismatch_lines=$MM tracebacks=$TB restored=$RST stage_keep=$KEEP cleanup_ok_lines=$CL"
+
+echo "=== A19: SIGKILL the oracle mid-harness (its signal handler cannot run) -> the JVM survives; resume kills it, proves quiet, restores, re-bills ==="
+freeze r6_a19 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a19 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a19.log 2>&1 &
+PID=$!
+for _ in $(seq 1 120); do [ "$(javacount)" != "0" ] && break; sleep 1; done
+sleep 1; kill -KILL $PID 2>/dev/null; wait $PID; RCK=$?
+sleep 1; JS=$(javacount)
+env RUN_ID=r6_a19 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a19_resume.log 2>&1
+RC=$?
+PROOF=$(cnt "WRITER-DEAD-PROOF (resume, P8-C2).*killed=\[.*dead" /tmp/r6_a19_resume.log)
+RV=$(cnt "STAGE-RESTORED-VERIFIED" /tmp/r6_a19_resume.log); JA=$(javacount)
+grep -a "WRITER-DEAD-PROOF (resume\|WRITER-ALIVE\|STAGE-RESTOR" /tmp/r6_a19_resume.log | head -2 | cut -c1-200 | tee -a "$OUT"
+check 19 "A19 surviving writer after SIGKILL (java left=$JS) -> resume kills its group + quiet proof + verified restore + re-bill exit 0, 0 java left" $([ "$RCK" = "137" ] && [ "$JS" -ge 1 ] && [ "$PROOF" -ge 1 ] && [ "$RV" -ge 1 ] && [ "$RC" = "0" ] && [ "$JA" = "0" ] && echo 0 || echo 1)
+res "A19 killed_exit=$RCK java_after_kill=$JS resume_exit=$RC proof_lines=$PROOF restored_verified=$RV java_after=$JA"
+
+echo "=== A20: SIGKILL during restoration -> half-restored batch; next resume re-restores (verified) and re-bills ==="
+freeze r6_a20 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a20 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a20.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "reset 2 visits" /tmp/r6_a20.log 2>/dev/null && break; sleep 0.25; done
+kill -TERM $PID 2>/dev/null; wait $PID; RCK=$?
+env RUN_ID=r6_a20 R5_FAULT_RESTORE_PAUSE_S=60 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a20_resume1.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "RESTORE-FAULT-PAUSE" /tmp/r6_a20_resume1.log 2>/dev/null && break; sleep 0.25; done
+PAUSED=$(cnt "RESTORE-FAULT-PAUSE" /tmp/r6_a20_resume1.log)
+kill -KILL $PID 2>/dev/null; wait $PID; RCK2=$?
+env RUN_ID=r6_a20 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a20_resume2.log 2>&1
+RC=$?
+RV=$(cnt "STAGE-RESTORED-VERIFIED" /tmp/r6_a20_resume2.log); MISM=$(cnt "STAGE-RESTORE-MISMATCH" /tmp/r6_a20_resume2.log)
+grep -a "RESTORE-FAULT-PAUSE" /tmp/r6_a20_resume1.log | head -1 | cut -c1-200 | tee -a "$OUT"
+check 20 "A20 kill after reset (exit 4) -> resume SIGKILLed mid-restore (exit 137) -> next resume STAGE-RESTORED-VERIFIED + re-bill exit 0, no mismatch, 0 java left" $([ "$RCK" = "4" ] && [ "$PAUSED" -ge 1 ] && [ "$RCK2" = "137" ] && [ "$RV" -ge 1 ] && [ "$MISM" = "0" ] && [ "$RC" = "0" ] && [ "$(javacount)" = "0" ] && echo 0 || echo 1)
+res "A20 first_kill_exit=$RCK paused=$PAUSED restore_kill_exit=$RCK2 resume_exit=$RC restored_verified=$RV mismatch=$MISM"
+
+echo "=== A21: FAILED batch stays FAILED on resume; --retry-failed re-bills it from a verified state ==="
+freeze r6_a21 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a21 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a21.log 2>&1
+RC1=$?
+env RUN_ID=r6_a21 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a21_noretry.log 2>&1
+RC2=$?; RT2=$(cnt "RETRY-FAILED" /tmp/r6_a21_noretry.log)
+env RUN_ID=r6_a21 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --retry-failed > /tmp/r6_a21_retry.log 2>&1
+RC3=$?; RT3=$(cnt "RETRY-FAILED (P8-C4)" /tmp/r6_a21_retry.log)
+grep -a "RETRY-FAILED\|RETRY-REFUSED" /tmp/r6_a21_retry.log | head -1 | cut -c1-200 | tee -a "$OUT"
+check 21 "A21 timeout -> FAILED (exit 4); plain resume keeps it FAILED (exit 4, no retry); --retry-failed re-bills it -> exit 0" $([ "$RC1" = "4" ] && [ "$RC2" = "4" ] && [ "$RT2" = "0" ] && [ "$RC3" = "0" ] && [ "$RT3" -ge 1 ] && echo 0 || echo 1)
+res "A21 first_exit=$RC1 noretry_exit=$RC2 noretry_retry_lines=$RT2 retry_exit=$RC3 retry_lines=$RT3"
+
+echo "=== A17: a live database as fixture -> LIVE-FIXTURE-REFUSED, exit 3 ==="
+FX=sik bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /tmp/r6_a17.log 2>&1; R17A=$?
+FX=sik_bench bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /tmp/r6_a17b.log 2>&1; R17B=$?
+check 17 "A17 FX=sik and FX=sik_bench refused before any DB access (exit 3, LIVE-FIXTURE-REFUSED)" $([ "$R17A" = "3" ] && [ "$R17B" = "3" ] && [ "$(cnt LIVE-FIXTURE-REFUSED /tmp/r6_a17.log)" -ge 1 ] && [ "$(cnt LIVE-FIXTURE-REFUSED /tmp/r6_a17b.log)" -ge 1 ] && echo 0 || echo 1)
+res "A17 FX=sik exit=$R17A FX=sik_bench exit=$R17B"
+
 echo "=== A14: suite exit path — a failing check must make the suite exit non-zero ==="
 P7_EXIT_TEST=fail bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EF=$?
 P7_EXIT_TEST=pass bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EP=$?
@@ -280,6 +396,10 @@ echo "=== A10: builder single-session transaction on a SCRATCH ledger (${FX}.dr_
 SQL "DROP TABLE IF EXISTS ${FX}.dr_charge_ledger; CREATE TABLE ${FX}.dr_charge_ledger LIKE sik_bench.dr_charge_ledger; INSERT INTO ${FX}.dr_charge_ledger SELECT * FROM sik_bench.dr_charge_ledger;
      DROP TABLE IF EXISTS ${FX}.dr_tariff; CREATE TABLE ${FX}.dr_tariff LIKE sik_bench.dr_tariff; INSERT INTO ${FX}.dr_tariff SELECT * FROM sik_bench.dr_tariff;"
 export P2_LEDGER_DB=${FX} P2_CONSUMER_DB=${FX}
+# window visits with drugs whose tax row is missing or has the wrong amount
+taxbad() { SQL "SELECT COUNT(*) FROM (SELECT d.no_rawat, SUM(d.amount) ds FROM ${FX}.dr_charge_ledger d WHERE d.component='drug' AND d.no_rawat LIKE '2026/10/%' GROUP BY d.no_rawat) x LEFT JOIN ${FX}.dr_charge_ledger t ON t.no_rawat=x.no_rawat AND t.component='tax' WHERE (x.ds*11+50) DIV 100 > 0 AND (t.no_rawat IS NULL OR t.amount <> (x.ds*11+50) DIV 100);"; }
+# P8-B1: window visits with drugs whose NUMBER of tax rows is not 1 (expected tax > 0) or 0 (expected tax = 0)
+taxcard() { SQL "SELECT COUNT(*) FROM (SELECT d.no_rawat, (SUM(d.amount)*11+50) DIV 100 et, (SELECT COUNT(*) FROM ${FX}.dr_charge_ledger t WHERE t.no_rawat=d.no_rawat AND t.component='tax') nt FROM ${FX}.dr_charge_ledger d WHERE d.component='drug' AND d.no_rawat LIKE '2026/10/%' GROUP BY d.no_rawat) x WHERE x.nt <> IF(x.et > 0, 1, 0);"; }
 env RUN_ID=r6_a10 python3 build_dr_charge_ledger_p2.py --window 2026-10 > /tmp/r6_a10.log 2>&1
 RC=$?
 grep -a "SINGLE mysql session\|FAIL-CLOSED" /tmp/r6_a10.log | head -2 | tee -a "$OUT"
@@ -290,10 +410,39 @@ SQL "INSERT IGNORE INTO ${FX}.dr_charge_ledger VALUES ('2026/10/01/999999','drug
 env RUN_ID=r6_a10b python3 build_dr_charge_ledger_p2.py --window 2026-10 > /tmp/r6_a10b.log 2>&1
 RCB=$?
 STALE=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger WHERE no_rawat='2026/10/01/999999';")
-TAXBAD=$(SQL "SELECT COUNT(*) FROM (SELECT d.no_rawat, SUM(d.amount) ds FROM ${FX}.dr_charge_ledger d WHERE d.component='drug' AND d.no_rawat LIKE '2026/10/%' GROUP BY d.no_rawat) x LEFT JOIN ${FX}.dr_charge_ledger t ON t.no_rawat=x.no_rawat AND t.component='tax' WHERE (x.ds*11+50) DIV 100 > 0 AND (t.no_rawat IS NULL OR t.amount <> (x.ds*11+50) DIV 100);")
+TAXBAD=$(taxbad); TAXCARD=$(taxcard)
 TAXORPHAN=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger t WHERE t.component='tax' AND t.no_rawat LIKE '2026/10/%' AND NOT EXISTS (SELECT 1 FROM ${FX}.dr_charge_ledger d WHERE d.no_rawat=t.no_rawat AND d.component='drug');")
-check 10b "A10b stale in-window key (drug+tax) gone after rebuild; every window visit with drugs has exactly one tax row = (drug subtotal x 11 + 50) div 100, no orphan tax rows (tolerance 0)" $([ "$RCB" = "0" ] && [ "$STALE" = "0" ] && [ "$TAXBAD" = "0" ] && [ "$TAXORPHAN" = "0" ] && echo 0 || echo 1)
-res "A10b exit=$RCB stale_rows=$STALE tax_wrong_or_missing=$TAXBAD tax_orphan=$TAXORPHAN"
+check 10b "A10b stale in-window key (drug+tax) gone after rebuild; every window visit with drugs has exactly one tax row (zero when the expected tax is 0) = (drug subtotal x 11 + 50) div 100, no orphan tax rows (tolerance 0)" $([ "$RCB" = "0" ] && [ "$STALE" = "0" ] && [ "$TAXBAD" = "0" ] && [ "$TAXCARD" = "0" ] && [ "$TAXORPHAN" = "0" ] && echo 0 || echo 1)
+res "A10b exit=$RCB stale_rows=$STALE tax_wrong_or_missing=$TAXBAD tax_row_count_wrong=$TAXCARD tax_orphan=$TAXORPHAN"
+
+echo "=== A10d: planted duplicate and wrong tax rows must be caught (A10b queries + p7_tax_rule_check exit) ==="
+NR10=$(SQL "SELECT d.no_rawat FROM ${FX}.dr_charge_ledger d JOIN ${FX}.dr_charge_ledger t ON t.no_rawat=d.no_rawat AND t.component='tax' WHERE d.component='drug' AND d.no_rawat LIKE '2026/10/%' ORDER BY d.no_rawat LIMIT 1;")
+TAXAMT=$(SQL "SELECT amount FROM ${FX}.dr_charge_ledger WHERE no_rawat='$NR10' AND component='tax';")
+python3 p7_tax_rule_check.py --db ${FX} > /tmp/r6_a10d_clean.log 2>&1; TC0=$?
+SQL "INSERT INTO ${FX}.dr_charge_ledger VALUES ('$NR10','tax','P8DUP',1,$TAXAMT,$TAXAMT,'p8-dup-probe');"
+DUPCARD=$(taxcard); DUPBAD=$(taxbad)
+python3 p7_tax_rule_check.py --db ${FX} > /tmp/r6_a10d_dup.log 2>&1; TC1=$?
+SQL "DELETE FROM ${FX}.dr_charge_ledger WHERE code='P8DUP' AND source='p8-dup-probe';"
+SQL "UPDATE ${FX}.dr_charge_ledger SET amount=amount+1 WHERE no_rawat='$NR10' AND component='tax';"
+WRONGBAD=$(taxbad)
+python3 p7_tax_rule_check.py --db ${FX} > /tmp/r6_a10d_wrong.log 2>&1; TC2=$?
+SQL "UPDATE ${FX}.dr_charge_ledger SET amount=amount-1 WHERE no_rawat='$NR10' AND component='tax';"
+python3 p7_tax_rule_check.py --db ${FX} > /tmp/r6_a10d_after.log 2>&1; TC3=$?
+grep -a "DUPLICATE\|STORED \|TAX-RULE-CHECK" /tmp/r6_a10d_dup.log /tmp/r6_a10d_wrong.log | head -4 | cut -c1-160 | tee -a "$OUT"
+check 10d "A10d duplicate correct-amount tax row caught by the cardinality query (A10b's amount query alone misses it: $DUPBAD) and by p7_tax_rule_check (exit 1); a wrong tax amount caught by both; clean ledger exits 0 before and after" $([ -n "$NR10" ] && [ "$TC0" = "0" ] && [ "$DUPCARD" = "1" ] && [ "$TC1" = "1" ] && [ "$WRONGBAD" = "1" ] && [ "$TC2" = "1" ] && [ "$TC3" = "0" ] && echo 0 || echo 1)
+res "A10d visit=$NR10 clean_exit=$TC0 dup: count_query=$DUPCARD amount_query=$DUPBAD tax_check_exit=$TC1 · wrong: amount_query=$WRONGBAD tax_check_exit=$TC2 · restored: tax_check_exit=$TC3"
+
+echo "=== A10e: a DR rebuild must not delete a non-DR row (delete scope = insert scope), window 2026-10 and ALL ==="
+NONDR=$(SQL "SELECT no_rawat FROM ${FX}.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis NOT LIKE 'DR%' ORDER BY no_rawat LIMIT 1;")
+SQL "INSERT INTO ${FX}.dr_charge_ledger VALUES ('$NONDR','procedure','P8NONDR',1,1,1,'p8-nondr-probe');"
+env RUN_ID=r6_a10e python3 build_dr_charge_ledger_p2.py --window 2026-10 > /tmp/r6_a10e.log 2>&1; RCE=$?
+SURV1=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger WHERE code='P8NONDR';")
+T0=$(date +%s)
+env RUN_ID=r6_a10e_all python3 build_dr_charge_ledger_p2.py --window ALL > /tmp/r6_a10e_all.log 2>&1; RCEA=$?
+SURV2=$(SQL "SELECT COUNT(*) FROM ${FX}.dr_charge_ledger WHERE code='P8NONDR';"); ALL_SECS=$(( $(date +%s) - T0 ))
+SQL "DELETE FROM ${FX}.dr_charge_ledger WHERE code='P8NONDR' AND source='p8-nondr-probe';"
+check 10e "A10e non-DR ledger row ($NONDR) survives a DR rebuild of window 2026-10 and of window ALL (both exit 0)" $([ -n "$NONDR" ] && [ "$RCE" = "0" ] && [ "$SURV1" = "1" ] && [ "$RCEA" = "0" ] && [ "$SURV2" = "1" ] && echo 0 || echo 1)
+res "A10e visit=$NONDR 2026-10: exit=$RCE survived=$SURV1 · ALL: exit=$RCEA survived=$SURV2 (${ALL_SECS}s)"
 # mid-build failure: a trigger rejects the first tax row (tax is built LAST, so
 # the DELETE and all registration/procedure/drug REPLACEs are already in the
 # open transaction). The ledger must be byte-identical afterwards.
@@ -322,11 +471,16 @@ res "A10c trigger_present=$TRG_N injected_msg_lines=$INJ exit=$RCC ledger pre=$L
 unset P2_LEDGER_DB P2_CONSUMER_DB
 
 # ---- end-state checks ----
-RM_ALL=$(cat /tmp/r6_a*.log | grep -ac "STAGE-RESTORE-MISMATCH")
+# P8-A1: A15, A18a and A18b produce unverified/mismatched restores ON PURPOSE; they are
+# counted on their own and excluded here, so A11 no longer claims "every restore"
+OTHER_LOGS=$(ls /tmp/r6_a*.log | grep -v -e '/r6_a15\.log$' -e '/r6_a18\.log$' -e '/r6_a18b\.log$')
+RM_OTH=$(cat $OTHER_LOGS | grep -ac "STAGE-RESTORE-MISMATCH")
+UV_OTH=$(cat $OTHER_LOGS | grep -ac "STAGE-RESTORE-UNVERIFIED")
 DF_ALL=$(cat /tmp/r6_a*.log | grep -ac "STAGE-DROP-FAILED")
 RV_ALL=$(cat /tmp/r6_a*.log | grep -ac "STAGE-RESTORED-VERIFIED")
-res "all transcripts: STAGE-RESTORED-VERIFIED=$RV_ALL STAGE-RESTORE-MISMATCH=$RM_ALL STAGE-DROP-FAILED=$DF_ALL"
-check 11 "every restore across the suite hash-verified (0 mismatch, >=1 verified) and no failed stage drop" $([ "$RM_ALL" = "0" ] && [ "$DF_ALL" = "0" ] && [ "$RV_ALL" -ge 1 ] && echo 0 || echo 1)
+DELIB=$(( $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a15.log) + $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a18.log) + $(cnt "STAGE-RESTORE-MISMATCH" /tmp/r6_a18b.log) ))
+res "transcripts outside A15/A18: STAGE-RESTORED-VERIFIED=$RV_ALL STAGE-RESTORE-MISMATCH=$RM_OTH STAGE-RESTORE-UNVERIFIED=$UV_OTH · deliberate unverified/mismatched restores (A15+A18a+A18b)=$DELIB · STAGE-DROP-FAILED=$DF_ALL"
+check 11 "every restore OUTSIDE the deliberate-fault checks A15/A18a/A18b hash-verified (0 mismatch, 0 unverified, >=1 verified); those three produced exactly their 3 deliberate unverified/mismatched restores; no failed stage drop" $([ "$RM_OTH" = "0" ] && [ "$UV_OTH" = "0" ] && [ "$RV_ALL" -ge 1 ] && [ "$DELIB" = "3" ] && [ "$DF_ALL" = "0" ] && echo 0 || echo 1)
 STAGE_LEFT=$(SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5_stage_%';")
 res "stage tables remaining on ${FX}: $STAGE_LEFT (pre-existing $LEFT0)"
 check 12 "0 stage tables left on target (verified-clean drop)" $([ "$STAGE_LEFT" = "0" ] && echo 0 || echo 1)
@@ -341,8 +495,13 @@ check 13 "live sik_bench ledger + live sik output tables (billing, nota_jalan, d
 
 {
   echo ""
-  echo "## Summary"
-  echo "PASS=$PASS FAIL=$FAIL"
+  echo "## Summary (one row per asserted property; P8-A2)"
+  echo ""
+  echo "| Check | Status | Property asserted |"
+  echo "|---|---|---|"
+  printf "%s" "$SUMMARY"
+  echo ""
+  echo "PASS=$PASS FAIL=$FAIL — a PASS covers only the property in its row, on fixture ${FX}."
   echo ""
   echo "Raw transcripts: /tmp/r6_a*.log (copied next to this file as r5_p6_logs_${TS}.tgz)."
 } | tee -a "$OUT"
