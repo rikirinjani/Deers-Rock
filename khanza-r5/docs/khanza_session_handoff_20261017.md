@@ -2,6 +2,12 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (latest) — Astra v8 = 60/100** "Needs targeted rework" (6/6/7/6/7/4; run
+> 4897654, $2.782; `evidence/astra_v8_4897654_NOTE.md` lists 7 findings, all confirmed in source).
+> Budget left this month: ~$2.83 (astra only) or ~$2.28 (if gemini validation counts). P9 should
+> start from that NOTE (retry re-verification, restore_kept, builder-check exit, A11
+> STAGE-RESTORE-ERROR, per-batch hash files, verify_frozen source hash).
+>
 > **UPDATE 2026-10-18 (later) — P8 DONE** (packs A+B+C; task doc
 > `docs/khanza_r5_task_p8_claims_gates_recovery.md`, R5 §19): suite **29/29** on a fresh
 > fixture (`evidence/p8/`), recovery unit test 11/11, P8 builder reproduces `a66a3a54…`, live

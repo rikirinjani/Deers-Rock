@@ -1,0 +1,33 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-astra-v8-result",
+  "timestamp": "2026-10-18T00:37:17.870252+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\evidence\\astra_v8_4897654_NOTE.md",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\evidence\\astra_v8_4897654_output.md",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\evidence\\astra_v8_validation_gemini_4897634_output.md",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\tools\\kaggle\\build_astra_task_r8.py",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\tools\\kaggle\\task_r8_merged.py",
+    "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_session_handoff_20261017.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-astra-v8-result",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................--.-..-.........................................-.--...-",
+  "action": "Astra v8 merged run 4897654 ($2.782; gemini validation 4897634 $0.295): 60/100 Needs targeted rework (6/6/7/6/7/4). Seven v8 findings checked in source, all hold; recorded in the v8 NOTE for P9. Handoff updated."
+}
