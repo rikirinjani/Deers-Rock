@@ -2,6 +2,13 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (v10) — Astra v10 = 63/100** "Needs targeted rework" (7/6.5/7.5/6/7/4; run
+> 4918967, $3.064 + $0.235 gemini). `evidence/astra_v10_4918967_NOTE.md`: 9 findings, all confirmed
+> in source - several P10 checks are non-discriminating (A28, the preservation baseline) and some
+> §21 wording is too broad (open failure record 20261018T1630Z). About $0.69 of quota left: no
+> more assessments this month. Next wave should add NEGATIVE CONTROLS (show each check fails on
+> broken code) before any new check.
+>
 > **UPDATE 2026-10-18 (P10) — P10 DONE** (packs A+B; task doc
 > `docs/khanza_r5_task_p10_integrated_recovery.md`, R5 §21): suite run 1 FAILED 30/38 (writer
 > exclusion not crash-safe; evidence kept; failure record 20261018T0430Z), fixed; run 2 **39/39**;

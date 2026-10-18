@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-18T16:30:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "P10 checks that would also pass without the property they claim, and P10 wording broader than the runs",
+  "what_went_wrong": [
+    "A28 'rollback keeps the earlier staged rows': the retry re-backs-up rows identical to the ones already staged, so the stage checksums are equal whether or not the transaction rolled back; the check cannot fail on a missing rollback.",
+    "The integrated preservation experiment takes its 'pre' hashes after the injected failure and its restore, so a wrong restore would be recorded as the baseline and pass.",
+    "p10_hash_state.py turns an unavailable checksum (NULL) into the string 'None', which compares equal.",
+    "The preservation check does not assert the row count of its perturbing UPDATE, has no EXIT trap for its grant/database.xml changes, and tears down after a failed assertion.",
+    "R5 §21 says '13 populated stage tables' (13 tables, 21 rows in total, some empty) and 'crash-safe via the marker' (one SIGKILL placement tested; the marker is not fsynced and a malformed marker fails open)."
+  ],
+  "root_cause": "Each check was designed to pass on the fixed code, not to fail on the unfixed code; there was no negative control (deliberately broken implementation) for any of them.",
+  "detection": "Astra v10 (gpt-6-astra run 4918967); each item re-verified against the source by the orchestrator on 2026-10-18.",
+  "correction": {
+    "planned": "P11: negative controls (break the rollback / skip the immediate restore and show the check FAILS); pre-operation snapshot; reject NULL checksums; assert perturbation counts; EXIT trap and keep-on-failure in the check; fsync + fail-closed marker; correct §21 wording (strike-through).",
+    "status_note": "Not yet corrected; recorded for the next wave (evidence/astra_v10_4918967_NOTE.md)."
+  },
+  "rule": "A check is only evidence for a property if it has been shown to FAIL when that property is removed (a negative control); 'populated', 'crash-safe' and similar words must be re-derived from the actual counts and the fault cases actually run.",
+  "agent": "orchestrator",
+  "status": "open"
+}
