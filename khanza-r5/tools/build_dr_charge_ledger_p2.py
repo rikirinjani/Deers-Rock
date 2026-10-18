@@ -57,11 +57,19 @@ def irup(x):
     the value's text (no binary float); identical to floor(x + 0.5) for the
     non-negative prices the sources hold."""
     from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+    # P10-B5: a NULL, empty or non-numeric amount is an error, never Rp 0 (before P10
+    # it silently became 0). Live sik/sik_bench hold no NULL amount (checked
+    # 2026-10-18), so the pinned ledger is unaffected. Callers fail closed: the
+    # tariff load reports dr_tariff unreadable; a build rolls back (FAIL-CLOSED).
     try:
-        return int(Decimal(str(x if x is not None else 0).strip() or "0")
-                   .quantize(Decimal(1), rounding=ROUND_HALF_UP))
-    except (InvalidOperation, ValueError):
-        return 0
+        if x is None or not str(x).strip():
+            raise ValueError("empty amount")
+        d = Decimal(str(x).strip())
+        if not d.is_finite():
+            raise ValueError("non-finite amount")
+        return int(d.quantize(Decimal(1), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError) as e:
+        raise ValueError("MALFORMED-AMOUNT (P10-B5): %r (%s)" % (x, e))
 
 
 def load_tariff_strict(tool, log):

@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-18T04:30:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "P10 writer exclusion was not crash-safe: a process killed inside it left the harness account without DML",
+  "what_went_wrong": [
+    "The first P10 writer exclusion revoked the benchmark account's INSERT/UPDATE/DELETE on the fixture and granted them back only in a Python `finally`.",
+    "Suite check A20 SIGKILLs a resume in the middle of a restore. The `finally` never ran, so the account kept only SELECT on the fixture.",
+    "Every later billing run failed because the form (running as that account) could not save: suite run 1 ended 30/38 with A20-A24, A28, A29 and A12 failing."
+  ],
+  "root_cause": "A safety mechanism that changes persistent server state (grants) was written with in-process cleanup only, while the same suite deliberately kills that process.",
+  "detection": "P10 suite run 1 (2026-10-18 04:22Z); the wrapper kept the failed fixture (P9 behaviour) and the grant state was read from it before teardown. Evidence kept: evidence/p10/r5_p10_suite_run1_FAILED_20261018T042243Z.md.",
+  "impact": "Fixture only. Live sik and the ledger were untouched (A13 PASS in run 1); exclusion is refused on live databases in code.",
+  "correction": {
+    "code": "The exclusion is recorded in a marker file before the revoke; every oracle start and every restore that finds a marker of a dead process grants the recorded privileges back (WRITER-EXCLUSION recovered). New suite check A31: the account's grants are the same at the end as at the start, no marker left, at least one recovery observed.",
+    "verification": "Unit test 26/26 (incl. marker recovery); suite run 2 39/39 with A20 recovered and A31 PASS; preservation check PASS."
+  },
+  "rule": "Any change a tool makes to persistent server state must be undoable by a later process: record it durably before making it, and recover it at the next start.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

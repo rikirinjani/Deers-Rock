@@ -843,7 +843,8 @@ reproduction check: exit 0 on the live ledger, exit 1 on a planted mismatch
   with its pre-reset hash instead of trusting the stored `restored=True` flag. A FAILED batch
   now keeps its stage tables until it is billed or released (`--abandon-failed`, also checked
   against the current state).
-  - A22 changed a billing row after the verified restore. The retry detected
+  - A22 changed ~~a billing row~~ *all 17 billing rows of the visit (+Rp 1 each; P10-A1
+    correction)* after the verified restore. The retry detected
     `current state is not the pre-reset state`, restored and verified from the kept tables,
     then re-billed (exit 0).
   - A22b dropped the recovery tables as well. Result: `RETRY-REFUSED`, nothing deleted (the
@@ -872,8 +873,11 @@ reproduction check: exit 0 on the live ledger, exit 1 on a planted mismatch
   DRIFT`, exit 3, nothing reset.
 - *Cleanup (E8):* the suite's restore helper drops stage tables only after a verified restore.
   A15's cleanup now runs with its hash file put back, and verifies.
-- *A11 (E9)* also counts `STAGE-RESTORE-ERROR`. Outside the four deliberate fault checks
-  (A15, A18a, A18b, A22b): 14 verified, 0 mismatch, 0 unverified, 0 error.
+- *A11 (E9)* also counts `STAGE-RESTORE-ERROR`. ~~Outside the four deliberate fault checks
+  (A15, A18a, A18b, A22b): 14 verified, 0 mismatch, 0 unverified, 0 error.~~ *(P10-A1
+  correction: the 14 was the verification-marker count over ALL transcripts, including the four
+  excluded ones. Outside them: 0 mismatch, 0 unverified, 0 error. From P10 on, A11 counts the
+  markers outside the excluded logs separately; see §21.)*
 - *Log wording (E5):* a FAILED batch's line now says "restored (hash-verified)" or "NOT
   restored (…; stage tables kept)" from the actual result.
 - *Builder check (E10)* exits 1 on a difference or an uncomputable hash.
@@ -888,3 +892,87 @@ re-examination (pack D); C1–C4.
 **Live state after P9:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
 ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`, reproduced again by the builder
 check); live `sik` output-table checksums equal before and after both suite runs.
+
+## 21. P10: integrated recovery-preservation experiment, honesty fixes (2026-10-18, new)
+
+Driven by Astra v9 (run 4898353, **62/100** "Needs targeted rework";
+`evidence/astra_v9_4898353_NOTE.md`). Task: `docs/khanza_r5_task_p10_integrated_recovery.md`
+(packs A+B, scope agreed with the owner). Each v9 code claim acted on was checked against the
+source first (task doc §0, F1–F8); all held. Times are UTC.
+
+**Result:** suite **39/39 PASS** on a fresh fixture (`evidence/p10/r5_p6_acceptance_20261018T152814Z.md`;
+34 P9 checks + A26, A27, A28, A29, A31). Integrated preservation check **PASS**
+(`evidence/p10/r5_p10_preservation_20261018T154610Z.md`). Unit test 26/26. The builder still
+reproduces the live ledger `a66a3a54…` byte-identically (`evidence/p10/r5_p10_builder_all_check.txt`).
+
+**Suite run 1 FAILED (30/38) and is kept as evidence** (`evidence/p10/r5_p10_suite_run1_FAILED_20261018T042243Z.md`).
+A20 SIGKILLs a resume in the middle of a restore. In run 1 that resume held the new writer
+exclusion, so its `finally` never ran and the benchmark account was left without
+INSERT/UPDATE/DELETE on the fixture. Every later billing run then failed (`sukses=false`): A20–A24,
+A28, A29, A12. The wrapper kept the failed fixture (91 stage tables) as P9 designed; it was
+inspected, then removed with `--teardown-kept`. The live guard A13 held. Fix: the exclusion is
+recorded in a marker file before the revoke. The next oracle start (and every restore) that
+finds a marker of a dead process grants the recorded privileges back
+(`WRITER-EXCLUSION recovered`). A31 now requires the account's grants on the fixture to be the
+same at the end as at the start, with no marker left. Run 2 passed it, with A20's killed
+exclusion recovered. Failure record `records/failures/20261018T0430Z-…-writer-exclusion-not-crash-safe.json`.
+
+**1. Integrated preservation experiment (pack B, v9's single next step).**
+`p10_preservation_check.sh`, through the production wrapper:
+- A real harness failure (3 s timeout) on a two-batch set left batch 1 FAILED with 13 populated
+  stage tables (21 rows) and batch 2 PENDING.
+- Independent root hashes were taken of every stage table (`CHECKSUM TABLE … EXTENDED` + row
+  counts), the sample visits, 20 protected non-sample visits (10 non-DR, 10 DR) and the live
+  `sik` tables.
+- A30 was forced to FAIL, so the suite ended through its normal final line. Wrapper exit 1,
+  fixture kept.
+- On the kept fixture, all hashes were equal (`ALL-EQUAL`).
+- The batch's 17 billing rows were then changed so the retry had to restore. The retry
+  detected `current state is not the pre-reset state`. Under `WRITER-EXCLUSION on`
+  (DELETE/INSERT/UPDATE revoked, target fenced) it restored with a verified hash, then
+  `WRITER-EXCLUSION off` gave the grants back as before. Both batches were BILLED, exit 0.
+- The protected visits and live `sik` were unchanged, `database.xml` was back on `sik`, and
+  the grant was removed; `--teardown-kept` left only `sik`, `sik_bench`.
+- A first run of this check (154102Z) also passed, but its retry needed no restore (the state
+  had not changed), so its "exclusion on/off" label was not exercised. The script was changed
+  to force a restore and re-run; only the second run is the evidence.
+
+**2. Recovery integrity (pack B).**
+- *Source-content hash (F2):* it now covers `biaya_obat`, `total`, `h_beli` and the procedure
+  tariff columns (not the status columns the save updates). A query error fails the freeze or
+  verify instead of hashing "no rows". A27: a price +1000 after freeze → `SOURCE-CONTENT DRIFT`,
+  exit 3.
+- *Non-destructive backup (F3):* `stage_backup` replaces a batch's staged rows in one InnoDB
+  transaction. A28: an injected failure on a retry's re-backup rolled back (3 lines), stage
+  checksums were unchanged, `STAGE-KEEP`, exit 4; a clean retry then billed and dropped them. A
+  batch whose backup failed now keeps its stage tables.
+- *Quiet interval before a FAILED retry (F4):* applied when `--retry-failed`/`--abandon-failed`
+  is given.
+- *Writer exclusion (F5):* every restore on a fixture revokes the benchmark account's DML,
+  fences the target (a schema-level revoke reaches a session only at its next USE), runs the
+  restore as root, and re-grants in `finally`. Crash-safe via the marker (above). Never on
+  `sik`/`sik_bench`. A29: during a paused restore the grants were `SELECT` only and a benchmark
+  `UPDATE` was denied (ERROR 1142); afterwards the grants were as before and the write worked.
+- *Malformed amounts (F6):* `irup` raises on NULL, empty or non-numeric input (it returned 0).
+  A26: a scratch tariff price `'12x'` → `MALFORMED-AMOUNT`, `FAIL-CLOSED`, ledger unchanged. Live
+  data has no NULL amounts, so the pinned ledger is unaffected (reproduced). A missing tariff
+  entry remains the documented `dr-source(gap)` fallback; it is not "fail-closed authority".
+
+**3. Honesty fixes (pack A; closes failure record 20261018T0215Z).**
+- A22's label states the actual change (all 17 billing rows of the visit, +1 each). §20's "a
+  billing row" and "14 verified outside" are struck through and corrected.
+- A11 now counts verification markers outside the excluded logs separately and requires at
+  least one of those. Run 2: 16 in all transcripts, 16 outside the four excluded logs. The
+  excluded logs hold none, so P9's "14" was taken from the wrong set of logs but was probably
+  the right number. The fix is in how it is derived, not a different result.
+- The oracle's result file states each FAILED batch's actual restore result (restored and
+  hash-verified / NOT restored / backup failed), instead of "restored from stage backup".
+
+**Still not claimed:** fault modes not injected (power loss, MySQL crash, disk full, a writer
+that ignores SIGKILL); concurrent-overlap isolation; fencing or grant changes on the live
+databases; reproducibility closure (`stagea_common.py`, Java sources, STRATA SQL, an immutable
+fixture); matched-encounter B–C reconciliation and the R4 0/999 re-examination; C1–C4.
+
+**Live state after P10:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
+ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); live `sik` checksums equal across
+both suite runs and both preservation runs.

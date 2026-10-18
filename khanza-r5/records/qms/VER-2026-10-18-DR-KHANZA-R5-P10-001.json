@@ -1,0 +1,47 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-18-DR-KHANZA-R5-P10-001",
+  "date": "2026-10-18",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P10: integrated recovery-preservation experiment, writer exclusion, non-destructive backup, complete source hash, honesty fixes",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p10_integrated_recovery.md",
+  "trigger": "Astra v9 (gpt-6-astra run 4898353, 62/100 'Needs targeted rework')",
+  "evidence": [
+    "khanza-r5/evidence/p10/r5_p6_acceptance_20261018T152814Z.md (suite run 2, 39/39, fresh fixture)",
+    "khanza-r5/evidence/p10/r5_p10_suite_run1_FAILED_20261018T042243Z.md (suite run 1, 30/38: writer exclusion not crash-safe)",
+    "khanza-r5/evidence/p10/r5_p10_preservation_20261018T154610Z.md (integrated preservation check PASS) + its suite evidence and retry log",
+    "khanza-r5/evidence/p10/r5_p10_builder_all_check.txt (P10 builder reproduces live ledger)",
+    "khanza-r5/evidence/p10/r5_p10_recovery_unit_test.txt (26/26)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §21 (+ §20 corrections)",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P10 re-pin)"
+  ],
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "c3bdd2d62933c44ec2c9ea85cc97143d6b8a68e392a2c346039a046e545b0adf",
+    "build_dr_charge_ledger_p2.py": "2a4a1c48b6ee1423626a9988f6d505a94fd8802d5b639b492f19fead2ee22234",
+    "p6_acceptance_suite.sh": "8b89d431c446cf907f2880cf88873b9692a61b4a465500ec92073bde3a5e0d71",
+    "p8_recovery_unit_test.py": "345bc6ae011d1e73670a74972814cd58d885969f74575f8cef57c12837e17b38",
+    "p10_hash_state.py": "8bf6c811ddcbd368db44ef607f48d552f1ed3c3f6954dfaa772ed7529b7b67ca",
+    "p10_preservation_check.sh": "7d05ef23b9f676032488a991f37030725b8b29543965462161cd7ad4ce7edbcb"
+  },
+  "checks": [
+    "AC-1 honesty: A22 label, §20 corrections, A11 outside-count, per-batch restore state in the result file — PASS",
+    "AC-2 source + amounts: A25, A27 drift; A26 malformed amount fails closed — PASS",
+    "AC-3 non-destructive backup: A28 — PASS",
+    "AC-4 writer exclusion: A29, A31 (after the run-1 crash-safety defect was fixed) — PASS",
+    "AC-5 integrated preservation: p10_preservation_check.sh — PASS",
+    "AC-6 records — PASS; v10 assessment pending owner confirmation of spend"
+  ],
+  "findings": [
+    "Writer exclusion with in-process cleanup was not crash-safe (suite run 1); fixed with a durable marker + recovery, guarded by A31",
+    "The first preservation-check run passed without exercising the exclusion window (no restore needed); the script was changed to force a restore and re-run"
+  ],
+  "live_state_post": "databases sik, sik_bench; database.xml copies on sik; ledger 356,355 / Rp 34,870,243,633, content a66a3a54...; backup table sik_bench.dr_charge_ledger_bak_20261017 kept",
+  "open_items": [
+    "Reproducibility closure (stagea_common.py, Java sources, STRATA SQL, immutable fixture)",
+    "Matched-encounter B-C reconciliation and R4 0/999",
+    "Fault modes not injected; concurrent-overlap isolation; C1-C4",
+    "Astra v10 (merged, content capped at v9 size)"
+  ],
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents); local (LF) and VPS tool hashes verified identical after deploy"
+}

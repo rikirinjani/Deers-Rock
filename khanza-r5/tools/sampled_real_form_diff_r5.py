@@ -95,6 +95,17 @@ Astra-scored gaps: baseline independence, unsafe reset, sampling, crash safety):
          out (FENCE line); never on the live databases (FENCE-SKIPPED).
   P9-A2  verify_frozen compares the source-content hash (SOURCE-CONTENT DRIFT).
 
+  P10 recovery integrity:
+  P10-B1 the source-content hash covers every billed amount column (biaya_obat, total,
+         procedure tariffs) and a query error fails the freeze/verify (no silent pass).
+  P10-B2 stage_backup replaces a batch's staged rows in ONE transaction; a failed
+         re-backup rolls back and the earlier staged rows survive; a batch whose backup
+         failed keeps its stage tables. R5_FAULT_BACKUP_FAIL is a test-only hook.
+  P10-B3 FAILED batches about to be retried/abandoned get the quiet-interval proof.
+  P10-B4 every restore on a fixture runs under writer exclusion (benchmark DML revoked,
+         target fenced, restore as root, grants given back and re-checked); never on live.
+  P10-A2 the result artifact states each FAILED batch's actual restore result.
+
 Usage:
   python3 sampled_real_form_diff_r5.py --stage B3 --db-name sik_r5 \
       --visits-file /tmp/r5_visits50.txt [--freeze-only] [--verify-frozen]
@@ -198,24 +209,22 @@ def source_content_hash(db, nrs, log):
     lines + reg fee) — the content the form will charge from. Changes in
     databarang.ralan or detail_pemberian_obat between freeze and verify will
     flip this hash even when table counts are unchanged."""
-    parts = []
+    # P10-B1: every amount column the form can bill from (biaya_obat and total were
+    # missing before P10), not the status columns the save itself updates
+    # (detail_pemberian_obat.status, rawat_jl_dr.stts_bayar). A query error now
+    # propagates (verify_frozen -> FAIL); before P10 it was swallowed and a failed
+    # query hashed as "no rows". Rows are sorted here, so ties cannot reorder.
     inl = ",".join("'%s'" % n for n in nrs)
-    try:
-        for row in dbutil.query(db,
-                "SELECT d.no_rawat, d.kode_brng, d.jml, d.embalase, d.tuslah, "
-                "COALESCE(b.ralan, -1) FROM detail_pemberian_obat d "
-                "LEFT JOIN databarang b ON b.kode_brng=d.kode_brng "
-                "WHERE d.no_rawat IN (%s) ORDER BY 1,2" % inl):
-            parts.append(tuple(row))
-    except Exception:
-        pass
-    try:
-        for row in dbutil.query(db,
-                "SELECT no_rawat, kd_jenis_prw, COALESCE(biaya_rawat,-1) "
-                "FROM rawat_jl_dr WHERE no_rawat IN (%s) ORDER BY 1,2" % inl):
-            parts.append(tuple(row))
-    except Exception:
-        pass
+    drugs = dbutil.query(db,
+        "SELECT 'drug', d.no_rawat, d.kode_brng, d.tgl_perawatan, d.jam, d.h_beli, "
+        "d.biaya_obat, d.jml, d.embalase, d.tuslah, d.total, COALESCE(b.ralan, -1) "
+        "FROM detail_pemberian_obat d LEFT JOIN databarang b ON b.kode_brng=d.kode_brng "
+        "WHERE d.no_rawat IN (%s)" % inl)
+    procs = dbutil.query(db,
+        "SELECT 'proc', no_rawat, kd_jenis_prw, tgl_perawatan, jam_rawat, material, bhp, "
+        "tarif_tindakandr, kso, menejemen, biaya_rawat "
+        "FROM rawat_jl_dr WHERE no_rawat IN (%s)" % inl)
+    parts = sorted([["" if c is None else str(c) for c in r] for r in drugs + procs])
     canon = json.dumps(parts, sort_keys=True, default=str)
     return _sha(canon)
 
@@ -238,11 +247,18 @@ def freeze_baseline(nrs, db, rundir, log, run_id, allow_empty_baseline=False):
             "to freeze an empty consumer baseline (fail-closed; pass "
             "--allow-empty-baseline to proceed)" % (len(empty), empty[:5]))
         return None
+    try:
+        src_hash = source_content_hash(db, nrs, log)
+    except Exception as e:
+        log("FREEZE failed: source-content hash could not be computed (%s: %s; "
+            "fail-closed, P10-B1)" % (type(e).__name__, str(e)[:200]))
+        return None
     manifest = {"run_id": run_id, "frozen_ts":
                 datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
                 "fingerprint": db_fingerprint(db), "n_visits": len(nrs),
                 "visits": {}, "sha256": {}, "allow_empty_baseline": allow_empty_baseline,
-                "source_content_hash": source_content_hash(db, nrs, log)}
+                "source_content_hash": src_hash,
+                "source_hash_version": "p10"}
     for n in nrs:
         vals = per.get(n, [])
         sig = ",".join("%s|%s|%s|%s|%s" % tuple(v) for v in sorted(vals))
@@ -307,7 +323,12 @@ def verify_frozen(rundir, db, log):
     # P9-A2: the P6-2g docstring promised this comparison but the code never made it;
     # counts alone miss a changed quantity or price on a sampled visit
     if man.get("source_content_hash"):
-        cur_src = source_content_hash(db, list(man["visits"]), log)
+        try:
+            cur_src = source_content_hash(db, list(man["visits"]), log)
+        except Exception as e:
+            cur_src = "ERROR(%s)" % type(e).__name__
+            log("verify-frozen: SOURCE-CONTENT CHECK ERROR (P10-B1): %s: %s"
+                % (type(e).__name__, str(e)[:200]))
         if cur_src != man["source_content_hash"]:
             log("verify-frozen: SOURCE-CONTENT DRIFT (P9-A2): sampled visits' source "
                 "lines changed since freeze (%s... -> %s...)"
@@ -413,20 +434,32 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     pfx = _stage_prefix(run_id, stage)
     inl = ",".join("'%s'" % n for n in nrs)
     for t, key in RESET_TABLES.items():
-        s = "%s_%s" % (pfx, t)
-        dbutil.execute(db, "CREATE TABLE IF NOT EXISTS %s LIKE %s" % (s, t),
+        dbutil.execute(db, "CREATE TABLE IF NOT EXISTS %s_%s LIKE %s" % (pfx, t, t),
                        force_root=True)
-        # P9: a re-backup (retry) replaces this batch's staged rows instead of adding
-        # to them (tables without a primary key would otherwise collect duplicates)
-        dbutil.execute(db, "DELETE FROM %s WHERE %s IN (%s)" % (s, key, inl))
-        dbutil.execute(db, "REPLACE INTO %s SELECT * FROM %s WHERE %s IN (%s)"
-                           % (s, t, key, inl))
     dbutil.execute(db,
         "CREATE TABLE IF NOT EXISTS %s_reg (no_rawat VARCHAR(17), "
-        "status_bayar VARCHAR(20))" % pfx, force_root=True)
-    dbutil.execute(db, "DELETE FROM %s_reg WHERE no_rawat IN (%s)" % (pfx, inl))
-    dbutil.execute(db, "REPLACE INTO %s_reg SELECT no_rawat, status_bayar "
-        "FROM reg_periksa WHERE no_rawat IN (%s)" % (pfx, inl))
+        "status_bayar VARCHAR(20)) ENGINE=InnoDB" % pfx, force_root=True)
+    # P10-B2: replace this batch's staged rows in ONE transaction (the tables are
+    # InnoDB). Before P10 the DELETE and REPLACE were separate autocommit statements,
+    # so a failed re-backup on a retry destroyed the rows kept from the earlier
+    # backup. Now any failure rolls back and the earlier staged rows survive.
+    sql = ["START TRANSACTION;"]
+    for t, key in RESET_TABLES.items():
+        sql.append("DELETE FROM %s_%s WHERE %s IN (%s);" % (pfx, t, key, inl))
+        sql.append("REPLACE INTO %s_%s SELECT * FROM %s WHERE %s IN (%s);"
+                   % (pfx, t, t, key, inl))
+    sql.append("DELETE FROM %s_reg WHERE no_rawat IN (%s);" % (pfx, inl))
+    sql.append("REPLACE INTO %s_reg SELECT no_rawat, status_bayar FROM reg_periksa "
+               "WHERE no_rawat IN (%s);" % (pfx, inl))
+    if os.environ.get("R5_FAULT_BACKUP_FAIL"):
+        # test hook (inert unless set): a failing statement before COMMIT
+        sql.append("SELECT * FROM r5_fault_injected_missing_table;")
+    sql.append("COMMIT;")
+    sess = dbutil.session(db)
+    sess.exec("\n".join(sql))
+    if not sess.close():
+        raise RuntimeError("stage backup transaction failed and was rolled back; "
+                           "earlier staged rows kept (%s)" % sess.last_error[:200])
     log("stage-backup %d visits -> %s_* (%d output tables + reg.status_bayar)"
         % (len(nrs), pfx, len(RESET_TABLES)))
     # P6-2e: record the pre-reset content hash (per no_rawat value-row multiset
@@ -487,7 +520,7 @@ def current_matches_prereset(nrs, db, rundir, log, run_id, stage, batch):
     return cur == pre, ("current=%s... pre-reset=%s..." % (cur[:16], pre[:16]))
 
 
-def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
+def _stage_restore_inner(nrs, db, rundir, log, run_id="run", stage=None, batch=None, fr=False):
     """AC-3: undo any reset/partial-bill for the batch from stage-backup.
     P6-2e: after re-applying, recompute the content hash and verify it matches
     the staged hash (STAGE-RESTORED-VERIFIED); on mismatch, do NOT claim a
@@ -511,9 +544,10 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     try:
         for i, (t, key) in enumerate(RESET_TABLES.items()):
             s = "%s_%s" % (pfx, t)
-            dbutil.execute(db, "DELETE FROM %s WHERE %s IN (%s)" % (t, key, inl))
+            dbutil.execute(db, "DELETE FROM %s WHERE %s IN (%s)" % (t, key, inl),
+                           force_root=fr)
             dbutil.execute(db, "REPLACE INTO %s SELECT * FROM %s WHERE %s IN (%s)"
-                               % (t, s, key, inl))
+                               % (t, s, key, inl), force_root=fr)
             if pause and i == 0:
                 # P8-C3 fault-injection hook (inert unless the env var is set): hold
                 # the restore half-applied so a test can kill the process here
@@ -522,7 +556,8 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
                 time.sleep(pause)
         dbutil.execute(db,
             "UPDATE reg_periksa rp JOIN %s_reg sr ON rp.no_rawat=sr.no_rawat "
-            "SET rp.status_bayar=sr.status_bayar WHERE rp.no_rawat IN (%s)" % (pfx, inl))
+            "SET rp.status_bayar=sr.status_bayar WHERE rp.no_rawat IN (%s)" % (pfx, inl),
+            force_root=fr)
     except Exception as e:
         # a failed restore is a verdict (restored=False -> fail-closed), not a
         # traceback; the stage tables are kept so a resume can retry it
@@ -555,6 +590,107 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
         log("STAGE-RESTORE-UNVERIFIED %d visits: pre-reset hash file absent; data "
             "re-applied but NOT verified — treated as a failed restore" % len(nrs))
     return ok
+
+
+BENCH_ACCOUNT = "'benchmark'@'localhost'"   # the harness/consumer DML account
+BENCH_DML = ("INSERT", "UPDATE", "DELETE")
+
+
+def _bench_dml_privs(db):
+    """Schema-level DML privileges the benchmark account holds on db."""
+    rows = dbutil.query(db,
+        "SELECT privilege_type FROM information_schema.schema_privileges "
+        "WHERE grantee = \"%s\" AND table_schema = DATABASE()" % BENCH_ACCOUNT,
+        force_root=True)
+    return sorted({r[0] for r in rows} & set(BENCH_DML))
+
+
+def _exclusion_marker(db):
+    return os.path.join(dbutil.RESULTS_ROOT, ".writer_exclusion_%s.json"
+                        % re.sub(r"[^A-Za-z0-9_]", "_", db))
+
+
+def recover_writer_exclusion(db, log):
+    """P10-B4 (found by suite run 1, A20): a process killed while writer exclusion is on
+    never runs its `finally`, so the benchmark account kept no DML on the target and every
+    later billing run failed. The exclusion is therefore recorded in a marker file BEFORE
+    the revoke; whoever starts next and finds a marker of a dead process grants the
+    recorded privileges back. Returns False only when a LIVE process holds the exclusion."""
+    mp = _exclusion_marker(db)
+    if not os.path.exists(mp):
+        return True
+    try:
+        m = json.load(open(mp))
+    except Exception:
+        m = {}
+    if m.get("pid") and _pid_alive(m["pid"]) and int(m["pid"]) != os.getpid():
+        log("WRITER-EXCLUSION held by live pid %s on %s — refusing to proceed" % (m["pid"], db))
+        return False
+    privs = [p for p in (m.get("privs") or []) if p in BENCH_DML]
+    if privs:
+        dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
+                       force_root=True)
+    back = _bench_dml_privs(db)
+    os.remove(mp)
+    log("WRITER-EXCLUSION recovered (P10-B4): pid %s died with exclusion on; granted %s back "
+        "on %s (now %s)" % (m.get("pid"), privs or "nothing", db, back))
+    return True
+
+
+def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
+    """AC-3: undo any reset/partial-bill for the batch from stage-backup, hash-verified.
+    P10-B4: on a fixture the restore runs under WRITER EXCLUSION: the benchmark account's
+    schema-level INSERT/UPDATE/DELETE on the target are revoked, the target is fenced
+    (a schema-level revoke only reaches a session at its next USE, so existing sessions
+    are KILLed), the restore DML runs as root, and the privileges are granted back in
+    `finally` and re-checked. Never on the live databases (logged, plain restore)."""
+    if db in LIVE_DBS:
+        log("WRITER-EXCLUSION skipped (P10-B4): %s is live; grants are never changed there"
+            % db)
+        return _stage_restore_inner(nrs, db, rundir, log, run_id, stage, batch, fr=False)
+    try:
+        if not recover_writer_exclusion(db, log):
+            log("STAGE-RESTORE-ERROR: another live process holds writer exclusion; NOT restored")
+            return False
+        privs = _bench_dml_privs(db)
+    except Exception as e:
+        log("STAGE-RESTORE-ERROR: writer exclusion could not read grants (%s); nothing "
+            "deleted, NOT restored" % type(e).__name__)
+        return False
+    revoked = False
+    marker = _exclusion_marker(db)
+    try:
+        if privs:
+            # durable record FIRST: if this process dies inside the window, the next
+            # start grants these back (recover_writer_exclusion)
+            with open(marker, "w") as f:
+                json.dump({"db": db, "privs": privs, "pid": os.getpid(),
+                           "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}, f)
+            dbutil.execute(db, "REVOKE %s ON `%s`.* FROM %s" % (", ".join(privs), db, BENCH_ACCOUNT),
+                           force_root=True)
+            revoked = True
+        fence_ok, killed, _ = fence_sessions(db, log)
+        log("WRITER-EXCLUSION on (P10-B4) %s: revoked=%s fence_ok=%s sessions_killed=%d"
+            % (db, privs or "none held", fence_ok, killed))
+        if not fence_ok:
+            log("STAGE-RESTORE-ERROR: target could not be fenced; nothing deleted, NOT restored")
+            return False
+        return _stage_restore_inner(nrs, db, rundir, log, run_id, stage, batch, fr=True)
+    finally:
+        if revoked:
+            try:
+                dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
+                               force_root=True)
+                back = _bench_dml_privs(db)
+            except Exception as e:
+                back = ["(re-grant failed: %s)" % type(e).__name__]
+            log("WRITER-EXCLUSION off (P10-B4) %s: restored=%s%s"
+                % (db, back, "" if back == privs else " MISMATCH - grants not as before"))
+            if back == privs:
+                try:
+                    os.remove(marker)
+                except OSError:
+                    pass
 
 
 def stage_drop(db, run_id, log, stage=None):
@@ -817,7 +953,7 @@ def fence_sessions(db, log, wait_s=10):
     return not remaining, killed, remaining
 
 
-def reap_writers(st, rundir, db, log, dates, quiet_s=None):
+def reap_writers(st, rundir, db, log, dates, quiet_s=None, include_failed=False):
     """P8-C2: before a resume restores anything, prove no writer survives from a
     crashed run. A SIGKILLed oracle cannot run its signal handler, so its harness
     (own session) keeps running. Kill every recorded harness group and every
@@ -844,8 +980,11 @@ def reap_writers(st, rundir, db, log, dates, quiet_s=None):
             killed.append("%d:%s" % (g, "dead" if ok else "ALIVE"))
     left = _harness_writers(nrs)
     alive_groups = [g for g in groups if _group_alive(g)]
+    # P10-B3: a FAILED batch about to be retried or abandoned may be restored too, so
+    # it gets the same quiet-interval proof (before P10 only STAGED/RESET did)
+    restorable = ("STAGED", "RESET", "FAILED") if include_failed else ("STAGED", "RESET")
     pending = [v for b in st["batches"].values()
-               if b.get("status") in ("STAGED", "RESET") for v in b["visits"]]
+               if b.get("status") in restorable for v in b["visits"]]
     # P9-B4: fence the server before anything may be restored (a pending batch, or a
     # FAILED batch a retry may restore)
     fence_ok, fence_killed = True, 0
@@ -997,6 +1136,11 @@ def main():
         return 3
     signal.signal(signal.SIGTERM, _on_terminate)
     signal.signal(signal.SIGINT, _on_terminate)
+    # P10-B4: undo a writer exclusion left by a process that died inside it, before
+    # anything (the harness included) needs the benchmark account's DML
+    if db not in LIVE_DBS and not recover_writer_exclusion(db, log):
+        release_lock(rundir)
+        return 3
     st = load_state(rundir) or {"run_id": tool.run_id, "db": db,
                                  "stage": args.stage, "phase": "INIT",
                                  "batches": {}, "nrs": []}
@@ -1109,7 +1253,8 @@ def main():
     # P8-C2: reap a lingering harness from a crashed run and PROVE no writer is
     # left before any restore (pre-P8 this waited on the bash wrapper's pid only,
     # then removed the pid file and restored even if the JVM was still running).
-    if not reap_writers(st, rundir, db, log, dates):
+    if not reap_writers(st, rundir, db, log, dates,
+                        include_failed=args.retry_failed or args.abandon_failed):
         release_lock(rundir)
         return 4
     failed = False
@@ -1387,8 +1532,10 @@ def _finalize(st, rundir, db, tool, log, repair_consumer=False):
     # needs its stage tables: they are the only copy of the pre-reset rows.
     unrestored = sorted(d for d, b in st["batches"].items()
                         if b.get("status") in ("STAGED", "RESET")
-                        or (b.get("status") == "FAILED" and b.get("restored") is False
-                            and not str(b.get("fail_reason", "")).startswith("stage-backup")))
+                        or (b.get("status") == "FAILED" and b.get("restored") is False))
+    # P10-B2: a batch whose stage backup FAILED is in this list too (before P10 it was
+    # excluded, so its stage tables - possibly the rows kept from an earlier backup -
+    # were dropped exactly when the backup failed)
     # P9-B2: a FAILED batch keeps its stage tables (the only copy of its pre-reset rows)
     # until it is BILLED by --retry-failed or released by --abandon-failed
     held = sorted(d for d, b in st["batches"].items()
@@ -1444,8 +1591,18 @@ def _finalize(st, rundir, db, tool, log, repair_consumer=False):
                     "based classification): %d — %s\n"
                     % (len(out_of_env), ", ".join(sorted(out_of_env))))
         if failed_batches:
-            f.write("- FAILED batches (restored from stage backup; P5-2): %s\n"
-                    % ", ".join("%s(%s)" % (d, st["batches"].get(d, {}).get("fail_reason", "?"))
+            # P10-A2: state each FAILED batch's actual restore result (before P10 every
+            # one was labelled "restored from stage backup")
+            def _restore_state(b):
+                if str(b.get("fail_reason", "")).startswith("stage-backup"):
+                    return "backup failed; stage tables kept"
+                if b.get("restored") is True:
+                    return "restored, hash-verified"
+                return "NOT restored; stage tables kept"
+            f.write("- FAILED batches (P5-2): %s\n"
+                    % ", ".join("%s(%s; %s)" % (d, st["batches"].get(d, {}).get("fail_reason", "?"),
+                                                _restore_state(st["batches"][d]) if d in st["batches"]
+                                                else "stage tables not dropped")
                                 for d in sorted(failed_batches)))
         f.write("- verdict: %s (exit %d)%s\n" % (verdict, exit_code,
                  "" if verdict == "PASS" else " (fail-closed, P5-1/P6-2e)"))

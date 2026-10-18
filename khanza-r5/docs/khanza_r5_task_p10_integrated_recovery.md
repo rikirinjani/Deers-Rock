@@ -66,3 +66,11 @@ per-operation verification before explicit teardown."
 ## 4. Rubric cross-check (fill at close)
 | AC | Evidence | PASS/FAIL | Notes |
 |---|---|---|---|
+| AC-1 honesty | A22 label (17 rows), §20 struck through and corrected, A11 `RV_OTH`, `_finalize` per-batch restore state; failure record 20261018T0215Z closed | PASS | |
+| AC-2 source + amounts | A25 (quantity), A27 (price) → SOURCE-CONTENT DRIFT; A26 malformed tariff → FAIL-CLOSED | PASS | |
+| AC-3 non-destructive backup | A28: rollback, stage checksums equal, STAGE-KEEP; clean retry bills | PASS | |
+| AC-4 writer exclusion | A29 (grants SELECT-only during, write denied, grants back); A31 (grants equal start/end, marker recovered after A20's SIGKILL) | PASS | Suite run 1 FAILED on exactly this (exclusion not crash-safe); fixed, run 2 39/39 |
+| AC-5 integrated preservation | `evidence/p10/r5_p10_preservation_20261018T154610Z.md` PASS: real failure, 13 populated stage tables, ALL-EQUAL hashes after the failed terminal path, retry restored under exclusion, protected + live unchanged, explicit teardown | PASS | The first run (154102Z) did not exercise exclusion; superseded |
+| AC-6 records + v10 | R5 §21, manifest P10 re-pin (local LF = VPS), QMS VER-2026-10-18-DR-KHANZA-R5-P10-001, failure records, trace; v10 pending the owner's confirmation of spend | PARTIAL | v10 not yet run |
+
+Evidence: `evidence/p10/` (suite run 2 39/39, the FAILED run 1, preservation check + its suite evidence + retry log, builder check, unit test 26/26). R5 §21.

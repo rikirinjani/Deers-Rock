@@ -12,9 +12,10 @@
   "detection": "Astra v9 (gpt-6-astra run 4898353); each item re-verified against the source by the orchestrator on 2026-10-18.",
   "correction": {
     "planned": "P10: correct the A22 label and R5 §20 wording (strike-through, not deletion); count verification markers outside the excluded logs separately; make the _finalize artifact line conditional on the batch's actual restore result.",
-    "status_note": "Not yet corrected; recorded so the next wave starts from it (evidence/astra_v9_4898353_NOTE.md)."
+    "done": "P10 (2026-10-18): A22 label states all N billing rows (17); R5 §20 struck through and corrected; A11 counts verification markers outside the excluded logs (run 2: 16 of 16, i.e. the excluded logs hold none); _finalize writes each FAILED batch's actual restore state.",
+    "verification": "evidence/p10/r5_p6_acceptance_20261018T152814Z.md (A22, A11 res lines); R5 §20/§21."
   },
   "rule": "Every number or behaviour stated in a report section is re-derived from the exact command that produced it, at the moment of writing.",
   "agent": "orchestrator",
-  "status": "open"
+  "status": "corrected"
 }

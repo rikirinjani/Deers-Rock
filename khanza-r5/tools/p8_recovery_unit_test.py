@@ -31,6 +31,10 @@ o.time.sleep = lambda s: None
 pfx = o._stage_prefix("u8", "B3")
 STAGE_TABLES = ["%s_%s" % (pfx, t) for t in o.RESET_TABLES] + ["%s_reg" % pfx]
 o.dbutil.query = lambda db, sql, **k: [[t] for t in STAGE_TABLES]
+o.dbutil.RESULTS_ROOT = tempfile.mkdtemp()                 # exclusion markers go here
+REAL_FENCE = o.fence_sessions
+o.fence_sessions = lambda db, log, wait_s=10: (True, 0, [])   # restore cases: fencing mocked
+o._bench_dml_privs = lambda db: []                           # restore cases: no grants held
 bad = 0
 total = 0
 
@@ -95,7 +99,44 @@ expect("B2 current content changed since verification",
        o.current_matches_prereset(NRS, "fx", rd, log, "u8", "B3", BATCH)[0], False)
 o._content_hash = lambda nrs, db, log: GOOD
 
+# ---- writer exclusion around a restore (P10-B4) ----
+GRANTS = [["DELETE", "INSERT", "UPDATE"]]
+o._bench_dml_privs = lambda db: list(GRANTS[0])
+write(meta)
+del EXEC[:]
+ok = restore()
+seq_sql = [x.split(" ON ")[0] for x in EXEC if x.startswith(("REVOKE", "GRANT"))]
+expect("B4 restore under exclusion: verified, REVOKE before and GRANT after",
+       (ok, seq_sql), (True, ["REVOKE DELETE, INSERT, UPDATE", "GRANT DELETE, INSERT, UPDATE"]),
+       "WRITER-EXCLUSION off")
+first_dml = next(i for i, x in enumerate(EXEC) if x.startswith("DELETE"))
+expect("B4 ... the restore DML ran only while revoked",
+       0 < first_dml < EXEC.index(next(x for x in EXEC if x.startswith("GRANT"))), True)
+expect("B4 ... and no exclusion marker is left after a clean exclusion",
+       os.path.exists(o._exclusion_marker("fx")), False)
+# a process that died inside the window left a marker: the next start grants back
+with open(o._exclusion_marker("fx"), "w") as f:
+    json.dump({"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pid": 999999}, f)
+del EXEC[:]
+expect("B4 marker of a dead process -> grants given back, marker removed",
+       (o.recover_writer_exclusion("fx", log), [x.split(" ON ")[0] for x in EXEC],
+        os.path.exists(o._exclusion_marker("fx"))),
+       (True, ["GRANT DELETE, INSERT, UPDATE"], False), "WRITER-EXCLUSION recovered")
+o.fence_sessions = lambda db, log, wait_s=10: (False, 1, [99])
+del EXEC[:]
+expect("B4 fence fails -> restore refused, nothing deleted, grants given back",
+       (restore(), [x for x in EXEC if x.startswith("DELETE")],
+        [x.split(" ")[0] for x in EXEC if x.startswith(("REVOKE", "GRANT"))]),
+       (False, [], ["REVOKE", "GRANT"]), "could not be fenced")
+o.fence_sessions = lambda db, log, wait_s=10: (True, 0, [])
+del EXEC[:]
+r = o.stage_restore(NRS, "sik", rd, log, "u8", stage="B3", batch=BATCH)
+expect("B4 live sik: exclusion skipped, no REVOKE/GRANT issued",
+       [x for x in EXEC if x.startswith(("REVOKE", "GRANT"))], [], "WRITER-EXCLUSION skipped")
+o._bench_dml_privs = lambda db: []
+
 # ---- fence_sessions (P9-B4) ----
+o.fence_sessions = REAL_FENCE
 o._mysql_clients = lambda db: []
 expect("B4 fencing refused on live sik (no KILL issued)", o.fence_sessions("sik", log)[:2], (True, 0),
        "FENCE-SKIPPED")

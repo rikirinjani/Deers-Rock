@@ -2,6 +2,16 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (P10) — P10 DONE** (packs A+B; task doc
+> `docs/khanza_r5_task_p10_integrated_recovery.md`, R5 §21): suite run 1 FAILED 30/38 (writer
+> exclusion not crash-safe; evidence kept; failure record 20261018T0430Z), fixed; run 2 **39/39**;
+> integrated preservation check PASS; unit test 26/26; builder reproduces `a66a3a54…`; manifest
+> re-pinned; QMS P10-001; failure record 20261018T0215Z closed.
+> **Next:** Astra v10 = `build_astra_task_r10.py` -> push/run `task_r10_merged.py` (content 315,919
+> chars, cap 317k; expected ~$2.85, max ~$3.53 + ~$0.29 gemini; owner reported $3.99 left; needs
+> the owner's OK). Writer exclusion leaves a marker in `/opt/dr-benchmark/results/.writer_exclusion_*`
+> only while a restore runs; a leftover marker is recovered at the next oracle start.
+>
 > **UPDATE 2026-10-18 (v9) — Astra v9 = 62/100** "Needs targeted rework" (7/6/7/6/7/4; run 4898353,
 > $2.848; `evidence/astra_v9_4898353_NOTE.md`: 7 findings, all confirmed in source, incl. two P9
 > report overclaims — open failure record 20261018T0215Z). Quota left ~ $2.75 (astra) / ~ $2.47
