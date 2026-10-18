@@ -2,6 +2,11 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (v9) — Astra v9 = 62/100** "Needs targeted rework" (7/6/7/6/7/4; run 4898353,
+> $2.848; `evidence/astra_v9_4898353_NOTE.md`: 7 findings, all confirmed in source, incl. two P9
+> report overclaims — open failure record 20261018T0215Z). Quota left ~ $2.75 (astra) / ~ $2.47
+> (with gemini): not enough for another merged run this month.
+>
 > **UPDATE 2026-10-18 (P9) — P9 DONE** (packs A+B; task doc
 > `docs/khanza_r5_task_p9_recovery_contract.md`, R5 §20): suite **34/34** on a fresh fixture,
 > terminal-path check PASS (failed suite -> wrapper exit 1, fixture KEPT until

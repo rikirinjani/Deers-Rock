@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-18T02:15:00Z",
+  "category": "evidence-integrity",
+  "severity": "minor",
+  "title": "P9 report and check labels described a test more narrowly or a count more strongly than the code did",
+  "what_went_wrong": [
+    "A22's check label and R5 §20 say 'a billing row changed'; the suite's UPDATE changes all 17 billing rows of the visit (+Rp 17 in total).",
+    "R5 §20 reports '14 verified' restores 'outside the four deliberate fault checks'; the count (RV_ALL) is taken over all transcripts, including the excluded ones.",
+    "_finalize() still writes 'FAILED batches (restored from stage backup)' for FAILED batches whose restore was refused or unverified; P9-A1 fixed only the stdout line."
+  ],
+  "root_cause": "Report sentences were written from the intent of each check and from a res line's label, not re-derived from the SQL and grep that produced the numbers.",
+  "detection": "Astra v9 (gpt-6-astra run 4898353); each item re-verified against the source by the orchestrator on 2026-10-18.",
+  "correction": {
+    "planned": "P10: correct the A22 label and R5 §20 wording (strike-through, not deletion); count verification markers outside the excluded logs separately; make the _finalize artifact line conditional on the batch's actual restore result.",
+    "status_note": "Not yet corrected; recorded so the next wave starts from it (evidence/astra_v9_4898353_NOTE.md)."
+  },
+  "rule": "Every number or behaviour stated in a report section is re-derived from the exact command that produced it, at the moment of writing.",
+  "agent": "orchestrator",
+  "status": "open"
+}
