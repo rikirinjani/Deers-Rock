@@ -73,3 +73,11 @@ recovery artifacts retained."
 ## 4. Rubric cross-check (fill at close)
 | AC | Evidence | PASS/FAIL | Notes |
 |---|---|---|---|
+| AC-1 retry/current state | A22 (current ≠ pre-reset detected, re-restored + verified, re-billed exit 0); A22b (recovery tables gone → RETRY-REFUSED, nothing deleted, no reset) | PASS | |
+| AC-2 per-batch metadata + stop-at-FAILED | A23: 2 hash files; plain resume stops at FAILED with batch 2 PENDING; retry bills both | PASS | |
+| AC-3 fencing | A24: `FENCE sik_p6f: sessions_killed=1 remaining=0`, restore verified, blocker gone; unit test: refused on live, surviving session → WRITER-ALIVE | PASS | |
+| AC-4 terminal path + preservation | `evidence/p9/r5_p9_terminal_path_20261018T011818Z.md`: wrapper exit 1, fixture kept, A0 FORCED FAIL, FAIL=1, A13 PASS, xml on sik, grant 0, teardown-kept removed it | PASS | Middle checks skipped with P9_QUICK=1; the full suite ends through the same final line |
+| AC-5 honest outputs | conditional FAILED log line; A11 counts ERROR (0 outside the deliberate checks); builder check exit 0 clean / 1 planted; §13 restated; A25 | PASS | |
+| AC-6 records + v9 | R5 §20, manifest P9 re-pin (local LF = VPS), QMS VER-2026-10-18-DR-KHANZA-R5-P9-001, failure record, traces; v9 pending the owner's confirmation of spend | PARTIAL | v9 not yet run |
+
+Evidence: `evidence/p9/` (suite 34/34, terminal-path check and its suite evidence, builder check, unit test 20/20). R5 §20.

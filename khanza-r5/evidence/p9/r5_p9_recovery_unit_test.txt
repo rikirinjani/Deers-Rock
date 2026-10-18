@@ -1,0 +1,23 @@
+# P8/P9 recovery unit test (VPS, 2026-10-18 01:24 UTC; test sha 3bda688238972e76, oracle sha 8e0cca5bbec47916)
+PASS  C1 truncated JSON -> unverified, no exception                    got=False want=False marker=hash file unreadable
+PASS  C1 foreign pfx -> unverified                                     got=False want=False marker=does not describe this batch
+PASS  B1 hash file of another batch -> unverified                      got=False want=False marker=does not describe this batch
+PASS  C1 different visit set -> unverified                             got=False want=False marker=does not describe this batch
+PASS  C1 non-hex sha256 -> unverified                                  got=False want=False marker=does not describe this batch
+PASS  C1 valid file, different content -> mismatch                     got=False want=False marker=STAGE-RESTORE-MISMATCH
+PASS  C1 valid file, same content -> verified                          got=True want=True marker=STAGE-RESTORED-VERIFIED
+PASS  P9 stage tables missing -> refused                               got=False want=False marker=stage tables missing
+PASS  P9 ... and nothing was deleted                                   got=[] want=[]
+PASS  P7 missing hash file -> unverified                               got=False want=False marker=pre-reset hash file absent
+PASS  B2 current content equals pre-reset hash                         got=True want=True
+PASS  B2 current content changed since verification                    got=False want=False
+PASS  B4 fencing refused on live sik (no KILL issued)                  got=(True, 0) want=(True, 0) marker=FENCE-SKIPPED
+PASS  B4 session on the fixture KILLed and gone -> ok                  got=(True, 1, ['KILL 11']) want=(True, 1, ['KILL 11']) marker=sessions_killed=1 remaining=0
+PASS  B4 session survives KILL -> not ok                               got=False want=False
+PASS  B4 reap with a surviving server session -> WRITER-ALIVE          got=False want=False marker=fence_ok=False
+PASS  C2 unkillable harness group -> WRITER-ALIVE                      got=False want=False marker=WRITER-ALIVE
+PASS  C2 writers gone but output still changing -> WRITER-ALIVE        got=False want=False marker=quiet=False
+PASS  C2 writers gone, fenced, output quiet -> proof                   got=True want=True marker=WRITER-DEAD-PROOF (resume, P8-C2)
+PASS  C2 pid file removed only after the proof                         got=False want=False
+P8/P9 recovery unit test: 20/20 cases PASS
+exit=0

@@ -1,0 +1,48 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-18-DR-KHANZA-R5-P9-001",
+  "date": "2026-10-18",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P9: recovery acceptance contract (per-batch hashes, current-state retry, stop at FAILED, server-side fencing, preserved failures)",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p9_recovery_contract.md",
+  "trigger": "Astra v8 (gpt-6-astra run 4897654, 60/100 'Needs targeted rework')",
+  "evidence": [
+    "khanza-r5/evidence/p9/r5_p6_acceptance_20261018T010733Z.md (suite 34/34, fresh fixture)",
+    "khanza-r5/evidence/p9/r5_p9_terminal_path_20261018T011818Z.md (forced failure -> wrapper exit 1, fixture kept, teardown)",
+    "khanza-r5/evidence/p9/r5_p9_terminal_path_suite_20261018T012150Z.md (the forced-failure suite evidence)",
+    "khanza-r5/evidence/p9/r5_p9_builder_all_check.txt (exit 0 clean, exit 1 planted mismatch)",
+    "khanza-r5/evidence/p9/r5_p9_recovery_unit_test.txt (20/20)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md §20 (+ §13 restatement)",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P9 re-pin)"
+  ],
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "8e0cca5bbec47916ebe02bd917af471354869f7516bff7fe189b8db1a68022f6",
+    "p6_acceptance_suite.sh": "9ae16c464d1817f67e52dc042c883fadb8b4ccfb6ec4901346203e1aafc07187",
+    "p6_run_suite_fresh.sh": "2e6097be969f29acf20f4c65e2cecdc3e4436397ff769328574d58b05a55e356",
+    "p9_terminal_path_check.sh": "63f4dcc45692a93ca7c8cf4eaea317f478dc51558126b2a06e10d5c4c4223372",
+    "p8_builder_all_check.sh": "4d9118a586605e02f53d80a91f7b7ff797977e51157a4b19a53c93342bb96878",
+    "p8_recovery_unit_test.py": "3bda688238972e7664b232c6cfb417958f506f7aefd31014b2e39100a5d27ed1"
+  },
+  "checks": [
+    "AC-1 retry from current state: A22, A22b — PASS",
+    "AC-2 per-batch hash files + stop at FAILED: A23 — PASS",
+    "AC-3 server-side fencing: A24 + unit test — PASS",
+    "AC-4 terminal path + preserved failed fixture: p9_terminal_path_check.sh — PASS",
+    "AC-5 honest outputs: conditional log, A11 counts ERROR, builder check can fail, §13 restated, A25 source drift — PASS",
+    "AC-6 records — PASS; v9 assessment pending owner confirmation of spend"
+  ],
+  "findings": [
+    "verify_frozen never compared source_content_hash although its P6-2g docstring said so (fixed; A25)",
+    "A resume billed later dates after a FAILED batch (fixed; A23)",
+    "A retry trusted a stored restored=True flag (fixed; A22/A22b)",
+    "stage_restore would DELETE the current rows before discovering missing stage tables (fixed; A22b, unit test)"
+  ],
+  "live_state_post": "databases sik, sik_bench; database.xml copies on sik; ledger 356,355 / Rp 34,870,243,633, content a66a3a54...; backup table sik_bench.dr_charge_ledger_bak_20261017 kept",
+  "open_items": [
+    "Pack C reproducibility closure; pack D matched-encounter B-C reconciliation and R4 0/999",
+    "Fault modes not injected; concurrent-overlap isolation; C1-C4",
+    "Astra v9 (merged)"
+  ],
+  "result": "PASS",
+  "verifier": "orchestrator solo stream (no subagents); local (LF) and VPS tool hashes verified identical after deploy"
+}

@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-18T01:30:00Z",
+  "category": "evidence-integrity",
+  "severity": "major",
+  "title": "Recovery paths that trusted stale flags, a documented check that never ran, and failures whose evidence was destroyed",
+  "what_went_wrong": [
+    "--retry-failed re-billed on a stored restored=True flag without re-checking the current state (introduced in P8).",
+    "The stage hash file was per run+stage, so a later batch overwrote an earlier batch's hash.",
+    "A resume continued to later dates after a FAILED batch.",
+    "Resume killed OS processes but not server sessions; a killed client's statement keeps running on the server.",
+    "verify_frozen's P6-2g docstring claimed a source-content comparison that the code never made.",
+    "stage_restore deleted the current rows before discovering that its stage tables were missing.",
+    "The wrapper always dropped the fixture, so a failed suite's state was destroyed; the suite's cleanup helper dropped recovery tables after an unverified restore; A14 only tested an early exit branch; the builder check could not fail; the log said 'pre-reset state restored' even when it was not."
+  ],
+  "root_cause": "Recovery decisions were based on recorded flags and process state instead of the data's current content and the server's sessions; documented checks were not compared with the code; failure handling favoured a clean box over keeping the evidence.",
+  "detection": "Astra v8 (gpt-6-astra run 4897654); every claim re-verified against the source by the orchestrator on 2026-10-18 (P9 task doc §0, E1-E11).",
+  "correction": {
+    "code": "Per-batch hash files; retry and abandon compare current content with the batch's pre-reset hash; FAILED batches hold their stage tables; stage_restore refuses before DELETE when stage tables are missing; resume stops at FAILED; server-side fencing (KILL target sessions, kill stray mysql clients; never on live DBs); verify_frozen compares source_content_hash; wrapper keeps a failed fixture (--teardown-kept); suite cleanup drops only after a verified restore; A11 counts ERROR; builder check exits 1 on a difference; conditional log wording.",
+    "verification": "Suite 34/34 on a fresh fixture (A22, A22b, A23, A24, A25 new); terminal-path check PASS; unit test 20/20; builder check exit 0 clean / exit 1 planted."
+  },
+  "rule": "A recovery step must decide from the data's current content and the server's live sessions, never from a stored flag or a dead process; a documented check must be found in the code before it is cited; a failed run's state is evidence and is kept.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

@@ -2,6 +2,15 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-18 (P9) — P9 DONE** (packs A+B; task doc
+> `docs/khanza_r5_task_p9_recovery_contract.md`, R5 §20): suite **34/34** on a fresh fixture,
+> terminal-path check PASS (failed suite -> wrapper exit 1, fixture KEPT until
+> `p6_run_suite_fresh.sh --teardown-kept`), unit test 20/20, builder check exit 0 clean / 1
+> planted; evidence in `evidence/p9/`; manifest re-pinned; QMS P9-001; failure record.
+> **Next:** Astra v9 = `build_astra_task_r9.py` -> push/run `task_r9_merged.py` (expected ~$3.0,
+> max ~$3.7 + ~$0.32 gemini; owner reported $5.6 quota left; needs the owner's OK).
+> Not done: pack C (reproducibility closure), pack D (matched encounters, R4 0/999).
+>
 > **UPDATE 2026-10-18 (latest) — Astra v8 = 60/100** "Needs targeted rework" (6/6/7/6/7/4; run
 > 4897654, $2.782; `evidence/astra_v8_4897654_NOTE.md` lists 7 findings, all confirmed in source).
 > Budget left this month: ~$2.83 (astra only) or ~$2.28 (if gemini validation counts). P9 should

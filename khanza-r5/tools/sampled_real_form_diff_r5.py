@@ -82,6 +82,19 @@ Astra-scored gaps: baseline independence, unsafe reset, sampling, crash safety):
   P8-C4  --retry-failed re-bills a FAILED batch only from a hash-verified
          pre-reset state; without it FAILED batches stay failed.
 
+  P9 recovery contract:
+  P9-B1  one pre-reset hash file per BATCH (stage_content_hash_<pfx>_<date>.json).
+  P9-B2  retry compares the batch's CURRENT content with that hash (never the stored
+         restored=True flag); if it differs, it restores from the kept stage tables and
+         verifies first, else RETRY-REFUSED. A FAILED batch keeps its stage tables until
+         BILLED (--retry-failed) or released (--abandon-failed, current state verified).
+         stage_restore refuses before deleting anything when stage tables are missing.
+  P9-B3  a FAILED batch stops a resume too (later dates are not billed).
+  P9-B4  before a restore, server-side fencing: stray mysql clients naming the target
+         are killed and every other server session on the target is KILLed and waited
+         out (FENCE line); never on the live databases (FENCE-SKIPPED).
+  P9-A2  verify_frozen compares the source-content hash (SOURCE-CONTENT DRIFT).
+
 Usage:
   python3 sampled_real_form_diff_r5.py --stage B3 --db-name sik_r5 \
       --visits-file /tmp/r5_visits50.txt [--freeze-only] [--verify-frozen]
@@ -291,6 +304,19 @@ def verify_frozen(rundir, db, log):
         if _sha(agg) != man["sha256_all"]:
             log("verify-frozen: AGGREGATE manifest sha mismatch (P6-2g)")
             ok = False
+    # P9-A2: the P6-2g docstring promised this comparison but the code never made it;
+    # counts alone miss a changed quantity or price on a sampled visit
+    if man.get("source_content_hash"):
+        cur_src = source_content_hash(db, list(man["visits"]), log)
+        if cur_src != man["source_content_hash"]:
+            log("verify-frozen: SOURCE-CONTENT DRIFT (P9-A2): sampled visits' source "
+                "lines changed since freeze (%s... -> %s...)"
+                % (man["source_content_hash"][:16], cur_src[:16]))
+            ok = False
+    else:
+        log("verify-frozen: no source_content_hash in manifest (pre-P6 freeze) — "
+            "source content NOT verified")
+        ok = False
     log("verify-frozen: %s" % ("PASS" if ok else "FAIL"))
     return ok
 
@@ -369,7 +395,16 @@ def _stage_prefix(run_id, stage=None):
     return "r5_stage_%s_%s" % (stg, rid)
 
 
-def stage_backup(nrs, db, rundir, log, run_id="run", stage=None):
+def _hash_path(rundir, pfx, batch):
+    """P9-B1: one pre-reset hash file PER BATCH. Before P9 the file was per run+stage,
+    so a later batch's backup overwrote an earlier batch's hash."""
+    if not batch:
+        raise ValueError("stage hash needs a batch key (P9-B1)")
+    return os.path.join(rundir, "stage_content_hash_%s_%s.json"
+                        % (pfx, re.sub(r"[^A-Za-z0-9]", "_", str(batch))))
+
+
+def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     """AC-3: copy pre-reset state for the batch into per-run r5_stage_* tables.
     P5-5b: stage-table CREATE requires privilege the benchmark user lacks —
     run the DDL as root (dbutil.force_root) while all DML stays on the
@@ -381,11 +416,15 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None):
         s = "%s_%s" % (pfx, t)
         dbutil.execute(db, "CREATE TABLE IF NOT EXISTS %s LIKE %s" % (s, t),
                        force_root=True)
+        # P9: a re-backup (retry) replaces this batch's staged rows instead of adding
+        # to them (tables without a primary key would otherwise collect duplicates)
+        dbutil.execute(db, "DELETE FROM %s WHERE %s IN (%s)" % (s, key, inl))
         dbutil.execute(db, "REPLACE INTO %s SELECT * FROM %s WHERE %s IN (%s)"
                            % (s, t, key, inl))
     dbutil.execute(db,
         "CREATE TABLE IF NOT EXISTS %s_reg (no_rawat VARCHAR(17), "
         "status_bayar VARCHAR(20))" % pfx, force_root=True)
+    dbutil.execute(db, "DELETE FROM %s_reg WHERE no_rawat IN (%s)" % (pfx, inl))
     dbutil.execute(db, "REPLACE INTO %s_reg SELECT no_rawat, status_bayar "
         "FROM reg_periksa WHERE no_rawat IN (%s)" % (pfx, inl))
     log("stage-backup %d visits -> %s_* (%d output tables + reg.status_bayar)"
@@ -393,10 +432,10 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None):
     # P6-2e: record the pre-reset content hash (per no_rawat value-row multiset
     # across the output tables + reg.status_bayar) for later verified restore.
     h = _content_hash(nrs, db, log)
-    hpath = os.path.join(rundir, "stage_content_hash_%s.json" % pfx)
+    hpath = _hash_path(rundir, pfx, batch)
     with open(hpath, "w") as f:
-        json.dump({"pfx": pfx, "nrs": nrs, "sha256": h}, f)
-    log("stage-content-hash %s (sha256=%s...)" % (pfx, h[:16]))
+        json.dump({"pfx": pfx, "batch": batch, "nrs": nrs, "sha256": h}, f)
+    log("stage-content-hash %s batch %s (sha256=%s...)" % (pfx, batch, h[:16]))
 
 
 def _content_hash(nrs, db, log):
@@ -423,7 +462,32 @@ def _content_hash(nrs, db, log):
     return _sha(canon)
 
 
-def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
+def read_prereset_hash(nrs, rundir, pfx, batch):
+    """P8-C1/P9-B1: (sha256, problem) from this batch's hash file. problem is None when
+    the file exists and describes exactly this batch; sha256 is None when absent."""
+    hpath = _hash_path(rundir, pfx, batch)
+    if not os.path.exists(hpath):
+        return None, "absent"
+    try:
+        meta = json.load(open(hpath))
+        pre = meta.get("sha256")
+        if meta.get("pfx") != pfx or str(meta.get("batch")) != str(batch)                 or sorted(meta.get("nrs") or []) != sorted(nrs)                 or not re.fullmatch(r"[0-9a-f]{64}", str(pre)):
+            return None, "hash file does not describe this batch (pfx/batch/nrs/sha256 invalid)"
+        return pre, None
+    except Exception as e:
+        return None, "hash file unreadable (%s)" % type(e).__name__
+
+
+def current_matches_prereset(nrs, db, rundir, log, run_id, stage, batch):
+    """P9-B2: is the batch's CURRENT content equal to its recorded pre-reset hash?"""
+    pre, problem = read_prereset_hash(nrs, rundir, _stage_prefix(run_id, stage), batch)
+    if problem:
+        return False, problem
+    cur = _content_hash(nrs, db, log)
+    return cur == pre, ("current=%s... pre-reset=%s..." % (cur[:16], pre[:16]))
+
+
+def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     """AC-3: undo any reset/partial-bill for the batch from stage-backup.
     P6-2e: after re-applying, recompute the content hash and verify it matches
     the staged hash (STAGE-RESTORED-VERIFIED); on mismatch, do NOT claim a
@@ -431,6 +495,19 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
     pfx = _stage_prefix(run_id, stage)
     inl = ",".join("'%s'" % n for n in nrs)
     pause = float(os.environ.get("R5_FAULT_RESTORE_PAUSE_S", "0") or 0)
+    # P9: never DELETE the live rows when there is nothing to put back
+    want = ["%s_%s" % (pfx, t) for t in RESET_TABLES] + ["%s_reg" % pfx]
+    try:
+        have = {r[0] for r in dbutil.query(db,
+            "SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() "
+            "AND table_name LIKE '%s\\_%%'" % pfx, force_root=True)}
+    except Exception as e:
+        have, want = set(), ["(stage table check failed: %s)" % type(e).__name__]
+    missing = [t for t in want if t not in have]
+    if missing:
+        log("STAGE-RESTORE-ERROR %s_*: stage tables missing %s (nothing deleted, NOT "
+            "restored)" % (pfx, missing[:3]))
+        return False
     try:
         for i, (t, key) in enumerate(RESET_TABLES.items()):
             s = "%s_%s" % (pfx, t)
@@ -453,19 +530,11 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None):
             "for resume)" % (pfx, type(e).__name__, str(e)[:200]))
         return False
     # P6-2e: verify the restored content matches the pre-reset hash.
-    hpath = os.path.join(rundir, "stage_content_hash_%s.json" % pfx)
+    # P8-C1: a truncated/garbled/foreign hash file is unverifiable, not a crash.
     ok = True
-    pre, bad = None, None
-    if os.path.exists(hpath):
-        # P8-C1: a truncated/garbled/foreign hash file is unverifiable, not a crash
-        try:
-            meta = json.load(open(hpath))
-            pre = meta.get("sha256")
-            if meta.get("pfx") != pfx or sorted(meta.get("nrs") or []) != sorted(nrs) \
-                    or not re.fullmatch(r"[0-9a-f]{64}", str(pre)):
-                bad = "hash file does not describe this batch (pfx/nrs/sha256 invalid)"
-        except Exception as e:
-            bad = "hash file unreadable (%s)" % type(e).__name__
+    pre, bad = read_prereset_hash(nrs, rundir, pfx, batch)
+    if bad == "absent":
+        bad = None
     if bad:
         ok = False
         log("STAGE-RESTORE-UNVERIFIED %d visits: %s; data re-applied but NOT "
@@ -685,6 +754,69 @@ def _kill_pgid(pgid, grace_s=10):
     return not _group_alive(pgid)
 
 
+LIVE_DBS = ("sik", "sik_bench")
+
+
+def _mysql_clients(db):
+    """P9-B4: mysql CLI processes whose argv names the target database as a separate
+    token (dbutil runs the CLI that way); a crashed oracle can leave one running."""
+    found = []
+    for d in os.listdir("/proc"):
+        if not d.isdigit() or int(d) == os.getpid():
+            continue
+        try:
+            with open("/proc/%s/cmdline" % d, "rb") as f:
+                argv = f.read().decode("utf-8", "replace").split("\0")
+        except OSError:
+            continue
+        if argv and os.path.basename(argv[0]) in ("mysql", "mariadb") and db in argv[1:]:
+            found.append(int(d))
+    return found
+
+
+def _target_sessions(db):
+    """P9-B4: server sessions using the target database (default db, or naming it in
+    the running statement), other than the session asking."""
+    return dbutil.query(db,
+        "SELECT id, user, command, time, LEFT(COALESCE(info,''), 80) "
+        "FROM information_schema.processlist WHERE id <> CONNECTION_ID() "
+        "AND command NOT IN ('Daemon', 'Binlog Dump') "
+        "AND (db = DATABASE() OR info LIKE CONCAT('%', DATABASE(), '.%'))",
+        force_root=True)
+
+
+def fence_sessions(db, log, wait_s=10):
+    """P9-B4: server-side fencing before a restore. Killing a client process does not
+    stop its statement on the server (seen 2026-10-18: a DELETE ran ~7 min after its
+    client was killed). Kill stray mysql clients naming the target, then KILL every
+    other server session on the target and wait until none remain.
+    Returns (ok, n_killed, remaining). Refused on a live database."""
+    if db in LIVE_DBS:
+        log("FENCE-SKIPPED (P9-B4): %s is live; sessions are never killed there "
+            "(process-level proof only)" % db)
+        return True, 0, []
+    for pid in _mysql_clients(db):
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+    killed = 0
+    for row in _target_sessions(db):
+        try:
+            dbutil.execute(db, "KILL %d" % int(row[0]), force_root=True)
+            killed += 1
+        except Exception:
+            pass  # already gone
+    remaining = []
+    for _ in range(int(wait_s * 2)):
+        remaining = [r[0] for r in _target_sessions(db)]
+        if not remaining:
+            break
+        time.sleep(0.5)
+    log("FENCE (P9-B4) %s: sessions_killed=%d remaining=%d" % (db, killed, len(remaining)))
+    return not remaining, killed, remaining
+
+
 def reap_writers(st, rundir, db, log, dates, quiet_s=None):
     """P8-C2: before a resume restores anything, prove no writer survives from a
     crashed run. A SIGKILLed oracle cannot run its signal handler, so its harness
@@ -714,16 +846,21 @@ def reap_writers(st, rundir, db, log, dates, quiet_s=None):
     alive_groups = [g for g in groups if _group_alive(g)]
     pending = [v for b in st["batches"].values()
                if b.get("status") in ("STAGED", "RESET") for v in b["visits"]]
+    # P9-B4: fence the server before anything may be restored (a pending batch, or a
+    # FAILED batch a retry may restore)
+    fence_ok, fence_killed = True, 0
+    if (pending or any(b.get("status") == "FAILED" for b in st["batches"].values()))             and not left and not alive_groups:
+        fence_ok, fence_killed, _ = fence_sessions(db, log)
     quiet = True
-    if pending and not left and not alive_groups:
+    if pending and not left and not alive_groups and fence_ok:
         qs = float(os.environ.get("R5_WRITER_QUIET_S", "5") if quiet_s is None else quiet_s)
         h1 = _content_hash(pending, db, log)
         time.sleep(qs)
         quiet = h1 == _content_hash(pending, db, log)
-    if left or alive_groups or not quiet:
-        log("WRITER-ALIVE (P8-C2): harness writers=%s groups_alive=%s quiet=%s "
-            "killed=%s — restore withheld, run stops (fail-closed exit 4)"
-            % (sorted(left), alive_groups, quiet, killed))
+    if left or alive_groups or not quiet or not fence_ok:
+        log("WRITER-ALIVE (P8-C2/P9-B4): harness writers=%s groups_alive=%s quiet=%s "
+            "fence_ok=%s killed=%s — restore withheld, run stops (fail-closed exit 4)"
+            % (sorted(left), alive_groups, quiet, fence_ok, killed))
         return False
     for pidf in pidfs:
         try:
@@ -731,8 +868,8 @@ def reap_writers(st, rundir, db, log, dates, quiet_s=None):
         except OSError:
             pass
     log("WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=%d killed=%s "
-        "harness_writers=0 quiet=%s" % (len(groups), killed or "none",
-                                         "true" if pending else "n/a"))
+        "harness_writers=0 fence_sessions_killed=%d quiet=%s"
+        % (len(groups), killed or "none", fence_killed, "true" if pending else "n/a"))
     return True
 
 
@@ -820,9 +957,12 @@ def main():
                     help="P7-6: permit a billing run (which resets and re-bills visits) "
                          "against the live database 'sik'. DEFAULT refuses.")
     ap.add_argument("--retry-failed", action="store_true",
-                    help="P8-C4: on resume, re-bill FAILED batches whose pre-reset "
-                         "state is (or can now be) hash-verified. DEFAULT keeps "
-                         "FAILED batches failed.")
+                    help="P8-C4/P9-B2: on resume, re-bill a FAILED batch whose CURRENT "
+                         "state equals its pre-reset hash (or can be restored and verified "
+                         "from the kept stage tables). DEFAULT keeps FAILED batches failed.")
+    ap.add_argument("--abandon-failed", action="store_true",
+                    help="P9: release the stage tables of a FAILED batch whose current "
+                         "state equals its pre-reset hash (no re-bill).")
     args = ap.parse_args()
     db = args.db_name
     # P7-6: a billing run DELETEs the sampled visits' output rows before re-billing
@@ -975,29 +1115,56 @@ def main():
     failed = False
     for d in dates:
         b = st["batches"].get(d)
-        if b and b["status"] == "FAILED" and args.retry_failed:
-            # P8-C4: retry a FAILED batch only from a hash-verified pre-reset state
-            if b.get("restored") is not True:
+        if b and b["status"] == "FAILED" and (args.retry_failed or args.abandon_failed):
+            # P9-B2: judge the batch by its CURRENT content against its own pre-reset
+            # hash, never by the stored restored=True flag (state can change after the
+            # original verification)
+            same, why = current_matches_prereset(b["visits"], db, rundir, log, tool.run_id,
+                                                 st.get("stage"), d)
+            if args.abandon_failed:
+                if same:
+                    b["abandoned"] = True
+                    log("date %s: ABANDON-FAILED (P9): current state equals the pre-reset "
+                        "hash (%s); stage tables released at finalize" % (d, why))
+                else:
+                    log("date %s: ABANDON-REFUSED: current state is not the pre-reset "
+                        "state (%s); stage tables kept" % (d, why))
+                save_state(rundir, st)
+                failed = True
+                break
+            if same:
+                log("date %s: RETRY-FAILED (P9-B2): previous failure '%s'; current state "
+                    "re-verified against the pre-reset hash (%s) -> re-billing"
+                    % (d, b.get("fail_reason", "?"), why))
+            else:
+                log("date %s: RETRY: current state is not the pre-reset state (%s); "
+                    "restoring from the kept stage tables first" % (d, why))
                 if not stage_restore(b["visits"], db, rundir, log, tool.run_id,
-                                     stage=st.get("stage")):
-                    log("date %s: RETRY-REFUSED (restore not hash-verified; stays "
-                        "FAILED)" % d)
+                                     stage=st.get("stage"), batch=d):
+                    log("date %s: RETRY-REFUSED (pre-reset state could not be restored "
+                        "and verified; stays FAILED, nothing re-billed)" % d)
                     failed = True
                     break
-                b["restored"] = True
-            log("date %s: RETRY-FAILED (P8-C4): previous failure '%s'; pre-reset "
-                "state verified -> re-billing" % (d, b.get("fail_reason", "?")))
+                log("date %s: RETRY-FAILED (P9-B2): previous failure '%s'; pre-reset "
+                    "state restored and verified -> re-billing"
+                    % (d, b.get("fail_reason", "?")))
+            b["restored"] = True
             b["retried_from"] = b.get("fail_reason", "?")
             b["status"] = "PENDING"
             save_state(rundir, st)
-        if not b or b["status"] in ("BILLED", "FAILED"):
-            if b and b["status"] == "FAILED":
-                failed = True
+        if b and b["status"] == "FAILED":
+            # P9-B3: a FAILED batch stops the run on resume too (before P9 the loop
+            # continued and billed the later dates)
+            log("date %s: FAILED batch — run stops here; later batches not billed "
+                "(P9-B3; --retry-failed repairs it, --abandon-failed releases it)" % d)
+            failed = True
+            break
+        if not b or b["status"] == "BILLED":
             continue
         # non-BILLED batch: restore pre-reset state, re-reset, (re)bill below.
         if b["status"] in ("STAGED", "RESET"):
             if not stage_restore(b["visits"], db, rundir, log, tool.run_id,
-                                 stage=st.get("stage")):
+                                 stage=st.get("stage"), batch=d):
                 # P6-2e: an unverified restore must not be re-billed over.
                 b["status"] = "FAILED"
                 b["restored"] = False
@@ -1033,7 +1200,7 @@ def _bill_date(d, b, st, rundir, db, tool, log, deadline, repair_consumer=False)
     # restore+stop semantics then apply. P6-2d: the prefix now includes the
     # stage (same-RUN_ID/different-stage hazard closed).
     try:
-        stage_backup(nrs, db, rundir, log, run_id, stage=st.get("stage"))
+        stage_backup(nrs, db, rundir, log, run_id, stage=st.get("stage"), batch=d)
     except Exception as e:
         b["status"] = "FAILED"
         b["restored"] = False
@@ -1079,14 +1246,16 @@ def _bill_date(d, b, st, rundir, db, tool, log, deadline, repair_consumer=False)
         # the DELETE ran with nothing to copy back) and record the VERIFIED
         # outcome, never an asserted one.
         restored = stage_restore(nrs, db, rundir, log, run_id,
-                                 stage=st.get("stage"))
+                                 stage=st.get("stage"), batch=d)
         b["status"] = "FAILED"
         b["restored"] = bool(restored)
         b["fail_reason"] = ("harness rc=%d" % rc) if rc != 0 else \
             "sukses=false for %d/%d visits" % (sum(1 for v in nrs if not sukses.get(v)), len(nrs))
         save_state(rundir, st)
-        log("date %s: FAILED (%s) — pre-reset state restored, run stops (P5-2)"
-            % (d, b["fail_reason"]))
+        # P9-A1: say what actually happened to the pre-reset state
+        log("date %s: FAILED (%s) — pre-reset state %s, run stops (P5-2)"
+            % (d, b["fail_reason"], "restored (hash-verified)" if restored
+               else "NOT restored (unverified/mismatch/error; stage tables kept)"))
     if xvfb_pid:
         try:
             os.kill(xvfb_pid, 15)
@@ -1220,10 +1389,20 @@ def _finalize(st, rundir, db, tool, log, repair_consumer=False):
                         if b.get("status") in ("STAGED", "RESET")
                         or (b.get("status") == "FAILED" and b.get("restored") is False
                             and not str(b.get("fail_reason", "")).startswith("stage-backup")))
+    # P9-B2: a FAILED batch keeps its stage tables (the only copy of its pre-reset rows)
+    # until it is BILLED by --retry-failed or released by --abandon-failed
+    held = sorted(d for d, b in st["batches"].items()
+                  if b.get("status") == "FAILED" and b.get("restored") is True
+                  and not b.get("abandoned"))
     if unrestored:
         log("STAGE-KEEP %s_*: batches %s not verifiably restored — stage tables "
             "kept for a resume/manual restore (box NOT clean)"
             % (_stage_prefix(tool.run_id, st.get("stage")), unrestored))
+        drop_ok = False
+    elif held:
+        log("STAGE-KEEP %s_*: FAILED batches %s restored but held for --retry-failed "
+            "(--abandon-failed releases them; box NOT clean)"
+            % (_stage_prefix(tool.run_id, st.get("stage")), held))
         drop_ok = False
     else:
         drop_ok = stage_drop(db, tool.run_id, log, stage=st.get("stage"))

@@ -17,8 +17,22 @@ PY
 }
 mysql -uroot -e "CREATE DATABASE $W; CREATE TABLE $W.dr_charge_ledger LIKE sik_bench.dr_charge_ledger; CREATE TABLE $W.dr_tariff LIKE sik_bench.dr_tariff; INSERT INTO $W.dr_tariff SELECT * FROM sik_bench.dr_tariff;"
 echo "builder sha: $(sha256sum build_dr_charge_ledger_p2.py | cut -c1-16)"
-P2_LEDGER_DB=$W P2_CONSUMER_DB=sik RUN_ID=p8_int_all python3 build_dr_charge_ledger_p2.py --window ALL > /tmp/p8_int_all.log 2>&1; echo "P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=$?"
+P2_LEDGER_DB=$W P2_CONSUMER_DB=sik RUN_ID=p8_int_all python3 build_dr_charge_ledger_p2.py --window ALL > /tmp/p8_int_all.log 2>&1; BRC=$?
+echo "P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=$BRC"
 grep -aE "tax rows|SINGLE" /tmp/p8_int_all.log | cut -c1-140
+# test hook (inert unless set): plant one wrong amount in the SCRATCH ledger to prove the
+# check fails on a difference
+if [ -n "${P9_PLANT_MISMATCH:-}" ]; then
+  mysql -uroot -e "UPDATE $W.dr_charge_ledger SET amount=amount+1 ORDER BY no_rawat, component, code LIMIT 1;"
+  echo "P9_PLANT_MISMATCH: one scratch amount changed by +1"
+fi
 L=$(lh sik_bench); S=$(lh $W)
-echo "live   $L"; echo "scratch $S"; [ "$L" = "$S" ] && echo "INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)" || echo "DIFFERS"
+echo "live   $L"; echo "scratch $S"
 mysql -uroot -e "DROP DATABASE $W;"; echo "dbs: $(mysql -uroot -N -e 'SHOW DATABASES' | grep '^sik' | tr '\n' ' ')"
+# P9-A6: exit 1 unless the build succeeded, both hashes were actually computed
+# ("rows:sha256") and they are equal (before P9 this printed DIFFERS and exited 0)
+HASHRE='^[0-9]+:[0-9a-f]{64}$'
+if [ "$BRC" = "0" ] && [[ "$L" =~ $HASHRE ]] && [[ "$S" =~ $HASHRE ]] && [ "$L" = "$S" ]; then
+  echo "INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)"; exit 0
+fi
+echo "DIFFERS (or the build failed / a hash could not be computed) - FAIL"; exit 1

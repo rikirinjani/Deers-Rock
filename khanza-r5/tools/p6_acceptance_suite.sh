@@ -14,6 +14,12 @@
 # counted separately); A17 refuses a live fixture; A18-A21 inject recovery faults
 # (corrupt hash, surviving writer, interrupted restore, retry of a FAILED batch);
 # earlier results are archived, never deleted.
+# P9 (2026-10-18): per-batch hash files; FAILED batches keep their stage tables until
+# --retry-failed bills them or --abandon-failed releases them; A22/A22b retry after a
+# post-verification change; A23 two batches, stop at FAILED; A24 server-side fencing;
+# A25 source-content drift; cleanup never drops unverified recovery tables;
+# P9_FORCE_FAIL_CHECK=<id> fails one REAL check (terminal-path test, see
+# p9_terminal_path_check.sh); P9_QUICK=1 runs only A0 + the live guards.
 set -u
 cd /opt/Deers-Rock/tools
 export DBUTIL_FORCE_ROOT=1
@@ -26,6 +32,9 @@ mkdir -p /opt/dr-benchmark/p-chain
 OUT=/opt/dr-benchmark/p-chain/r5_p6_acceptance_${TS}.md
 PASS=0; FAIL=0; SUMMARY=""
 check() {
+  local st=$3 lbl=$2
+  if [ -n "${P9_FORCE_FAIL_CHECK:-}" ] && [ "$1" = "$P9_FORCE_FAIL_CHECK" ]; then st=1; lbl="$2 [FORCED FAIL by P9_FORCE_FAIL_CHECK]"; fi
+  set -- "$1" "$lbl" "$st"
   if [ "$3" = "0" ]; then echo "A$1: PASS — $2" | tee -a "$OUT"; PASS=$((PASS+1)); SUMMARY="$SUMMARY| A$1 | PASS | $2 |"$'\n';
   else echo "A$1: FAIL — $2" | tee -a "$OUT"; FAIL=$((FAIL+1)); SUMMARY="$SUMMARY| A$1 | **FAIL** | $2 |"$'\n'; fi
 }
@@ -119,6 +128,26 @@ freeze() { local rid=$1 stg=$2; shift 2
   env RUN_ID=$rid $ORACLE --stage $stg "$@" --freeze-only > /tmp/r6_fz_${rid}_${stg}.log 2>&1
   local rc=$?; res "  freeze $rid/$stg exit=$rc"; return $rc; }
 
+# cleanup helper: put a run's batches back from their kept stage tables (hash file put
+# back first so the restore is verified), and drop the stage tables ONLY if every batch's
+# restore verified (P9-A4: an unverified restore keeps the only copy of the rows)
+restore_kept() { local rid=$1 hfile=$2 saved=$3
+  [ -n "$hfile" ] && [ -f "$saved" ] && cp "$saved" "$hfile"
+  python3 - "$FX" "$rid" <<'PY'
+import sys, json
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]; rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+st = json.load(open(rd + '/.state.json'))
+ok = all(o.stage_restore(b['visits'], fx, rd, print, rid, stage='B3', batch=d)
+         for d, b in sorted(st['batches'].items()) if b.get('status') != 'PENDING')
+print('restore_verified', ok)
+print('stage_drop', o.stage_drop(fx, rid, print, stage='B3') if ok else 'SKIPPED (restore not verified; stage tables kept)')
+PY
+}
+stage_count() { SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5\_stage\_B3\_$1\_%';"; }
+
+if [ -z "${P9_QUICK:-}" ]; then
 echo "=== A1: clean pass (exit 0) ==="
 freeze r6_a1 B3 --visits-file /tmp/r6_clean.txt
 T0=$(date +%s)
@@ -175,6 +204,9 @@ PROOF=$(cnt "WRITER-DEAD-PROOF .*group_empty=true" /tmp/r6_a4.log)
 RV=$(cnt "STAGE-RESTORED-VERIFIED" /tmp/r6_a4.log)
 grep -a "WRITER-DEAD-PROOF\|STAGE-RESTOR\|FAILED (" /tmp/r6_a4.log | head -3 | tee -a "$OUT"
 check 4 "A4 timeout(3s, below JVM start+login) -> group_empty=true proof + verified restore + exit 4 + 0 java left" $([ "$RC" = "4" ] && [ "$PROOF" -ge 1 ] && [ "$RV" -ge 1 ] && [ "$J" = "0" ] && echo 0 || echo 1)
+env RUN_ID=r6_a3 $ORACLE --stage B3 --visits-file /tmp/r6_strata.txt --allow-strata --abandon-failed > /tmp/r6_a3_abandon.log 2>&1
+env RUN_ID=r6_a4 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --abandon-failed > /tmp/r6_a4_abandon.log 2>&1
+res "A3/A4 held FAILED batches released: a3 abandon_lines=$(cnt ABANDON-FAILED /tmp/r6_a3_abandon.log) a4 abandon_lines=$(cnt ABANDON-FAILED /tmp/r6_a4_abandon.log) stage_tables a3=$(stage_count r6_a3) a4=$(stage_count r6_a4)"
 res "A4 exit=$RC proof_lines=$PROOF restored_verified=$RV java_after=$J (A1 harness+run wall ${A1_SECS}s; the 3s cap fires before the first visit completes)"
 
 echo "=== A4b: SIGTERM to the oracle mid-harness -> handler kills the group -> exit 4; resume restores ==="
@@ -267,17 +299,8 @@ res "A15 exit=$RC unverified_lines=$UNV stage_keep_lines=$KEEP stage_tables_kept
 # put the two visits back from the kept stage tables (hash file put back first, so this
 # cleanup restore is itself hash-verified), then drop them (the fixture must end clean)
 [ -n "$H15" ] && cp /tmp/r6_a15_hash.saved "$H15"
-python3 - "$FX" <<'PY' >> /tmp/r6_a15_cleanup.log 2>&1
-import sys, json
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx = sys.argv[1]; rd = '/opt/dr-benchmark/results/r6_a15/B3_oracle_run_r5'
-st = json.load(open(rd + '/.state.json'))
-nrs = [v for b in st['batches'].values() for v in b['visits']]
-o.stage_restore(nrs, fx, rd, print, 'r6_a15', stage='B3')
-print('stage_drop', o.stage_drop(fx, 'r6_a15', print, stage='B3'))
-PY
-res "A15 cleanup: $(tail -1 /tmp/r6_a15_cleanup.log)"
+restore_kept r6_a15 "" "" >> /tmp/r6_a15_cleanup.log 2>&1
+res "A15 cleanup: $(tail -2 /tmp/r6_a15_cleanup.log | tr '\n' ' ')"
 
 echo "=== A16: billing run against live sik without --allow-live -> LIVE-TARGET-REFUSED, exit 3 ==="
 env RUN_ID=r6_a16 python3 sampled_real_form_diff_r5.py --db-name sik --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a16.log 2>&1
@@ -287,21 +310,6 @@ check 16 "A16 live target refused without --allow-live (exit 3, LIVE-TARGET-REFU
 res "A16 exit=$RC refused_lines=$REF"
 
 # ---- P8-C: recovery fault injection (through the same oracle the wrapper runs) ----
-# cleanup helper: put a batch back from its kept stage tables with its saved hash file
-# (so the cleanup restore is itself verified), then verified-drop the stage tables
-restore_kept() { local rid=$1 hfile=$2 saved=$3
-  [ -n "$hfile" ] && [ -f "$saved" ] && cp "$saved" "$hfile"
-  python3 - "$FX" "$rid" <<'PY'
-import sys, json
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]; rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
-st = json.load(open(rd + '/.state.json'))
-nrs = [v for b in st['batches'].values() for v in b['visits']]
-print('restore_verified', o.stage_restore(nrs, fx, rd, print, rid, stage='B3'))
-print('stage_drop', o.stage_drop(fx, rid, print, stage='B3'))
-PY
-}
 restored_flags() { python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/$1/B3_oracle_run_r5/.state.json'));print(','.join(str(b.get('restored')) for b in st['batches'].values()))" 2>/dev/null; }
 
 echo "=== A18a: garbled pre-reset hash file -> STAGE-RESTORE-UNVERIFIED (no traceback), FAILED, kept, exit 4 ==="
@@ -375,10 +383,91 @@ RC1=$?
 env RUN_ID=r6_a21 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a21_noretry.log 2>&1
 RC2=$?; RT2=$(cnt "RETRY-FAILED" /tmp/r6_a21_noretry.log)
 env RUN_ID=r6_a21 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --retry-failed > /tmp/r6_a21_retry.log 2>&1
-RC3=$?; RT3=$(cnt "RETRY-FAILED (P8-C4)" /tmp/r6_a21_retry.log)
+RC3=$?; RT3=$(cnt "RETRY-FAILED (P9-B2)" /tmp/r6_a21_retry.log)
 grep -a "RETRY-FAILED\|RETRY-REFUSED" /tmp/r6_a21_retry.log | head -1 | cut -c1-200 | tee -a "$OUT"
 check 21 "A21 timeout -> FAILED (exit 4); plain resume keeps it FAILED (exit 4, no retry); --retry-failed re-bills it -> exit 0" $([ "$RC1" = "4" ] && [ "$RC2" = "4" ] && [ "$RT2" = "0" ] && [ "$RC3" = "0" ] && [ "$RT3" -ge 1 ] && echo 0 || echo 1)
 res "A21 first_exit=$RC1 noretry_exit=$RC2 noretry_retry_lines=$RT2 retry_exit=$RC3 retry_lines=$RT3"
+
+
+# ---- P9: recovery acceptance contract ----
+visit_sum() { SQL "SELECT CONCAT(COUNT(*), ':', COALESCE(SUM(totalbiaya),0)) FROM ${FX}.billing WHERE no_rawat='$1';"; }
+batch_status() { python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/$1/B3_oracle_run_r5/.state.json'));print(','.join('%s=%s' % (d, b.get('status')) for d, b in sorted(st['batches'].items())))" 2>/dev/null; }
+
+echo "=== A22: FAILED batch, then its restored state is changed; --retry-failed must re-restore (verified) before re-billing ==="
+freeze r6_a22 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a22 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a22.log 2>&1
+RC1=$?; HELD=$(stage_count r6_a22)
+SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
+env RUN_ID=r6_a22 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --retry-failed > /tmp/r6_a22_retry.log 2>&1
+RC2=$?
+DIFF=$(cnt "current state is not the pre-reset state" /tmp/r6_a22_retry.log); RV=$(cnt "STAGE-RESTORED-VERIFIED" /tmp/r6_a22_retry.log)
+RT=$(cnt "RETRY-FAILED (P9-B2).*restored and verified" /tmp/r6_a22_retry.log)
+grep -a "current state is not\|RETRY-FAILED" /tmp/r6_a22_retry.log | head -2 | cut -c1-200 | tee -a "$OUT"
+check 22 "A22 timeout -> FAILED with stage tables held ($HELD); a billing row changed afterwards; --retry-failed detects current != pre-reset, restores + verifies from the kept tables, then re-bills -> exit 0" $([ "$RC1" = "4" ] && [ "$HELD" -gt 0 ] && [ "$DIFF" -ge 1 ] && [ "$RV" -ge 1 ] && [ "$RT" -ge 1 ] && [ "$RC2" = "0" ] && echo 0 || echo 1)
+res "A22 first_exit=$RC1 held_stage_tables=$HELD current_differs_lines=$DIFF restored_verified=$RV retry_lines=$RT retry_exit=$RC2"
+
+echo "=== A22b: same, but the recovery tables are gone -> RETRY-REFUSED, nothing deleted, nothing re-billed ==="
+freeze r6_a22b B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a22b R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a22b.log 2>&1
+RC1=$?
+python3 -c "import sys;sys.path.insert(0,'/opt/Deers-Rock/tools');import sampled_real_form_diff_r5 as o;print(o.stage_drop('$FX','r6_a22b',print,stage='B3'))" > /tmp/r6_a22b_drop.log 2>&1
+SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
+S0=$(visit_sum 2026/10/01/800085)
+env RUN_ID=r6_a22b $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --retry-failed > /tmp/r6_a22b_retry.log 2>&1
+RC2=$?; S1=$(visit_sum 2026/10/01/800085)
+REF=$(cnt "RETRY-REFUSED" /tmp/r6_a22b_retry.log); MISS=$(cnt "stage tables missing" /tmp/r6_a22b_retry.log)
+RST=$(cnt "^.*reset [0-9]* visits" /tmp/r6_a22b_retry.log)
+SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-1 WHERE no_rawat='2026/10/01/800085';"
+env RUN_ID=r6_a22b $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt --abandon-failed > /tmp/r6_a22b_abandon.log 2>&1
+AB=$(cnt "ABANDON-FAILED" /tmp/r6_a22b_abandon.log)
+grep -a "RETRY-REFUSED\|stage tables missing" /tmp/r6_a22b_retry.log | head -2 | cut -c1-200 | tee -a "$OUT"
+check 22b "A22b recovery tables dropped + row changed -> RETRY-REFUSED (stage tables missing, nothing deleted: visit rows/sum $S0 -> $S1), no reset, exit 4; after reverting the change, --abandon-failed releases the batch" $([ "$RC1" = "4" ] && [ "$REF" -ge 1 ] && [ "$MISS" -ge 1 ] && [ "$S0" = "$S1" ] && [ "$RST" = "0" ] && [ "$RC2" = "4" ] && [ "$AB" -ge 1 ] && echo 0 || echo 1)
+res "A22b first_exit=$RC1 refused=$REF missing_lines=$MISS rows_sum_before=$S0 after=$S1 reset_lines=$RST retry_exit=$RC2 abandoned=$AB"
+
+echo "=== A23: two batches (two dates): per-batch hash files; a FAILED first batch stops the run before the second ==="
+printf "2026/10/01/800085\n2026/10/06/800018\n" > /tmp/r6_two.txt
+RD23=/opt/dr-benchmark/results/r6_a23/B3_oracle_run_r5
+freeze r6_a23 B3 --visits-file /tmp/r6_two.txt
+env RUN_ID=r6_a23 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_a23.log 2>&1
+RC1=$?; ST1=$(batch_status r6_a23)
+env RUN_ID=r6_a23 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_a23_resume.log 2>&1
+RC2=$?; ST2=$(batch_status r6_a23); STOP=$(cnt "run stops here; later batches not billed" /tmp/r6_a23_resume.log)
+env RUN_ID=r6_a23 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt --retry-failed > /tmp/r6_a23_retry.log 2>&1
+RC3=$?; ST3=$(batch_status r6_a23); NH=$(ls $RD23/stage_content_hash_r5_stage_B3_r6_a23_2026_10_0*.json 2>/dev/null | wc -l)
+res "A23 batches after timeout: $ST1 · after plain resume: $ST2 · after retry: $ST3 · per-batch hash files: $(ls $RD23 | grep stage_content_hash | tr '\n' ' ')"
+check 23 "A23 two dates: timeout FAILs batch 1 and the run stops (batch 2 PENDING, exit 4); plain resume stops at the FAILED batch again (batch 2 still PENDING, exit 4); --retry-failed bills both (exit 0) with one hash file per batch (2)" $([ "$RC1" = "4" ] && [ "$ST1" = "2026-10-01=FAILED,2026-10-06=PENDING" ] && [ "$RC2" = "4" ] && [ "$STOP" -ge 1 ] && [ "$ST2" = "2026-10-01=FAILED,2026-10-06=PENDING" ] && [ "$RC3" = "0" ] && [ "$ST3" = "2026-10-01=BILLED,2026-10-06=BILLED" ] && [ "$NH" = "2" ] && echo 0 || echo 1)
+res "A23 exits $RC1/$RC2/$RC3 stop_lines=$STOP hash_files=$NH"
+
+echo "=== A24: a session still holding the target during a resume is fenced (KILLed) before the restore ==="
+freeze r6_a24 B3 --visits-file /tmp/r6_clean.txt
+env RUN_ID=r6_a24 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a24.log 2>&1 &
+PID=$!
+for _ in $(seq 1 240); do grep -q "reset 2 visits" /tmp/r6_a24.log 2>/dev/null && break; sleep 0.25; done
+kill -TERM $PID 2>/dev/null; wait $PID; RCK=$?
+# a second session on the fixture holding a locking read on the reset visit, then sleeping
+( mysql -uroot ${FX} -e "START TRANSACTION; SELECT COUNT(*) FROM billing WHERE no_rawat='2026/10/01/800085' FOR UPDATE; SELECT SLEEP(600);" > /tmp/r6_a24_blocker.log 2>&1 & )
+for _ in $(seq 1 40); do [ "$(SQL "SELECT COUNT(*) FROM information_schema.processlist WHERE info LIKE 'SELECT SLEEP(600)%';")" = "1" ] && break; sleep 0.25; done
+BLK=$(SQL "SELECT COUNT(*) FROM information_schema.processlist WHERE info LIKE 'SELECT SLEEP(600)%';")
+env RUN_ID=r6_a24 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a24_resume.log 2>&1
+RC=$?
+FK=$(grep -ao "FENCE (P9-B4) ${FX}: sessions_killed=[0-9]*" /tmp/r6_a24_resume.log | head -1 | sed 's/.*=//')
+BLK_AFTER=$(SQL "SELECT COUNT(*) FROM information_schema.processlist WHERE info LIKE 'SELECT SLEEP(600)%';")
+RV=$(cnt "STAGE-RESTORED-VERIFIED" /tmp/r6_a24_resume.log)
+grep -a "FENCE\|WRITER-DEAD-PROOF (resume" /tmp/r6_a24_resume.log | head -2 | cut -c1-200 | tee -a "$OUT"
+check 24 "A24 killed after reset (exit 4); a blocking session on ${FX} (locking read + sleep) present at resume -> FENCE kills it (>=1) before the restore; restore verified; re-bill exit 0; blocker gone" $([ "$RCK" = "4" ] && [ "$BLK" = "1" ] && [ "${FK:-0}" -ge 1 ] && [ "$BLK_AFTER" = "0" ] && [ "$RV" -ge 1 ] && [ "$RC" = "0" ] && echo 0 || echo 1)
+res "A24 killed_exit=$RCK blocker_present=$BLK fence_sessions_killed=${FK:-none} blocker_after=$BLK_AFTER restored_verified=$RV resume_exit=$RC"
+
+echo "=== A25: a sampled source line changed after freeze -> verify-frozen SOURCE-CONTENT DRIFT, exit 3, nothing reset ==="
+freeze r6_a25 B3 --visits-file /tmp/r6_clean.txt
+K25=$(SQL "SELECT kode_brng FROM ${FX}.detail_pemberian_obat WHERE no_rawat='2026/10/01/800085' ORDER BY kode_brng LIMIT 1;")
+SQL "UPDATE ${FX}.detail_pemberian_obat SET jml=jml+1 WHERE no_rawat='2026/10/01/800085' AND kode_brng='$K25';"
+env RUN_ID=r6_a25 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a25.log 2>&1
+RC=$?
+SQL "UPDATE ${FX}.detail_pemberian_obat SET jml=jml-1 WHERE no_rawat='2026/10/01/800085' AND kode_brng='$K25';"
+DR=$(cnt "SOURCE-CONTENT DRIFT" /tmp/r6_a25.log); RS=$(cnt "reset [0-9]* visits" /tmp/r6_a25.log); FD=$(cnt "FINGERPRINT DRIFT" /tmp/r6_a25.log)
+grep -a "SOURCE-CONTENT DRIFT" /tmp/r6_a25.log | head -1 | cut -c1-200 | tee -a "$OUT"
+check 25 "A25 one sampled drug quantity changed after freeze (table counts unchanged: fingerprint drift lines=$FD) -> SOURCE-CONTENT DRIFT, exit 3, no reset" $([ -n "$K25" ] && [ "$DR" -ge 1 ] && [ "$RC" = "3" ] && [ "$RS" = "0" ] && [ "$FD" = "0" ] && echo 0 || echo 1)
+res "A25 drug=$K25 exit=$RC source_drift_lines=$DR reset_lines=$RS fingerprint_drift_lines=$FD (quantity reverted)"
 
 echo "=== A17: a live database as fixture -> LIVE-FIXTURE-REFUSED, exit 3 ==="
 FX=sik bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /tmp/r6_a17.log 2>&1; R17A=$?
@@ -389,7 +478,7 @@ res "A17 FX=sik exit=$R17A FX=sik_bench exit=$R17B"
 echo "=== A14: suite exit path — a failing check must make the suite exit non-zero ==="
 P7_EXIT_TEST=fail bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EF=$?
 P7_EXIT_TEST=pass bash /opt/Deers-Rock/tools/p6_acceptance_suite.sh > /dev/null 2>&1; EP=$?
-check 14 "A14 suite exit path: forced fail -> exit 1, forced pass -> exit 0" $([ "$EF" = "1" ] && [ "$EP" = "0" ] && echo 0 || echo 1)
+check 14 "A14 early-branch exit self-test only (forced fail -> exit 1, forced pass -> exit 0); the production terminal path is tested by p9_terminal_path_check.sh" $([ "$EF" = "1" ] && [ "$EP" = "0" ] && echo 0 || echo 1)
 res "A14 forced-fail exit=$EF forced-pass exit=$EP"
 
 echo "=== A10: builder single-session transaction on a SCRATCH ledger (${FX}.dr_charge_ledger) ==="
@@ -473,17 +562,21 @@ unset P2_LEDGER_DB P2_CONSUMER_DB
 # ---- end-state checks ----
 # P8-A1: A15, A18a and A18b produce unverified/mismatched restores ON PURPOSE; they are
 # counted on their own and excluded here, so A11 no longer claims "every restore"
-OTHER_LOGS=$(ls /tmp/r6_a*.log | grep -v -e '/r6_a15\.log$' -e '/r6_a18\.log$' -e '/r6_a18b\.log$')
+OTHER_LOGS=$(ls /tmp/r6_a*.log | grep -v -e '/r6_a15\.log$' -e '/r6_a18\.log$' -e '/r6_a18b\.log$' -e '/r6_a22b_retry\.log$')
 RM_OTH=$(cat $OTHER_LOGS | grep -ac "STAGE-RESTORE-MISMATCH")
 UV_OTH=$(cat $OTHER_LOGS | grep -ac "STAGE-RESTORE-UNVERIFIED")
+ER_OTH=$(cat $OTHER_LOGS | grep -ac "STAGE-RESTORE-ERROR")
 DF_ALL=$(cat /tmp/r6_a*.log | grep -ac "STAGE-DROP-FAILED")
 RV_ALL=$(cat /tmp/r6_a*.log | grep -ac "STAGE-RESTORED-VERIFIED")
-DELIB=$(( $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a15.log) + $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a18.log) + $(cnt "STAGE-RESTORE-MISMATCH" /tmp/r6_a18b.log) ))
-res "transcripts outside A15/A18: STAGE-RESTORED-VERIFIED=$RV_ALL STAGE-RESTORE-MISMATCH=$RM_OTH STAGE-RESTORE-UNVERIFIED=$UV_OTH · deliberate unverified/mismatched restores (A15+A18a+A18b)=$DELIB · STAGE-DROP-FAILED=$DF_ALL"
-check 11 "every restore OUTSIDE the deliberate-fault checks A15/A18a/A18b hash-verified (0 mismatch, 0 unverified, >=1 verified); those three produced exactly their 3 deliberate unverified/mismatched restores; no failed stage drop" $([ "$RM_OTH" = "0" ] && [ "$UV_OTH" = "0" ] && [ "$RV_ALL" -ge 1 ] && [ "$DELIB" = "3" ] && [ "$DF_ALL" = "0" ] && echo 0 || echo 1)
+DELIB=$(( $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a15.log) + $(cnt "STAGE-RESTORE-UNVERIFIED" /tmp/r6_a18.log) + $(cnt "STAGE-RESTORE-MISMATCH" /tmp/r6_a18b.log) + $(cnt "STAGE-RESTORE-ERROR" /tmp/r6_a22b_retry.log) ))
+res "transcripts outside A15/A18/A22b: STAGE-RESTORED-VERIFIED=$RV_ALL STAGE-RESTORE-MISMATCH=$RM_OTH STAGE-RESTORE-UNVERIFIED=$UV_OTH STAGE-RESTORE-ERROR=$ER_OTH · deliberate failed restores (A15+A18a+A18b+A22b)=$DELIB · STAGE-DROP-FAILED=$DF_ALL"
+check 11 "every restore OUTSIDE the deliberate-fault checks A15/A18a/A18b/A22b hash-verified (0 mismatch, 0 unverified, 0 error, >=1 verified); those four produced exactly their 4 deliberate failed restores; no failed stage drop" $([ "$RM_OTH" = "0" ] && [ "$UV_OTH" = "0" ] && [ "$ER_OTH" = "0" ] && [ "$RV_ALL" -ge 1 ] && [ "$DELIB" = "4" ] && [ "$DF_ALL" = "0" ] && echo 0 || echo 1)
 STAGE_LEFT=$(SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5_stage_%';")
 res "stage tables remaining on ${FX}: $STAGE_LEFT (pre-existing $LEFT0)"
 check 12 "0 stage tables left on target (verified-clean drop)" $([ "$STAGE_LEFT" = "0" ] && echo 0 || echo 1)
+else
+  res "P9_QUICK=1: only A0 and the live guards (A13) run; checks A1-A12, A14-A25 skipped"
+fi
 
 $DBXML restore >> /tmp/r6_dbxml.log 2>&1
 LIVE_LEDGER_POST=$(ledger_hash sik_bench)

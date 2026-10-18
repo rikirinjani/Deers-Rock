@@ -1,0 +1,22 @@
+# P9-A6 builder ALL check: clean run, then planted mismatch (2026-10-18 01:22 UTC, script sha 4d9118a586605e02, builder sha 736506c3c9d3093c)
+## clean
+builder sha: 736506c3c9d3093c
+P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=0
+[01:23:13] tax rows: 70056 (cohort-scoped to window=ALL)
+[01:23:14] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+live   356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+scratch 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+dbs: sik sik_bench 
+INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)
+exit=0
+## planted mismatch (P9_PLANT_MISMATCH=1)
+builder sha: 736506c3c9d3093c
+P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=0
+[01:23:43] tax rows: 70056 (cohort-scoped to window=ALL)
+[01:23:43] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+P9_PLANT_MISMATCH: one scratch amount changed by +1
+live   356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+scratch 356355:d5be7ba6d656ebca11dca09b627a218b1ac931b54afd49cf864cf10cfa7dbaa3
+dbs: sik sik_bench 
+DIFFERS (or the build failed / a hash could not be computed) - FAIL
+exit=1

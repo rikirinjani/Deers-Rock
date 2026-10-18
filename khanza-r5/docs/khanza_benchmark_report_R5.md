@@ -362,7 +362,10 @@ data + partners beyond this repository.
   the price authority and F8 proved a wrong price trips charge_delta end-to-end; the other 684
   seeded prices inherit the path but were not individually injected.
 - **Oracle drift bound:** 4/216 (1.85%) root-caused as a re-bill timing artifact (§4); R4
-  re-sample 0/999 (0.00%) → B3 bound ~0.3% (rule of three). The four artifact rows themselves
+  re-sample 0/999 (0.00%) → ~~B3 bound ~0.3% (rule of three)~~ *(P9-A7: restated — 0 drift in
+  999 sampled visits of this one synthetic cohort, measured with the pre-R5 oracle. The rule
+  of three gives ~0.3% only for independent, uniformly random draws from the same population;
+  that was not established, so no population bound is claimed.)* The four artifact rows themselves
   remain unreplayed individually at 216-scale.
 - **Diagnoses uncalibrated; drug share of revenue ~82.7% (PPN-inclusive, §5 RC-5)** — not
   clinically realistic (C1/C2/C4, NOT TESTED).
@@ -819,3 +822,69 @@ are not published); C1–C4.
 ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); live `sik` output-table checksums
 equal before/after the suite; three_count A == C (Rp 3,113,533,580, 31,750 rows), B 151
 notes / Rp 49,903,019 (documented B-subset state, exit 1); tax check PASS.
+
+## 20. P9: recovery acceptance contract (2026-10-18, new)
+
+Driven by Astra v8 (run 4897654, **60/100** "Needs targeted rework";
+`evidence/astra_v8_4897654_NOTE.md`). Task: `docs/khanza_r5_task_p9_recovery_contract.md`
+(packs A+B, scope agreed with the owner). Every v8 code claim acted on was checked against the
+source first (task doc §0, E1–E11); all held. Times are UTC.
+
+**Result: suite 34/34 PASS** on a fresh fixture (`evidence/p9/r5_p6_acceptance_20261018T010733Z.md`;
+29 P8 checks + A22, A22b, A23, A24, A25). **Terminal-path check PASS**
+(`evidence/p9/r5_p9_terminal_path_20261018T011818Z.md`). Recovery unit test 20/20. Builder
+reproduction check: exit 0 on the live ledger, exit 1 on a planted mismatch
+(`evidence/p9/r5_p9_builder_all_check.txt`).
+
+**1. Recovery correctness (pack B).**
+- *Per-batch hash files (E2):* `stage_content_hash_<prefix>_<date>.json`. Before P9 a later
+  batch's backup overwrote an earlier batch's hash. A23, two dates: 2 hash files.
+- *Retry from the current state (E1):* `--retry-failed` compares the batch's current content
+  with its pre-reset hash instead of trusting the stored `restored=True` flag. A FAILED batch
+  now keeps its stage tables until it is billed or released (`--abandon-failed`, also checked
+  against the current state).
+  - A22 changed a billing row after the verified restore. The retry detected
+    `current state is not the pre-reset state`, restored and verified from the kept tables,
+    then re-billed (exit 0).
+  - A22b dropped the recovery tables as well. Result: `RETRY-REFUSED`, nothing deleted (the
+    visit stayed at 17 rows / sum 87,947), no reset, exit 4. `stage_restore` now refuses before
+    its DELETE when stage tables are missing.
+- *Stop at FAILED (E3):* a resume no longer bills later dates after a FAILED batch. A23: the
+  plain resume stopped with batch 2 still PENDING; `--retry-failed` then billed both.
+- *Server-side fencing (E4):* before a restore, the resume kills stray `mysql` clients naming
+  the target, then `KILL`s every other server session on the target and waits until none are
+  left. Killing a client does not stop its statement (seen during P8). In A24 a second session
+  held a locking read on the reset visit and then slept: `FENCE … sessions_killed=1
+  remaining=0`, verified restore, re-bill exit 0, blocker gone. Fencing never runs on `sik` or
+  `sik_bench` (`FENCE-SKIPPED`; unit test).
+
+**2. Acceptance integrity (pack A).**
+- *Terminal path + preserved failure (E7):* `P9_FORCE_FAIL_CHECK=<id>` fails one real check,
+  and the suite ends through its normal final exit line. When the suite fails, the wrapper keeps
+  the fixture and its stage tables (`FIXTURE-KEPT`) until `--teardown-kept`. Measured: A0
+  forced to fail with the middle checks skipped (`P9_QUICK=1`) gave wrapper exit 1, fixture
+  kept, evidence `PASS=1 FAIL=1` with the A0 line marked FORCED, A13 live guard PASS,
+  `database.xml` on `sik`, grant revoked, then the fixture removed. A14 is relabelled as an
+  early-branch self-test only.
+- *`verify_frozen` source content (E6):* it now compares `source_content_hash` (the P6-2g
+  docstring had claimed this since P6). In A25 one sampled drug quantity was changed after
+  freeze; table counts were unchanged, so there were 0 fingerprint lines. Result: `SOURCE-CONTENT
+  DRIFT`, exit 3, nothing reset.
+- *Cleanup (E8):* the suite's restore helper drops stage tables only after a verified restore.
+  A15's cleanup now runs with its hash file put back, and verifies.
+- *A11 (E9)* also counts `STAGE-RESTORE-ERROR`. Outside the four deliberate fault checks
+  (A15, A18a, A18b, A22b): 14 verified, 0 mismatch, 0 unverified, 0 error.
+- *Log wording (E5):* a FAILED batch's line now says "restored (hash-verified)" or "NOT
+  restored (…; stage tables kept)" from the actual result.
+- *Builder check (E10)* exits 1 on a difference or an uncomputable hash.
+- *§13 (E11):* "B3 bound ~0.3%" struck through. It is restated as a sample statement (0 drift in
+  999 sampled visits), with no population bound claimed.
+
+**Still not claimed:** fault modes not injected (power loss, MySQL crash, disk full, a writer
+that ignores SIGKILL); fencing on the live databases; concurrent-overlap isolation;
+reproducibility closure (pack C); matched-encounter B–C reconciliation and the R4 0/999
+re-examination (pack D); C1–C4.
+
+**Live state after P9:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
+ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`, reproduced again by the builder
+check); live `sik` output-table checksums equal before and after both suite runs.
