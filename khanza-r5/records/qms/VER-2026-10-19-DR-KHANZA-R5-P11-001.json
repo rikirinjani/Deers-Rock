@@ -31,7 +31,9 @@
     "khanza-r5/evidence/p11/r5_p11_live_state_frozen_20261020T0120Z.txt and r5_p11_live_final_20261019T211234Z.txt (ledger 356355:a66a3a54..., 0 markers, 0 grants)",
     "khanza-r5/evidence/p11/r5_p11_frozen_manifest_20261020.sha256",
     "khanza-r5/docs/khanza_benchmark_report_R5.md section 22",
-    "khanza-r5/docs/khanza_r5_release_manifest.md (P11 re-pin to the frozen set)"
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P11 re-pin to the frozen set)",
+    "khanza-r5/docs/khanza_r5_p11_opencode_report.md (per-task blocks, full run table, self-score 26/28)",
+    "commits 90e981d (P11 negative controls, tools+evidence+records+docs) and f935b1e (P11 opencode report), branch khanza-r5-p6, not pushed"
   ],
   "checks": [
     "T1 A28' transactional re-backup is discriminating (R5_NEGCTL_BACKUP_NO_TXN) - PASS",
