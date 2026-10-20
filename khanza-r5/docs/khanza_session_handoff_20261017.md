@@ -9,7 +9,12 @@
 > DISCRIMINATING** (NC1 from a clean re-run — see below); full fresh suite **39/39, exit 0**;
 > preservation check **PASS**; forced-failure control one FAIL, fixture kept, `database.xml` on
 > `sik`, grant removed; builder exit 0 reproducing `356355:a66a3a54…`; live proof matches §4.6.
-> **AC-9 is partial**: 5/5 came from two invocations, not one.
+> **AC-9 is closed (revision 07:32Z)**: the NC driver's fixture reuse was fixed (`ensure_fx` now
+> verifies the 5 `STRATA-` reg rows and rebuilds an unusable fixture), the NC script was
+> re-pinned (`a3f44721.` -> `0bba1931.`) and all seven tools re-frozen, and ONE uncontended run
+> returned 5/5: `r5_p11_negative_controls_20261020T073218Z.md`,
+> `DISCRIMINATING=5 NOT-DISCRIMINATING=0`, exit 0, fixture dropped. Suite 39/39, preservation
+> PASS, builder byte-identical and the live proof were re-taken on the same bytes.
 > **Critical process finding:** a **second agent session on this machine, sharing this working tree
 > and the VPS**, was developing the same P11 tooling concurrently — it rewrote three tools at
 > 21:02:19Z, 19 s before an evidence run, ran sixteen-plus P11 experiments between 17:00 and 20:50Z,
@@ -20,10 +25,12 @@
 > `sha256sum -c` before and after. Records: `20261019T2135Z-…-concurrent-writer-evidence-unbinding`,
 > `20261019T1450Z-…-stray-launcher-interference`, `20261019T1545Z-…-post-deploy-drift`,
 > `20261019T1605Z-…-forcefail-counter`, `20261018T1630Z` (closed, `corrected`).
-> **Next session must:** (1) `chattr -i` the seven tools before any tool change; (2) take an
-> **exclusive** window on `sik_p6f` as well as frozen bytes — the other session is still active and
-> rebuilt `sik_p6f` with a benchmark grant at 01:21:07Z; (3) fix the NC driver's fixture reuse so
-> each arm starts from a known state, then obtain one clean 5/5 invocation to close AC-9.
+> **Next session must:** (1) `chattr -i` the seven tools before any tool change (they are frozen
+> again after the 07:39Z re-freeze: `evidence/p11/r5_p11_frozen_manifest_20261020T0739Z.sha256`);
+> (2) still take an **exclusive** window on `sik_p6f` as well as frozen bytes -- the other session
+> was active until at least 01:45Z; (3) ~~fix the NC driver's fixture reuse so each arm starts from
+> a known state, then obtain one clean 5/5 invocation to close AC-9~~ **done** in commit `20ea324`
+> (see the AC-9 revision above).
 
 > **UPDATE 2026-10-18 (v10) — Astra v10 = 63/100** "Needs targeted rework" (7/6.5/7.5/6/7/4; run
 > 4918967, $3.064 + $0.235 gemini). `evidence/astra_v10_4918967_NOTE.md`: 9 findings, all confirmed
