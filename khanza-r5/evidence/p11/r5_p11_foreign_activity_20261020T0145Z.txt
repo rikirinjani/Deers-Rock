@@ -1,0 +1,20 @@
+read-only probe of shared VPS state (no mutation); taken because a clean AC-9 run needs an idle fixture
+probe time (VPS): Tue Oct 20 01:44:58 AM UTC 2026
+--- frozen manifest ---
+p6_acceptance_suite.sh: OK
+p6_run_suite_fresh.sh: OK
+sampled_real_form_diff_r5.py: OK
+p10_hash_state.py: OK
+p10_preservation_check.sh: OK
+p11_negative_controls.sh: OK
+p8_recovery_unit_test.py: OK
+--- mutating processes ---
+799464 bash p11_negative_controls.sh
+810597 bash p10_preservation_check.sh
+--- databases ---
+information_schema mysql performance_schema sik sik_bench sik_p6f sys 
+--- live ledger (sik_bench) ---
+356355
+--- writer-exclusion files ---
+0
+--- dbxml ---
