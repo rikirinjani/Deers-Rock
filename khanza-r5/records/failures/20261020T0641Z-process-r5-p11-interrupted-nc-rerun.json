@@ -1,0 +1,25 @@
+{
+  "timestamp_utc": "2026-10-20T06:41:05Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "Interrupted NC re-run left a truncated transcript that could have been read as a 4/5 result",
+  "what_went_wrong": [
+    "After re-deploying p11_negative_controls.sh with the ensure_fx fix, the NC script was launched through a wrapper that also polled the VPS; the orchestrator's local shell was killed mid-poll and the launch was left without a completion record.",
+    "The run's evidence file (r5_p11_negative_controls_20261020T064105Z.md) was captured truncated: NC1-NC4 printed DISCRIMINATING and NC5 was absent, with no done marker and no exit code. A reader skimming it could have taken it as a 4/5 (or '5/5 in progress') result.",
+    "The polling loop treated the absence of a done marker as 'still running' for a bounded number of polls and then exited, rather than failing loudly."
+  ],
+  "root_cause": "The launcher had no completion sentinel bound to the evidence file, and the orchestrator relied on its own shell staying alive to learn the exit code.",
+  "detection": "The next state probe found no NC process, no done marker, and a fixture that had already been cleaned -- inconsistent with a run that had reached NC5. Re-checked the evidence file and found it truncated after NC4.",
+  "impact": "No false claim was made: the truncated run was never cited as evidence and AC-9 was not closed on it. Cost was one extra full run (~1 h of fixture time).",
+  "correction": {
+    "applied": "Tore down the kept state (p6_run_suite_fresh.sh --teardown-kept, DROP sik_p6f, removed stale pre-op JSON), then re-ran the NC script once with a done marker written by the runner itself (touch /tmp/p11_nc.done only after the script returns), polling that marker and only then reading the evidence file.",
+    "result": "Run 20261020T073218Z: NC 1-5 all with-switch=FAIL without=PASS, DISCRIMINATING=5 NOT-DISCRIMINATING=0, exit 0, fixture dropped. AC-9 closed; committed 20ea324."
+  },
+  "rule": "A run's verdict is only read from a transcript that carries its own completion evidence (exit code + done marker). A truncated file is a failed run, not a partial pass -- re-run rather than infer.",
+  "related_records": [
+    "records/qms/VER-2026-10-19-DR-KHANZA-R5-P11-001.json",
+    "records/failures/20261019T2135Z-process-r5-p11-concurrent-writer-evidence-unbinding.json"
+  ],
+  "agent": "orchestrator",
+  "status": "corrected"
+}
