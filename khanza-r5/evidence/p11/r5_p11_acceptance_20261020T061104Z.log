@@ -1,0 +1,34 @@
+=== STEP 4: FULL FRESH SUITE ===
+suite exit=0
+Raw transcripts: /tmp/r6_a*.log (copied next to this file as r5_p6_logs_20261020T061104Z.tgz).
+=== P6 SUITE DONE: PASS=39 FAIL=0 ===
+evidence: /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261020T061104Z.md
+suite exit=0
+teardown: databases now: sik sik_bench 
+=== STEP 5: PRESERVATION CHECK ===
+live (post-retry vs pre-op): EQUAL
+- PASS: retry exit 0 with per-operation lines: writer proof + fence; current state != pre-reset detected; WRITER-EXCLUSION on (DML revoked) and off (grants as before); restore hash-verified; both batches BILLED
+- PASS: protected non-sample visits and live sik unchanged by the retry (assertion c, pre-operation baseline)
+- PASS: explicit --teardown-kept leaves only sik and sik_bench (teardown: databases now: sik sik_bench )
+- PASS: database.xml back on sik (sik ); benchmark grant on sik_p6f removed
+PRESERVATION-CHECK PASS
+evidence: /opt/dr-benchmark/p-chain/r5_p10_preservation_20261020T062358Z.md
+P11-T7 exit-trap: database.xml targets: sik  · benchmark grant on sik_p6f: 0
+preserve exit=0
+=== STEP 6: BUILDER CHECK ===
+builder sha: 2a4a1c48b6ee1423
+P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=0
+[06:29:41] tax rows: 70056 (cohort-scoped to window=ALL)
+[06:29:41] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+live   356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+scratch 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+dbs: sik sik_bench 
+INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)
+builder exit=0
+=== STEP 7: LIVE-STATE PROOF ===
+databases: sik sik_bench 
+database.xml: sik 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+writer markers: 0
+benchmark grant on sik_p6f: 0
+=== ACCEPTANCE DONE ===

@@ -24,13 +24,14 @@
     "item_5_marker_and_wording": "Marker written temp+fsync+os.replace; malformed/unreadable marker fails closed (kept, exit 3, 'WRITER-EXCLUSION marker unreadable') with --recover-grants; the old fail-open path is shown by monkeypatch (unit test, 33/33). R5 §21 corrected with the numbers re-derived from evidence/p11/r5_p11_preserve_after_fail_20261019T2111Z.json (13 tables, 21 rows total, 5 non-empty, protected_n 20); 'crash-safe' now names the one tested fault placement; A10e's orphan-row scope stated."
   },
   "verification": {
-    "frozen_byte_set": "p6_acceptance_suite.sh 7ecb20ef7bdc..., p6_run_suite_fresh.sh 0865400d162e..., sampled_real_form_diff_r5.py e2c1d2f93187..., p10_hash_state.py d59b18fb4bc3..., p10_preservation_check.sh e5d39756de39..., p11_negative_controls.sh a3f44721c23f..., p8_recovery_unit_test.py 73b6468f1bfb... (FROZEN.sha256; sha256sum -c OK before and after each run)",
-    "runs": "unit 33/33; NC 5/5 DISCRIMINATING across two invocations (NC1 clean re-run after a foreign fixture invalidated the first); full suite PASS=39 FAIL=0 exit 0; preservation PASS; builder exit 0 reproducing 356355:a66a3a54...; live proof ledger 356355:a66a3a54..., both database.xml on sik, 0 markers, 0 grants",
+    "frozen_byte_set": "p6_acceptance_suite.sh 7ecb20ef7bdc..., p6_run_suite_fresh.sh 0865400d162e..., sampled_real_form_diff_r5.py e2c1d2f93187..., p10_hash_state.py d59b18fb4bc3..., p10_preservation_check.sh e5d39756de39..., p11_negative_controls.sh 0bba19319479..., p8_recovery_unit_test.py 73b6468f1bfb... (FROZEN.sha256; sha256sum -c OK before and after each run)",
+    "runs": "unit 33/33; NC 5/5 DISCRIMINATING in one uncontended invocation (r5_p11_negative_controls_20261020T073218Z.md, exit 0, fixture dropped); full suite PASS=39 FAIL=0 exit 0; preservation PASS; builder exit 0 reproducing 356355:a66a3a54...; live proof ledger 356355:a66a3a54..., both database.xml on sik, 0 markers, 0 grants",
     "qms": "records/qms/VER-2026-10-19-DR-KHANZA-R5-P11-001.json",
     "report": "docs/khanza_benchmark_report_R5.md §22"
   },
-  "residual": "AC-9 as written (one uncontended NC invocation returning 5/5) is partial; the NC driver reuses an existing fixture, which let a foreign fixture invalidate NC1. Recorded in the QMS record's findings and in R5 §22.",
+  "residual": "None on the T1-T8/AC-9 scope. AC-9 as written (one uncontended NC invocation returning 5/5) is PASS after the ensure_fx stale-fixture fix: run 20261020T073218Z. Remaining P11 open items are outside this record's scope (fault modes not injected, concurrency isolation, reproducibility closure).",
   "rule": "A check is only evidence for a property if it has been shown to FAIL when that property is removed (a negative control); 'populated', 'crash-safe' and similar words must be re-derived from the actual counts and the fault cases actually run.",
   "agent": "orchestrator",
-  "status": "corrected"
+  "status": "corrected",
+  "amendment_20261020": "AC-9 closed; p11_negative_controls.sh re-pinned to 0bba1931...; current pins in evidence/p11/r5_p11_frozen_manifest_20261020T0739Z.sha256."
 }

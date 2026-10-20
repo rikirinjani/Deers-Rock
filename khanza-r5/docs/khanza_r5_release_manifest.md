@@ -39,7 +39,7 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | `p8_recovery_unit_test.py` (P8–P11 recovery decisions with the DB mocked, 33 cases: malformed/valid/crash marker, old fail-open path by monkeypatch, stage-vs-live hash agreement) | `73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299` |
 | `p10_hash_state.py` (P10 independent hashes: stage tables, sample, protected visits, live sik; P11: a missing table, NULL checksum or empty inventory is an error with a non-comparable `ERROR:<table>` value, strict `--stage-tables-list` inventory assertion) | `d59b18fb4bc3c92a6e9373c4104739fd1ef9f60f3ab126ea385628889a559daa` |
 | `p10_preservation_check.sh` (P10 integrated recovery-preservation experiment through the wrapper; P11: pre-operation baseline with separate (a)/(b)/(c) assertions, asserted perturbation row count, EXIT trap, keep-on-failure, `P11_FORCE_FAIL`) | `e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678` |
-| `p11_negative_controls.sh` (P11: runs each check twice, with and without its `R5_NEGCTL_*` switch, and exits 0 only if every NC is DISCRIMINATING) | `a3f44721c23f1cf2d4465037889a660214eb73a010d205200eec8cde4344b5f3` |
+| `p11_negative_controls.sh` (P11: runs each check twice, with and without its `R5_NEGCTL_*` switch, and exits 0 only if every NC is DISCRIMINATING) | `0bba19319479a12b5f8fad14af600631c63bbcd69b2724af1c534ece67ebe578` |
 | `p8_builder_all_check.sh` (builder `--window ALL` into an empty scratch ledger must reproduce the live ledger; P9: exits 1 on a difference, `P9_PLANT_MISMATCH` test hook) | `4d9118a586605e02f53d80a91f7b7ff797977e51157a4b19a53c93342bb96878` |
 | `p9_terminal_path_check.sh` (P9: forced real-check failure through the wrapper → exit 1, fixture kept, then `--teardown-kept`) | `63f4dcc45692a93ca7c8cf4eaea317f478dc51558126b2a06e10d5c4c4223372` |
 | `p7_three_count_contract_test.py` (three_count exit-code contract) | `3857538f01eb1a927e2d47e4ba3ab07e1b191450caec4430178c37862723466a` |
@@ -47,7 +47,7 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 > P11 (2026-10-19/20) re-pins the oracle (`c3bdd2d6…`→`e2c1d2f9…`), suite (`8b89d431…`→`7ecb20ef…`),
 > wrapper (`2e6097be…`→`0865400d…`), unit test (`345bc6ae…`→`73b6468f…`), `p10_hash_state.py`
 > (`8bf6c811…`→`d59b18fb…`), `p10_preservation_check.sh` (`7d05ef23…`→`e5d39756…`) and adds
-> `p11_negative_controls.sh` (`a3f44721…`). Builder, dbutil, three_count and tax check unchanged.
+> `p11_negative_controls.sh` (`0bba1931…`). Builder, dbutil, three_count and tax check unchanged.
 > Local (LF) and VPS hashes verified identical for all seven. The P11 builder still reproduces the
 > pinned ledger content `a66a3a54…` byte-identically. See R5 §22.
 >
@@ -61,6 +61,8 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 > working tree and the VPS during P11 and rewrote the tools mid-run; that is recorded in
 > `records/failures/20261019T2135Z-process-r5-p11-concurrent-writer-evidence-unbinding.json`
 > and is why the pins, not the run order, are the reproducibility anchor.
+>
+> **Final P11 run (2026-10-20T07:32Z).** After the `ensure_fx` stale-fixture fix the NC script was re-deployed (`0bba1931.`) and run once, uncontended: 5/5 DISCRIMINATING, exit 0, fixture dropped (`evidence/p11/r5_p11_negative_controls_20261020T073218Z.md`). The seven files were then re-frozen (`chattr +i`) and re-hashed: `evidence/p11/r5_p11_frozen_manifest_20261020T0739Z.sha256`, `sha256sum -c` OK, local (LF) == VPS for all seven.
 >
 > P10 (2026-10-18) re-pins the oracle (`8e0cca5b…`→`c3bdd2d6…`), builder (`736506c3…`→`2a4a1c48…`),
 > suite (`9ae16c46…`→`8b89d431…`) and unit test (`3bda6882…`→`345bc6ae…`); adds

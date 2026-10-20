@@ -4,7 +4,7 @@
   "date": "2026-10-18",
   "project": "DR-Khanza E2E benchmark",
   "title": "R5-P8: claim wording, gate defects, recovery fault injection",
-  "task_doc": "C:\Users\think\Project_v2\Deers-Rock\khanza-r5\docs\khanza_r5_task_p8_claims_gates_recovery.md",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p8_claims_gates_recovery.md",
   "trigger": "Astra v7 (gpt-6-astra step 1 run 4880158 + merged run 4894730, 58/100 'Needs targeted rework')",
   "evidence": [
     "khanza-r5/evidence/p8/r5_p6_acceptance_20261017T225851Z.md (suite 29/29, fresh fixture)",

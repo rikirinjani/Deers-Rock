@@ -2,13 +2,16 @@
 
 ## Summary
 
-- **Outcome: PARTIAL.** Every P11 change is in place and every required run exits 0 against a
-  single frozen tool byte set, but the negative-control script never reached `exit 0` in one
-  uncontended invocation: run `20261020T003440Z` returned
-  `=== P11 NEGATIVE CONTROLS: DISCRIMINATING=4 NOT-DISCRIMINATING=1 ===` because NC1 ran against a
-  `sik_p6f` that the other agent session had re-created, and NC1 was then proven discriminating in
-  a separate clean re-run (`20261020T010740Z`). 5/5 verdicts exist, but not in one script run
-  (AC-9 = PARTIAL).
+- **Outcome: PASS (revised 2026-10-20T07:32Z).** Every P11 change is in place and every required
+  run exits 0 against a single tool byte set. The earlier text of this section recorded a PARTIAL
+  outcome: the NC script had never reached `exit 0` in one uncontended invocation
+  (`20261020T003440Z` returned `DISCRIMINATING=4 NOT-DISCRIMINATING=1` because NC1 ran against a
+  `sik_p6f` the other agent session had re-created). The defect was in the driver's `ensure_fx`,
+  which reused any existing fixture; it now verifies the 5 `STRATA-` reg rows and rebuilds +
+  re-grants when they are missing. With that fix (NC script re-pinned `a3f44721...` ->
+  `0bba1931...`, re-frozen) the final run `20261020T073218Z` returned
+  `=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===`, exit 0, fixture dropped.
+  **AC-9 = PASS.**
 - Commits (local, not pushed):
   - `90e981d` khanza-r5: P11 negative controls (frozen byte set, 5/5 NC, suite 39/39, unit 33/33)
   - the commit that adds this file (self-referential hash omitted; `git log -1 -- khanza-r5/docs/khanza_r5_p11_opencode_report.md`)
@@ -18,10 +21,12 @@
   - `sampled_real_form_diff_r5.py` `e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc`
   - `p10_hash_state.py` `d59b18fb4bc3c92a6e9373c4104739fd1ef9f60f3ab126ea385628889a559daa`
   - `p10_preservation_check.sh` `e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678`
-  - `p11_negative_controls.sh` `a3f44721c23f1cf2d4465037889a660214eb73a010d205200eec8cde4344b5f3`
+  - `p11_negative_controls.sh` `0bba19319479a12b5f8fad14af600631c63bbcd69b2724af1c534ece67ebe578`
+    (re-pinned after the `ensure_fx` fix; the pre-fix value was `a3f44721c23f...`)
   - `p8_recovery_unit_test.py` `73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299`
-  - snapshot: `evidence/p11/r5_p11_frozen_manifest_20261020.sha256`; verified `sha256sum -c` before
-    and after every run in the final set.
+  - snapshot: `evidence/p11/r5_p11_frozen_manifest_20261020T0739Z.sha256` (re-freeze after the
+    `ensure_fx` fix; supersedes `r5_p11_frozen_manifest_20261020.sha256` for the final run); verified
+    `sha256sum -c` before and after every run in the final set.
 
 ## Per task
 
@@ -180,6 +185,10 @@ All times UTC, from the VPS clock (which drifted during the session — see Prob
 | 16 | NC1 clean re-run (with and without arm) | 01:03:30–01:07:40 | 0 | `r5_p11_nc1_clean_20261020T010740Z.log` (+ `…T010615Z_NC1_WITH_FAIL.md`, `…T010644Z_NC1_WITHOUT_PASS.md`) | `NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING` |
 | 17 | live-state capture (**frozen**) | 01:20 | n/a | `r5_p11_live_state_frozen_20261020T0120Z.txt` | **contaminated**: `sik_p6f` present + `benchmark grants on sik_p6f: 1` — kept as interference evidence, not as proof |
 | 18 | live-state capture (clean) | 21:12:34 | n/a | `r5_p11_live_final_20261019T211234Z.txt` | see Live-state proof |
+| 19 | `bash p11_negative_controls.sh` (**final bytes, ensure_fx fix**) | 07:32:18 | 0 | `r5_p11_negative_controls_20261020T073218Z.md` (+ `r5_p11_nc_logs_20261020T073218Z.tgz`) | `=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===`; NC1-NC5 each `with-switch=FAIL without=PASS`; fixture dropped |
+| 20 | `bash p6_run_suite_fresh.sh` (final bytes) | 06:11:04 | 0 | `r5_p6_acceptance_20261020T061104Z.md` | `PASS=39 FAIL=0` |
+| 21 | `bash p10_preservation_check.sh` (final bytes) | 06:23:58 | 0 | `r5_p10_preservation_20261020T062358Z.md` | `PRESERVATION-CHECK PASS` |
+| 22 | `python3 p8_recovery_unit_test.py` (final bytes) | 06:31 | 0 | `r5_p11_unit_test_20261020T0631Z.txt` | `33/33 cases PASS` |
 
 Runs 1–7 used tool bytes that no longer exist and are **not** relied on; they are kept because the
 handoff forbids deleting evidence. Every run above is reported, including the failures.
@@ -211,12 +220,12 @@ is **not** used as the §4.6 proof.
 
 - `docs/khanza_benchmark_report_R5.md` — new **§22** (results, quoted NC/forced-fail lines, T1–T8
   changes, T8 numbers, byte-binding, NC1 contamination, own hash bug, live state).
-- `docs/khanza_r5_task_p11_negative_controls.md` — §4 rubric filled (AC-1..AC-10; **AC-9 PARTIAL**).
+- `docs/khanza_r5_task_p11_negative_controls.md` — §4 rubric filled (AC-1..AC-10; **AC-9 PASS**, final run `20261020T073218Z`).
 - `docs/khanza_r5_release_manifest.md` — re-pinned to the frozen SHAs (suite `7ecb20ef`, preservation
-  `e5d39756`, NC `a3f44721`) with a supersession note.
+  `e5d39756`, NC `0bba1931`) with a supersession note.
 - `docs/khanza_session_handoff_20261017.md` — P11 UPDATE block at the top.
 - `records/qms/VER-2026-10-19-DR-KHANZA-R5-P11-001.json` — frozen byte set, evidence map, checks,
-  findings, `result: PARTIAL`, open items (including the pending `chattr -i`).
+  findings, `result: PASS` (amended 2026-10-20T07:45Z; AC-9 closed, NC re-pinned), open items (including the pending `chattr -i`).
 - Failure records: `20261019T2135Z-process-…-concurrent-writer-evidence-unbinding.json` (corrected,
   with additional findings), `20261019T1450Z` (stray launcher), `20261019T1515Z` (tool regressions),
   `20261019T1545Z` (post-deploy drift), `20261019T1605Z` (forcefail counter);
@@ -237,15 +246,15 @@ is **not** used as the §4.6 proof.
 | R6 | T6 hash coherence | 2 | hash from staged rows; equality unit test; NC4 FAIL |
 | R7 | T7 trap + perturbation + keep-on-fail | 2 | row-count assertion, EXIT trap, forced failure keeps fixture with xml on `sik`, no grant |
 | R8 | T8 wording | 2 | strikethroughs + numbers re-derived from `preserve_after_fail.json` |
-| R9 | NC script | 1 | never exited 0 in one uncontended invocation (4/5, then NC1 clean separately) |
+| R9 | NC script | 2 | final run `20261020T073218Z` (bytes `0bba1931`, `ensure_fx` fix): 5/5 DISCRIMINATING, exit 0, one uncontended invocation. Scored 1 before the fix |
 | R10 | Full suite + preservation + builder | 2 | all exit 0 on the frozen set; failed runs kept and reported |
 | R11 | Live-state proof | 2 | all §4.6 items quoted from a clean capture |
 | R12 | Records | 2 | §22, task doc, manifest re-pin, QMS, failure records, trace |
 | R13 | Report honesty | 2 | every claim has a file + quoted line; gaps stated |
 | R14 | Hygiene | 2 | secret scan 0, no push, no Kaggle, no live writes, messages per §7 |
 
-**Self-score 26/28.** On the §9 rule that Accept also requires R1, R2, R9, R10, R11 all at 2, this
-is **Accept with fixes** — the single gap is R9 (and R3 is disclosed, not hidden).
+**Self-score 27/28** (was 26/28 before the final NC run). On the §9 rule that Accept also requires R1, R2, R9, R10, R11 all at 2, this
+is **Accept with fixes** — only R3 is at 1, and it is disclosed rather than hidden (no transcript shows the `HASH-STATE ERROR` sentinel firing; the code path and the negative-control evidence are present).
 
 ## Problems found, open items, and anything you are unsure about
 
@@ -269,10 +278,13 @@ is **Accept with fixes** — the single gap is R9 (and R3 is disclosed, not hidd
 5. **Kaggle deviation.** Earlier in the session I asked whether to offload compute to Kaggle; §0
    forbids Kaggle push/run. Nothing was pushed or run there, and no model quota was spent — but the
    question itself was off-policy and should not have been asked.
-6. **Open: tools are still immutable** (`chattr +i` on the seven files). The next session must
-   `chattr -i` before changing any tool; until then the manifest and the VPS agree.
-7. **Open: AC-9.** One uncontended `p11_negative_controls.sh` run that prints
-   `DISCRIMINATING=5` and exits 0 has not been obtained. Everything else for P11 is green.
+6. **Tools are immutable again** (`chattr +i` on the seven files after the 07:39Z re-freeze). The
+   next session must `chattr -i` before changing any tool; until then the manifest and the VPS agree.
+   `lsattr` shows the `i` flag on all seven and `sha256sum -c r5_p11_frozen_manifest_20261020T0739Z.sha256`
+   passed.
+7. **Closed: AC-9.** One uncontended `p11_negative_controls.sh` run that prints
+   `DISCRIMINATING=5` and exits 0 was obtained at 07:32Z (`20261020T073218Z.md`). Everything else
+   for P11 was already green.
 8. **Minor:** stale comment in `p6_acceptance_suite.sh:31` (says `A32`, implemented id is `A31'`);
    `A30` always prints as `[FORCED FAIL by P9_FORCE_FAIL_CHECK]`; the VPS clock drifted by hours
    during the session, so durations in the table are approximate and only the run-id timestamps are

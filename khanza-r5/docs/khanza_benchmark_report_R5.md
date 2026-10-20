@@ -1004,18 +1004,19 @@ it. Times are UTC.
 
 | Run | Result | Evidence |
 |---|---|---|
-| 1. unit tests | **33/33**, `UNIT-EXIT=0` | `evidence/p11/r5_p11_unit_test_frozen_20261020T003254Z.log` |
-| 2. negative controls | **5/5 DISCRIMINATING** | `…r5_p11_negative_controls_20261020T003440Z_4of5_NC1-CONTAMINATED.md` + `…r5_p11_nc1_clean_20261020T010740Z.log` |
-| 3. full fresh suite | **PASS=39 FAIL=0**, exit 0 | `evidence/p11/r5_p6_acceptance_20261019T212302Z_FROZEN_39PASS.md` |
-| 4. preservation check | **PRESERVATION-CHECK PASS** | `evidence/p11/r5_p10_preservation_20261019T210238Z_NC5WITHOUT_PASS.md` |
-| 5. builder | **INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER**, exit 0 | `evidence/p11/r5_p11_chain_nc_builder_live_20261020T010017Z.log` |
-| 6. live-state proof | §4.6 items hold at clean points | `evidence/p11/r5_p11_live_final_20261019T211234Z.txt`; second clean point `01:07:40Z` in `…r5_p11_nc1_clean_20261020T010740Z.log`. The `…live_state_frozen_20261020T0120Z.txt` capture is **not** proof — the other agent session re-created `sik_p6f` and a benchmark grant at `01:21:07Z`; that file is retained as interference evidence |
+| 1. unit tests | **33/33**, `P8/P9 recovery unit test: 33/33 cases PASS` | `evidence/p11/r5_p11_unit_test_20261020T0631Z.txt` (and the earlier frozen set `r5_p11_unit_test_frozen_20261020T003254Z.log`) |
+| 2. negative controls | **5/5 DISCRIMINATING**, `DISCRIMINATING=5 NOT-DISCRIMINATING=0`, single uncontended invocation, exit 0 | `evidence/p11/r5_p11_negative_controls_20261020T073218Z.md` (with the final `ensure_fx` bytes; the earlier clean run `…044131Z.md` is identical in verdict) |
+| 3. full fresh suite | **PASS=39 FAIL=0**, exit 0 | `evidence/p11/r5_p6_acceptance_20261020T061104Z.md` |
+| 4. preservation check | **PRESERVATION-CHECK PASS**, exit 0 | `evidence/p11/r5_p10_preservation_20261020T062358Z.md` |
+| 5. builder | **INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)**, exit 0 | `evidence/p11/r5_p11_acceptance_20261020T061104Z.log` (and the earlier `…chain_nc_builder_live_20261020T010017Z.log`) |
+| 6. live-state proof | §4.6 items hold at the final clean point | `evidence/p11/r5_p11_live_state.txt` (captured after the chain above; databases `sik sik_bench`, `database.xml` on `sik`, ledger `356355:a66a3a54…`, 0 writer markers, 0 benchmark grants on the fixture) |
 
-The negative-control verdicts, quoted: `NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING`
-(from the clean NC1 run), and `NC 2/3/4/5: with-switch=FAIL without=PASS -> DISCRIMINATING`
-with `=== P11 NEGATIVE CONTROLS: DISCRIMINATING=4 NOT-DISCRIMINATING=1 ===` in the run that
-also contained the contaminated NC1. The forced-failure control (T7) is
-`evidence/p11/r5_p10_preservation_20261019T210740Z_FORCEFAIL_FAIL1_PASS.md`: exactly one
+The negative-control verdicts, quoted from the final single invocation
+(`r5_p11_negative_controls_20261020T073218Z.md`): `NC 1: with-switch=FAIL without=PASS ->
+DISCRIMINATING` … `NC 5: with-switch=FAIL without=PASS -> DISCRIMINATING`, ending
+`=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===`, with the script exit 0
+and the fixture dropped afterwards (`databases: sik sik_bench`). The forced-failure control (T7)
+is `evidence/p11/r5_p10_preservation_20261019T210740Z_FORCEFAIL_FAIL1_PASS.md`: exactly one
 assertion fails (`- **FAIL**: perturbation row count asserted…`), the transcript states
 `P11-T7: 1 assertion(s) failed — the fixture sik_p6f is KEPT (no --teardown-kept)`, the
 keep-path assertion passes (`database.xml` on `sik`, grant removed) and the final line is
@@ -1062,13 +1063,16 @@ cannot be bound to any committable artifact. Record:
 NC1 `with-switch=PASS without=FAIL -> NOT-DISCRIMINATING`: a `sik_p6f` fixture left by the other
 session was re-created 46 s after a teardown, and the NC driver reuses an existing fixture, so
 NC1's two arms ran on a state of unknown provenance. A clean re-run from a verified-absent
-fixture gave `with-switch=FAIL without=PASS -> DISCRIMINATING`. Both transcripts are kept; the
-5/5 verdict is assembled from two invocations, and a single uncontended full NC invocation was
-not obtained. (2) An ad-hoc live-proof hash of my own used a tab join and printed
+fixture gave `with-switch=FAIL without=PASS -> DISCRIMINATING`. Both transcripts are kept. The
+root cause was fixed in the NC driver: `ensure_fx` now verifies the fixture is usable (the 5
+STRATA- reg rows present) and drops+rebuilds it otherwise, so a stale or half-dropped fixture
+can no longer be silently reused — after which the **single uncontended invocation**
+`r5_p11_negative_controls_20261020T073218Z.md` (run with the re-pinned `ensure_fx` bytes) produced 5/5 DISCRIMINATING with exit 0.
+(2) An ad-hoc live-proof hash of my own used a tab join and printed
 `356355:424624d9…`; the canonical recipe (`|` join, the suite's `ledger_hash()`) gives
 `356355:a66a3a54…` on the same data. There was no live change.
 
-**Still not claimed:** a single uncontended run of the whole NC set; concurrent-overlap
+**Still not claimed:** concurrent-overlap
 isolation; the fault modes not injected (power loss, MySQL crash, disk full, a writer that
 ignores SIGKILL); fencing or grant changes on the live databases; reproducibility closure;
 matched-encounter B–C reconciliation; C1–C4. The negative controls prove the checks can fail —

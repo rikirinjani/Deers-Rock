@@ -76,10 +76,16 @@ teardown_fx() {
     { SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM \`benchmark\`@\`localhost\`;" 2>/dev/null;
       SQL "DROP DATABASE IF EXISTS $FX;" 2>/dev/null; } || true
 }
-ensure_fx() { # build+grant sik_p6f when absent (raw, no wrapper refusal cycle)
-  if ! SQL "SHOW DATABASES LIKE '$FX'" | grep -q "$FX"; then
-    STRATA_SQL=$(ls /opt/dr-benchmark/p-chain/sik_p6f_build_*/strata_reg_rows.sql | head -1)
-    [ -f "$STRATA_SQL" ] || return 1
+ensure_fx() { # build+grant sik_p6f when absent or unusable (raw, no wrapper refusal cycle)
+  # A killed run can leave sik_p6f half-dropped (DB name present but tables
+  # gone, or 0 STRATA- reg rows). The fixture is only usable when it has the
+  # 5 STRATA- reg rows; otherwise drop and rebuild from the VPS build dir.
+  local strata
+  strata=$(SQL "SELECT COUNT(*) FROM ${FX}.reg_periksa WHERE no_rawat LIKE 'STRATA-%'" 2>/dev/null) || strata=""
+  if [ "${strata:-0}" != "5" ]; then
+    teardown_fx
+    STRATA_SQL=$(ls /opt/dr-benchmark/p-chain/sik_p6f_build_*/strata_reg_rows.sql 2>/dev/null | head -1)
+    [ -n "$STRATA_SQL" ] || return 1
     SQL "CREATE DATABASE $FX CHARACTER SET $(SQL "SELECT default_character_set_name FROM information_schema.schemata WHERE schema_name='sik'") COLLATE $(SQL "SELECT default_collation_name FROM information_schema.schemata WHERE schema_name='sik'");" || return 1
     mysqldump -uroot --single-transaction --quick --skip-lock-tables sik | mysql -uroot $FX || return 1
     mysql -uroot $FX < "$STRATA_SQL" || return 1
@@ -112,7 +118,6 @@ EV1O=$(ls -t $PC/r5_p6_acceptance_*.md 2>/dev/null | head -1)
 suite_line 28 "$EV1W" | tee -a "$OUT"
 suite_line 28 "$EV1O" | tee -a "$OUT"
 nc_line 1 "$(nc_status_e "$EV1W" 28)" "$(nc_status_e "$EV1O" 28)"
-
 # ---- NC2: T2 — R5_NEGCTL_SKIP_IMMEDIATE_RESTORE (preservation assertion a) ----
 echo "## NC2 (T2): pre-operation baseline immediate-restore assertion" | tee -a "$OUT"
 # with-switch: build the kept fixture WITH the NC switch — the suite's failure

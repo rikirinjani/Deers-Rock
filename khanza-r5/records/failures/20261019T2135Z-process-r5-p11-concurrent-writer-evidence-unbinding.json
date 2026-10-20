@@ -54,5 +54,6 @@
   ],
   "agent": "opencode",
   "status": "corrected",
-  "status_note": "Byte-binding restored by freezing the seven tools and re-running the required set. Fixture contention persists (the other session is still active) and AC-9 remains partial; see additional_findings."
+  "status_note": "Byte-binding restored by freezing the seven tools and re-running the required set. Fixture contention persists (the other session is still active) and AC-9 remains partial; see additional_findings. | 2026-10-20: AC-9 closed after the other session cleared (amendment_20261020).",
+  "amendment_20261020": "Resolved: the other session stopped and the fixture was verified absent (databases sik, sik_bench). With the ensure_fx stale-fixture fix the NC script was re-deployed (p11_negative_controls.sh re-pinned a3f44721... -> 0bba1931...) and run once, uncontended, by this stream: 5/5 DISCRIMINATING, exit 0, fixture dropped (evidence/p11/r5_p11_negative_controls_20261020T073218Z.md). The tool SHA table in 'correction' item 1 is the pre-fix table; the current pins are in evidence/p11/r5_p11_frozen_manifest_20261020T0739Z.sha256 (all seven re-frozen, sha256sum -c OK). QMS record VER-2026-10-19-DR-KHANZA-R5-P11-001 amended accordingly."
 }
