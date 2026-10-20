@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-10-19T15:45:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "A validated tool was edited locally after deploy, so the would-be committed artifact was untested (caught before commit)",
+  "what_went_wrong": [
+    "p10_preservation_check.sh was deployed and then validated by run 4 (PRESERVATION-CHECK PASS, 20261019T153206Z) and by NC2 in run D (with-switch=FAIL / without=PASS). After that, the local copy was edited again: it captured the wrapper's exit code (rc_suite) and required it to be 1 in the 'fixture kept' assertion, and restructured the pre-op snapshot block.",
+    "The edit was never deployed and never re-run. A commit would therefore have shipped an artifact that no run in the evidence bundle exercised. The tightened assertion was also vacuous in the kept-fixture reuse path, where rc_suite was hardcoded to 1.",
+    "The drift was detected only by comparing the local (LF) SHA-256 with the VPS SHA-256 during record-keeping: 84bdd75a... locally vs 9c0e8f3a... deployed."
+  ],
+  "root_cause": "Edits were made while evidence was being analysed, after the deploy-and-validate step had already been treated as complete, and nothing tied the committed bytes to the deployed bytes.",
+  "detection": "Local (LF) vs VPS SHA-256 comparison for the seven-tool surface (tools/_p11_shas.sh): six matched, p10_preservation_check.sh did not.",
+  "correction": {
+    "applied": [
+      "Restored the deployed bytes over the local copy (scp from /opt/Deers-Rock/tools), so the committed artifact is exactly the artifact run 4 and NC2 validated: SHA-256 9c0e8f3a8e50f0bc085bb801968f33006be1c3c3a64b8068f75d6ac39b92e7be, bash -n clean.",
+      "The untested rc_suite refinement was dropped rather than deployed: it would have required re-running run 4 and NC2 to bind new evidence, and its kept-fixture branch would have asserted nothing."
+    ],
+    "verification": "tools/_p11_shas.sh prints identical local-LF and VPS hashes for all seven tools (suite, wrapper, oracle, hash_state, preservation, unit test, NC script); run 4 and run D evidence keep their original tool SHA lines, which match the restored file."
+  },
+  "rule": "The committed artifact must be the artifact the evidence ran against. After every deploy, re-check the local-LF and VPS SHAs immediately before committing, and never leave a post-validation local edit in place.",
+  "agent": "opencode",
+  "status": "corrected"
+}

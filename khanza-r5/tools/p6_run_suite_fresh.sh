@@ -9,6 +9,9 @@
 # A kept fixture blocks the next run until removed with --teardown-kept.
 # Usage: bash p6_run_suite_fresh.sh                (as root on the benchmark VPS)
 #        bash p6_run_suite_fresh.sh --teardown-kept (drop a kept sik_p6f)
+# P11: the P11_ONLY / R5_NEGCTL_* / P10_INJECT / P9_FORCE_FAIL_CHECK / P9_QUICK
+#      environment variables are forwarded to the suite below (exported before the
+#      FX=... invocation) so selective and negative-control runs reach p6_acceptance_suite.sh.
 set -u
 cd /opt/Deers-Rock/tools
 FX=sik_p6f
@@ -47,6 +50,9 @@ mysql -uroot $FX < "$STRATA_SQL" || exit 3
 echo "fixture $FX: $(( $(date +%s) - T0 ))s; reg_periksa=$(SQL "SELECT COUNT(*) FROM $FX.reg_periksa") (sik $(SQL 'SELECT COUNT(*) FROM sik.reg_periksa') + 5 STRATA-); billing=$(SQL "SELECT COUNT(*) FROM $FX.billing")"
 SQL "GRANT SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* TO \`benchmark\`@\`localhost\`;"
 SUITE_RAN=1
+# P11: forward the P11/P10/P9 selective and negative-control env vars to the suite
+export P11_ONLY P10_INJECT P9_FORCE_FAIL_CHECK P9_QUICK P11_FORCE_FAIL
+export R5_NEGCTL_BACKUP_NO_TXN R5_NEGCTL_SKIP_IMMEDIATE_RESTORE R5_NEGCTL_KEEP_STALE_FLAG R5_NEGCTL_HASH_FROM_LIVE_LATE
 FX=$FX bash p6_acceptance_suite.sh
 RC=$?
 echo "suite exit=$RC"

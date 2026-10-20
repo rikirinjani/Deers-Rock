@@ -102,8 +102,24 @@ Astra-scored gaps: baseline independence, unsafe reset, sampling, crash safety):
          re-backup rolls back and the earlier staged rows survive; a batch whose backup
          failed keeps its stage tables. R5_FAULT_BACKUP_FAIL is a test-only hook.
   P10-B3 FAILED batches about to be retried/abandoned get the quiet-interval proof.
-  P10-B4 every restore on a fixture runs under writer exclusion (benchmark DML revoked,
-         target fenced, restore as root, grants given back and re-checked); never on live.
+    P11 T1 negative control: R5_NEGCTL_BACKUP_NO_TXN=1 — stage_backup runs its
+    DELETE/REPLACE as separate autocommit statements (the pre-P10 behaviour), so a
+    failed re-backup destroys the earlier staged rows and A28' must FAIL.
+    P11 T2 negative control: R5_NEGCTL_SKIP_IMMEDIATE_RESTORE=1 — the failure path
+    in _bill_date skips stage_restore but records restored=True; the preservation
+    check must FAIL.
+    P11 T5 negative control: R5_NEGCTL_KEEP_STALE_FLAG=1 — the RETRY-REFUSED branch
+    keeps the old restored flag instead of clearing it; the extended A22b must FAIL.
+    P11 T6 negative control: R5_NEGCTL_HASH_FROM_LIVE_LATE=1 — stage_backup hashes the
+    live tables (pre-P11 order) instead of the staged rows; the equality check must FAIL.
+    P11 T4 crash hook: R5_NEGCTL_CRASH_MARKER_BEFORE_REVOKE=1 — a crash simulation
+    between the marker write and the REVOKE; the recovery path must grant back.
+    P11 selective mode: P11_ONLY=<check ids> (space- or comma-separated, e.g.
+    "A28 A31 A22b") runs only the named checks plus A0 and A13.
+    P11 preservation: P11_FORCE_FAIL=<n> forces a named assertion to FAIL in
+    p10_preservation_check.sh, which then keeps the fixture and prints the teardown
+    command (instead of tearing it down).
+
   P10-A2 the result artifact states each FAILED batch's actual restore result.
 
 Usage:
@@ -439,36 +455,90 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     dbutil.execute(db,
         "CREATE TABLE IF NOT EXISTS %s_reg (no_rawat VARCHAR(17), "
         "status_bayar VARCHAR(20)) ENGINE=InnoDB" % pfx, force_root=True)
-    # P10-B2: replace this batch's staged rows in ONE transaction (the tables are
-    # InnoDB). Before P10 the DELETE and REPLACE were separate autocommit statements,
-    # so a failed re-backup on a retry destroyed the rows kept from the earlier
-    # backup. Now any failure rolls back and the earlier staged rows survive.
-    sql = ["START TRANSACTION;"]
-    for t, key in RESET_TABLES.items():
-        sql.append("DELETE FROM %s_%s WHERE %s IN (%s);" % (pfx, t, key, inl))
-        sql.append("REPLACE INTO %s_%s SELECT * FROM %s WHERE %s IN (%s);"
-                   % (pfx, t, t, key, inl))
-    sql.append("DELETE FROM %s_reg WHERE no_rawat IN (%s);" % (pfx, inl))
-    sql.append("REPLACE INTO %s_reg SELECT no_rawat, status_bayar FROM reg_periksa "
-               "WHERE no_rawat IN (%s);" % (pfx, inl))
-    if os.environ.get("R5_FAULT_BACKUP_FAIL"):
-        # test hook (inert unless set): a failing statement before COMMIT
-        sql.append("SELECT * FROM r5_fault_injected_missing_table;")
-    sql.append("COMMIT;")
-    sess = dbutil.session(db)
-    sess.exec("\n".join(sql))
-    if not sess.close():
-        raise RuntimeError("stage backup transaction failed and was rolled back; "
-                           "earlier staged rows kept (%s)" % sess.last_error[:200])
+    # P11 T1 negative control (inert unless set): run the DELETE/REPLACE as separate
+    # autocommit statements (the pre-P10 behaviour). Without a transaction a failing
+    # re-backup leaves the earlier staged rows destroyed, so the stage checksums after
+    # a failed retry differ from before; the discriminating A28' check relies on that.
+    if os.environ.get("R5_NEGCTL_BACKUP_NO_TXN"):
+        log("stage-backup NC: R5_NEGCTL_BACKUP_NO_TXN set — DELETE/REPLACE as autocommit "
+            "(pre-P10 behaviour, test-only; not transactional)")
+        stmts = []
+        for t, key in RESET_TABLES.items():
+            stmts.append("DELETE FROM %s_%s WHERE %s IN (%s);" % (pfx, t, key, inl))
+            stmts.append("REPLACE INTO %s_%s SELECT * FROM %s WHERE %s IN (%s);"
+                         % (pfx, t, t, key, inl))
+        stmts.append("DELETE FROM %s_reg WHERE no_rawat IN (%s);" % (pfx, inl))
+        stmts.append("REPLACE INTO %s_reg SELECT no_rawat, status_bayar FROM reg_periksa "
+                     "WHERE no_rawat IN (%s);" % (pfx, inl))
+        if os.environ.get("R5_FAULT_BACKUP_FAIL"):
+            # a failing autocommit statement: the earlier DELETEs already committed,
+            # so the kept staged rows are destroyed even though nothing rolled back
+            stmts.append("SELECT * FROM r5_fault_injected_missing_table;")
+        for s in stmts:
+            try:
+                dbutil.execute(db, s)
+            except Exception as e:
+                raise RuntimeError("stage backup failed WITHOUT a transaction (NC "
+                    "autocommit mode); earlier staged rows NOT kept (%s: %s)"
+                    % (type(e).__name__, str(e)[:200]))
+    else:
+        sql = ["START TRANSACTION;"]
+        for t, key in RESET_TABLES.items():
+            sql.append("DELETE FROM %s_%s WHERE %s IN (%s);" % (pfx, t, key, inl))
+            sql.append("REPLACE INTO %s_%s SELECT * FROM %s WHERE %s IN (%s);"
+                       % (pfx, t, t, key, inl))
+        sql.append("DELETE FROM %s_reg WHERE no_rawat IN (%s);" % (pfx, inl))
+        sql.append("REPLACE INTO %s_reg SELECT no_rawat, status_bayar FROM reg_periksa "
+                   "WHERE no_rawat IN (%s);" % (pfx, inl))
+        if os.environ.get("R5_FAULT_BACKUP_FAIL"):
+            # test hook (inert unless set): a failing statement before COMMIT
+            sql.append("SELECT * FROM r5_fault_injected_missing_table;")
+        sql.append("COMMIT;")
+        sess = dbutil.session(db)
+        sess.exec("\n".join(sql))
+        if not sess.close():
+            raise RuntimeError("stage backup transaction failed and was rolled back; "
+                               "earlier staged rows kept (%s)" % sess.last_error[:200])
     log("stage-backup %d visits -> %s_* (%d output tables + reg.status_bayar)"
         % (len(nrs), pfx, len(RESET_TABLES)))
-    # P6-2e: record the pre-reset content hash (per no_rawat value-row multiset
-    # across the output tables + reg.status_bayar) for later verified restore.
-    h = _content_hash(nrs, db, log)
+    # P6-2e: record the pre-reset content hash for later verified restore.
+    # P11-T6: the pre-reset hash is computed FROM THE STAGED ROWS (the same
+    # canonical form as _content_hash on the live tables), so "restore
+    # verified" means "live equals what was staged" — one atomic snapshot.
+    # NC R5_NEGCTL_HASH_FROM_LIVE_LATE (inert unless set): the OLD order, a
+    # hash of the LIVE tables after the stage copy commits; a live row changed
+    # between the copy and the hashing then disagrees with the staged rows and
+    # the equality check must FAIL.
+    if os.environ.get("R5_NEGCTL_HASH_FROM_LIVE_LATE"):
+        log("stage-hash NC: R5_NEGCTL_HASH_FROM_LIVE_LATE set — hashing the live "
+            "tables (pre-P11 order, test-only)")
+        # NC fidelity: simulate the exact hazard of the old order — one live row
+        # drifts AFTER the stage copy commits and BEFORE the hash, then is
+        # reverted. The live-late hash captures the drifted row, so the stored
+        # hash disagrees with the staged rows and the coherence check must FAIL;
+        # the P11 order (hash from the staged rows) is immune to any such drift.
+        drift_done = False
+        try:
+            dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya+1 "
+                               "WHERE no_rawat='%s'" % nrs[0], force_root=True)
+            drift_done = True
+        except Exception as e:
+            log("stage-hash NC: drift UPDATE failed (%s); hashing the undrifted "
+                "live tables" % str(e)[:120])
+        h = _content_hash(nrs, db, log)
+        if drift_done:
+            dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya-1 "
+                               "WHERE no_rawat='%s'" % nrs[0], force_root=True)
+        hash_source = "live-late-NC"
+    else:
+        h = _stage_content_hash(nrs, db, pfx, log)
+        hash_source = "stage"
     hpath = _hash_path(rundir, pfx, batch)
     with open(hpath, "w") as f:
-        json.dump({"pfx": pfx, "batch": batch, "nrs": nrs, "sha256": h}, f)
-    log("stage-content-hash %s batch %s (sha256=%s...)" % (pfx, batch, h[:16]))
+        json.dump({"pfx": pfx, "batch": batch, "nrs": nrs, "sha256": h,
+                   "hash_source": hash_source}, f)
+    log("stage-content-hash %s batch %s source=%s (sha256=%s...)"
+        % (pfx, batch, hash_source, h[:16]))
 
 
 def _content_hash(nrs, db, log):
@@ -489,6 +559,29 @@ def _content_hash(nrs, db, log):
     reg = dbutil.query(db,
         "SELECT no_rawat, status_bayar FROM reg_periksa WHERE no_rawat IN (%s) "
         "ORDER BY 1" % inl)
+    sig_parts.append(("reg_periksa.status_bayar", reg))
+    canon = json.dumps([ [t, [ [c for c in row] for row in rs] ] for t, rs in sig_parts],
+                       sort_keys=True, default=str)
+    return _sha(canon)
+
+
+def _stage_content_hash(nrs, db, pfx, log):
+    """P11-T6: the same canonical form as _content_hash, but computed from the
+    STAGE tables (what a restore copies back) instead of the live tables. This
+    makes the pre-reset hash a snapshot of the staged rows: 'restore verified'
+    then means 'live equals what was staged'. The two functions agree on
+    identical data (unit test). Read as root (stage-table DDL privilege)."""
+    sig_parts = []
+    for t, key in RESET_TABLES.items():
+        inl = ",".join("'%s'" % n for n in nrs)
+        rows = dbutil.query(db,
+            "SELECT * FROM %s_%s WHERE %s IN (%s)" % (pfx, t, key, inl), force_root=True)
+        rows.sort(key=lambda r: ["" if c is None else c for c in r])
+        sig_parts.append((t, rows))
+    inl = ",".join("'%s'" % n for n in nrs)
+    reg = dbutil.query(db,
+        "SELECT no_rawat, status_bayar FROM %s_reg WHERE no_rawat IN (%s) "
+        "ORDER BY 1" % (pfx, inl), force_root=True)
     sig_parts.append(("reg_periksa.status_bayar", reg))
     canon = json.dumps([ [t, [ [c for c in row] for row in rs] ] for t, rs in sig_parts],
                        sort_keys=True, default=str)
@@ -607,26 +700,72 @@ def _bench_dml_privs(db):
 
 def _exclusion_marker(db):
     return os.path.join(dbutil.RESULTS_ROOT, ".writer_exclusion_%s.json"
-                        % re.sub(r"[^A-Za-z0-9_]", "_", db))
+                         % re.sub(r"[^A-Za-z0-9_]", "_", db))
 
 
-def recover_writer_exclusion(db, log):
+def _write_marker_atomic(path, obj):
+    """P11-T4: write the exclusion marker durably — temp file in the same
+    directory, fsync, then os.replace — so a crash between the marker write and
+    the REVOKE never leaves a half-written (and thus unparseable) marker. An
+    unreadable marker must fail CLOSED, so its on-disk bytes must be complete
+    JSON at every instant."""
+    d = os.path.dirname(path) or "."
+    tmp = os.path.join(d, ".%s.tmp.%d" % (os.path.basename(path), os.getpid()))
+    with open(tmp, "w") as f:
+        json.dump(obj, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def recover_writer_exclusion(db, log, expected_privs=None):
     """P10-B4 (found by suite run 1, A20): a process killed while writer exclusion is on
     never runs its `finally`, so the benchmark account kept no DML on the target and every
     later billing run failed. The exclusion is therefore recorded in a marker file BEFORE
     the revoke; whoever starts next and finds a marker of a dead process grants the
-    recorded privileges back. Returns False only when a LIVE process holds the exclusion."""
+    recorded privileges back.
+
+    P11-T4 fail-closed: a marker that EXISTS but cannot be parsed (malformed, truncated,
+    or unreadable) is no longer read as an empty {} that grants nothing and deletes the
+    marker (the pre-P11 fail-open path). Instead it is KEPT on disk, logged as
+    'WRITER-EXCLUSION marker unreadable', and the caller is told to refuse to proceed
+    (return False) so the process exits 3. The marker is only deleted after the recorded
+    privileges have actually been granted back. When expected_privs (a comma-separated
+    operator-supplied grant list, --recover-grants) is given, an unreadable marker is
+    still refused: the operator must first delete or repair the marker, or grant the
+    expected privileges back manually, before the exclusion can be cleared.
+
+    Returns False only when a LIVE process holds the exclusion, or when the marker is
+    unreadable (fail-closed)."""
     mp = _exclusion_marker(db)
     if not os.path.exists(mp):
         return True
     try:
         m = json.load(open(mp))
-    except Exception:
-        m = {}
+        if not isinstance(m, dict):
+            raise ValueError("marker is not a JSON object")
+    except Exception as e:
+        # P11-T4: unreadable marker -> fail CLOSED: keep the file, never delete it,
+        # never grant from an unknown record; the caller must stop (exit 3) and an
+        # operator must clear it with --recover-grants (or repair/delete it).
+        log("WRITER-EXCLUSION marker unreadable on %s (%s: %s) — refusing to proceed "
+            "(fail-closed, P11-T4); the marker is KEPT. An operator must restore the "
+            "benchmark grants explicitly (--recover-grants DELETE,INSERT,UPDATE) and "
+            "remove the marker before this target can be restored."
+            % (db, type(e).__name__, str(e)[:160]))
+        return False
     if m.get("pid") and _pid_alive(m["pid"]) and int(m["pid"]) != os.getpid():
         log("WRITER-EXCLUSION held by live pid %s on %s — refusing to proceed" % (m["pid"], db))
         return False
     privs = [p for p in (m.get("privs") or []) if p in BENCH_DML]
+    if expected_privs:
+        # operator-supplied expected grants: the marker's recorded privs must match,
+        # otherwise the marker is inconsistent with the operator's expectation and we
+        # refuse (fail-closed) rather than grant an unknown set.
+        if sorted(privs) != sorted(expected_privs):
+            log("WRITER-EXCLUSION marker on %s records %s, expected %s — refusing to "
+                "proceed (fail-closed, P11-T4)" % (db, privs, expected_privs))
+            return False
     if privs:
         dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
                        force_root=True)
@@ -634,6 +773,30 @@ def recover_writer_exclusion(db, log):
     os.remove(mp)
     log("WRITER-EXCLUSION recovered (P10-B4): pid %s died with exclusion on; granted %s back "
         "on %s (now %s)" % (m.get("pid"), privs or "nothing", db, back))
+    return True
+
+
+def _recover_grants_expected(db, log, grants_csv):
+    """P11-T4 operator fallback: grant an explicit privilege list back to the
+    benchmark account on a fixture, then clear any unreadable marker of a dead
+    process so the target can be restored. Only for fixtures (refused on live)."""
+    if db in LIVE_DBS:
+        log("WRITER-EXCLUSION recover-grants refused: %s is live; grants are never "
+            "changed there" % db)
+        return False
+    privs = [p.strip() for p in grants_csv.split(",") if p.strip()]
+    if privs:
+        dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
+                       force_root=True)
+    back = _bench_dml_privs(db)
+    mp = _exclusion_marker(db)
+    if os.path.exists(mp):
+        os.remove(mp)
+        log("WRITER-EXCLUSION recover-grants (P11-T4) %s: operator granted %s back; "
+            "marker cleared (now %s)" % (db, privs or "nothing", back))
+    else:
+        log("WRITER-EXCLUSION recover-grants (P11-T4) %s: operator granted %s back; "
+            "no marker present (now %s)" % (db, privs or "nothing", back))
     return True
 
 
@@ -650,7 +813,12 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
         return _stage_restore_inner(nrs, db, rundir, log, run_id, stage, batch, fr=False)
     try:
         if not recover_writer_exclusion(db, log):
-            log("STAGE-RESTORE-ERROR: another live process holds writer exclusion; NOT restored")
+            # P11-T4: a False from recover_writer_exclusion is either a live process
+            # holding the exclusion OR an unreadable marker (fail-closed). In the
+            # marker case the caller (main) must stop with exit 3, not continue.
+            log("STAGE-RESTORE-ERROR: writer exclusion could not be cleared on %s "
+                "(live holder or unreadable marker, P11-T4); nothing deleted, NOT restored"
+                % db)
             return False
         privs = _bench_dml_privs(db)
     except Exception as e:
@@ -662,10 +830,11 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     try:
         if privs:
             # durable record FIRST: if this process dies inside the window, the next
-            # start grants these back (recover_writer_exclusion)
-            with open(marker, "w") as f:
-                json.dump({"db": db, "privs": privs, "pid": os.getpid(),
-                           "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}, f)
+            # start grants these back (recover_writer_exclusion). P11-T4: write the
+            # marker atomically (temp + fsync + replace) so it is never half-written.
+            _write_marker_atomic(marker, {"db": db, "privs": privs, "pid": os.getpid(),
+                                          "ts": datetime.datetime.now(
+                                              datetime.timezone.utc).isoformat()})
             dbutil.execute(db, "REVOKE %s ON `%s`.* FROM %s" % (", ".join(privs), db, BENCH_ACCOUNT),
                            force_root=True)
             revoked = True
@@ -1102,6 +1271,12 @@ def main():
     ap.add_argument("--abandon-failed", action="store_true",
                     help="P9: release the stage tables of a FAILED batch whose current "
                          "state equals its pre-reset hash (no re-bill).")
+    ap.add_argument("--recover-grants",
+                    help="P11-T4 operator fallback: comma-separated DML privileges "
+                         "(e.g. 'DELETE,INSERT,UPDATE') to grant back to the benchmark "
+                         "account on a fixture whose writer-exclusion marker is "
+                         "unreadable or whose grants are missing. Refused on live "
+                         "databases.")
     args = ap.parse_args()
     db = args.db_name
     # P7-6: a billing run DELETEs the sampled visits' output rows before re-billing
@@ -1138,7 +1313,20 @@ def main():
     signal.signal(signal.SIGINT, _on_terminate)
     # P10-B4: undo a writer exclusion left by a process that died inside it, before
     # anything (the harness included) needs the benchmark account's DML
-    if db not in LIVE_DBS and not recover_writer_exclusion(db, log):
+    if args.recover_grants:
+        # P11-T4: operator-supplied grant restoration; refused on live databases
+        expected = [p.strip() for p in args.recover_grants.split(",") if p.strip()]
+        ok = _recover_grants_expected(db, log, args.recover_grants)
+        if not ok:
+            release_lock(rundir)
+            return 3
+        if db not in LIVE_DBS:
+            # also try the normal recovery with the expected privs so a marker
+            # that records exactly these privs is cleared
+            if not recover_writer_exclusion(db, log, expected_privs=expected):
+                release_lock(rundir)
+                return 3
+    elif db not in LIVE_DBS and not recover_writer_exclusion(db, log):
         release_lock(rundir)
         return 3
     st = load_state(rundir) or {"run_id": tool.run_id, "db": db,
@@ -1288,6 +1476,14 @@ def main():
                                      stage=st.get("stage"), batch=d):
                     log("date %s: RETRY-REFUSED (pre-reset state could not be restored "
                         "and verified; stays FAILED, nothing re-billed)" % d)
+                    # P11-T5: clear the stale restored flag so the state file shows
+                    # the refusal; R5_NEGCTL_KEEP_STALE_FLAG (test-only, inert unless
+                    # set) keeps the pre-P11 behaviour (flag left as-is) so the
+                    # extended A22b negative control must FAIL with it.
+                    if not os.environ.get("R5_NEGCTL_KEEP_STALE_FLAG"):
+                        b["restored"] = False
+                        b["restore_state"] = "refused"
+                    save_state(rundir, st)
                     failed = True
                     break
                 log("date %s: RETRY-FAILED (P9-B2): previous failure '%s'; pre-reset "
@@ -1390,8 +1586,19 @@ def _bill_date(d, b, st, rundir, db, tool, log, deadline, repair_consumer=False)
         # stage=st["stage"]; omitting it here pointed at r5_stage_stage_* and
         # the DELETE ran with nothing to copy back) and record the VERIFIED
         # outcome, never an asserted one.
-        restored = stage_restore(nrs, db, rundir, log, run_id,
-                                 stage=st.get("stage"), batch=d)
+        # P11-T2 negative control (inert unless set): skip the immediate restore
+        # but record restored=True (the pre-P11 defect that a wrong/absent
+        # immediate restoration would be claimed as restored); the preservation
+        # check must FAIL with it.
+        skip_restore = os.environ.get("R5_NEGCTL_SKIP_IMMEDIATE_RESTORE")
+        if skip_restore:
+            restored = True
+            log("date %s: FAILED NC — R5_NEGCTL_SKIP_IMMEDIATE_RESTORE set: immediate "
+                "restore SKIPPED but restored=True recorded (pre-P11 defect, test-only)"
+                % d)
+        else:
+            restored = stage_restore(nrs, db, rundir, log, run_id,
+                                     stage=st.get("stage"), batch=d)
         b["status"] = "FAILED"
         b["restored"] = bool(restored)
         b["fail_reason"] = ("harness rc=%d" % rc) if rc != 0 else \
@@ -1593,9 +1800,15 @@ def _finalize(st, rundir, db, tool, log, repair_consumer=False):
         if failed_batches:
             # P10-A2: state each FAILED batch's actual restore result (before P10 every
             # one was labelled "restored from stage backup")
+            # P11-T5: also surface restore_state so a RETRY-REFUSED is shown as such
+            # (restored=False, restore_state=refused), not as a stale True
             def _restore_state(b):
                 if str(b.get("fail_reason", "")).startswith("stage-backup"):
                     return "backup failed; stage tables kept"
+                rs = b.get("restore_state")
+                if rs == "refused":
+                    return "RETRY-REFUSED (restored=False, restore_state=refused; " \
+                           "stage tables kept, P11-T5)"
                 if b.get("restored") is True:
                     return "restored, hash-verified"
                 return "NOT restored; stage tables kept"

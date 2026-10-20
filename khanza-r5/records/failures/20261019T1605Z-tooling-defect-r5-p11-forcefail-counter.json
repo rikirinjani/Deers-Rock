@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-10-19T16:05:00Z",
+  "category": "tooling-defect",
+  "severity": "minor",
+  "title": "P11_FORCE_FAIL failed every assertion instead of the one named: the counter ignored already-emitted forced-FAIL lines",
+  "what_went_wrong": [
+    "p10_preservation_check.sh ok() computed the assertion index as grep -c '^- \\(PASS\\|FAIL\\)' $OUT. A forced failure is written as '- **FAIL**: ...', which does not match that pattern, so the index never advanced past the forced line: with P11_FORCE_FAIL=0 every subsequent assertion was forced too.",
+    "The first forced-failure run (20261019T155043Z) therefore ended 'PRESERVATION-CHECK FAIL (7)' with six induced FAILs, contradicting the script's own claim that P11_FORCE_FAIL=<n> forces ONE named assertion (task doc AC-7, P11-T7).",
+    "The transcript also shows the induced FAILs contradicting printed data ('perturbation: counted 17 ... changed 17' next to a FAIL of that assertion), which is exactly the kind of misleading evidence P11 exists to remove."
+  ],
+  "root_cause": "The index was derived from a line pattern that excluded the forced-failure rendering; the counting path is only entered when P11_FORCE_FAIL is set, so no normal run ever exercised it.",
+  "detection": "The forced-failure run's transcript: '- **FAIL**: fixture kept with populated r6_p10 stage tables' followed by every later assertion also FAIL and 'P11-T7: 6 assertion(s) failed'.",
+  "correction": {
+    "applied": [
+      "ok() now counts every assertion line: n=$(grep -c '^- ' \"$OUT\"), so exactly the assertion whose index equals P11_FORCE_FAIL is forced.",
+      "Deployed as LF; local and VPS SHA-256 both b6dd8cf4b84bdc1e54c6b2ed4fb8580cbb2503f9fd53b13163fae7752c7eb5d1."
+    ],
+    "verification": "Re-run of every required run against b6dd8cf4: full preservation check PASS, all five NCs DISCRIMINATING, and one forced-failure run that ends FAIL (1) with the fixture kept, database.xml on sik and no grant (evidence in khanza-r5/evidence/p11/)."
+  },
+  "rule": "A test hook is part of the claim it supports: a switch that is supposed to break exactly one property must be shown to break exactly that one, not merely to produce a failure.",
+  "agent": "opencode",
+  "status": "corrected"
+}

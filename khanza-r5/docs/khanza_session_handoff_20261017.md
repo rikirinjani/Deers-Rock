@@ -2,6 +2,29 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-20 (P11) — P11 DONE against a FROZEN byte set** (task doc
+> `docs/khanza_r5_task_p11_negative_controls.md`, R5 §22, report
+> `docs/khanza_r5_p11_opencode_report.md`, QMS `VER-2026-10-19-DR-KHANZA-R5-P11-001`). Every P10
+> recovery check now has a negative control: unit **33/33**; negative controls **5/5
+> DISCRIMINATING** (NC1 from a clean re-run — see below); full fresh suite **39/39, exit 0**;
+> preservation check **PASS**; forced-failure control one FAIL, fixture kept, `database.xml` on
+> `sik`, grant removed; builder exit 0 reproducing `356355:a66a3a54…`; live proof matches §4.6.
+> **AC-9 is partial**: 5/5 came from two invocations, not one.
+> **Critical process finding:** a **second agent session on this machine, sharing this working tree
+> and the VPS**, was developing the same P11 tooling concurrently — it rewrote three tools at
+> 21:02:19Z, 19 s before an evidence run, ran sixteen-plus P11 experiments between 17:00 and 20:50Z,
+> and re-created the NC runner three times. All earlier P11 evidence (NC 5/5 at 13:56Z, suite 39/39
+> at 15:10Z) was produced by bytes that no longer exist and is retained but **not relied on**. The
+> seven tools were therefore frozen (`chattr +i` + `FROZEN.sha256` in
+> `/opt/Deers-Rock/tools/p11_frozen_20261019/`) and every required run re-executed with
+> `sha256sum -c` before and after. Records: `20261019T2135Z-…-concurrent-writer-evidence-unbinding`,
+> `20261019T1450Z-…-stray-launcher-interference`, `20261019T1545Z-…-post-deploy-drift`,
+> `20261019T1605Z-…-forcefail-counter`, `20261018T1630Z` (closed, `corrected`).
+> **Next session must:** (1) `chattr -i` the seven tools before any tool change; (2) take an
+> **exclusive** window on `sik_p6f` as well as frozen bytes — the other session is still active and
+> rebuilt `sik_p6f` with a benchmark grant at 01:21:07Z; (3) fix the NC driver's fixture reuse so
+> each arm starts from a known state, then obtain one clean 5/5 invocation to close AC-9.
+
 > **UPDATE 2026-10-18 (v10) — Astra v10 = 63/100** "Needs targeted rework" (7/6.5/7.5/6/7/4; run
 > 4918967, $3.064 + $0.235 gemini). `evidence/astra_v10_4918967_NOTE.md`: 9 findings, all confirmed
 > in source - several P10 checks are non-discriminating (A28, the preservation baseline) and some

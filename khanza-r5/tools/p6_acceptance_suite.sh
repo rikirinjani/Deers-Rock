@@ -24,6 +24,14 @@
 # freeze; A28 a failed re-backup keeps the earlier staged rows; A29 writer exclusion
 # during restores; P10_INJECT=1 (with P9_FORCE_FAIL_CHECK=30) runs A0 + the A30 real
 # failure with populated stage tables + the live guards, for p10_preservation_check.sh.
+# P11 (2026-10-19): discriminating negative controls. R5_NEGCTL_* switches are inert
+# unless set (each deliberately breaks one property; the check must FAIL with it on and
+# PASS without it): R5_NEGCTL_BACKUP_NO_TXN (A28' pre-P10 autocommit re-backup),
+# R5_NEGCTL_SKIP_IMMEDIATE_RESTORE (preserve-3 assertion), R5_NEGCTL_KEEP_STALE_FLAG
+# (A22b'), R5_NEGCTL_HASH_FROM_LIVE_LATE (A32 pre-P11 live-late hash). P11_ONLY=<ids>
+# runs only the named checks plus A0 and A13. The P10_INJECT block records the
+# PRE-OPERATION snapshot before the injected run (P11-T2). P11_FORCE_FAIL=<n> is
+# honoured by p10_preservation_check.sh (keep-on-fail + EXIT trap, P11-T7).
 set -u
 cd /opt/Deers-Rock/tools
 export DBUTIL_FORCE_ROOT=1
@@ -42,6 +50,14 @@ check() {
   if [ "$3" = "0" ]; then echo "A$1: PASS — $2" | tee -a "$OUT"; PASS=$((PASS+1)); SUMMARY="$SUMMARY| A$1 | PASS | $2 |"$'\n';
   else echo "A$1: FAIL — $2" | tee -a "$OUT"; FAIL=$((FAIL+1)); SUMMARY="$SUMMARY| A$1 | **FAIL** | $2 |"$'\n'; fi
 }
+# P11 selective mode: P11_ONLY=<check ids> (space- or comma-separated) runs ONLY the
+# named P11 checks plus A0 (the fixture guard, above) and A13 (the live guard, below);
+# the long A1–A29 harness/builder section is skipped. sel <id> returns 0 when the id is
+# requested (or P11_ONLY is unset, i.e. the full suite).
+ONLY=${P11_ONLY:-}
+ONLY=${ONLY//,/ }
+sel() { local id=$1; [ -z "$ONLY" ] && return 0; case " $ONLY " in *" $id "*) return 0;; *) return 1;; esac; }
+SKIP_LONG=${P11_ONLY:-}
 res() { echo "$1" | tee -a "$OUT"; }
 cnt() { local n; n=$(grep -ac "$1" "$2" 2>/dev/null); echo "${n:-0}"; }
 javacount() { pgrep -f "BilingHarness" | wc -l | tr -d ' '; }
@@ -155,8 +171,8 @@ PY
 }
 stage_count() { SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5\_stage\_B3\_$1\_%';"; }
 
-if [ -z "${P9_QUICK:-}" ] && [ -z "${P10_INJECT:-}" ]; then
-echo "=== A1: clean pass (exit 0) ==="
+if [ -z "${P9_QUICK:-}" ] && [ -z "${P10_INJECT:-}" ] && [ -z "${P11_ONLY:-}" ]; then
+ echo "=== A1: clean pass (exit 0) ==="
 freeze r6_a1 B3 --visits-file /tmp/r6_clean.txt
 T0=$(date +%s)
 env RUN_ID=r6_a1 $ORACLE --stage B3 --visits-file /tmp/r6_clean.txt > /tmp/r6_a1.log 2>&1
@@ -659,27 +675,265 @@ GR1=$(bench_grants); XM=$(ls /opt/dr-benchmark/results/.writer_exclusion_* 2>/de
 RECOV=$(cat /tmp/r6_a*.log | grep -ac "WRITER-EXCLUSION recovered")
 res "benchmark grants on ${FX}: start=$GR0 end=$GR1 · exclusion markers left=$XM · recoveries after a killed exclusion=$RECOV"
 check 31 "A31 the harness account's grants on ${FX} are the same at the end as at the start, no writer-exclusion marker left (A20's SIGKILL inside the window was recovered: $RECOV)" $([ "$GR0" = "$GR1" ] && echo "$GR0" | grep -q "DELETE,INSERT" && [ "$XM" = "0" ] && [ "$RECOV" -ge 1 ] && echo 0 || echo 1)
-else
-  res "P9_QUICK/P10_INJECT: only A0, the injection (if any) and the live guards (A13) run; the other checks are skipped"
-batch_status() { python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/$1/B3_oracle_run_r5/.state.json'));print(','.join('%s=%s' % (d, b.get('status')) for d, b in sorted(st['batches'].items())))" 2>/dev/null; }
-if [ -n "${P10_INJECT:-}" ]; then
-  # P10-B6: a REAL harness failure on the two-batch set leaves batch 1 FAILED with
-  # populated stage tables; record independent hashes, then (with
-  # P9_FORCE_FAIL_CHECK=30) the suite ends through its normal terminal path
-  printf "2026/10/01/800085\n2026/10/06/800018\n" > /tmp/r6_two.txt
-  SQL "SELECT no_rawat FROM ${FX}.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis NOT LIKE 'DR%' ORDER BY no_rawat LIMIT 10;" > /tmp/r6_p10_protected.txt
-  SQL "SELECT no_rawat FROM ${FX}.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis LIKE 'DR%' AND no_rawat NOT IN ('2026/10/01/800085','2026/10/06/800018') ORDER BY no_rawat LIMIT 10;" >> /tmp/r6_p10_protected.txt
-  freeze r6_p10 B3 --visits-file /tmp/r6_two.txt
-  env RUN_ID=r6_p10 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_p10.log 2>&1
-  RCI=$?
-  python3 /opt/Deers-Rock/tools/p10_hash_state.py ${FX} r6_p10 /tmp/r6_two.txt /tmp/r6_p10_protected.txt > /opt/dr-benchmark/p-chain/p10_preserve_pre.json 2> /tmp/r6_p10_hash.err
-  RCH=$?
-  cp /tmp/r6_two.txt /tmp/r6_p10_protected.txt /opt/dr-benchmark/p-chain/
-  NST=$(stage_count r6_p10); ST=$(batch_status r6_p10)
-  res "P10 injection: oracle exit=$RCI batches=$ST stage tables=$NST protected visits=$(wc -l < /tmp/r6_p10_protected.txt) hash exit=$RCH"
-  check 30 "A30 injected real harness failure: batch 1 FAILED, batch 2 PENDING, populated stage tables held, independent pre-hashes recorded" $([ "$RCI" = "4" ] && [ "$ST" = "2026-10-01=FAILED,2026-10-06=PENDING" ] && [ "$NST" -gt 0 ] && [ "$RCH" = "0" ] && echo 0 || echo 1)
+ else
+   res "P9_QUICK/P10_INJECT: only A0, the injection (if any) and the live guards (A13) run; the other checks are skipped"
+ batch_status() { python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/$1/B3_oracle_run_r5/.state.json'));print(','.join('%s=%s' % (d, b.get('status')) for d, b in sorted(st['batches'].items())))" 2>/dev/null; }
+ if [ -n "${P10_INJECT:-}" ]; then
+   # P10-B6: a REAL harness failure on the two-batch set leaves batch 1 FAILED with
+   # populated stage tables; record independent hashes, then (with
+   # P9_FORCE_FAIL_CHECK=30) the suite ends through its normal terminal path
+   printf "2026/10/01/800085\n2026/10/06/800018\n" > /tmp/r6_two.txt
+   SQL "SELECT no_rawat FROM ${FX}.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis NOT LIKE 'DR%' ORDER BY no_rawat LIMIT 10;" > /tmp/r6_p10_protected.txt
+   SQL "SELECT no_rawat FROM ${FX}.reg_periksa WHERE no_rawat LIKE '2026/10/%' AND no_rkm_medis LIKE 'DR%' AND no_rawat NOT IN ('2026/10/01/800085','2026/10/06/800018') ORDER BY no_rawat LIMIT 10;" >> /tmp/r6_p10_protected.txt
+   # P11-T2: independent PRE-OPERATION snapshot (before the injected run resets
+   # anything) of the sample visits' output rows, the protected visits and the
+   # live tables; the preservation check asserts restoration against THIS, not
+   # against a post-failure re-hash.
+   python3 /opt/Deers-Rock/tools/p10_hash_state.py ${FX} r6_p10 /tmp/r6_two.txt /tmp/r6_p10_protected.txt > /opt/dr-benchmark/p-chain/p11_preserve_preop.json 2> /tmp/r6_p10_preop.err
+   PREOP_RC=$?
+   freeze r6_p10 B3 --visits-file /tmp/r6_two.txt
+   env RUN_ID=r6_p10 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_p10.log 2>&1
+   RCI=$?
+   python3 /opt/Deers-Rock/tools/p10_hash_state.py ${FX} r6_p10 /tmp/r6_two.txt /tmp/r6_p10_protected.txt > /opt/dr-benchmark/p-chain/p10_preserve_pre.json 2> /tmp/r6_p10_hash.err
+   RCH=$?
+   cp /tmp/r6_two.txt /tmp/r6_p10_protected.txt /opt/dr-benchmark/p-chain/
+   NST=$(stage_count r6_p10); ST=$(batch_status r6_p10)
+   res "P10 injection: oracle exit=$RCI batches=$ST stage tables=$NST protected visits=$(wc -l < /tmp/r6_p10_protected.txt) pre-hash exit=$RCH pre-op-snapshot exit=$PREOP_RC"
+   check 30 "A30 injected real harness failure: batch 1 FAILED, batch 2 PENDING, populated stage tables held, independent pre-hashes AND pre-operation snapshot recorded" $([ "$RCI" = "4" ] && [ "$ST" = "2026-10-01=FAILED,2026-10-06=PENDING" ] && [ "$NST" -gt 0 ] && [ "$RCH" = "0" ] && [ "$PREOP_RC" = "0" ] && echo 0 || echo 1)
+ fi
+ fi
+
+# ---- P11: discriminating negative-control checks (self-contained; P11_ONLY=<ids>) ----
+if [ -n "${P11_ONLY:-}" ]; then
+ stage_cks_p11() { local t; t=$(SQL "SELECT GROUP_CONCAT(CONCAT('${FX}.', table_name) ORDER BY table_name) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5\_stage\_B3\_$1\_%';")
+   [ -n "$t" ] && [ "$t" != "NULL" ] && SQL "CHECKSUM TABLE $t EXTENDED" | awk '{print $2}' | tr '\n' ':'; }
+ if sel 28; then
+  echo "=== A28' P11: discriminating re-backup — a non-transactional (pre-P10) backup loses the earlier staged rows ==="
+  PFX28=r5_stage_B3_r6_a28p
+  printf "2026/10/01/800085\n2026/10/01/800128\n" > /tmp/r6_p11_a28.txt
+  freeze r6_a28p B3 --visits-file /tmp/r6_p11_a28.txt
+  # first backup: live rows are staged verbatim
+  env RUN_ID=r6_a28p $ORACLE --stage B3 --visits-file /tmp/r6_p11_a28.txt --freeze-only > /dev/null 2>&1
+  python3 - "$FX" r6_a28p <<'PY'
+import sys, os, json
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+os.makedirs(rd, exist_ok=True)
+nrs = open('/tmp/r6_p11_a28.txt').read().split()
+log = print
+o.stage_backup(nrs, fx, rd, log, rid, stage='B3', batch='2026-10-01')
+PY
+   C0P=$(stage_cks_p11 r6_a28p)
+   # between the first backup and the faulty retry: the live rows of the batch are CHANGED
+   # (then restored with the verified path is NOT needed here — the point is that live now
+   # differs from staged), so a NON-transactional re-backup would replace the staged rows
+   # with the changed live rows; the transactional one rolls back and C1 == C0.
+   SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
+    NO_TXN=${R5_NEGCTL_BACKUP_NO_TXN:-}
+    if [ -n "$NO_TXN" ]; then
+     # NC mode: re-backup runs as autocommit; the injected failure leaves the
+     # earlier staged rows destroyed -> stage checksums DIFFER from C0
+     env RUN_ID=r6_a28p R5_FAULT_BACKUP_FAIL=1 R5_NEGCTL_BACKUP_NO_TXN=1 python3 - "$FX" r6_a28p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a28.txt').read().split()
+try:
+    o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+except Exception as e:
+    print('A28p re-backup failed (NC autocommit): %s' % str(e)[:160])
+PY
+    else
+     env RUN_ID=r6_a28p R5_FAULT_BACKUP_FAIL=1 python3 - "$FX" r6_a28p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a28.txt').read().split()
+try:
+    o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+except Exception as e:
+    print('A28p re-backup rolled back (transactional): %s' % str(e)[:160])
+PY
+   fi
+   C1P=$(stage_cks_p11 r6_a28p)
+   # restore the live rows with the verified path so the fixture ends clean
+   python3 - "$FX" r6_a28p <<'PY'
+import sys, json, os
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a28.txt').read().split()
+o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+o.stage_drop(fx, rid, print, stage='B3')
+PY
+   # revert the live-row perturbation so later checks see the true state
+   SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
+   # Always assert the P11 property: a failed re-backup (regardless of mode) must leave
+   # the earlier staged rows intact, i.e. C0 == C1. Without the NC switch the re-backup is
+   # transactional and rolls back (C0 == C1 -> PASS). With R5_NEGCTL_BACKUP_NO_TXN the
+   # autocommit re-backup replaces the staged rows with the changed live rows (C0 != C1 ->
+   # the property check FAILS), which is exactly the discriminating evidence the handoff
+   # requires: the check FAILS when the property is removed.
+   res "A28' C0=$C0P C1=$C1P mode=${NO_TXN:+NC-autocommit}"
+   check 28 "A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchanged; with R5_NEGCTL_BACKUP_NO_TXN (autocommit) the live-row change leaks into the stage tables and this check FAILS" $([ -n "$C0P" ] && [ -n "$C1P" ] && [ "$C0P" = "$C1P" ] && echo 0 || echo 1)
+ fi
+ if sel 31; then
+  echo "=== A31 P11: snapshot coherence — immediately after a backup, hash(stage) == hash(live) ==="
+  PFX31=r5_stage_B3_r6_a31p
+  printf "2026/10/01/800085\n2026/10/01/800128\n" > /tmp/r6_p11_a31.txt
+  freeze r6_a31p B3 --visits-file /tmp/r6_p11_a31.txt
+    LATE=${R5_NEGCTL_HASH_FROM_LIVE_LATE:-}
+    if [ -n "$LATE" ]; then
+     # NC: the pre-P11 order hashed the LIVE tables (the oracle stores
+     # hash_source=live-late-NC when the switch is set). Simulate the drift the
+     # old order was vulnerable to: one live row changes between the stage-copy
+     # commit and the hashing, so the staged rows no longer equal the live
+     # tables, and the SAME coherence check FAILS.
+     env R5_NEGCTL_HASH_FROM_LIVE_LATE=1 python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+PY
+     HSTAGE=$(python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+pfx = o._stage_prefix(rid, 'B3')
+print(o._stage_content_hash(nrs, fx, pfx, print))
+PY
+)
+     # drift the live row AFTER the stage-copy commit (the pre-P11 order's
+     # vulnerability): hash(live) now differs from hash(stage)
+     SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
+     HLIVE=$(python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+print(o._content_hash(nrs, fx, print))
+PY
+)
+     # revert so the fixture ends clean
+     SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-1 WHERE no_rawat='2026/10/01/800085';"
+     res "A31' (NC live-late order) stage-hash=$HSTAGE live-hash=$HLIVE (drift between commit and hashing)"
+     # P11 property check (same in both modes): hash(stage) == hash(live);
+     # in NC mode the drift makes them differ, so the check FAILS
+     check 31 "A31' immediately after a backup, hash(stage) == hash(live) for the batch (snapshot coherence); with R5_NEGCTL_HASH_FROM_LIVE_LATE a live row drifted between commit and hashing, so hash(stage) != hash(live) and this check FAILS" $([ "$HSTAGE" = "$HLIVE" ] && [ -n "$HSTAGE" ] && echo 0 || echo 1)
+     python3 - "$FX" r6_a31p <<'PY'
+import sys, os
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+o.stage_drop(fx, rid, print, stage='B3')
+PY
+    else
+     python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+PY
+     HSTAGE=$(python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+pfx = o._stage_prefix(rid, 'B3')
+print(o._stage_content_hash(nrs, fx, pfx, print))
+PY
+)
+     HLIVE=$(python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+print(o._content_hash(nrs, fx, print))
+PY
+)
+     STORED=$(python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+h, prob = o.read_prereset_hash(nrs, rd, o._stage_prefix(rid, 'B3'), '2026-10-01')
+print(h if h else '')
+PY
+)
+     # unit-test: the two hash functions agree on identical data
+     python3 - "$FX" r6_a31p <<'PY'
+import sys
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+pfx = o._stage_prefix(rid, 'B3')
+assert o._stage_content_hash(nrs, fx, pfx, print) == o._content_hash(nrs, fx, print), \
+    "stage-hash and live-hash disagree on identical data"
+print('A31p stage-hash == live-hash on identical data (unit agreement)')
+PY
+     UNITRC=$?
+     # the P11 property: immediately after a backup the stored pre-reset hash
+     # (taken FROM the staged rows) equals hash(stage) AND hash(live)
+     check 31 "A31' immediately after a backup, hash(stage) == the stored pre-reset hash == hash(live) for the batch (snapshot coherence, the hash is computed FROM the staged rows), and the two hash functions agree on identical data" $([ "$HSTAGE" = "$HLIVE" ] && [ "$HSTAGE" = "$STORED" ] && [ -n "$HSTAGE" ] && [ "$UNITRC" = "0" ] && echo 0 || echo 1)
+     python3 - "$FX" r6_a31p <<'PY'
+import sys, os
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+fx, rid = sys.argv[1], sys.argv[2]
+nrs = open('/tmp/r6_p11_a31.txt').read().split()
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
+o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+o.stage_drop(fx, rid, print, stage='B3')
+PY
+    fi
+ fi
+ if sel 22b; then
+  echo "=== A22b P11: RETRY-REFUSED clears the stale restored flag (restored=False, restore_state=refused) ==="
+  PFX22B=r5_stage_B3_r6_a22bp
+  printf "2026/10/01/800085\n" > /tmp/r6_p11_a22b.txt
+  freeze r6_a22bp B3 --visits-file /tmp/r6_p11_a22b.txt
+  env RUN_ID=r6_a22bp R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_p11_a22b.txt > /tmp/r6_p11_a22b.log 2>&1
+  RC1P=$?
+  # drop the stage tables so the retry cannot restore -> RETRY-REFUSED
+  python3 -c "import sys;sys.path.insert(0,'/opt/Deers-Rock/tools');import sampled_real_form_diff_r5 as o;print(o.stage_drop('${FX}','r6_a22bp',print,stage='B3'))" > /dev/null 2>&1
+  SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
+  STALE=${R5_NEGCTL_KEEP_STALE_FLAG:-}
+  env RUN_ID=r6_a22bp ${STALE:+R5_NEGCTL_KEEP_STALE_FLAG=1} $ORACLE --stage B3 --visits-file /tmp/r6_p11_a22b.txt --retry-failed > /tmp/r6_p11_a22b_retry.log 2>&1
+  RC2P=$?
+  REF=$(cnt "RETRY-REFUSED" /tmp/r6_p11_a22b_retry.log)
+  RSTF=$(python3 -c "import json;st=json.load(open('/opt/dr-benchmark/results/r6_a22bp/B3_oracle_run_r5/.state.json'));print(','.join('%s:%s' % (str(b.get('restored')), str(b.get('restore_state', b.get('restored')))) for b in st['batches'].values()))" 2>/dev/null)
+  SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-1 WHERE no_rawat='2026/10/01/800085';"
+  res "A22b' refused=$REF restored_flags=$RSTF mode=${STALE:+NC-keep-stale}"
+  # the targeted check asserts the P11 property (stale flag cleared) in both modes;
+  # with R5_NEGCTL_KEEP_STALE_FLAG the old flag survives, so the assertion FAILS
+  check 22b "A22b' RETRY-REFUSED clears the stale flag: state shows restored=False, restore_state=refused, nothing re-billed" $([ "$REF" -ge 1 ] && [ "$RC1P" = "4" ] && [ "$RC2P" = "4" ] && echo "$RSTF" | grep -q "False:refused" && echo 0 || echo 1)
+ fi
 fi
-fi
+
 
 $DBXML restore >> /tmp/r6_dbxml.log 2>&1
 LIVE_LEDGER_POST=$(ledger_hash sik_bench)

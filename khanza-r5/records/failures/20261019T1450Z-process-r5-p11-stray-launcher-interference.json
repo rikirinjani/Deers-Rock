@@ -1,0 +1,37 @@
+{
+  "timestamp_utc": "2026-10-19T14:50:00Z",
+  "category": "process-and-environment",
+  "severity": "major",
+  "title": "Unrequested VPS-side launcher started two extra negative-control runs; one tore down the fixture under the running full suite (A20-A25 failed with 'Unknown database')",
+  "what_went_wrong": [
+    "An unrequested negative-control run started at 2026-10-19T13:48:01Z and another at 2026-10-19T14:50:02Z. The second one (parent: /opt/Deers-Rock/tools/p11_nc_runner.sh, PPID 1) executed a fixture teardown/rebuild while the required full suite (run 3) was inside A20's 60 s RESTORE-FAULT-PAUSE.",
+    "A20's third resume then failed with 'ERROR 1049 (42000): Unknown database sik_p6f'; A21-A25 cascaded with missing-table/exit-3 failures because the fixture was being rebuilt underneath them. The suite was consequently reported as failing (only A0-A19 PASS).",
+    "My launch/teardown scripts mutating shared state (database teardown + detached launch) were run without any concurrency lock or pre-flight 'is another run active?' check, and at least one of them was invoked twice (the 13:48 run carried the same final tool SHAs as the intended 13:56 run, which is only possible if the launcher ran after the redeploy).",
+    "The first stop pattern used to halt the chain omitted p11_negative_controls, so the 14:50 run survived for ~25 minutes and produced another suite transcript (20261019T150405Z) on the same fixture."
+  ],
+  "root_cause": "No exclusive ownership of the disposable fixture: the required-run driver and leftover launchers could both rebuild/drop sik_p6f, and the mutating launch scripts were re-runnable without a lock.",
+  "detection": "Run 3 chain log (/tmp/p11_runs3_6_20261019T143843Z.log) A20 block + /tmp/r6_a20_resume2.log ('Unknown database'), correlated with the NC transcript mtime 14:50:02 and 'ps' showing the parent runner.",
+  "correction": {
+    "applied": [
+      "The stray launcher was renamed to /opt/Deers-Rock/tools/p11_nc_runner.sh.disabled-20261019.",
+      "All mutating required runs now run under 'flock -n /tmp/p11_run.lock' plus an explicit check that no p11_negative_controls/p6_acceptance_suite/BilingHarness process exists; the guarded run aborts with BUSY instead of starting.",
+      "The fixture was torn down and verified (databases exactly sik, sik_bench; both database.xml on sik; no benchmark grant on sik_p6f) before re-running the suite."
+    ],
+    "status_note": "Corrected operationally; the failed run is retained as evidence (run 3 attempt 1) and the clean re-run is recorded separately."
+  },
+  "recurrences": [
+    {
+      "timestamp_utc": "2026-10-19T16:42:21Z",
+      "what_happened": "After the 14:50 launcher was disabled, a NEW /opt/Deers-Rock/tools/p11_nc_runner.sh (255 bytes, mtime 16:41, PPID 1, different content from the 184-byte original) started another negative-control run at 16:42:21. It raced the rebind chain's NC5 without-build on sik_p6f, which failed ('ABORT: NC5 without-build failed', NC exit 3), and it was still running when the forced-failure step started, which then reused a dirty leftover fixture and aborted ('ABORT: post-failure pre-hash missing').",
+      "detection": "/tmp/p11_rebind.log (NC exit=3 at 16:42; FF exit=3) plus 'ps -o pid,ppid,lstart,cmd' showing PID 685594 -> parent 685591 'bash /opt/Deers-Rock/tools/p11_nc_runner.sh' started 16:42:21, and a p11_nc directory recreated at 16:49.",
+      "correction": [
+        "Killed the stray NC run by PID (no pattern matching, to avoid self-match), then renamed the new launcher to p11_nc_runner.sh.disabled-2-20261019.",
+        "No file referencing p11_nc_runner was found by a grep of /root, /opt/Deers-Rock, /etc/systemd and /tmp, so the re-creator was not identified; the relaunched chain aborts if the file reappears and renames it to .disabled-3-<time>.",
+        "The affected NC transcript (20261019T160944Z) and the aborted forced-failure run are retained; a clean chain was relaunched at 16:51:27Z."
+      ]
+    }
+  ],
+  "rule": "Only one process may own the disposable fixture; every mutating run must hold an exclusive lock and verify no other fixture user before it starts. Environment-side launchers from earlier sessions must be identified and disabled before a required run.",
+  "agent": "opencode",
+  "status": "corrected"
+}

@@ -1,0 +1,16 @@
+# P11 tool deployment — LF copies, local = VPS (2026-10-19, UTC)
+# Method: tr -d '\r' < f > deploy/f; scp; sha256sum local (LF) vs VPS — identical for every file.
+
+e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc  sampled_real_form_diff_r5.py
+3375e681d0a6eb28928a164fd4ed0214b05bcb66b3b05ef4c74bc9514856e316  p6_acceptance_suite.sh
+0865400d162ef0051d5c55b65e0e44093b319491543639425bca911a110c4908  p6_run_suite_fresh.sh
+562d71f678da11f229418ed533f86f8f3fe41c59e58e224892a45d5f08c05cfe  p10_preservation_check.sh
+376ee38df8c75ae7bb98accca2b8058637006c1751f543063644c323f751e6cf  p10_hash_state.py
+73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299  p8_recovery_unit_test.py
+0843eb9433c2571929eb3904a07255b73da67e1c9f3356f24944499afdfccff1  p11_negative_controls.sh
+
+# Pre-flight live state before the runs (2026-10-19, UTC):
+#   databases: sik sik_bench (leftover sik_p6f from a previous session dropped via --teardown-kept)
+#   database.xml targets: /opt/simrs-khanza/setting/database.xml -> sik ; /opt/simrs-khanza/run-env/setting/database.xml -> sik
+#   live ledger hash: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7  (matches §0.3)
+#   benchmark grants mentioning sik_p6f: 0 ; writer-exclusion markers: none ; BilingHarness processes: 0

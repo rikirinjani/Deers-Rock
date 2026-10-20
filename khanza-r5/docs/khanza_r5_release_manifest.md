@@ -1,6 +1,6 @@
 # R5-P4 Release Packaging Manifest (D3, agent-runnable slice)
 
-Date: 2026-10-14 UTC (P5 tool-SHA update 2026-10-15; P6 re-pin 2026-10-16; P8 + P9 + P10 re-pins 2026-10-18) · Author: orchestrator (solo, no subagents)
+Date: 2026-10-14 UTC (P5 tool-SHA update 2026-10-15; P6 re-pin 2026-10-16; P8 + P9 + P10 re-pins 2026-10-18; P11 re-pin 2026-10-19) · Author: orchestrator (solo, no subagents)
 Task: `C:\Users\think\khanza_r5_task_p4_agentblock.md` · Deliverable 5 of 6.
 
 This is the agent-runnable part of D3: tag + pin + manifest. The DOI-Zenodo
@@ -24,25 +24,44 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 
 | Tool | SHA-256 |
 |---|---|
-| `sampled_real_form_diff_r5.py` (P5–P9 + P10: complete source-content hash; transactional stage backup; quiet interval before a FAILED retry; writer exclusion on fixture restores with a durable marker and recovery; per-batch restore state in the result file) | `c3bdd2d62933c44ec2c9ea85cc97143d6b8a68e392a2c346039a046e545b0adf` |
+| `sampled_real_form_diff_r5.py` (P5–P10 + P11: complete source-content hash; transactional stage backup; quiet interval before a FAILED retry; writer exclusion on fixture restores with an atomic/fsynced marker and fail-closed recovery; pre-reset hash computed from the staged rows; RETRY-REFUSED clears the restored flag; per-batch restore state in the result file; test-only `R5_NEGCTL_*` switches, inert unless set) | `e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc` |
 | `dbutil.py` (P5-5b split + P6-3 `session()` single-session transaction; `query/scalar(force_root=)`) | `f85958b4213e43db34bfd7a09089b094334b21312ec68a19692553a9d88f40b0` |
 | `charge_delta_per_component_p2.py` (P2 + P4 line-diff; §17 `--window ALL` = whole DR cohort) | `584e36c57e467e46f9cf3e7e3f7b8a923960fd5c811ee17073d10d8d4e63c753` |
 | `three_count_reconcile_p2.py` (P2 independent B; §17 ALL scope; P7 exit contract (0 for PASS/PARTIAL) + working `--verify-form-save`; P8 Decimal half-up for paid sums) | `3f6ca5203b20e8c04b810191ecb5b3112091750e7e8ef0646ba598adab740fcf` |
 | `build_dr_charge_ledger_p2.py` (P6-3 single-session replace; §17 ALL scope; P7 exact integer tax; P8 delete scope = window AND cohort, Decimal half-up; P10 a NULL/empty/non-numeric amount fails the build) | `2a4a1c48b6ee1423626a9988f6d505a94fd8802d5b639b492f19fead2ee22234` |
-| `p6_acceptance_suite.sh` (P10: 39 checks incl. A26–A29, A31; `P10_INJECT` for the preservation check) | `8b89d431c446cf907f2880cf88873b9692a61b4a465500ec92073bde3a5e0d71` |
+| `p6_acceptance_suite.sh` (P10: 39 checks incl. A26–A29, A31; `P10_INJECT` for the preservation check. P11: discriminating A28'/A31'/A22b extensions, pre-operation snapshot in `P10_INJECT`, `P11_ONLY` selective mode) | `7ecb20ef7bdcf615bbf832c6d3f48c05fde05b8eafa581a515d53e20e5ab5365` |
 | `p6_dbxml.py` (verified `database.xml` retarget/restore) | `469c698e01fb95eba09714e78de096eaa4625fc47814c4055743a6973c0225a9` |
-| `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown; P9: keeps the fixture when the suite fails, `--teardown-kept`) | `2e6097be969f29acf20f4c65e2cecdc3e4436397ff769328574d58b05a55e356` |
+| `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown; P9: keeps the fixture when the suite fails, `--teardown-kept`; P11: forwards `P11_ONLY`/`R5_NEGCTL_*`/`P11_FORCE_FAIL`) | `0865400d162ef0051d5c55b65e0e44093b319491543639425bca911a110c4908` |
 | `p6_strata_recheck.sh` (§17 edge-strata re-check on a verified target) | `1fdc29cbec027131021b34ea5787b8508686fdb2276ebd27a02d52703b191e7b` |
 | `p7_ledger_rebuild.sh` (live ledger backup + rebuild + gates, owner-approved) | `6a9233d6d0778fd98fd9bf002e770f69f8d8c4910310eed6c8dfe7201f168d03` |
 | `p7_write_provenance.sh` (audited form run: who writes billing) | `70f3f1fbcd6927421d4bdec4c115c585489d2461a5c0fd6c9a4fcd4fd60d9f1c` |
 | `p7_tax_rule_check.py` (consumer vs integer tax rule over all subtotals; P8: exits 1 on any defect, detects duplicate tax rows, `--db`) | `049e76809111038971140139404061db73d913db42272d95f866862a1e453c0f` |
-| `p8_recovery_unit_test.py` (P8–P10 recovery decisions with the DB mocked, 26 cases) | `345bc6ae011d1e73670a74972814cd58d885969f74575f8cef57c12837e17b38` |
-| `p10_hash_state.py` (P10 independent hashes: stage tables, sample, protected visits, live sik) | `8bf6c811ddcbd368db44ef607f48d552f1ed3c3f6954dfaa772ed7529b7b67ca` |
-| `p10_preservation_check.sh` (P10 integrated recovery-preservation experiment through the wrapper) | `7d05ef23b9f676032488a991f37030725b8b29543965462161cd7ad4ce7edbcb` |
+| `p8_recovery_unit_test.py` (P8–P11 recovery decisions with the DB mocked, 33 cases: malformed/valid/crash marker, old fail-open path by monkeypatch, stage-vs-live hash agreement) | `73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299` |
+| `p10_hash_state.py` (P10 independent hashes: stage tables, sample, protected visits, live sik; P11: a missing table, NULL checksum or empty inventory is an error with a non-comparable `ERROR:<table>` value, strict `--stage-tables-list` inventory assertion) | `d59b18fb4bc3c92a6e9373c4104739fd1ef9f60f3ab126ea385628889a559daa` |
+| `p10_preservation_check.sh` (P10 integrated recovery-preservation experiment through the wrapper; P11: pre-operation baseline with separate (a)/(b)/(c) assertions, asserted perturbation row count, EXIT trap, keep-on-failure, `P11_FORCE_FAIL`) | `e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678` |
+| `p11_negative_controls.sh` (P11: runs each check twice, with and without its `R5_NEGCTL_*` switch, and exits 0 only if every NC is DISCRIMINATING) | `a3f44721c23f1cf2d4465037889a660214eb73a010d205200eec8cde4344b5f3` |
 | `p8_builder_all_check.sh` (builder `--window ALL` into an empty scratch ledger must reproduce the live ledger; P9: exits 1 on a difference, `P9_PLANT_MISMATCH` test hook) | `4d9118a586605e02f53d80a91f7b7ff797977e51157a4b19a53c93342bb96878` |
 | `p9_terminal_path_check.sh` (P9: forced real-check failure through the wrapper → exit 1, fixture kept, then `--teardown-kept`) | `63f4dcc45692a93ca7c8cf4eaea317f478dc51558126b2a06e10d5c4c4223372` |
 | `p7_three_count_contract_test.py` (three_count exit-code contract) | `3857538f01eb1a927e2d47e4ba3ab07e1b191450caec4430178c37862723466a` |
 
+> P11 (2026-10-19/20) re-pins the oracle (`c3bdd2d6…`→`e2c1d2f9…`), suite (`8b89d431…`→`7ecb20ef…`),
+> wrapper (`2e6097be…`→`0865400d…`), unit test (`345bc6ae…`→`73b6468f…`), `p10_hash_state.py`
+> (`8bf6c811…`→`d59b18fb…`), `p10_preservation_check.sh` (`7d05ef23…`→`e5d39756…`) and adds
+> `p11_negative_controls.sh` (`a3f44721…`). Builder, dbutil, three_count and tax check unchanged.
+> Local (LF) and VPS hashes verified identical for all seven. The P11 builder still reproduces the
+> pinned ledger content `a66a3a54…` byte-identically. See R5 §22.
+>
+> **The P11 pins were frozen before the final required runs.** Earlier P11 values — suite
+> `3375e681…` then `3559e5ce…`, preservation `9c0e8f3a…` then `8de03df0…`, NC script
+> `16097c08…` — were superseded during the day and are **not** reproducible artifacts: those
+> bytes no longer exist, so runs made against them cannot be bound to this manifest. The seven
+> frozen files carry `chattr +i` on the VPS and are snapshotted with a `FROZEN.sha256` manifest
+> (`/opt/Deers-Rock/tools/p11_frozen_20261019/`); every required run re-executed after the freeze
+> verifies `sha256sum -c FROZEN.sha256` before and after. A second agent session shared this
+> working tree and the VPS during P11 and rewrote the tools mid-run; that is recorded in
+> `records/failures/20261019T2135Z-process-r5-p11-concurrent-writer-evidence-unbinding.json`
+> and is why the pins, not the run order, are the reproducibility anchor.
+>
 > P10 (2026-10-18) re-pins the oracle (`8e0cca5b…`→`c3bdd2d6…`), builder (`736506c3…`→`2a4a1c48…`),
 > suite (`9ae16c46…`→`8b89d431…`) and unit test (`3bda6882…`→`345bc6ae…`); adds
 > `p10_hash_state.py` and `p10_preservation_check.sh`. The P10 builder reproduces the pinned

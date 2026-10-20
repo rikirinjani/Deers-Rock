@@ -14,9 +14,23 @@
   "detection": "Astra v10 (gpt-6-astra run 4918967); each item re-verified against the source by the orchestrator on 2026-10-18.",
   "correction": {
     "planned": "P11: negative controls (break the rollback / skip the immediate restore and show the check FAILS); pre-operation snapshot; reject NULL checksums; assert perturbation counts; EXIT trap and keep-on-failure in the check; fsync + fail-closed marker; correct §21 wording (strike-through).",
-    "status_note": "Not yet corrected; recorded for the next wave (evidence/astra_v10_4918967_NOTE.md)."
+    "status_note": "Corrected in P11 on 2026-10-19/20. Evidence below; the P11 run set was executed against a frozen tool byte set (FROZEN.sha256 + chattr +i)."
   },
+  "done": {
+    "item_1_A28": "A28' makes the live rows differ from the staged rows between the first backup and the faulty retry. discriminating: with R5_NEGCTL_BACKUP_NO_TXN the check FAILS, without it PASSES (evidence/p11/r5_p11_nc1_clean_20261020T010740Z.log); A28 PASS in r5_p6_acceptance_20261019T212302Z_FROZEN_39PASS.md.",
+    "item_2_baseline": "p10_preservation_check.sh and the suite's P10_INJECT block take a pre-operation snapshot before the injected run and assert (a) immediate restoration, (b) stage preservation, (c) protected + live after the retry, separately (r5_p10_preservation_20261019T210238Z_NC5WITHOUT_PASS.md: 'PRESERVATION-RESULT a(sample-immediate)=EQUAL b(stage-preservation)=EQUAL c(protected-live)=EQUAL'); NC2: with R5_NEGCTL_SKIP_IMMEDIATE_RESTORE the check FAILS (2), without it PASSES.",
+    "item_3_hash": "p10_hash_state.py exits 1 on a missing table, NULL checksum or empty inventory with a non-comparable ERROR:<table> value, and asserts the expected stage-table list (--stage-tables-list). Dropping one stage table on the kept fixture fails the preservation check (NC5: with=FAIL(2), without=PASS).",
+    "item_4_perturbation_trap": "The perturbing UPDATE now asserts its changed-row count; an EXIT trap always restores database.xml and revokes the fixture grant; a failed assertion keeps the fixture and prints the teardown command. Forced failure (P11_FORCE_FAIL=2): one FAIL line, 'fixture sik_p6f is KEPT', keep-path PASS, 'PRESERVATION-CHECK FAIL (1)' (r5_p10_preservation_20261019T210740Z_FORCEFAIL_FAIL1_PASS.md).",
+    "item_5_marker_and_wording": "Marker written temp+fsync+os.replace; malformed/unreadable marker fails closed (kept, exit 3, 'WRITER-EXCLUSION marker unreadable') with --recover-grants; the old fail-open path is shown by monkeypatch (unit test, 33/33). R5 §21 corrected with the numbers re-derived from evidence/p11/r5_p11_preserve_after_fail_20261019T2111Z.json (13 tables, 21 rows total, 5 non-empty, protected_n 20); 'crash-safe' now names the one tested fault placement; A10e's orphan-row scope stated."
+  },
+  "verification": {
+    "frozen_byte_set": "p6_acceptance_suite.sh 7ecb20ef7bdc..., p6_run_suite_fresh.sh 0865400d162e..., sampled_real_form_diff_r5.py e2c1d2f93187..., p10_hash_state.py d59b18fb4bc3..., p10_preservation_check.sh e5d39756de39..., p11_negative_controls.sh a3f44721c23f..., p8_recovery_unit_test.py 73b6468f1bfb... (FROZEN.sha256; sha256sum -c OK before and after each run)",
+    "runs": "unit 33/33; NC 5/5 DISCRIMINATING across two invocations (NC1 clean re-run after a foreign fixture invalidated the first); full suite PASS=39 FAIL=0 exit 0; preservation PASS; builder exit 0 reproducing 356355:a66a3a54...; live proof ledger 356355:a66a3a54..., both database.xml on sik, 0 markers, 0 grants",
+    "qms": "records/qms/VER-2026-10-19-DR-KHANZA-R5-P11-001.json",
+    "report": "docs/khanza_benchmark_report_R5.md §22"
+  },
+  "residual": "AC-9 as written (one uncontended NC invocation returning 5/5) is partial; the NC driver reuses an existing fixture, which let a foreign fixture invalidate NC1. Recorded in the QMS record's findings and in R5 §22.",
   "rule": "A check is only evidence for a property if it has been shown to FAIL when that property is removed (a negative control); 'populated', 'crash-safe' and similar words must be re-derived from the actual counts and the fault cases actually run.",
   "agent": "orchestrator",
-  "status": "open"
+  "status": "corrected"
 }

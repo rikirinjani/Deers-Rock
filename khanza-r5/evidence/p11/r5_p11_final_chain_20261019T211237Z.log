@@ -1,0 +1,37 @@
+date-utc: Mon Oct 19 08:59:08 PM UTC 2026
+
+== TD cleanup 20:59:08Z ==
+td exit=0
+TEARDOWN-KEPT: sik_p6f dropped
+teardown: databases now: sik sik_bench 
+
+== NC5-without: fresh kept fixture + preservation check 20:59:34Z ==
+build exit=3
+mysqldump: Got errno 32 on write
+teardown: databases now: sik sik_bench 
+preserve exit=0
+PRESERVATION-CHECK PASS
+P11-T7 exit-trap: database.xml targets: sik  · benchmark grant on sik_p6f: 0
+
+== FORCED-FAIL T7 21:07:40Z ==
+FF exit=1
+- **FAIL**: perturbation row count asserted: the UPDATE changed exactly the number of rows counted before it (17)
+P11-T7: 1 assertion(s) failed — the fixture sik_p6f is KEPT (no --teardown-kept); inspect it, save evidence, then:
+- PASS: database.xml back on sik (sik ); benchmark grant on sik_p6f removed (P11-T7 keep-on-fail path)
+PRESERVATION-CHECK FAIL (1)
+P11-T7 exit-trap: database.xml targets: sik  · benchmark grant on sik_p6f: 0
+
+== TD after force-fail 21:12:09Z ==
+td exit=0
+TEARDOWN-KEPT: sik_p6f dropped
+teardown: databases now: sik sik_bench 
+
+== LIVE proof 21:12:34Z ==
+databases: information_schema mysql performance_schema sik sik_bench sys 
+dbxml:
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+writer-exclusion files: 0
+benchmark grants on sik_p6f: 0
+CHAIN DONE 21:12:37Z

@@ -1,0 +1,63 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-19-DR-KHANZA-R5-P11-001",
+  "date": "2026-10-19",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5-P11: discriminating recovery checks with negative controls (T1-T8), executed against a frozen byte set",
+  "task_doc": "C:\\Users\\think\\Project_v2\\Deers-Rock\\khanza-r5\\docs\\khanza_r5_task_p11_negative_controls.md",
+  "trigger": "Astra v10 (gpt-6-astra run 4918967, 63/100 'Needs targeted rework'); closes failure record 20261018T1630Z",
+  "byte_set": {
+    "frozen_at_utc": "2026-10-20T00:21:00Z",
+    "mechanism": "chattr +i on the seven tool files on the VPS; snapshot + FROZEN.sha256 in /opt/Deers-Rock/tools/p11_frozen_20261019/; sha256sum -c verified before and after every run",
+    "manifest": "khanza-r5/evidence/p11/r5_p11_frozen_manifest_20261020.sha256"
+  },
+  "tool_sha256": {
+    "p6_acceptance_suite.sh": "7ecb20ef7bdcf615bbf832c6d3f48c05fde05b8eafa581a515d53e20e5ab5365",
+    "p6_run_suite_fresh.sh": "0865400d162ef0051d5c55b65e0e44093b319491543639425bca911a110c4908",
+    "sampled_real_form_diff_r5.py": "e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc",
+    "p10_hash_state.py": "d59b18fb4bc3c92a6e9373c4104739fd1ef9f60f3ab126ea385628889a559daa",
+    "p10_preservation_check.sh": "e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678",
+    "p11_negative_controls.sh": "a3f44721c23f1cf2d4465037889a660214eb73a010d205200eec8cde4344b5f3",
+    "p8_recovery_unit_test.py": "73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299"
+  },
+  "evidence": [
+    "khanza-r5/evidence/p11/r5_p11_unit_test_frozen_20261020T003254Z.log (33/33, UNIT-EXIT=0)",
+    "khanza-r5/evidence/p11/r5_p11_negative_controls_20261020T003440Z_4of5_NC1-CONTAMINATED.md (NC2-NC5 DISCRIMINATING; NC1 invalid: foreign fixture reused)",
+    "khanza-r5/evidence/p11/r5_p11_nc1_clean_20261020T010740Z.log (NC1 with=FAIL without=PASS on a fresh fixture)",
+    "khanza-r5/evidence/p11/r5_p6_acceptance_20261019T212302Z_FROZEN_39PASS.md + r5_p6_logs_20261019T212302Z.tgz (PASS=39 FAIL=0, exit 0)",
+    "khanza-r5/evidence/p11/r5_p10_preservation_20261019T210238Z_NC5WITHOUT_PASS.md (PRESERVATION-CHECK PASS)",
+    "khanza-r5/evidence/p11/r5_p10_preservation_20261019T210740Z_FORCEFAIL_FAIL1_PASS.md (forced failure: exactly one FAIL, fixture kept, PRESERVATION-CHECK FAIL (1))",
+    "khanza-r5/evidence/p11/r5_p11_chain_nc_builder_live_20261020T010017Z.log (builder exit 0, INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER)",
+    "khanza-r5/evidence/p11/r5_p11_live_state_frozen_20261020T0120Z.txt and r5_p11_live_final_20261019T211234Z.txt (ledger 356355:a66a3a54..., 0 markers, 0 grants)",
+    "khanza-r5/evidence/p11/r5_p11_frozen_manifest_20261020.sha256",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md section 22",
+    "khanza-r5/docs/khanza_r5_release_manifest.md (P11 re-pin to the frozen set)"
+  ],
+  "checks": [
+    "T1 A28' transactional re-backup is discriminating (R5_NEGCTL_BACKUP_NO_TXN) - PASS",
+    "T2 pre-operation baseline, separate (a)/(b)/(c) assertions (R5_NEGCTL_SKIP_IMMEDIATE_RESTORE breaks (a)) - PASS",
+    "T3 hash inventory: missing/NULL/empty is an error, expected list asserted, dropped table fails the check - PASS",
+    "T4 marker atomic+fsync, malformed fails closed and is kept, old fail-open path shown by monkeypatch - PASS",
+    "T5 RETRY-REFUSED clears the stale restored flag (R5_NEGCTL_KEEP_STALE_FLAG) - PASS",
+    "T6 pre-reset hash from the staged rows; stage/live hash agreement unit test; NC makes it disagree - PASS",
+    "T7 perturbation row count asserted; EXIT trap restores database.xml and revokes the grant; forced failure keeps the fixture - PASS",
+    "T8 R5 section 21 wording corrected and re-derived from the JSON inventory (13 tables / 21 rows / 5 non-empty; protected_n 20) - PASS",
+    "AC-9 one uncontended NC invocation returning 5/5 - PARTIAL (5/5 across two invocations; the first run's NC1 was invalidated by a foreign fixture, see findings)"
+  ],
+  "findings": [
+    "A second agent session on the same machine, sharing this working tree and the VPS, developed the same tooling concurrently and rewrote tools mid-run (three tools at 21:02:19Z, 19 s before an evidence run). Sixteen-plus P11 runs between 17:00 and 20:50Z are not attributable to this stream and disagree with it on NC results. The byte set was therefore frozen and every required run re-executed afterwards. Failure record 20261019T2135Z.",
+    "NC1 in the first frozen-byte NC run was invalidated by a foreign sik_p6f fixture re-created 46 s after a teardown; the NC driver reuses an existing fixture. A clean re-run discriminates. The driver's fixture-reuse behaviour is a latent defect and is not fixed in the frozen candidate.",
+    "An ad-hoc live-proof hash computed by this stream used a tab join and printed 356355:424624d9...; the canonical pipe-join recipe gives 356355:a66a3a54... on the same data. No live change; the wrong value was discarded, not reported as a state change.",
+    "Earlier P11 evidence (NC 5/5 at 13:56Z, suite 39/39 at 15:10Z, preservation PASS at 15:32Z) was produced by tool bytes that no longer exist; it is retained in evidence/p11/ but not relied on."
+  ],
+  "live_state_post": "databases sik, sik_bench; both database.xml copies on sik; ledger 356,355 rows, content a66a3a54...; no .writer_exclusion_* marker; no benchmark grant on sik_p6f. Note: at 01:21:07Z the other session had re-created sik_p6f with a benchmark grant; the clean point immediately after this stream's last mutating run (01:07:40Z) and the 21:12:34Z proof are the evidence, both quoted in section 22.",
+  "open_items": [
+    "A single uncontended full negative-control invocation (AC-9 as written)",
+    "Fix the NC driver's fixture reuse so each arm starts from a known state",
+    "Concurrent-overlap isolation; fault modes not injected (power loss, MySQL crash, disk full, writer ignoring SIGKILL)",
+    "Reproducibility closure; matched-encounter B-C reconciliation; C1-C4",
+    "Unfreeze the VPS tool files (chattr -i) before any further tool change"
+  ],
+  "result": "PARTIAL: T1-T8 and required runs 1, 3, 4, 5, 6 PASS against the frozen byte set; run 2 is 5/5 DISCRIMINATING across two invocations (AC-9 partial), because a foreign fixture invalidated NC1 in the single full run",
+  "verifier": "orchestrator solo stream (no subagents); local (LF) and VPS tool hashes verified identical for the frozen set; sha256sum -c before and after every required run"
+}

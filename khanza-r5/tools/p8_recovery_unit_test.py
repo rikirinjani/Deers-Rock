@@ -173,5 +173,115 @@ expect("C2 writers gone, fenced, output quiet -> proof",
        o.reap_writers(st, rd, "sik_p6f", log, [BATCH], 0), True, "WRITER-DEAD-PROOF (resume, P8-C2)")
 expect("C2 pid file removed only after the proof", os.path.exists(pidf), False)
 
+# ---- P11-T4 marker crash-safety (atomic write + fail-closed + operator fallback) ----
+MARKER = o._exclusion_marker("fx")
+
+# (a) malformed / truncated marker -> refuse, marker KEPT, nothing granted (fail-closed)
+with open(MARKER, "w") as f:
+    f.write('{"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pi')  # truncated JSON
+del EXEC[:]
+rm = o.recover_writer_exclusion("fx", log)
+expect("T4 malformed marker -> refuse (False), marker KEPT, no GRANT issued (fail-closed)",
+       (rm, os.path.exists(MARKER), [x.split(" ON ")[0] for x in EXEC if x.startswith("GRANT")]),
+       (False, True, []), "WRITER-EXCLUSION marker unreadable")
+
+# (b) a valid marker of a dead process -> grants the recorded privs back, marker removed
+with open(MARKER, "w") as f:
+    json.dump({"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pid": 999999}, f)
+del EXEC[:]
+rm = o.recover_writer_exclusion("fx", log)
+expect("T4 valid marker of a dead process -> grants back, marker removed",
+       (rm, [x.split(" ON ")[0] for x in EXEC if x.startswith("GRANT")], os.path.exists(MARKER)),
+       (True, ["GRANT DELETE, INSERT, UPDATE"], False), "WRITER-EXCLUSION recovered")
+
+# (c) a marker whose recorded privs disagree with the operator's expectation -> refuse
+with open(MARKER, "w") as f:
+    json.dump({"db": "fx", "privs": ["INSERT"], "pid": 999999}, f)
+del EXEC[:]
+rm = o.recover_writer_exclusion("fx", log, expected_privs=["DELETE", "INSERT", "UPDATE"])
+expect("T4 marker records INSERT only, operator expects D,I,U -> refuse (fail-closed)",
+       (rm, os.path.exists(MARKER)), (False, True), "refusing to proceed")
+
+# (d) operator fallback: unreadable marker + --recover-grants grants the expected set back
+with open(MARKER, "w") as f:
+    f.write('{"db": "fx", "privs": ["DELETE", "INS')  # truncated again
+del EXEC[:]
+rg = o._recover_grants_expected("fx", log, "DELETE,INSERT,UPDATE")
+expect("T4 operator --recover-grants D,I,U on a fixture -> grants back, marker cleared",
+       (rg, [x.split(" ON ")[0] for x in EXEC if x.startswith("GRANT")], os.path.exists(MARKER)),
+       (True, ["GRANT DELETE, INSERT, UPDATE"], False), "recover-grants")
+
+# (e) the pre-P11 fail-open path, shown by monkeypatching the old behaviour: an
+#     unreadable marker was read as {} -> nothing granted and the marker DELETED.
+old_recover = o.recover_writer_exclusion
+def old_recover_fail_open(db, log, expected_privs=None):
+    mp = o._exclusion_marker(db)
+    if not os.path.exists(mp):
+        return True
+    try:
+        m = json.load(open(mp))
+    except Exception:
+        m = {}
+    privs = [p for p in (m.get("privs") or []) if p in ("INSERT", "UPDATE", "DELETE")]
+    if privs:
+        dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, o.BENCH_ACCOUNT))
+    os.remove(mp)
+    return True
+with open(MARKER, "w") as f:
+    f.write('{"db": "fx", "privs": ["DELETE", "INS')  # truncated
+del EXEC[:]
+rm_old = old_recover_fail_open("fx", log)
+expect("T4 OLD behaviour (monkeypatched fail-open): unreadable marker -> grants nothing, DELETED",
+       (rm_old, os.path.exists(MARKER), [x.split(" ON ")[0] for x in EXEC if x.startswith("GRANT")]),
+       (True, False, []))
+# restore the real (P11) recover function for any later code
+o.recover_writer_exclusion = old_recover
+# and prove the NEW code (fail-closed) refuses the same marker the old code deleted
+with open(MARKER, "w") as f:
+    f.write('{"db": "fx", "privs": ["DELETE", "INS')
+rm_new = o.recover_writer_exclusion("fx", log)
+expect("T4 NEW behaviour: the same unreadable marker is REFUSED and KEPT (no fail-open)",
+       (rm_new, os.path.exists(MARKER)), (False, True), "WRITER-EXCLUSION marker unreadable")
+
+# ---- P11-T6 stage-hash / live-hash coherence (two functions agree on identical data) ----
+# _content_hash (live tables) and _stage_content_hash (stage tables) must give the
+# SAME digest when the stage tables hold the same rows as the live tables — which is
+# the invariant right after a stage_backup. The earlier monkeypatch that made
+# _content_hash return GOOD is replaced here with the real function imported via
+# a fresh import (importlib.reload is overkill; a second import of the module
+# gives us the original, un-mocked names), and dbutil.query is mocked to return
+# identical rows whether the query targets a live table or its staged variant.
+CAPTURED_ROWS = [
+    ["2026/10/01/800085", "Obat", "1000", "1", "1000"],
+    ["2026/10/01/800085", "Prosedur", "500", "1", "500"],
+    ["2026/10/01/800128", "Obat", "2000", "1", "2000"],
+]
+CAPTURED_REG = [
+    ["2026/10/01/800085", "Belum Bayar"],
+    ["2026/10/01/800128", "Belum Bayar"],
+]
+def _coherent_query(db, sql, **k):
+    # Same rows whether the table is live or the staged variant; same for reg.
+    if "status_bayar" in sql and "SELECT no_rawat" in sql:
+        return CAPTURED_REG
+    return CAPTURED_ROWS
+# Restore the REAL _content_hash by reloading the module in a fresh namespace:
+# the earlier monkeypatch replaced o._content_hash with a lambda, so we import
+# the source directly and pull the original function out of it.
+import importlib.util as _ilu, hashlib as _h, json as _j, os as _os
+_spec = _ilu.spec_from_file_location(
+    "srfdr5_real", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                                  "sampled_real_form_diff_r5.py"))
+_real = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_real)
+orig_query = o.dbutil.query
+o._content_hash       = _real._content_hash
+o._stage_content_hash = _real._stage_content_hash
+o.dbutil.query        = _coherent_query
+h_live  = o._content_hash(NRS, "fx", log)
+h_stage = o._stage_content_hash(NRS, "fx", pfx, log)
+o.dbutil.query        = orig_query
+expect("T6 _content_hash (live) and _stage_content_hash (staged) agree on identical data",
+       h_live, h_stage)
+
 print("P8/P9 recovery unit test: %d/%d cases %s" % (total - bad, total, "PASS" if bad == 0 else "FAIL"))
 sys.exit(0 if bad == 0 else 1)

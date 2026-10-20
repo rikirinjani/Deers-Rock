@@ -1,0 +1,26 @@
+{
+  "timestamp_utc": "2026-10-19T15:15:00Z",
+  "category": "tooling-defect",
+  "severity": "major",
+  "title": "P11 edited recovery tools were broken on paths the P11 negative controls exercise (unbound variable, bad format string, wrong baseline for the expected inventory)",
+  "what_went_wrong": [
+    "p10_preservation_check.sh referenced $PC on lines 34-35 before PC was assigned on line 37; under 'set -u' the script aborted immediately with 'line 34: PC: unbound variable' and wrote no report. Both NC2 preservation runs therefore measured nothing (0/0) and NC2 was reported NOT-DISCRIMINATING in run C.",
+    "The same script's PRESERVATION-RESULT print had two %s placeholders for three arguments ('...c(protected-live)' had no %s), so Python raised TypeError: not all arguments converted during string formatting. The line that supplies 'a(sample-immediate)=EQUAL|DIFFERENT' was never written, so NC2 could not read its verdict even after the unbound-variable fix.",
+    "The strict stage-inventory expectation (--stage-tables-list) was derived from the PRE-operation snapshot, which is legitimately empty because it is taken before the run creates any stage table; the post-hash then reported all 13 stage tables as 'unexpected' and exited 1.",
+    "p10_hash_state.py treated an empty stage inventory as a hard error even without --stage-tables-list, so the suite's pre-op snapshot call (P10_INJECT block) began exiting 1 and left a stale/invalid baseline.",
+    "The preservation assertion also required 'stage: pre-op vs post-fail = EQUAL', which can never hold once the pre-op inventory is empty."
+  ],
+  "root_cause": "The P11 edits were checked with bash -n/py_compile and reviewed statically, but the affected runtime paths were not executed end-to-end before the first full negative-control run; a non-existent variable, a mismatched format string and an inverted baseline assumption are all invisible to syntax checks.",
+  "detection": "Run C (r5_p11_negative_controls_20261019T132240Z): NC2 with=PASS without=FAIL; the preservation logs contained 'line 34: PC: unbound variable'; run D's fixed logs still showed the TypeError and 'HASH-STATE ERROR: unexpected stage tables'.",
+  "correction": {
+    "applied": [
+      "p10_preservation_check.sh: PC/FX assigned before OUT/PREOP/PRE; PRE existence asserted; EXP_LIST derived from the post-failure pre-hash ($PRE); third %s added to the PRESERVATION-RESULT format string; the impossible pre-op-stage equality removed from the assertion; stage line now prints failure-pre-hash vs post-fail.",
+      "p10_hash_state.py: an empty inventory is a warning (exit 0) outside strict mode and an error only with --stage-tables-list."
+    ],
+    "verification": "Run D (r5_p11_negative_controls_20261019T135641Z): NC2 with-switch=FAIL (a=DIFFERENT) / without=PASS (a=EQUAL) -> DISCRIMINATING; all five NCs DISCRIMINATING=5 NOT-DISCRIMINATING=0.",
+    "status_note": "Corrected; evidence kept for runs C and D (the failed run is preserved with _FAILED in its filename)."
+  },
+  "rule": "A tool change in the evidence path must be executed on the exact path it is meant to prove (including the negative control) before it is used to score anything; syntax checks do not establish runtime correctness.",
+  "agent": "opencode",
+  "status": "corrected"
+}

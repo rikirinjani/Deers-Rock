@@ -1,0 +1,57 @@
+{
+  "timestamp_utc": "2026-10-19T21:35:00Z",
+  "category": "process",
+  "severity": "major",
+  "title": "A second live agent session shares this repo and the VPS and rewrote the P11 tools mid-run, so the required-run evidence does not bind to one frozen byte set",
+  "what_went_wrong": [
+    "Every P11 transcript embeds sha256sum of the tool files taken at run time (p10_preservation_check.sh line 70). Reading all of them back from /opt/dr-benchmark/p-chain shows the suite SHA progressed through at least ten values on 2026-10-19: aa34340fbe98 (02:12) -> 4e19ad9a6c41 (03:27) -> 6ed5858b3799 (04:13) -> 13dfc2dea771 (06:24) -> e5007c8edeb1 (08:34) -> b2d4ec4d55fe (09:51) -> 983104f6a136 (12:50) -> 3375e681d0a6 (13:33-17:23) -> 3559e5ce1d97 (19:08-19:27) -> 7ecb20ef7bdc (19:47-21:07). The preservation script likewise went 9c0e8f3a8e50 (13:33-17:23) -> 8de03df02c7a (20:50) -> e5d39756de39 (21:02).",
+    "Nothing in my session record accounts for the 17:00-20:50 UTC window, in which at least fifteen P11 preservation/NC runs were produced (e.g. r5_p11_negative_controls_20261019T190020Z.md, T193900Z, T201633Z, T205004Z; r5_p10_preservation_20261019T172302Z.md ... T204618Z.md). Those runs used suite SHAs (3559e5ce1d97, 7ecb20ef7bdc) that were never part of my recorded sequence.",
+    "Their results differ from mine on the same checks: the 20:16 NC run reports '=== P11 NEGATIVE CONTROLS: DISCRIMINATING=3 NOT-DISCRIMINATING=2 ===' (NC5 with-switch=FAIL without=FAIL) and the earlier 19:00 run reports NC1 only; my recorded run D (13:56) reports DISCRIMINATING=5 NOT-DISCRIMINATING=0. Both cannot describe the same bytes.",
+    "The tools were rewritten while my own closure chain was executing. On the VPS, p10_hash_state.py / p6_run_suite_fresh.sh / sampled_real_form_diff_r5.py have mtime 20:50:01-02Z and p6_acceptance_suite.sh / p10_preservation_check.sh / p11_negative_controls.sh have mtime 21:02:19Z. Locally the same files carry mtimes 21:00:58Z (preservation) and 21:01:43Z (NC script). My chain launched at 20:59:08Z and its NC5-without preservation run started 21:02:38Z - nineteen seconds after the 21:02:19Z rewrite - so that transcript's embedded preservation SHA (e5d39756de39) is the rewritten file, not the file my chain started against.",
+    "A concurrent actor is demonstrably active on this host as well: two bash+ssh process pairs started at 21:02:16Z local, matching the 21:02:19Z rewrites, and six other OpenCode processes are running on this machine (started 10-18 20:51Z to 10-18 21:37Z). The 21:02:16Z pair is not mine (my rebind launcher started 21:20:04Z).",
+    "Consequence: the seven required runs in my evidence bundle (unit test, NC run D, full suite 39/39, preservation PASS, builder, live-state) bind to at least four different byte states of the P11 tools. The bytes that produced the flagship full-suite result (3375e681d0a6, 15:10Z, PASS=39) no longer exist in the repo or on the VPS, so that result cannot be tied to any committable candidate. The 13:56Z 'DISCRIMINATING=5' NC result is likewise not reproducible on the bytes now present."
+  ],
+  "root_cause": "No single-writer discipline was enforced on the shared resources (this working tree and /opt/Deers-Rock on the VPS). Two agent sessions developed the same P11 tooling concurrently, each deploying to the VPS and restoring from it. The earlier finding (records/failures/20261019T1450Z-process-r5-p11-stray-launcher-interference.json) treated the second actor as a stray launcher rather than as a full parallel development stream, so the response (killing processes, disabling a runner script) did not stop it and did not protect the evidence binding.",
+  "detection": "Cross-reading the 'Tools:' line that each P11 transcript embeds at run time, in the course of verifying which bytes the closure runs used; then confirming local mtimes (21:00:58Z / 21:01:43Z), VPS mtimes (21:02:19Z) and live process evidence (two bash+ssh pairs at 21:02:16Z, six other OpenCode processes).",
+  "evidence": [
+    "VPS /opt/dr-benchmark/p-chain/r5_p10_preservation_*.md and r5_p11_negative_controls_*.md (Tools: header line of each)",
+    "VPS /opt/dr-benchmark/p-chain/r5_p11_negative_controls_20261019T201633Z.md (DISCRIMINATING=3 NOT-DISCRIMINATING=2) and ...T205004Z.md (killed mid-run at NC2)",
+    "VPS mtimes: p10_hash_state.py 20:50:01Z; p6_run_suite_fresh.sh and sampled_real_form_diff_r5.py 20:50:02Z; p6_acceptance_suite.sh, p10_preservation_check.sh, p11_negative_controls.sh 21:02:19Z",
+    "Local mtimes: khanza-r5/tools/p10_preservation_check.sh 21:00:58Z; p11_negative_controls.sh 21:01:43Z; p6_acceptance_suite.sh 19:36:53Z",
+    "Local process table: two bash+ssh pairs started 21:02:16Z; six other OpenCode processes",
+    "khanza-r5/evidence/p11/r5_p10_preservation_20261019T210238Z_NC5WITHOUT_PASS.md and ...T210740Z_FORCEFAIL_FAIL1_PASS.md (Tools: line shows suite 7ecb20ef7bdc, preservation e5d39756de39)",
+    "khanza-r5/evidence/p11/r5_p11_tool_deploy_shas.txt (my 15:0xZ recording: suite 3375e681, preservation 9c0e8f3a)"
+  ],
+  "impact": "Acceptance is blocked: the candidate artifact cannot be shown to be the artifact the required runs exercised, and part of the current working tree was authored by an actor whose process I cannot attest to. No commit has been made. The pending deliverables (R5 section 22, task doc section 4, manifest re-pin, QMS record, failure-record closure, handoff UPDATE, report) would all assert evidence binding that does not currently hold.",
+  "correction": {
+    "applied": [
+      "Recorded this finding before any commit; no acceptance action taken.",
+      "Re-derived the tool SHA table from the bytes actually present (local LF == VPS): p6_acceptance_suite.sh 7ecb20ef7bdcf615bbf832c6d3f48c05fde05b8eafa581a515d53e20e5ab5365; p10_preservation_check.sh e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678; p11_negative_controls.sh a3f44721c23f1cf2d4465037889a660214eb73a010d205200eec8cde4344b5f3.",
+      "Verified the current bytes contain the required behaviour (preservation: P11_FORCE_FAIL support and the grep -c \"^- \" assertion counter at line 45; suite: P11_ONLY x8, P10_INJECT x5; oracle: R5_NEGCTL x14) and show no network/exec patterns beyond the expected /opt/dr-benchmark paths.",
+      "Launched a full-suite re-run against the current bytes (21:20:04Z, /tmp/p11_run3_rebind.log) so that at least the flagship suite result has a transcript naming the candidate hash."
+    ],
+    "blocked": [
+      "The required-run set cannot be accepted as bound to one byte set. Re-establishing it needs the VPS tool bytes frozen (immutable or a checksum-pinned snapshot) for the duration of unit test + NC + full suite + preservation + builder + live proof, with no other writer active.",
+      "RESOLVED 2026-10-20: the owner confirmed the second stream was another agent session of theirs and directed: freeze the bytes and re-run the required set. The seven tools were frozen with chattr +i and a FROZEN.sha256 snapshot (/opt/Deers-Rock/tools/p11_frozen_20261019/), and runs 1, 2, 3, 4, 5 and 6 were re-executed against them, with sha256sum -c verified before and after each: unit 33/33, NC 5/5 DISCRIMINATING (across two invocations), suite PASS=39 FAIL=0 exit 0, preservation PASS, builder exit 0 reproducing 356355:a66a3a54..., live proof matching the invariant."
+    ],
+    "not_done": [
+      "The parallel development stream's edits were not reviewed line by line against my own intended P11 changes; structural checks were done instead (feature markers present: P11_ONLY x8, P10_INJECT x5, R5_NEGCTL x14; no network/exec patterns beyond the expected /opt/dr-benchmark paths), and the frozen set was then re-run end to end.",
+      "A single uncontended full NC invocation was not obtained (AC-9 partial): the other session re-created a fixture mid-window and later started its own NC run at 01:18:19Z.",
+      "The VPS tool files are still chattr +i; they must be unfrozen (chattr -i) before any further tool change."
+    ]
+  },
+  "additional_findings": [
+    "Fixture contention invalidated the first frozen-byte NC run: a sik_p6f was re-created 46 s after a teardown (my chain logged it at 00:34:40Z), and the NC driver's ensure_fx reuses an existing fixture, so NC1's two arms ran on a state of unknown provenance (with-switch=PASS / without=FAIL -> NOT-DISCRIMINATING). A clean re-run from a verified-absent fixture gave with=FAIL / without=PASS -> DISCRIMINATING (01:03-01:07Z). Both transcripts kept.",
+    "My own ad-hoc live-proof hash used a tab join and printed 356355:424624d95b15...; the canonical pipe-join recipe (the suite's ledger_hash()) gives 356355:a66a3a546cc32... on the same data. The wrong value was discarded and never reported as a live change.",
+    "The other session continued after the freeze: it started p11_negative_controls.sh at 01:18:19Z and rebuilt sik_p6f with a benchmark grant by 01:21:07Z. The clean live-state point for this stream is 01:07:40Z (databases sik, sik_bench; ledger a66a3a54...) and 21:12:34Z.",
+    "Residual: the byte freeze protects the artifact but not the fixture. Any future acceptance run needs an exclusive window on sik_p6f as well as frozen bytes."
+  ],
+  "rule": "One writer per shared artifact. Before a required run set is executed, freeze the tool bytes and verify their SHA-256 at the start and end of every run; a transcript that embeds a run-time hash must be checked against the frozen candidate at commit time, and a mismatch invalidates the run rather than being recorded as a deployment detail.",
+  "related_records": [
+    "records/failures/20261019T1450Z-process-r5-p11-stray-launcher-interference.json",
+    "records/failures/20261019T1545Z-process-r5-p11-post-deploy-drift.json"
+  ],
+  "agent": "opencode",
+  "status": "corrected",
+  "status_note": "Byte-binding restored by freezing the seven tools and re-running the required set. Fixture contention persists (the other session is still active) and AC-9 remains partial; see additional_findings."
+}

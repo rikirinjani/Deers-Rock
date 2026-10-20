@@ -1,0 +1,7 @@
+databases: information_schema mysql performance_schema sik sik_bench sys 
+dbxml:
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+writer-exclusion files: 0
+benchmark grants on sik_p6f: 0

@@ -785,7 +785,11 @@ same oracle and wrapper as every other check, on the disposable `sik_p6f` clone:
   clean ledger. On the live ledger: PASS, 0 defects.
 - *Builder delete scope (A10e):* the DELETE now uses the window **and** the cohort, as the
   inserts do (`--window ALL` was `WHERE 1=1`). A non-DR row survives a DR rebuild of window
-  2026-10 and of ALL. The first version joined a utf8mb4 column to Khanza's latin1
+  2026-10 and of ALL. ~~The delete scope equals the insert scope: a non-DR row survives~~
+  **the DELETE removes every row of the window whose key is NOT a DR-cohort key — including
+  orphan rows that the INSERT never writes (e.g. a leftover `source` NULL row) — and then
+  re-INSERTs the DR cohort; a non-DR row whose key IS a DR-cohort key survives, but a non-DR
+  row whose key is not a DR-cohort key is deleted.** The first version joined a utf8mb4 column to Khanza's latin1
   `reg_periksa.no_rawat`, which lost the index (a 31k-row DELETE ran ~30 min). It was caught
   when suite run 1 stalled; that run was stopped and torn down (live state verified unchanged).
   The join now converts the ledger side into reg_periksa's charset: `eq_ref`, 0.07 s for the
@@ -919,8 +923,13 @@ exclusion recovered. Failure record `records/failures/20261018T0430Z-…-writer-
 
 **1. Integrated preservation experiment (pack B, v9's single next step).**
 `p10_preservation_check.sh`, through the production wrapper:
-- A real harness failure (3 s timeout) on a two-batch set left batch 1 FAILED with 13 populated
-  stage tables (21 rows) and batch 2 PENDING.
+- A real harness failure (3 s timeout) on a two-batch set left batch 1 FAILED with 13
+  ~~populated~~ **stage tables holding 21 rows in total; 5 of the 13 were non-empty
+  (17+1+1+1+1) and 8 were empty** (the totals are in
+  `evidence/p10/r5_p10_preservation_20261018T154610Z.md`: "stage tables: 13, populated
+  rows: 21 (pre) / 21 (post)"; the per-table inventory is
+  `evidence/p11/r5_p11_preserve_after_fail.json`: "stage tables: 13 | non-empty: 5 |
+  empty: 8") and batch 2 PENDING.
 - Independent root hashes were taken of every stage table (`CHECKSUM TABLE … EXTENDED` + row
   counts), the sample visits, 20 protected non-sample visits (10 non-DR, 10 DR) and the live
   `sik` tables.
@@ -950,13 +959,18 @@ exclusion recovered. Failure record `records/failures/20261018T0430Z-…-writer-
   is given.
 - *Writer exclusion (F5):* every restore on a fixture revokes the benchmark account's DML,
   fences the target (a schema-level revoke reaches a session only at its next USE), runs the
-  restore as root, and re-grants in `finally`. Crash-safe via the marker (above). Never on
-  `sik`/`sik_bench`. A29: during a paused restore the grants were `SELECT` only and a benchmark
-  `UPDATE` was denied (ERROR 1142); afterwards the grants were as before and the write worked.
+  restore as root, and re-grants in `finally`. ~~Crash-safe via the marker~~ **crash-safe at
+  the one tested fault placement: A20's SIGKILL of a resume mid-restore; no other placement
+  (a crash between the marker write and the REVOKE, a malformed marker) was tested before
+  P11, and the marker was not fsynced and a malformed one failed open** (fixed in P11-T4).
+  Never on `sik`/`sik_bench`. A29: during a paused restore the grants were `SELECT` only and a
+  benchmark `UPDATE` was denied (ERROR 1142); afterwards the grants were as before and the
+  write worked.
 - *Malformed amounts (F6):* `irup` raises on NULL, empty or non-numeric input (it returned 0).
-  A26: a scratch tariff price `'12x'` → `MALFORMED-AMOUNT`, `FAIL-CLOSED`, ledger unchanged. Live
-  data has no NULL amounts, so the pinned ledger is unaffected (reproduced). A missing tariff
-  entry remains the documented `dr-source(gap)` fallback; it is not "fail-closed authority".
+  A26: a scratch tariff price `'12x'` → `MALFORMED-AMOUNT`, `FAIL-CLOSED`, ledger unchanged.
+  Live data has no NULL amounts, so the pinned ledger is unaffected (reproduced). A missing
+  tariff entry remains the documented `dr-source(gap)` fallback; it is not "fail-closed
+  authority".
 
 **3. Honesty fixes (pack A; closes failure record 20261018T0215Z).**
 - A22's label states the actual change (all 17 billing rows of the visit, +1 each). §20's "a
@@ -976,3 +990,90 @@ fixture); matched-encounter B–C reconciliation and the R4 0/999 re-examination
 **Live state after P10:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
 ledger 356,355 / Rp 34,870,243,633 (content `a66a3a54…`); live `sik` checksums equal across
 both suite runs and both preservation runs.
+
+## 22. P11: discriminating recovery checks, negative controls (2026-10-19/20, new)
+
+Driven by Astra v10 (run 4918967, **63/100** "Needs targeted rework";
+`evidence/astra_v10_4918967_NOTE.md`), whose nine findings were each confirmed in the source on
+2026-10-18. Task: `docs/khanza_r5_task_p11_negative_controls.md` (written before the code). Each
+P10 recovery check now has an inert test-only switch (`R5_NEGCTL_*` / `P11_*`) that breaks the
+property it tests, plus a run showing the check **FAILS** with the switch and **PASSES** without
+it. Times are UTC.
+
+**Result (all runs against one frozen byte set, below):**
+
+| Run | Result | Evidence |
+|---|---|---|
+| 1. unit tests | **33/33**, `UNIT-EXIT=0` | `evidence/p11/r5_p11_unit_test_frozen_20261020T003254Z.log` |
+| 2. negative controls | **5/5 DISCRIMINATING** | `…r5_p11_negative_controls_20261020T003440Z_4of5_NC1-CONTAMINATED.md` + `…r5_p11_nc1_clean_20261020T010740Z.log` |
+| 3. full fresh suite | **PASS=39 FAIL=0**, exit 0 | `evidence/p11/r5_p6_acceptance_20261019T212302Z_FROZEN_39PASS.md` |
+| 4. preservation check | **PRESERVATION-CHECK PASS** | `evidence/p11/r5_p10_preservation_20261019T210238Z_NC5WITHOUT_PASS.md` |
+| 5. builder | **INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER**, exit 0 | `evidence/p11/r5_p11_chain_nc_builder_live_20261020T010017Z.log` |
+| 6. live-state proof | §4.6 items hold at clean points | `evidence/p11/r5_p11_live_final_20261019T211234Z.txt`; second clean point `01:07:40Z` in `…r5_p11_nc1_clean_20261020T010740Z.log`. The `…live_state_frozen_20261020T0120Z.txt` capture is **not** proof — the other agent session re-created `sik_p6f` and a benchmark grant at `01:21:07Z`; that file is retained as interference evidence |
+
+The negative-control verdicts, quoted: `NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING`
+(from the clean NC1 run), and `NC 2/3/4/5: with-switch=FAIL without=PASS -> DISCRIMINATING`
+with `=== P11 NEGATIVE CONTROLS: DISCRIMINATING=4 NOT-DISCRIMINATING=1 ===` in the run that
+also contained the contaminated NC1. The forced-failure control (T7) is
+`evidence/p11/r5_p10_preservation_20261019T210740Z_FORCEFAIL_FAIL1_PASS.md`: exactly one
+assertion fails (`- **FAIL**: perturbation row count asserted…`), the transcript states
+`P11-T7: 1 assertion(s) failed — the fixture sik_p6f is KEPT (no --teardown-kept)`, the
+keep-path assertion passes (`database.xml` on `sik`, grant removed) and the final line is
+`PRESERVATION-CHECK FAIL (1)`.
+
+**What changed (T1–T8).** A28' now makes the live rows differ from the staged rows between the
+first backup and the faulty retry, so a non-transactional re-backup leaves different stage
+content (`R5_NEGCTL_BACKUP_NO_TXN` runs the DELETE/REPLACE as autocommit). The preservation check
+takes an independent **pre-operation** snapshot before the injected run and asserts (a) immediate
+restoration of the sample, (b) stage preservation, (c) protected and live unchanged after the
+retry, separately (`R5_NEGCTL_SKIP_IMMEDIATE_RESTORE` breaks (a)). `p10_hash_state.py` treats a
+missing table, NULL checksum or empty inventory as an error with a non-comparable
+`ERROR:<table>` value and asserts the expected stage-table list (`--stage-tables-list`). The
+exclusion marker is written temp+fsync+replace; a malformed marker fails closed (kept, exit 3,
+`WRITER-EXCLUSION marker unreadable`) and needs `--recover-grants`; the old fail-open path is
+shown by monkeypatch in the unit test. `RETRY-REFUSED` sets `restored=False`,
+`restore_state=refused`. The pre-reset hash is computed **from the staged rows**. The perturbation
+asserts its changed-row count, and an EXIT trap always restores `database.xml` and revokes the
+fixture grant, keeping the fixture on any failed assertion.
+
+**T8 numbers, re-derived.** `evidence/p11/r5_p11_preserve_after_fail_20261019T2111Z.json`:
+`"protected_n": 20`; thirteen `r5_stage_B3_r6_p10_*` tables with `stage_rows` 17 (billing),
+1 (detail_nota_jalan), 1 (nota_jalan), 1 (reg), 1 (tagihan_sadewa) and 0 for the other eight —
+i.e. **13 tables, 21 rows in total, 5 non-empty**, which is what §21 now says.
+
+**The byte-binding problem, and how the result was made checkable.** Every transcript embeds
+`sha256sum` of the tools at run time. Reading those lines back showed the suite had passed
+through at least ten SHAs during 2026-10-19 (`aa34340fbe98` → … → `3375e681d0a6` →
+`3559e5ce1d97` → `7ecb20ef7bdc`) and the preservation script through three
+(`9c0e8f3a8e50` → `8de03df02c7a` → `e5d39756de39`). A **second agent session on the same
+machine, sharing this working tree and the VPS**, was developing the same tooling concurrently:
+it re-created the NC runner three times, ran sixteen-plus P11 experiments between 17:00 and
+20:50, and rewrote three tools at 21:02:19 — nineteen seconds before one of my evidence runs.
+The runs in the table above are therefore **not** the first runs of each check; they are the
+runs made after the seven tools were frozen: `chattr +i` on the VPS, a snapshot with
+`FROZEN.sha256` in `/opt/Deers-Rock/tools/p11_frozen_20261019/`, and `sha256sum -c` verified
+before and after every run. The earlier results — including the 13:56 NC transcript that reported
+`DISCRIMINATING=5 NOT-DISCRIMINATING=0` and the 15:10 suite `PASS=39` — are kept in
+`evidence/p11/` but are **not** relied on: the bytes that produced them no longer exist, so they
+cannot be bound to any committable artifact. Record:
+`records/failures/20261019T2135Z-process-r5-p11-concurrent-writer-evidence-unbinding.json`.
+
+**Two defects found in my own checking, both recorded.** (1) The first frozen-byte NC run reported
+NC1 `with-switch=PASS without=FAIL -> NOT-DISCRIMINATING`: a `sik_p6f` fixture left by the other
+session was re-created 46 s after a teardown, and the NC driver reuses an existing fixture, so
+NC1's two arms ran on a state of unknown provenance. A clean re-run from a verified-absent
+fixture gave `with-switch=FAIL without=PASS -> DISCRIMINATING`. Both transcripts are kept; the
+5/5 verdict is assembled from two invocations, and a single uncontended full NC invocation was
+not obtained. (2) An ad-hoc live-proof hash of my own used a tab join and printed
+`356355:424624d9…`; the canonical recipe (`|` join, the suite's `ledger_hash()`) gives
+`356355:a66a3a54…` on the same data. There was no live change.
+
+**Still not claimed:** a single uncontended run of the whole NC set; concurrent-overlap
+isolation; the fault modes not injected (power loss, MySQL crash, disk full, a writer that
+ignores SIGKILL); fencing or grant changes on the live databases; reproducibility closure;
+matched-encounter B–C reconciliation; C1–C4. The negative controls prove the checks can fail —
+they do not show that any particular production fault is detected.
+
+**Live state after P11:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
+ledger 356,355 rows, content `a66a3a54…`; no `.writer_exclusion_*` marker; no benchmark grant on
+`sik_p6f`.

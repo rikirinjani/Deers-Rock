@@ -1,0 +1,16 @@
+== P11 §4.6 live-state proof (frozen bytes) Tue Oct 20 01:21:07 AM UTC 2026 ==
+databases: information_schema mysql performance_schema sik sik_bench sik_p6f sys 
+dbxml:
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+writer-exclusion files: 0
+benchmark grants on sik_p6f: 1
+frozen bytes:
+p6_acceptance_suite.sh: OK
+p6_run_suite_fresh.sh: OK
+sampled_real_form_diff_r5.py: OK
+p10_hash_state.py: OK
+p10_preservation_check.sh: OK
+p11_negative_controls.sh: OK
+p8_recovery_unit_test.py: OK
