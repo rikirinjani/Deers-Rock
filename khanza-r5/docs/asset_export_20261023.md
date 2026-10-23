@@ -137,7 +137,12 @@ counts; databases exactly `sik sik_bench` (plus system).
   box remains the target of `khanza-r5/.vps.env` until decommission is decided, and any stream still
   working there is unaffected.
 
-**Open on the new box (deferred by owner, 2026-10-23):** sshd still allows password logins
-(`passwordauthentication yes`, `permitrootlogin yes`). Owner chose to defer hardening
-(`PasswordAuthentication no` + `PermitRootLogin prohibit-password`) to a later session; both boxes
-also share one ed25519 key. Vultr console remains the emergency fallback.
+**Hardening — DONE 2026-10-23 (was deferred, completed once the box joined the tailnet):**
+`passwordauthentication no`, `kbdinteractiveauthentication no`, `permitrootlogin prohibit-password`
+(`sshd -T` verified; config validated with `sshd -t` before reload; backup at
+`/etc/ssh/sshd_config.bak-hardening-20261023T125514Z`). Note: `50-cloud-init.conf` had
+`PasswordAuthentication yes`; the hardening drop-in `/etc/ssh/sshd_config.d/00-hardening.conf`
+overrides it by lexical first-match. Key-only root access confirmed by a fresh post-reload
+connection. Access paths now: **tailnet `<tailnet IP: VPS_TAILNET_HOST in khanza-r5/.vps-mac-mini.env>`** (preferred — works regardless of home
+IPv6) and the original IPv6 `<public IPv6: VPS_HOST in khanza-r5/.vps-mac-mini.env>`. The box joined the tailnet as
+`mac-mini-vultr` (owner completed `tailscale up` login from the Vultr console).

@@ -8,12 +8,15 @@
 > otherwise). Details: `docs/asset_export_20261023.md`, commits `af97c45`..`0d985b0`.
 > **Connection (owner-directed exception to the no-IP rule, 2026-10-23 — owner asked for the creds
 > to be written here):**
-> - host `<public IPv6: VPS_HOST in khanza-r5/.vps-mac-mini.env>` (IPv6), port 22, user `root`
+> - host `<public IPv6: VPS_HOST in khanza-r5/.vps-mac-mini.env>` (IPv6) — preferred path now: **tailnet `<tailnet IP: VPS_TAILNET_HOST in khanza-r5/.vps-mac-mini.env>`**
+>   (box joined the tailnet as `mac-mini-vultr`, same account as the owner's other devices)
+> - port 22, user `root`
 > - auth: the workstation ed25519 key `~/.ssh/id_ed25519_dr_vps` (public half installed in
 >   `/root/.ssh/authorized_keys` via the Vultr console); alias `ssh mac-mini-vultr`
->   (`~/.ssh/config`, `AddressFamily inet6`)
-> - env: `khanza-r5/.vps-mac-mini.env` (gitignored); password auth is still ENABLED on the box —
->   hardening deferred by the owner; no password is stored anywhere in this repo
+>   (`~/.ssh/config`, points at the tailnet IP)
+> - env: `khanza-r5/.vps-mac-mini.env` (gitignored); **hardening DONE 2026-10-23** — password auth
+>   disabled, key-only root (`00-hardening.conf` overrides cloud-init's drop-in); no password is
+>   stored anywhere in this repo
 > - hostname `mac-mini-vultr`, label file `/etc/machine-label`
 > **Verified on the box:** export manifest 5/5 OK; jar md5 `25acbbbe…`; seven frozen tools OK vs
 > `p11_frozen_20261020T0739Z.sha256`, re-`chattr +i`; `sik` 1179 tables, `sik_bench` 23; restored
