@@ -18,6 +18,10 @@
 >   disabled, key-only root (`00-hardening.conf` overrides cloud-init's drop-in); no password is
 >   stored anywhere in this repo
 > - hostname `mac-mini-vultr`, label file `/etc/machine-label`
+> - **⚠️ DEADLINE (owner, 2026-10-23): mac-mini-vultr is TEMPORARY — decommission by ~2026-11-20**
+>   (new Vultr account's $300 credit expires ~2026-11-22). The **older vultr box stays the durable
+>   home** of the asset; keep `.vps.env` pointed at it, pull any evidence produced on mac-mini-vultr
+>   into the repo before the deadline, and prefer the old box for runs near the deadline.
 > **Verified on the box:** export manifest 5/5 OK; jar md5 `25acbbbe…`; seven frozen tools OK vs
 > `p11_frozen_20261020T0739Z.sha256`, re-`chattr +i`; `sik` 1179 tables, `sik_bench` 23; restored
 > ledger `356355:a66a3a54…` MATCH; `benchmark@localhost` fresh password with old-box-identical

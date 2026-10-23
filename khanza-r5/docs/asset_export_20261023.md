@@ -137,6 +137,18 @@ counts; databases exactly `sik sik_bench` (plus system).
   box remains the target of `khanza-r5/.vps.env` until decommission is decided, and any stream still
   working there is unaffected.
 
+> **⚠️ EXPIRY (owner, 2026-10-23): this box is TEMPORARY.** The new Vultr account runs on a
+> **$300 free credit that expires ~2026-11-22 (30 days)**, and the owner plans to **decommission
+> mac-mini-vultr by ~2026-11-20 (28 days)**. Consequences for future sessions:
+> - the durable copy of the asset remains the **older vultr box** (original export source) and this
+>   repo; treat mac-mini-vultr as disposable,
+> - do **not** point `khanza-r5/.vps.env` at it, and do not make it the sole home of any evidence —
+>   anything produced on it (transcripts, results) must be pulled into `khanza-r5/evidence/` before
+>   2026-11-20,
+> - if a run is planned near the deadline, run it on the old box instead,
+> - before decommission, nothing needs to be rescued as long as the old box lives; the hardening
+>   and verification work here is reproducible from this runbook.
+
 **Hardening — DONE 2026-10-23 (was deferred, completed once the box joined the tailnet):**
 `passwordauthentication no`, `kbdinteractiveauthentication no`, `permitrootlogin prohibit-password`
 (`sshd -T` verified; config validated with `sshd -t` before reload; backup at
