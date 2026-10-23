@@ -21,7 +21,11 @@ matches the recorded build), `src/`, `build/`, `webapps/`, `consumer/`, `run-env
 `dr-benchmark.tar.gz` — orchestrator scripts, `p-chain/` (fixture build inputs incl. `sik_p6f_build_*`),
 `snapshots/d1_20261013T072755Z`, `state/`, `DECISIONS.md`, `PROGRESS.md`. No `results/`.
 `Deers-Rock-tools.tar.gz` — `/opt/Deers-Rock` as-is: the seven frozen P11 tools plus
-`p11_frozen_20261019/FROZEN.sha256`.
+both frozen manifests (`p11_frozen_20261019/FROZEN.sha256` and `p11_frozen_20261020T0739Z.sha256`).
+The tools are at the **final** P11 pin — `p11_negative_controls.sh` is
+`0bba19319479a12b5f8fad14af600631c63bbcd69b2724af1c534ece67ebe578` (the `ensure_fx` stale-fixture fix),
+and all seven verify against `p11_frozen_20261020T0739Z.sha256`. Verified by streaming the member back
+out of the tarball at export time.
 
 ## Verified at capture
 
@@ -81,3 +85,7 @@ mysql -N -uroot -e "select count(*) from sik_bench.dr_charge_ledger"   # 356355
 - `/opt/dr-benchmark/results/` is the only thing left behind; copy it separately if the run history
   matters (1.3 GB).
 - The seven tools arrive matching the frozen manifest; do not edit them until you `chattr -i`.
+- The ledger check `356355:a66a3a54…` above is the same value P11 closed on: AC-9 was closed by the
+  parallel session at `2026-10-20T07:32Z` with one uncontended 5/5 negative-control run
+  (`evidence/p11/r5_p11_negative_controls_20261020T073218Z.md`), so this export carries a passing
+  P11 tool set, not the intermediate one.
