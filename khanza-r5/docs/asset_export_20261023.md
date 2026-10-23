@@ -129,25 +129,26 @@ OK; a JDBC probe through the real credential path (AES-decoded `database.xml` �
 `benchmark@localhost` identical to the old box; `results/` copied 1.3 GB / 8633 files, identical
 counts; databases exactly `sik sik_bench` (plus system).
 
-## Box naming (2026-10-23, per owner)
+## Box naming (2026-10-23, per owner) — CORRECTED same day: the old box is dying FIRST
 
 - **mac mini vultr** — the replacement box (this migration): hostname `mac-mini-vultr`, labelled in
   `/etc/machine-label`, SSH alias `mac-mini-vultr` in `~/.ssh/config`, credentials in
-  `khanza-r5/.vps-mac-mini.env` (gitignored). Per the owner, both boxes stay live; the older vultr
-  box remains the target of `khanza-r5/.vps.env` until decommission is decided, and any stream still
-  working there is unaffected.
+  `khanza-r5/.vps-mac-mini.env` (gitignored).
 
-> **⚠️ EXPIRY (owner, 2026-10-23): this box is TEMPORARY.** The new Vultr account runs on a
-> **$300 free credit that expires ~2026-11-22 (30 days)**, and the owner plans to **decommission
-> mac-mini-vultr by ~2026-11-20 (28 days)**. Consequences for future sessions:
-> - the durable copy of the asset remains the **older vultr box** (original export source) and this
->   repo; treat mac-mini-vultr as disposable,
-> - do **not** point `khanza-r5/.vps.env` at it, and do not make it the sole home of any evidence —
->   anything produced on it (transcripts, results) must be pulled into `khanza-r5/evidence/` before
->   2026-11-20,
-> - if a run is planned near the deadline, run it on the old box instead,
-> - before decommission, nothing needs to be rescued as long as the old box lives; the hardening
->   and verification work here is reproducible from this runbook.
+> **⚠️ OWNERSHIP TIMELINE (owner, 2026-10-23, supersedes earlier "both boxes live"):**
+> 1. **The old (source) box is NOT on Vultr and will be TERMINATED in ~2 days (~2026-10-25).**
+>    This migration existed precisely because of that. Final delta sync taken 2026-10-23:
+>    **0 files changed since the 06:33Z export** — mac-mini-vultr is already fully current.
+> 2. **From ~2026-10-25, mac-mini-vultr is the ONLY durable home of the asset.** `.vps.env` must be
+>    flipped to it (policy: flip when the old box stops responding, or on owner's word — do not flip
+>    while the parallel session still has work in flight on the old box).
+> 3. **mac-mini-vultr itself decommissions ~2026-11-20** (new Vultr account's $300 credit expires
+>    ~2026-11-22). A **third home or a paid plan** must be decided before then; start any further
+>    migration with ≥1 week of buffer.
+>
+> Consequences for future sessions: runs happen on **mac-mini-vultr** (it is primary after 10-25);
+> keep evidence pulled into this repo same-day; old-box-specific paths in pre-2026-10-25 docs
+> describe a machine that will no longer exist.
 
 **Hardening — DONE 2026-10-23 (was deferred, completed once the box joined the tailnet):**
 `passwordauthentication no`, `kbdinteractiveauthentication no`, `permitrootlogin prohibit-password`
