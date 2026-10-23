@@ -89,3 +89,42 @@ mysql -N -uroot -e "select count(*) from sik_bench.dr_charge_ledger"   # 356355
   parallel session at `2026-10-20T07:32Z` with one uncontended 5/5 negative-control run
   (`evidence/p11/r5_p11_negative_controls_20261020T073218Z.md`), so this export carries a passing
   P11 tool set, not the intermediate one.
+
+## Post-restore wiring — executed & verified 2026-10-23 (replacement-VPS migration)
+
+These steps were run for real on the replacement box (2 vCPU / 16 GB / 94 GB, Ubuntu 24.04.5,
+x86_64) and are part of the restore, not optional:
+
+1. **MySQL config** before loading (`/etc/mysql/mysql.conf.d/drbench.cnf`):
+   `innodb_buffer_pool_size=6G`, `skip-log-bin`, `innodb_flush_log_at_trx_commit=1`.
+   With the pool set, `sik` loaded in **63 s** and `sik_bench` in **21 s** (vs ~3 min on the old box).
+2. **`benchmark@localhost`** — create with a fresh password (written to
+   `/opt/simrs-khanza/run-env/benchmark_pw`, mode 600) and **exactly these grants** (the live-proof
+   invariant requires zero standing grants on `sik_p6f`; the suite adds and revokes those itself):
+   ```sql
+   GRANT SELECT,INSERT,UPDATE,DELETE ON sik.* TO 'benchmark'@'localhost';
+   GRANT ALL PRIVILEGES ON sik_bench.* TO 'benchmark'@'localhost';
+   ```
+3. **`database.xml` re-encode** — the exported XML still encrypts the *old* password. Patch both
+   copies with the fresh one (`PatchDbXml` re-encodes USER and PAS):
+   ```bash
+   CP="/opt/simrs-khanza/consumer:/opt/simrs-khanza/KhanzaSecurity16bit/build/classes:/opt/simrs-khanza/lib/mariadb.jar:/opt/simrs-khanza/resumepasien/lib/commons-codec-1.10.jar"
+   java -cp "$CP" PatchDbXml /opt/simrs-khanza/setting/database.xml benchmark "$PW"
+   java -cp "$CP" PatchDbXml /opt/simrs-khanza/run-env/setting/database.xml benchmark "$PW"
+   ```
+   Classpath notes: `lib/mariadb.jar` **is** MySQL Connector/J 8.4.0 (renamed); `EnkripsiAES` lives
+   under `KhanzaSecurity16bit/build/classes/AESsecurity/`, so the classpath root is
+   `…/build/classes`; commons-codec is required by `EnkripsiAES`. All five properties
+   (HOST/PORT/DATABASE/USER/PAS) are AES-encoded in the XML — anything reading it must decrypt all
+   five, exactly as `KhanzaBillingConsumer` does.
+4. **Re-freeze the tools**: `cd /opt/Deers-Rock/tools && chattr +i` on the seven files (tar does not
+   carry immutable flags).
+
+**Verified end state on the replacement box:** export manifest `sha256sum -c` OK on the box itself;
+JAR md5 `25acbbbe…` MATCH; the seven tools OK against `p11_frozen_20261020T0739Z.sha256` and
+re-frozen; `sik` 1179 tables, `sik_bench` 23; restored-ledger hash
+`356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7` MATCH; `benchmark` login
+OK; a JDBC probe through the real credential path (AES-decoded `database.xml` → Connector/J) gives
+**identical output on old and new box** (`user=benchmark db=sik billing_rows=1464593`); grants on
+`benchmark@localhost` identical to the old box; `results/` copied 1.3 GB / 8633 files, identical
+counts; databases exactly `sik sik_bench` (plus system).
