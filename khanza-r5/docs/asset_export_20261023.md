@@ -128,3 +128,11 @@ OK; a JDBC probe through the real credential path (AES-decoded `database.xml` â†
 **identical output on old and new box** (`user=benchmark db=sik billing_rows=1464593`); grants on
 `benchmark@localhost` identical to the old box; `results/` copied 1.3 GB / 8633 files, identical
 counts; databases exactly `sik sik_bench` (plus system).
+
+## Box naming (2026-10-23, per owner)
+
+- **mac mini vultr** â€” the replacement box (this migration): hostname `mac-mini-vultr`, labelled in
+  `/etc/machine-label`, SSH alias `mac-mini-vultr` in `~/.ssh/config`, credentials in
+  `khanza-r5/.vps-mac-mini.env` (gitignored). Per the owner, both boxes stay live; the older vultr
+  box remains the target of `khanza-r5/.vps.env` until decommission is decided, and any stream still
+  working there is unaffected.
