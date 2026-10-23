@@ -2,6 +2,31 @@
 
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
+> **UPDATE 2026-10-23 (VPS migration) — the benchmark asset now lives on TWO boxes.** The asset was
+> exported from the old box, pushed, restored and verified on a replacement VPS labeled
+> **mac mini vultr** (owner's naming; the older vultr box keeps its role until the owner decides
+> otherwise). Details: `docs/asset_export_20261023.md`, commits `af97c45`..`0d985b0`.
+> **Connection (owner-directed exception to the no-IP rule, 2026-10-23 — owner asked for the creds
+> to be written here):**
+> - host `<public IPv6: VPS_HOST in khanza-r5/.vps-mac-mini.env>` (IPv6), port 22, user `root`
+> - auth: the workstation ed25519 key `~/.ssh/id_ed25519_dr_vps` (public half installed in
+>   `/root/.ssh/authorized_keys` via the Vultr console); alias `ssh mac-mini-vultr`
+>   (`~/.ssh/config`, `AddressFamily inet6`)
+> - env: `khanza-r5/.vps-mac-mini.env` (gitignored); password auth is still ENABLED on the box —
+>   hardening deferred by the owner; no password is stored anywhere in this repo
+> - hostname `mac-mini-vultr`, label file `/etc/machine-label`
+> **Verified on the box:** export manifest 5/5 OK; jar md5 `25acbbbe…`; seven frozen tools OK vs
+> `p11_frozen_20261020T0739Z.sha256`, re-`chattr +i`; `sik` 1179 tables, `sik_bench` 23; restored
+> ledger `356355:a66a3a54…` MATCH; `benchmark@localhost` fresh password with old-box-identical
+> grants; both `database.xml` re-encoded (PatchDbXml; classpath and the all-five-properties AES
+> fact are in the migration doc — do NOT rediscover this); `results/` copied 1.3 GB / 8633 files;
+> MySQL buffer pool 6 G, binlog off. Parity probe identical on both boxes.
+> **Current open items:** (1) `chattr -i` the seven tools before ANY tool edit — on BOTH boxes;
+> (2) sshd hardening on mac mini vultr (owner-deferred); (3) MemPalace outbox delivery
+> (`self-harness/outbox/mempalace-queue-20261020T0133Z.md`, still PENDING); (4) old-box
+> decommission decision (owner). Note: earlier "AC-9 can't be closed right now" notes are OBSOLETE —
+> AC-9 was closed later the same day (see the P11 UPDATE below).
+
 > **UPDATE 2026-10-20 (P11) — P11 DONE against a FROZEN byte set** (task doc
 > `docs/khanza_r5_task_p11_negative_controls.md`, R5 §22, report
 > `docs/khanza_r5_p11_opencode_report.md`, QMS `VER-2026-10-19-DR-KHANZA-R5-P11-001`). Every P10
