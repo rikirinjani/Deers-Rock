@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-10-23T0830Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "VPS migration stumbles, all self-caught and corrected in-flight (no harm landed)",
+  "what_went_wrong": [
+    "Ran a remote-intent script locally by mistake: newbox_install.sh (apt-get, mysql tuning) was executed in the local Git Bash instead of over ssh, producing 'apt-get: command not found' locally and touching nothing. Detected immediately from the output; re-wrapped in ssh and re-run.",
+    "First dump-verification pass reported DUMP-LEDGER-MISMATCH: the probe queried sik.dr_charge_ledger, but the canonical ledger table lives in sik_bench. The mismatch was a wrong-query artifact, not a bad export; re-verifying against sik_bench reproduced 356355:a66a3a54... exactly.",
+    "PatchDbXml/BenchProbe classpath was wrong twice: (1) used the parent dir of EnkripsiAES.class instead of the package root (KhanzaSecurity16bit/build/classes), (2) omitted commons-codec and the Connector/J jar, which is lib/mariadb.jar (Connector/J 8.4.0 under a mariadb name). Each failure was diagnosed from the stack trace and the final classpath verified by a successful round-trip and a two-box parity probe.",
+    "Granted benchmark@localhost a standing ALL on sik_p6f.* during user creation. The old box invariant requires zero standing grants on sik_p6f (the suite adds and revokes them at runtime), so a migrated box with the grant would have failed the live-proof check. Caught during the same session, revoked, and SHOW GRANTS verified byte-identical to the old box before wrap.",
+    "A read-only users/grants probe on the old box was piped through tail -40 and lost its first section, leading to one wasted re-run. Output truncation on multi-section probes should use named markers, not tail."
+  ],
+  "root_cause": "Orchestrating two remote boxes from a Windows workstation invites wrapper/role confusion (local vs remote scripts, per-box env), and the Khanza asset's credential path (AES-encoded database.xml, renamed Connector/J jar, package-layout classpaths) is undocumented in the restore runbook - every stumble mappped to one of these two causes.",
+  "detection": "Immediate: command output reviewed at each step; the grant issue was caught by re-checking the live-proof invariant against the planned grants before wrap, not by a failing check.",
+  "evidence": [
+    "khanza-r5/docs/asset_export_20261023.md (Post-restore wiring section records the correct classpath, the all-five-properties AES fact, and the verified end state)",
+    "Session traces: r5-vps-migration-executed.pm1, r5-label-mac-mini-vultr.pm1"
+  ],
+  "impact": "None landed: the local misfire touched nothing; the wrong-DB probe was re-run correctly; the grant was revoked before any suite or live-proof ran on the new box; final state on mac-mini-vultr verified clean (grants identical to old box, ledger hash match, parity probe identical).",
+  "correction": {
+    "applied": [
+      "Runbook updated so the credential-path knowledge is no longer tribal: classpath, jar identity, and the all-five-properties AES encoding are written into docs/asset_export_20261023.md and the RESTORE.md shipped on both the export and the box.",
+      "Grants on the new box revoked to match the old box exactly; verified via SHOW GRANTS.",
+      "Two-box parity probe (BenchProbe) added and run on both boxes, giving a repeatable end-to-end credential check for future migrations."
+    ],
+    "blocked": [],
+    "not_done": [
+      "sshd hardening on the new box (password auth still enabled) - deferred by the owner to a later session; recorded as an open item in the migration doc."
+    ]
+  },
+  "rule": "Before running a script intended for a remote box, check the wrapper (ssh 'bash -s' < script), not the script body. And when replicating security-relevant state (DB grants), diff the intended grants against the source box's live grants before applying, not after.",
+  "related_records": [
+    "records/failures/20261019T2135Z-process-r5-p11-concurrent-writer-evidence-unbinding.json"
+  ],
+  "agent": "opencode",
+  "status": "corrected",
+  "status_note": "All five stumbles corrected in-flight; migration completed and verified (commit 8c9db21, eac3230). Deferred: sshd hardening."
+}

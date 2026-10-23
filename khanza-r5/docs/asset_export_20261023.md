@@ -136,3 +136,8 @@ counts; databases exactly `sik sik_bench` (plus system).
   `khanza-r5/.vps-mac-mini.env` (gitignored). Per the owner, both boxes stay live; the older vultr
   box remains the target of `khanza-r5/.vps.env` until decommission is decided, and any stream still
   working there is unaffected.
+
+**Open on the new box (deferred by owner, 2026-10-23):** sshd still allows password logins
+(`passwordauthentication yes`, `permitrootlogin yes`). Owner chose to defer hardening
+(`PasswordAuthentication no` + `PermitRootLogin prohibit-password`) to a later session; both boxes
+also share one ed25519 key. Vultr console remains the emergency fallback.
