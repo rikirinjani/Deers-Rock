@@ -1,5 +1,7 @@
 # Session Handoff — DR→Khanza E2E Benchmark (2026-10-17)
 
+> **HISTORY — SUPERSEDED 2026-10-24.** Read `khanza_session_handoff_20261024.md` instead. This file is kept as a record only: its body describes 2026-10-17 and several UPDATE blocks below are stale or contradict each other (e.g. "hardening DONE" vs "owner-deferred" — verified DONE on 2026-10-24; the 21-check/7-min suite is now 39 checks/~45 min).
+
 **Read this first.** It replaces `khanza_session_handoff_20261016.md` (kept for history).
 
 > **UPDATE 2026-10-23 (VPS migration) — the benchmark asset now lives on TWO boxes.** The asset was

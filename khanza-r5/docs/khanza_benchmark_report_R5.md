@@ -1081,3 +1081,44 @@ they do not show that any particular production fault is detected.
 **Live state after P11:** databases `sik`, `sik_bench`; both `database.xml` copies on `sik`;
 ledger 356,355 rows, content `a66a3a54…`; no `.writer_exclusion_*` marker; no benchmark grant on
 `sik_p6f`.
+
+## 23. VPS run lock: the exclusive window made real (2026-10-24, new)
+
+**Why.** P11's worst incident was a second agent session rewriting tools on the same tree and VPS
+19 s before an evidence run (§22). Freezing bytes (`chattr +i`) protects the tools, not the
+fixture or the run. The assessment `docs/khanza_handoff_assessment_20261024.md` (§2 item 5,
+recommendation 4) asked for a mechanism.
+
+**What.** `tools/dr_runlock.sh` (new): lock file `/opt/dr-benchmark/LOCK` (`session`, `pid`,
+`start_utc`, `host`, `note`), created atomically (noclobber). `acquire <id>`, `status`,
+`release <id>|--force`. `p6_run_suite_fresh.sh` and `p11_negative_controls.sh` now call
+`dr_runlock_require` as their first action — **before the EXIT trap and before any SQL, delete or
+write** — and exit 3 unless `DR_LOCK_SESSION` equals the lock's session. Children inherit the
+variable, so the preservation check and the NC driver pass through under their holder.
+`tools/runlock_negctl.sh` (new) is the negative control.
+
+**Limits (stated, not hidden).** The lock is advisory: it stops the two guarded tools, not an
+operator running `mysql` by hand, nor `p6_acceptance_suite.sh` called directly. `pid` is
+informational (a one-shot ssh acquire has a dead pid), so a stale lock is broken only by an
+explicit `release --force` after `status`. It was deployed to mac-mini-vultr only; the old box
+(terminating ~2026-10-25) was not touched.
+
+**Evidence** `evidence/runlock/r5_runlock_negctl_20261024T101928Z.md`, run on the fixture
+`sik_p6f` (live `sik`/`sik_bench` read-only): `PASS=9 FAIL=0`, quoted:
+- L1 no lock: wrapper exit 3, NC driver exit 3, no fixture created, NC log dir untouched.
+- L2 lock held by A: session B exit 3 (wrapper and NC driver), no session id exit 3, second `acquire` exit 3.
+- L3 A runs `P11_ONLY=31`; while it runs B gets exit 3, A's fixture and grant intact (grant lines 1 -> 1); A's run exit 0, `teardown: databases now: sik sik_bench`.
+- L4 non-owner release refused (3), owner release frees it. L5 live state identical before/after (databases, `sik.billing` 1,464,593, ledger 356,355 rows, benchmark grants, `database.xml` hashes).
+
+**Re-freeze.** The two frozen tools were unfrozen (`chattr -i`, originals in
+`/opt/Deers-Rock/tools/.bak_runlock_20261024/`), replaced with LF copies, and re-frozen together
+with the two new files (`lsattr` shows `i` on all four). New manifest
+`evidence/runlock/r5_frozen_manifest_20261024.sha256` (nine files; `sha256sum -c` OK on the box and
+on the workstation). Re-pinned: `p6_run_suite_fresh.sh` `0865400d…` -> `6967805d…`,
+`p11_negative_controls.sh` `0bba1931…` -> `e65238ca…`; added `dr_runlock.sh` `5393989e…`,
+`runlock_negctl.sh` `6447f554…`.
+
+**Consequence for the P11 evidence.** The two re-pinned tools differ from the bytes that produced
+the P11 evidence (§22). The added code is the guard only; it runs before any logic that the P11
+checks exercise, but the full-suite and NC runs were **not** repeated on the new bytes. A full
+39-check suite and 5/5 NC re-run under a held lock is part of the next wave's closure.

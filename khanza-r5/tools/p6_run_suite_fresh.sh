@@ -12,8 +12,11 @@
 # P11: the P11_ONLY / R5_NEGCTL_* / P10_INJECT / P9_FORCE_FAIL_CHECK / P9_QUICK
 #      environment variables are forwarded to the suite below (exported before the
 #      FX=... invocation) so selective and negative-control runs reach p6_acceptance_suite.sh.
+# 2026-10-24: refuses (exit 3) unless the caller owns the VPS run lock (dr_runlock.sh). The
+#      check is BEFORE the EXIT trap and every SQL call, so a refused second run touches nothing.
 set -u
 cd /opt/Deers-Rock/tools
+. ./dr_runlock.sh; dr_runlock_require p6_run_suite_fresh.sh
 FX=sik_p6f
 SQL() { mysql -uroot -N -e "$1"; }
 if [ "${1:-}" = "--teardown-kept" ]; then

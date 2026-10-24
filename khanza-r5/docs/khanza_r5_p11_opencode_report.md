@@ -254,7 +254,7 @@ is **not** used as the §4.6 proof.
 | R14 | Hygiene | 2 | secret scan 0, no push, no Kaggle, no live writes, messages per §7 |
 
 **Self-score 27/28** (was 26/28 before the final NC run). On the §9 rule that Accept also requires R1, R2, R9, R10, R11 all at 2, this
-is **Accept with fixes** — only R3 is at 1, and it is disclosed rather than hidden (no transcript shows the `HASH-STATE ERROR` sentinel firing; the code path and the negative-control evidence are present).
+is ~~**Accept with fixes**~~ **Accept** *(corrected 2026-10-24: the rubric's Accept rule requires R1, R2, R9, R10, R11 at 2 and ≥ 24; R3 is not among them, so 27/28 is Accept — see `khanza_handoff_assessment_20261024.md` §3, which scores it 26/28, also Accept)* — only R3 is at 1, and it is disclosed rather than hidden (no transcript shows the `HASH-STATE ERROR` sentinel firing; the code path and the negative-control evidence are present).
 
 ## Problems found, open items, and anything you are unsure about
 

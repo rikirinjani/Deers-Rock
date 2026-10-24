@@ -29,6 +29,9 @@
 # Usage (root on the VPS): bash p11_negative_controls.sh
 set -u
 cd /opt/Deers-Rock/tools
+# 2026-10-24: refuses (exit 3) unless the caller owns the VPS run lock; checked before
+# anything is deleted or written (the rm -rf of $NCDIR below would destroy a running NC run's logs).
+. ./dr_runlock.sh; dr_runlock_require p11_negative_controls.sh
 export DBUTIL_FORCE_ROOT=1
 SQL() { mysql -uroot -N -e "$1"; }
 FX=sik_p6f

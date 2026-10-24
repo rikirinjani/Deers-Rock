@@ -1,0 +1,34 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-24-DR-KHANZA-R5-RUNLOCK-001",
+  "date": "2026-10-24",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 \u00a723: VPS run lock (exclusive window) with negative control; frozen tools re-pinned; record gaps closed",
+  "trigger": "khanza_handoff_assessment_20261024.md recommendations 3-5",
+  "tool_sha256": {
+    "p6_run_suite_fresh.sh": "6967805d0418bf03eedb0383fd7f866002f23c98b3f5dc9c6c27ea691b374188",
+    "p11_negative_controls.sh": "e65238ca495aa155352524f459648112785437bc344354b1622fc6f6464ae9c5",
+    "dr_runlock.sh": "5393989e2a0990ab0d3ff38b298cf884b7e22987223461edaf341f069c971b4d",
+    "runlock_negctl.sh": "6447f55478c67e2bd67942f793b66904931089e9caee9b1abe947480292cbdbc"
+  },
+  "evidence": [
+    "khanza-r5/evidence/runlock/r5_runlock_negctl_20261024T101928Z.md (PASS=9 FAIL=0)",
+    "khanza-r5/evidence/runlock/r5_frozen_manifest_20261024.sha256 (nine files, sha256sum -c OK on box and workstation)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md section 23",
+    "khanza-r5/docs/khanza_session_handoff_20261024.md"
+  ],
+  "checks": [
+    "no lock: wrapper and NC driver exit 3, no fixture, NC log dir untouched - PASS",
+    "lock held by A: session B / no session / second acquire exit 3 - PASS",
+    "A runs P11_ONLY=31 while B is refused (exit 3); A's fixture and grant intact; A exit 0; fixture dropped - PASS",
+    "non-owner release refused, owner release frees lock - PASS",
+    "live sik/sik_bench identical before/after (databases, row counts, ledger 356355, grants, database.xml) - PASS",
+    "sshd -T on mac-mini-vultr: passwordauthentication no (hardening DONE confirmed read-only) - PASS"
+  ],
+  "limitations": [
+    "advisory lock; guards two tools only; deployed to mac-mini-vultr only (old box dies ~2026-10-25)",
+    "full 39-check suite and NC 5/5 not re-run on the re-pinned bytes"
+  ],
+  "result": "PASS (scoped)",
+  "not_pushed": true
+}
