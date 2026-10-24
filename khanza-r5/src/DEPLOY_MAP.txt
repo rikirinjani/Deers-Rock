@@ -1,0 +1,14 @@
+# repo path (relative to khanza-r5/)  ->  path on the benchmark box
+src/consumer/JasperHeadless.java /opt/simrs-khanza/consumer/JasperHeadless.java
+src/consumer/JdbcProbe.java /opt/simrs-khanza/consumer/JdbcProbe.java
+src/consumer/KhanzaBillingConsumer.java /opt/simrs-khanza/consumer/KhanzaBillingConsumer.java
+src/consumer/MiniParse.java /opt/simrs-khanza/consumer/MiniParse.java
+src/consumer/PatchDbXml.java /opt/simrs-khanza/consumer/PatchDbXml.java
+src/consumer/RetargetDbXml.java /opt/simrs-khanza/consumer/RetargetDbXml.java
+src/consumer/TestAES.java /opt/simrs-khanza/consumer/TestAES.java
+src/consumer/dr_export.py /opt/simrs-khanza/consumer/dr_export.py
+src/consumer/dr_export.sh /opt/simrs-khanza/consumer/dr_export.sh
+src/harness/BilingHarness.java /opt/simrs-khanza/run-env/harness/BilingHarness.java
+src/harness/EncodeAES.java /opt/simrs-khanza/run-env/harness/EncodeAES.java
+tools/stagea_common.py /opt/Deers-Rock/tools/stagea_common.py
+evidence/p6/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql /opt/dr-benchmark/p-chain/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql

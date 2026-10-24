@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-24T11:48:10Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "Reconcile negative control planted its defect on an encounter the ledger does not hold, so the plant changed 0 rows",
+  "what_went_wrong": [
+    "p12_reconcile_negctl.sh picked the planted encounter from sik.detail_nota_jalan alone; the first row was a native (non-DR) encounter, 2026/02/25/000001, with no ledger rows.",
+    "The UPDATE on the scratch ledger therefore changed 0 rows, the second arm equalled the first, and the control printed P12-NC: NOT-DISCRIMINATING (exit 1). The chain recorded reconctl=1."
+  ],
+  "root_cause": "The control did not assert that its mutation took effect (no ROW_COUNT check) and chose the target from one table without joining the table being mutated.",
+  "detection": "The control's own verdict. It failed loudly rather than passing vacuously.",
+  "impact": "No false claim: the failing run is kept (evidence/p12/r5_p12_reconcile_negctl_FAILED_plant_noop_20261024T114800Z.log) and the chain log still shows reconctl=1.",
+  "correction": {
+    "applied": "Target now joins detail_nota_jalan with the scratch ledger, and the script aborts (exit 3) unless ROW_COUNT() = 1. The tool was unfrozen, fixed, deployed and re-frozen (manifest 20261024c; only p12_reconcile_negctl.sh changed).",
+    "result": "Re-run under a held lock: planted on 2026/10/01/000254; S1 reports exactly that encounter and S2 B-vs-C reports it; P12-NC: DISCRIMINATING (evidence/p12/r5_p12_reconcile_negctl_20261024T1155Z.log)."
+  },
+  "rule": "A negative control must assert that its mutation took effect before it is allowed to report a verdict.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

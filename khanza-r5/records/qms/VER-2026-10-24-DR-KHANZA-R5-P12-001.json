@@ -1,0 +1,55 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-24-DR-KHANZA-R5-P12-001",
+  "date": "2026-10-24",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 s24 (P12 step 1): evidence chain re-run on the run-lock bytes, per-encounter A/B/C reconciliation, reproducibility sources published",
+  "trigger": "owner instruction 2026-10-24 (items 3 and 4 of the next-steps list); khanza_handoff_assessment_20261024.md recommendations 6-7",
+  "tool_sha256": {
+    "p6_acceptance_suite.sh": "7ecb20ef7bdcf615bbf832c6d3f48c05fde05b8eafa581a515d53e20e5ab5365",
+    "p6_run_suite_fresh.sh": "39979e3c3e0f790724dff0d24bf3d8d12c5b8cc4b04a29506c8820a7669e924a",
+    "sampled_real_form_diff_r5.py": "e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc",
+    "p10_hash_state.py": "d59b18fb4bc3c92a6e9373c4104739fd1ef9f60f3ab126ea385628889a559daa",
+    "p10_preservation_check.sh": "e5d39756de395966d34e8379800650909906698457b7b0901826ff9b88125678",
+    "p11_negative_controls.sh": "e65238ca495aa155352524f459648112785437bc344354b1622fc6f6464ae9c5",
+    "p8_recovery_unit_test.py": "73b6468f1bfb7bbbbb2485b9039aa0ad2140e2f2df54e16bb2e557fa24890299",
+    "dr_runlock.sh": "5393989e2a0990ab0d3ff38b298cf884b7e22987223461edaf341f069c971b4d",
+    "runlock_negctl.sh": "6447f55478c67e2bd67942f793b66904931089e9caee9b1abe947480292cbdbc",
+    "p12_perencounter_reconcile.py": "a418916c142f274f3cc645106fc2a1bb03364b2a508f8bda230f1ea7997ce2bd",
+    "p12_reconcile_negctl.sh": "d51492f3de31ca830f7399315d207776ccad2aeac9cd46d485dbec8a2070e3ba",
+    "p12_rerun_chain.sh": "c5eeb67224ca17d65e642fed54e06f4e6bc369076ef7b371415bd9edfbd22bf6",
+    "stagea_common.py": "4b94f3c877d1274d99424101ec3c0182008790b9039a11033f60bd4018a4b9ad",
+    "dbutil.py": "f85958b4213e43db34bfd7a09089b094334b21312ec68a19692553a9d88f40b0",
+    "three_count_reconcile_p2.py": "3f6ca5203b20e8c04b810191ecb5b3112091750e7e8ef0646ba598adab740fcf"
+  },
+  "evidence": [
+    "khanza-r5/evidence/p12/r5_p12_rerun_chain_20261024T112518Z.log (suite 39/39, preservation PASS, unit 33/33, builder identical, NC 5/5, lock NC 9/9, live proof; recon=1 documented residual; reconctl=1 failed control, see failure record)",
+    "khanza-r5/evidence/p12/r5_p6_acceptance_20261024T112620Z.md (PASS=39 FAIL=0)",
+    "khanza-r5/evidence/p12/r5_p10_preservation_20261024T113326Z.md (PRESERVATION-CHECK PASS)",
+    "khanza-r5/evidence/p12/r5_p11_negative_controls_20261024T113529Z.md (DISCRIMINATING=5 NOT-DISCRIMINATING=0)",
+    "khanza-r5/evidence/p12/r5_runlock_negctl_20261024T114634Z.md (PASS=9 FAIL=0)",
+    "khanza-r5/evidence/p12/r5_p12_perencounter_diffs_20261024T112518Z.csv (the 1 residual, 2 rows B-vs-C and B-vs-A)",
+    "khanza-r5/evidence/p12/r5_p12_reconcile_negctl_FAILED_plant_noop_20261024T114800Z.log and r5_p12_reconcile_negctl_20261024T1155Z.log (fixed control DISCRIMINATING)",
+    "khanza-r5/evidence/p12/r5_p12_strata_pin_negctl_20261024.txt (tampered dump -> exit 3, no database touched)",
+    "khanza-r5/evidence/p12/r5_frozen_manifest_20261024b.sha256 and ...c.sha256",
+    "khanza-r5/src/PUBLISHED.sha256, src/verify_published.sh",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md section 24",
+    "khanza-r5/docs/khanza_r5_reproduce.md"
+  ],
+  "checks": [
+    "A vs C per encounter x component over 86,455 DR encounters: 0 differences - PASS",
+    "B vs C on the 1,068 form-saved encounters: 1,067 equal, 1 differs (2026/10/23/000408) - PARTIAL, residual disclosed",
+    "R4 sample 999: all have B, A==C and B==C for all 999 - PASS",
+    "reconcile negative control (planted +1, asserted ROW_COUNT=1) DISCRIMINATING after fixing a vacuous first version - PASS",
+    "STRATA pin refuses a tampered dump with exit 3 - PASS",
+    "verify_published ALL-MATCH and DIFF on a tampered file - PASS"
+  ],
+  "limitations": [
+    "only 1.2% of encounters have a form-saved B",
+    "clean-box rebuild not done",
+    "lock advisory, two tools guarded",
+    "chain transcript shows reconctl=1 from the first, vacuous control (fixed afterwards, manifest c)"
+  ],
+  "result": "PASS (scoped)",
+  "not_pushed": true
+}

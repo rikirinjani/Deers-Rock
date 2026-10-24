@@ -29,7 +29,10 @@ if [ "${1:-}" = "--teardown-kept" ]; then
   echo "teardown: databases now: $(SQL 'SHOW DATABASES' | grep '^sik' | tr '\n' ' ')"
   exit 0
 fi
-STRATA_SQL=${STRATA_SQL:-$(ls /opt/dr-benchmark/p-chain/sik_p6f_build_*/strata_reg_rows.sql | head -1)}
+# 2026-10-24 (P12 reproducibility): the STRATA row dump is pinned by content, not by `ls | head -1`.
+# The same file is tracked at evidence/p6/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql.
+STRATA_SHA256=c898081914597fd04cbab22d317fe2bebdd00f92df3ef48f96e324724172f14c
+STRATA_SQL=${STRATA_SQL:-/opt/dr-benchmark/p-chain/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql}
 RC=3; SUITE_RAN=0
 teardown() {
   SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM \`benchmark\`@\`localhost\`;" 2>/dev/null
@@ -45,6 +48,7 @@ teardown() {
 trap teardown EXIT
 [ -n "$(SQL "SHOW DATABASES LIKE '$FX'")" ] && { echo "$FX already exists - refusing (a kept failed fixture? see --teardown-kept)"; exit 3; }
 [ -f "$STRATA_SQL" ] || { echo "STRATA row dump not found"; exit 3; }
+[ "$(sha256sum "$STRATA_SQL" | cut -d" " -f1)" = "$STRATA_SHA256" ] || { echo "STRATA row dump sha256 != pinned $STRATA_SHA256 - refusing"; exit 3; }
 T0=$(date +%s)
 SQL "CREATE DATABASE $FX CHARACTER SET $(SQL "SELECT default_character_set_name FROM information_schema.schemata WHERE schema_name='sik'") COLLATE $(SQL "SELECT default_collation_name FROM information_schema.schemata WHERE schema_name='sik'");"
 BUILT=1

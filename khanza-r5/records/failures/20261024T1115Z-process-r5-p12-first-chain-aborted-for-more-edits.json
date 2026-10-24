@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-24T11:21:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "First P12 rerun chain was started, then aborted a minute in because further frozen-tool edits were planned",
+  "what_went_wrong": [
+    "The chain (session P12-RERUN-20261024) was started on the run-lock bytes, then stopped about one minute into its fixture build because the STRATA pin and the new tools would change frozen bytes again; running a 2 h chain on bytes about to change would have produced evidence for the wrong set.",
+    "My first kill attempt used pkill -f with a pattern that also matched my own ssh command line, which killed the ssh session; the suite processes survived and were stopped with plain kill (SIGTERM) so their traps ran."
+  ],
+  "root_cause": "The chain was launched before the full list of frozen-byte changes for the wave was decided.",
+  "impact": "No evidence was produced or cited from the aborted run. Cleanup under a held lock (session CLEANUP-20261024): fixture sik_p6f dropped with --teardown-kept, no writer marker, no benchmark grant on the fixture, both database.xml on sik, databases sik and sik_bench only. The lock was released.",
+  "correction": {
+    "applied": "Decided all frozen-byte changes first, deployed them, froze manifest 20261024b, then started one chain (P12-RERUN-20261024B).",
+    "result": "Chain 20261024T112518Z ran uncontended on the final bytes."
+  },
+  "rule": "Decide the complete set of frozen-byte changes before starting an evidence chain; never kill with pkill -f patterns that match the caller's own command line.",
+  "agent": "orchestrator",
+  "status": "corrected"
+}

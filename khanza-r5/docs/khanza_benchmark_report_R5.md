@@ -1122,3 +1122,61 @@ on the workstation). Re-pinned: `p6_run_suite_fresh.sh` `0865400d…` -> `696780
 the P11 evidence (§22). The added code is the guard only; it runs before any logic that the P11
 checks exercise, but the full-suite and NC runs were **not** repeated on the new bytes. A full
 39-check suite and 5/5 NC re-run under a held lock is part of the next wave's closure.
+
+## 24. P12: evidence chain re-run on the run-lock bytes, per-encounter reconciliation, reproducibility closure (2026-10-24, new)
+
+**1. The P11 evidence is re-taken on the bytes that now run.** One chain, one held lock
+(`P12-RERUN-20261024B`), mac-mini-vultr, frozen set of 15 files
+(`evidence/p12/r5_frozen_manifest_20261024b.sha256`, `sha256sum -c` OK before and after), transcript
+`evidence/p12/r5_p12_rerun_chain_20261024T112518Z.log`:
+suite `PASS=39 FAIL=0` exit 0 (`r5_p6_acceptance_20261024T112620Z.md`); preservation
+`PRESERVATION-CHECK PASS` exit 0; unit test 33/33; builder byte-identical
+(`356355:a66a3a54…` both sides); P11 negative controls `DISCRIMINATING=5 NOT-DISCRIMINATING=0`
+exit 0; run-lock negative control `PASS=9 FAIL=0`; live-state proof: databases `sik sik_bench`, ledger
+`356355:a66a3a54…`, 0 writer markers, 0 grants on the fixture. The whole chain took ~23 minutes on
+this box (the suite alone ~8 min including the clone; the old box needed ~45 min).
+**Not green in that transcript:** the chain ended `recon=1 reconctl=1`. `recon=1` is the documented
+residual below; `reconctl=1` is a defect in the new reconciliation negative control, kept as
+`evidence/p12/r5_p12_reconcile_negctl_FAILED_plant_noop_20261024T114800Z.log` (its plant changed 0
+rows). The control was fixed (it now asserts `ROW_COUNT()=1`), `p12_reconcile_negctl.sh` re-frozen
+(manifest `…20261024c`; only that file differs from `…b`) and re-run under a held lock:
+`P12-NC: DISCRIMINATING` (`r5_p12_reconcile_negctl_20261024T1155Z.log`). Failure records
+`20261024T1148Z-test-…` and `20261024T1115Z-process-…` (a first chain was aborted before its
+evidence mattered).
+
+**2. Per-encounter reconciliation** (`tools/p12_perencounter_reconcile.py`, SELECT-only,
+`evidence/p12/r5_p12_rerun_chain_20261024T112518Z.log`):
+- **S1 A (billing) vs C (ledger), every one of the 86,455 DR encounters × component, rows and
+  amount: 0 differences.** Totals-level gates could hide offsetting errors; this cannot.
+- **S2 B (form-save `detail_nota_jalan` paid sum) vs C on the identical set** of the 1,068 DR encounters
+  that have form-save rows: 1,067 equal; **1 differs**: `2026/10/23/000408` (DR000174, status
+  `Sudah Bayar`, one `Bank BCA` payment of 62,873.2 vs ledger/billing total 204,506). It is the only DR
+  encounter with a fractional payment and is not in the R4 sample. Cause not established
+  (a payment that does not match the charges; not investigated further, no live writes). B vs A gives
+  the same single difference.
+- **S3 the R4 sample (`r4_b2_1000`, 999 visits): all 999 have form-save rows, A == C for all 999, and
+  B == C for all 999** (the one B≠C encounter is outside it).
+- Negative control: a +1 planted in a scratch ledger copy is reported as exactly that encounter in S1
+  and S2 (`1 differences`, `2 of 1068 differ`), exit 1.
+
+**3. The R4 0/999, re-examined.** The old oracle compared, per visit, the multiset of billing value rows
+`(status, nm_perawatan, biaya, jumlah, totalbiaya)` the **consumer** produced against the rows the
+**real form** produced, counted a visit as mismatched on any extra/missing row or `sukses != true`
+(`sampled_real_form_diff.py`, lines ~335–343). The sample CSV shows 999/999 `sukses=True`, 4,079
+consumer value rows (none of the 999 had zero rows, so no visit passed vacuously), 0 count differences.
+That is a same-encounter **form-vs-consumer** result, at the row level including amounts. It did not
+involve the ledger. Now, on the current live state, the same 999 are also equal to the independent ledger
+per encounter (A == C) and to the form's saved payment (B == C). Stated limits: the sample is 999 of
+86,455 encounters; only 1,068 (1.2 %) have a form-saved B at all, so B–C says nothing about the other
+98.8 %; B == C assumes the form recorded full payment at its own computed total; A is the last write to
+`billing`, not a time series; and the prior drift rate of 4/216 in the older sample is not explained by
+this.
+
+**4. Reproducibility closure** (`docs/khanza_r5_reproduce.md`): the consumer, harness, config helpers and
+export scripts are published under `src/` and `tools/stagea_common.py`, hash-pinned in
+`src/PUBLISHED.sha256`; `src/verify_published.sh` shows all 13 files byte-identical to the box and
+fails (`DIFF`, exit 1) when one line of a published file is appended. The STRATA dump is pinned by
+sha256 in `p6_run_suite_fresh.sh` (`c8980819…`, no more `ls … | head -1`); a tampered copy makes the
+wrapper exit 3 before any database is touched (`r5_p12_strata_pin_negctl_20261024.txt`).
+**Not done:** the rebuild on a clean box (needs the third home); the Khanza tree, dumps and secrets
+remain external inputs; the export archives need durable storage off the box that ends ~2026-11-20.

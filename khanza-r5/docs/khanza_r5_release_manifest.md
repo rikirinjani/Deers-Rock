@@ -31,7 +31,7 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | `build_dr_charge_ledger_p2.py` (P6-3 single-session replace; §17 ALL scope; P7 exact integer tax; P8 delete scope = window AND cohort, Decimal half-up; P10 a NULL/empty/non-numeric amount fails the build) | `2a4a1c48b6ee1423626a9988f6d505a94fd8802d5b639b492f19fead2ee22234` |
 | `p6_acceptance_suite.sh` (P10: 39 checks incl. A26–A29, A31; `P10_INJECT` for the preservation check. P11: discriminating A28'/A31'/A22b extensions, pre-operation snapshot in `P10_INJECT`, `P11_ONLY` selective mode) | `7ecb20ef7bdcf615bbf832c6d3f48c05fde05b8eafa581a515d53e20e5ab5365` |
 | `p6_dbxml.py` (verified `database.xml` retarget/restore) | `469c698e01fb95eba09714e78de096eaa4625fc47814c4055743a6973c0225a9` |
-| `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown; P9: keeps the fixture when the suite fails, `--teardown-kept`; P11: forwards `P11_ONLY`/`R5_NEGCTL_*`/`P11_FORCE_FAIL`; 2026-10-24: refuses with exit 3 without the run lock) | `6967805d0418bf03eedb0383fd7f866002f23c98b3f5dc9c6c27ea691b374188` |
+| `p6_run_suite_fresh.sh` (one-command fixture build → suite → teardown; P9: keeps the fixture when the suite fails, `--teardown-kept`; P11: forwards `P11_ONLY`/`R5_NEGCTL_*`/`P11_FORCE_FAIL`; 2026-10-24: refuses with exit 3 without the run lock; P12: STRATA dump pinned by sha256, refuses otherwise) | `39979e3c3e0f790724dff0d24bf3d8d12c5b8cc4b04a29506c8820a7669e924a` |
 | `p6_strata_recheck.sh` (§17 edge-strata re-check on a verified target) | `1fdc29cbec027131021b34ea5787b8508686fdb2276ebd27a02d52703b191e7b` |
 | `p7_ledger_rebuild.sh` (live ledger backup + rebuild + gates, owner-approved) | `6a9233d6d0778fd98fd9bf002e770f69f8d8c4910310eed6c8dfe7201f168d03` |
 | `p7_write_provenance.sh` (audited form run: who writes billing) | `70f3f1fbcd6927421d4bdec4c115c585489d2461a5c0fd6c9a4fcd4fd60d9f1c` |
@@ -42,11 +42,17 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | `p11_negative_controls.sh` (P11: runs each check twice, with and without its `R5_NEGCTL_*` switch, and exits 0 only if every NC is DISCRIMINATING; 2026-10-24: refuses with exit 3 without the run lock) | `e65238ca495aa155352524f459648112785437bc344354b1622fc6f6464ae9c5` |
 | `dr_runlock.sh` (2026-10-24: VPS run lock `/opt/dr-benchmark/LOCK`; `acquire`/`status`/`release`; sourced by the wrapper and NC driver) | `5393989e2a0990ab0d3ff38b298cf884b7e22987223461edaf341f069c971b4d` |
 | `runlock_negctl.sh` (2026-10-24: run-lock negative control on the fixture, 9 checks; exits 0 only if all hold) | `6447f55478c67e2bd67942f793b66904931089e9caee9b1abe947480292cbdbc` |
+| `p12_perencounter_reconcile.py` (P12: read-only per-encounter A/B/C reconciliation over the DR cohort and the R4 sample; `P12_*_DB` test overrides) | `a418916c142f274f3cc645106fc2a1bb03364b2a508f8bda230f1ea7997ce2bd` |
+| `p12_reconcile_negctl.sh` (P12: plants +1 in a scratch ledger copy, asserts the plant took effect, requires exit 1 and the planted encounter reported) | `d51492f3de31ca830f7399315d207776ccad2aeac9cd46d485dbec8a2070e3ba` |
+| `p12_rerun_chain.sh` (P12: one-lock evidence chain: frozen check, suite, preservation, unit, builder, NC, lock NC, reconciliation, live proof) | `c5eeb67224ca17d65e642fed54e06f4e6bc369076ef7b371415bd9edfbd22bf6` |
+| `stagea_common.py` (published from the box, no secrets; see `docs/khanza_r5_reproduce.md`) | `4b94f3c877d1274d99424101ec3c0182008790b9039a11033f60bd4018a4b9ad` |
 | `p8_builder_all_check.sh` (builder `--window ALL` into an empty scratch ledger must reproduce the live ledger; P9: exits 1 on a difference, `P9_PLANT_MISMATCH` test hook) | `4d9118a586605e02f53d80a91f7b7ff797977e51157a4b19a53c93342bb96878` |
 | `p9_terminal_path_check.sh` (P9: forced real-check failure through the wrapper → exit 1, fixture kept, then `--teardown-kept`) | `63f4dcc45692a93ca7c8cf4eaea317f478dc51558126b2a06e10d5c4c4223372` |
 | `p7_three_count_contract_test.py` (three_count exit-code contract) | `3857538f01eb1a927e2d47e4ba3ab07e1b191450caec4430178c37862723466a` |
 
 > 2026-10-24 (R5 §23) re-pins the wrapper (`0865400d…`→`6967805d…`) and the NC driver (`0bba1931…`→`e65238ca…`) and adds `dr_runlock.sh` and `runlock_negctl.sh`; frozen manifest `evidence/runlock/r5_frozen_manifest_20261024.sha256`.
+>
+> 2026-10-24 (R5 §24, P12) re-pins the wrapper again (`6967805d…`→`39979e3c…`, STRATA pin) and adds the four rows above; frozen set of 15 files: `evidence/p12/r5_frozen_manifest_20261024c.sha256`. Published sources: `src/PUBLISHED.sha256`.
 >
 > P11 (2026-10-19/20) re-pins the oracle (`c3bdd2d6…`→`e2c1d2f9…`), suite (`8b89d431…`→`7ecb20ef…`),
 > wrapper (`2e6097be…`→`0865400d…`), unit test (`345bc6ae…`→`73b6468f…`), `p10_hash_state.py`

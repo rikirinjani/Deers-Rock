@@ -1,0 +1,20 @@
+scratch ledger rows: 356355 (live 356355)
+== control arm: unplanted copy (expect same result as live) ==
+S1 set: DR encounters 86455 | with ledger rows 86455 | with billing rows 86455
+S1 A vs C per encounter x component: 0 differences
+S2 set: encounters with detail_nota_jalan rows (identical set for B, A, C): 1068
+S2 B(paid) vs C(total) per encounter: 1 of 1068 differ
+S2 B(paid) vs A(total) per encounter: 1 of 1068 differ
+S3 R4 sample: 999 visits (999 unique); with form-save rows (B available): 999; A vs C per-encounter differences: 0
+RESULT: DIFFERENCES
+== with-plant arm: one amount +1 on a form-saved encounter ==
+planted on 2026/02/25/000001
+S1 set: DR encounters 86455 | with ledger rows 86455 | with billing rows 86455
+S1 A vs C per encounter x component: 0 differences
+S2 set: encounters with detail_nota_jalan rows (identical set for B, A, C): 1068
+S2 B(paid) vs C(total) per encounter: 1 of 1068 differ
+S2 B(paid) vs A(total) per encounter: 1 of 1068 differ
+S3 R4 sample: 999 visits (999 unique); with form-save rows (B available): 999; A vs C per-encounter differences: 0
+RESULT: DIFFERENCES
+P12-NC: NOT-DISCRIMINATING (exit 1)
+teardown: databases now: sik sik_bench 

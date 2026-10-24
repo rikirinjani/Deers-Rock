@@ -1,0 +1,8 @@
+builder sha: 2a4a1c48b6ee1423
+P8 builder (Decimal irup + cohort-scoped DELETE) --window ALL into empty scratch: exit=0
+[11:35:25] tax rows: 70056 (cohort-scoped to window=ALL)
+[11:35:25] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+live   356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+scratch 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+dbs: sik sik_bench 
+INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)

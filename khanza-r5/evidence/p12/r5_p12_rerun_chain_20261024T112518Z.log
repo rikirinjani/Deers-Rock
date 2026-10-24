@@ -1,0 +1,98 @@
+RUNLOCK-ACQUIRED: session=P12-RERUN-20261024B (/opt/dr-benchmark/LOCK)
+=== P12 RERUN CHAIN 20261024T112518Z (UTC) session=P12-RERUN-20261024B ===
+=== STEP 0: frozen set ===
+p6_acceptance_suite.sh: OK
+p6_run_suite_fresh.sh: OK
+sampled_real_form_diff_r5.py: OK
+p10_hash_state.py: OK
+p10_preservation_check.sh: OK
+p11_negative_controls.sh: OK
+p8_recovery_unit_test.py: OK
+dr_runlock.sh: OK
+runlock_negctl.sh: OK
+p12_perencounter_reconcile.py: OK
+p12_reconcile_negctl.sh: OK
+p12_rerun_chain.sh: OK
+stagea_common.py: OK
+dbutil.py: OK
+three_count_reconcile_p2.py: OK
+frozen-check exit=0
+=== STEP 1: FULL FRESH SUITE ===
+
+Raw transcripts: /tmp/r6_a*.log (copied next to this file as r5_p6_logs_20261024T112620Z.tgz).
+=== P6 SUITE DONE: PASS=39 FAIL=0 ===
+evidence: /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261024T112620Z.md
+suite exit=0
+teardown: databases now: sik sik_bench 
+suite exit=0
+=== STEP 2: PRESERVATION CHECK ===
+PRESERVATION-CHECK PASS
+preservation exit=0
+=== STEP 3: UNIT TEST ===
+PASS  T6 _content_hash (live) and _stage_content_hash (staged) agree on identical data got=4e14484326aadb50259accce9b0fa29262fa121e693ed8cffe1847603fa01c2c want=4e14484326aadb50259accce9b0fa29262fa121e693ed8cffe1847603fa01c2c
+P8/P9 recovery unit test: 33/33 cases PASS
+unit exit=0
+=== STEP 4: BUILDER BYTE-IDENTITY ===
+live   356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+scratch 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+dbs: sik sik_bench 
+INTEGER-BUILDER-REPRODUCES-LIVE-LEDGER (byte-identical)
+builder exit=0
+=== STEP 5: NEGATIVE CONTROLS ===
+NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 2: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 3: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 4: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 5: with-switch=FAIL without=PASS -> DISCRIMINATING
+=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===
+evidence: /opt/dr-benchmark/p-chain/r5_p11_negative_controls_20261024T113529Z.md
+nc exit=0
+=== STEP 5b: RUN-LOCK NEGATIVE CONTROL (own lock released first, re-acquired after) ===
+PASS  L4 lock still held
+PASS  L4 owner release freed the lock
+PASS  L5 live state identical before/after
+=== RUNLOCK NEGATIVE CONTROL: PASS=9 FAIL=0 ===
+runlock-negctl exit=0
+RUNLOCK-ACQUIRED: session=P12-RERUN-20261024B (/opt/dr-benchmark/LOCK)
+=== STEP 5c: PER-ENCOUNTER RECONCILIATION (read-only) ===
+DR encounters in sik.reg_periksa: 86455
+S1 set: DR encounters 86455 | with ledger rows 86455 | with billing rows 86455
+S1 A vs C per encounter x component: 0 differences
+S2 set: encounters with detail_nota_jalan rows (identical set for B, A, C): 1068
+S2 B(paid) vs C(total) per encounter: 1 of 1068 differ
+S2 B(paid) vs A(total) per encounter: 1 of 1068 differ
+S3 R4 sample: 999 visits (999 unique); with form-save rows (B available): 999; A vs C per-encounter differences: 0
+differences written: 2 -> /opt/dr-benchmark/p-chain/r5_p12_perencounter_diffs_20261024T112518Z.csv
+RESULT: DIFFERENCES
+reconcile exit=1 (1 = the one documented residual, see R5 s24)
+=== STEP 5d: RECONCILE NEGATIVE CONTROL ===
+scratch ledger rows: 356355 (live 356355)
+== control arm: unplanted copy (expect same result as live) ==
+S1 set: DR encounters 86455 | with ledger rows 86455 | with billing rows 86455
+S1 A vs C per encounter x component: 0 differences
+S2 set: encounters with detail_nota_jalan rows (identical set for B, A, C): 1068
+S2 B(paid) vs C(total) per encounter: 1 of 1068 differ
+S2 B(paid) vs A(total) per encounter: 1 of 1068 differ
+S3 R4 sample: 999 visits (999 unique); with form-save rows (B available): 999; A vs C per-encounter differences: 0
+RESULT: DIFFERENCES
+== with-plant arm: one amount +1 on a form-saved encounter ==
+planted on 2026/02/25/000001
+S1 set: DR encounters 86455 | with ledger rows 86455 | with billing rows 86455
+S1 A vs C per encounter x component: 0 differences
+S2 set: encounters with detail_nota_jalan rows (identical set for B, A, C): 1068
+S2 B(paid) vs C(total) per encounter: 1 of 1068 differ
+S2 B(paid) vs A(total) per encounter: 1 of 1068 differ
+S3 R4 sample: 999 visits (999 unique); with form-save rows (B available): 999; A vs C per-encounter differences: 0
+RESULT: DIFFERENCES
+P12-NC: NOT-DISCRIMINATING (exit 1)
+teardown: databases now: sik sik_bench 
+reconcile-negctl exit=1
+=== STEP 6: LIVE-STATE PROOF ===
+databases: sik sik_bench 
+database.xml: 0 empty; (targets verified by suite A-checks)
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+writer markers: 0
+benchmark grant on sik_p6f: 0
+frozen set after: 0  (0 = all OK)
+=== CHAIN DONE: suite=0 pres=0 unit=0 builder=0 nc=0 lockctl=0 recon=1 reconctl=1 ===
+RUNLOCK-RELEASED

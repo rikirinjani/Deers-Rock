@@ -1,0 +1,6 @@
+databases before: sik sik_bench 
+STRATA row dump sha256 != pinned c898081914597fd04cbab22d317fe2bebdd00f92df3ef48f96e324724172f14c - refusing
+teardown: databases now: sik sik_bench 
+tampered exit=3
+databases after: sik sik_bench 
+RUNLOCK-RELEASED
