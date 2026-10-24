@@ -1169,8 +1169,7 @@ involve the ledger. Now, on the current live state, the same 999 are also equal 
 per encounter (A == C) and to the form's saved payment (B == C). Stated limits: the sample is 999 of
 86,455 encounters; only 1,068 (1.2 %) have a form-saved B at all, so B–C says nothing about the other
 98.8 %; B == C assumes the form recorded full payment at its own computed total; A is the last write to
-`billing`, not a time series; and the prior drift rate of 4/216 in the older sample is not explained by
-this.
+`billing`, not a time series.
 
 **4. Reproducibility closure** (`docs/khanza_r5_reproduce.md`): the consumer, harness, config helpers and
 export scripts are published under `src/` and `tools/stagea_common.py`, hash-pinned in
@@ -1180,3 +1179,23 @@ sha256 in `p6_run_suite_fresh.sh` (`c8980819…`, no more `ls … | head -1`); a
 wrapper exit 3 before any database is touched (`r5_p12_strata_pin_negctl_20261024.txt`).
 **Not done:** the rebuild on a clean box (needs the third home); the Khanza tree, dumps and secrets
 remain external inputs; the export archives need durable storage off the box that ends ~2026-11-20.
+
+**5. Two follow-ups resolved read-only / on a clone (2026-10-24, later).**
+- **The residual `2026/10/23/000408` is a stale payment row, not a form-vs-ledger disagreement.** The
+  consumer deletes only `billing` and `nota_jalan` before a re-bill (`KhanzaBillingConsumer.java` lines
+  170–171) and never writes `detail_nota_jalan`; `detail_nota_jalan` has no cascade from `nota_jalan`
+  (its foreign keys are to `reg_periksa` and `akun_bayar`, `NO ACTION`). A payment saved by an earlier form run
+  therefore survives every later consumer re-bill. Replay (`tools/p12_visit_replay.sh`, throwaway clone
+  `sik_p12r`, audited): baseline payment `Bank BCA 62873.2`, billing total 204,506; after one real-form
+  run for that visit the form wrote `Bank BCA 204506`, equal to the ledger 204,506
+  (`evidence/p12/r5_p12_visit_replay_20261024T132443Z.md`; live row still 62873.2, untouched). Which earlier run
+  wrote 62,873.2 is not established. **Consequence:** a live `detail_nota_jalan` row is not guaranteed
+  current, so the 1,067-of-1,068 B == C figure above partly measures what some earlier form run saved;
+  the next sample must reset and re-run the form so B is fresh (the item-4 handoff does).
+- **The older 4/216 drift was an empty baseline, not a charge difference.** The four rows
+  (`2027/09/23/800080, 800214`, `2027/09/28/800109, 800164`) show `consumer_value_rows = 0` against
+  `real_value_rows = 2–5` in `B3_sampled_form_diff.md` of run `Bseries_20261012T045027Z`: the consumer
+  baseline was empty because an interrupted attempt had reset-deleted the sampled visits (§4 / RC-4,
+  already recorded); the form's totals equal the consumer's logged totals (delta 0, §4 table). The R4
+  sample is the opposite case: 0 of its 999 visits had zero consumer rows. So 4/216 does not contradict
+  0/999, and it is not evidence of a charge error; it is also not a clean measurement (RC-4 stands).

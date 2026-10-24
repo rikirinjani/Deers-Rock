@@ -1,0 +1,35 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p12-000408-replay-p13-handoff",
+  "timestamp": "2026-10-24T13:31:51.679659+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "docs/khanza_benchmark_report_R5.md",
+    "docs/khanza_r5_release_manifest.md",
+    "docs/khanza_r5_task_p13_opencode_handoff.md",
+    "docs/khanza_session_handoff_20261024.md",
+    "evidence/p12/r5_p12_visit_replay_000408_stdout_20261024.txt",
+    "evidence/p12/r5_p12_visit_replay_20261024T132443Z.md",
+    "records/qms/VER-2026-10-24-DR-KHANZA-R5-P12-001.json",
+    "tools/p12_visit_replay.sh"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p12-000408-replay-p13-handoff",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................--.-..-.........................................-.--...-",
+  "action": "000408 replay on clone (stale payment explained), 4/216 empty-baseline re-read, P13 wider-sample handoff with rubric for opencode"
+}

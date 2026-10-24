@@ -34,7 +34,10 @@
     "khanza-r5/evidence/p12/r5_frozen_manifest_20261024b.sha256 and ...c.sha256",
     "khanza-r5/src/PUBLISHED.sha256, src/verify_published.sh",
     "khanza-r5/docs/khanza_benchmark_report_R5.md section 24",
-    "khanza-r5/docs/khanza_r5_reproduce.md"
+    "khanza-r5/docs/khanza_r5_reproduce.md",
+    "khanza-r5/evidence/p12/r5_p12_visit_replay_20261024T132443Z.md (real-form replay of 2026/10/23/000408 on a clone: payment 62873.2 -> 204506 = ledger; live row untouched)",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md section 24.5 (000408 = stale payment row; 4/216 = empty baseline, RC-4)",
+    "khanza-r5/docs/khanza_r5_task_p13_opencode_handoff.md (wider-sample task for opencode, rubric)"
   ],
   "checks": [
     "A vs C per encounter x component over 86,455 DR encounters: 0 differences - PASS",
@@ -42,7 +45,8 @@
     "R4 sample 999: all have B, A==C and B==C for all 999 - PASS",
     "reconcile negative control (planted +1, asserted ROW_COUNT=1) DISCRIMINATING after fixing a vacuous first version - PASS",
     "STRATA pin refuses a tampered dump with exit 3 - PASS",
-    "verify_published ALL-MATCH and DIFF on a tampered file - PASS"
+    "verify_published ALL-MATCH and DIFF on a tampered file - PASS",
+    "000408 replay: a fresh form run writes a payment equal to the ledger - PASS (one visit; the origin of the stale 62873.2 is not established)"
   ],
   "limitations": [
     "only 1.2% of encounters have a form-saved B",

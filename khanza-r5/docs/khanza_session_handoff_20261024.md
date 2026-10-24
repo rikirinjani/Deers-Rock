@@ -36,7 +36,7 @@ in `~/.ssh/config`. Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 8 | Untracked `kaggle/deers-rock-assessment/` task files and downloads | owner | uncommitted, leave |
 | 9 | Push of the local commits | owner | ask first |
 | 10 | Lock is advisory and covers two tools; `p6_acceptance_suite.sh` run directly is not guarded | next session | known limit |
-| 11 | `2026/10/23/000408` (DR000174): payment 62,873.2 vs charges 204,506, the one B≠C encounter (R5 §24) | next session | cause unknown; read-only follow-up |
+| 11 | `2026/10/23/000408`: stale payment 62,873.2 (a form re-run writes 204,506); live row left as is | owner | explained (R5 §24.5); cleaning stale `detail_nota_jalan` rows would be a live write and needs approval |
 | 12 | Clean-box rebuild from the repo + export (the third-home rehearsal) | next session | not done; needs a box |
 
 ## 2. Standing rules (updated to today)
@@ -98,9 +98,12 @@ sources published (`src/`, `docs/khanza_r5_reproduce.md`), STRATA dump pinned by
 Still open:
 1. **Clean-box rebuild rehearsal** (reproducibility closure's missing half): needs the third home. Do it before ~11-20
    from the repo plus the export; the export archives must first be copied somewhere durable.
-2. **Widen B**: only 1,068 of 86,455 encounters (1.2 %) have a form-saved payment. A larger independent
-   form-vs-ledger sample needs real-form runs (fixture only, under the lock), not more SQL.
-3. Explain `2026/10/23/000408` (item 11) and the older 4/216 drift sample.
+2. **Widen B (P13, delegated to opencode)**: only 1,068 of 86,455 encounters (1.2 %) have a form-saved payment, and a live
+   payment row can be stale (R5 §24.5). Handoff + rubric: `docs/khanza_r5_task_p13_opencode_handoff.md` (stages of 30, 300, 3,000
+   fresh seeded visits on a clone, under the lock; est. 4-8 h of box time for the main stage; must finish by ~2026-11-10).
+   Review its report read-only here against the rubric. The whole cohort (86,455 visits) would take ~3-8 days of box time
+   (6-8.4 s per visit, 2 vCPU) and is not recommended unless a stage shows a difference.
+3. (done, R5 §24.5) `2026/10/23/000408` is a stale payment row that survives consumer re-bills; the older 4/216 was an empty baseline (RC-4).
 4. **Next assessment (v11):** only after the quota resets (assumed next month); merged method, content capped at
    v10's 316k chars, embed this handoff and R5 §24, not the stacked one.
 Delegation: opencode can do grunt work, but only against frozen bytes and a held lock, with a rubric, followed by
