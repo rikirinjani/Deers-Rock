@@ -50,7 +50,8 @@
                       "evidence/p13/stage2/B3_sampled_form_diff_r5.md",
                       "evidence/p13/stage2/comparator.csv",
                       "evidence/p13/stage2/driver.log",
-                      "evidence/p13/stage2/p13_stage_3000_visits.txt"
+                      "evidence/p13/stage2/p13_stage_3000_visits.txt",
+                      "docs/khanza_session_handoff_20261025.md"
                   ],
     "failure":  {
 
