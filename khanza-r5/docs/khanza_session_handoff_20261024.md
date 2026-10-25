@@ -38,6 +38,7 @@ in `~/.ssh/config`. Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 10 | Lock is advisory and covers two tools; `p6_acceptance_suite.sh` run directly is not guarded | next session | known limit |
 | 11 | `2026/10/23/000408`: stale payment 62,873.2 (a form re-run writes 204,506); live row left as is | owner | explained (R5 §24.5); cleaning stale `detail_nota_jalan` rows would be a live write and needs approval |
 | 12 | Clean-box rebuild from the repo + export (the third-home rehearsal) | next session | not done; needs a box |
+| 13 | P13 wide-sample (N=30/300/3000): form vs consumer vs ledger per encounter | opencode | **done** 2026-10-25 (R5 §25); 0/3330 differing; report `docs/khanza_r5_p13_opencode_report.md` |
 
 ## 2. Standing rules (updated to today)
 

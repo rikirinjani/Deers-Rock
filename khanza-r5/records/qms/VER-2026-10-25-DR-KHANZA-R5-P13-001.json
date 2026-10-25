@@ -1,0 +1,59 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-25-DR-KHANZA-R5-P13-001",
+  "date": "2026-10-25",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 s25 (P13): wider real-form sample (form vs consumer vs ledger, per encounter), N=30/300/3000 on a disposable clone, B re-taken fresh",
+  "trigger": "owner handoff docs/khanza_r5_task_p13_opencode_handoff.md; R5 s24 item 2 (widen B evidence); R5 s24.5 stale-payment finding",
+  "tool_sha256": {
+    "p13_draw_sample.py": "ec28a18ea6ca6de79b9e8ad6b00455ccb67b28b0f05dd72fa5155454d669ed0a",
+    "p13_wide_sample.sh": "da013ebef95ea52eb988a6288e99b64cd287717c9badc91499c29487463d64cf",
+    "p13_sample_compare.py": "fbded01ffdc3e764ff7faae60fd36295c7e5999b81c86b26912405812d296bb0",
+    "p13_drop_clone.sh": "93a77adbdf95e1522a02fbd0a51ecde631ca7362bbc70ceb7bd4403170c35488",
+    "p13_compare_negctl.sh": "bc6f28f9358c1a420546477d267666ae5dc9afaac2b41a3a499872f5c07cf7e3",
+    "p13_kill_test.sh": "26e8df4d87f22d949108d6b67f47cbf9619f339f75bb6a0992ee5e4cc221322e",
+    "sampled_real_form_diff_r5.py (frozen, unchanged)": "e2c1d2f9318724f329f560a8e60d15c93ad2916fcb3348601cca22b73d105ecc",
+    "p11_frozen_20261024c.sha256 (15 P12 files, 15/15 OK before and after all P13 runs)": "unchanged"
+  },
+  "evidence": [
+    "khanza-r5/evidence/p13/stage0/driver.log (P13W stage=STAGE0 oracle_exit=0 elapsed=187s visits=30)",
+    "khanza-r5/evidence/p13/stage0/comparator_20261024T211054Z.csv (0 data rows = ALL-EQUAL)",
+    "khanza-r5/evidence/p13/stage0/B3_sampled_form_diff_r5.md (verdict PASS, drift=0)",
+    "khanza-r5/evidence/p13/stage1/driver.log (P13W stage=STAGE1 oracle_exit=0 elapsed=1568s visits=300)",
+    "khanza-r5/evidence/p13/stage1/comparator.csv (0 data rows = ALL-EQUAL)",
+    "khanza-r5/evidence/p13/stage1/B3_sampled_form_diff_r5.md (verdict PASS, drift=0)",
+    "khanza-r5/evidence/p13/stage2/driver.log (P13W stage=STAGE2 oracle_exit=0 elapsed=10615s visits=3000)",
+    "khanza-r5/evidence/p13/stage2/comparator.csv (0 data rows = ALL-EQUAL)",
+    "khanza-r5/evidence/p13/stage2/B3_sampled_form_diff_r5.md (verdict PASS, drift=0)",
+    "khanza-r5/evidence/p13/sampler/p13_stage_30_visits.txt sha256=2b742f592cdd3efa0ebc613d12448bb71657b96176727b4a39b7bad2b6b28237 (deterministic, two identical runs)",
+    "khanza-r5/evidence/p13/negctl/comparator_nc.log (P13-NC DISCRIMINATING, both plants named, ROW_COUNT=1 each)",
+    "khanza-r5/evidence/p13/negctl/p13_nc_plant.csv (A_vs_C 2026/10/04/000527; B_vs_C 2027/09/30/800059)",
+    "khanza-r5/evidence/p13/killtest/p13_kill_test.log (post-kill: dbs=sik sik_bench sik_p13w, xml=sik, markers=0, grants=[], triggers=8)",
+    "khanza-r5/evidence/p13/live_state_final.txt (databases sik sik_bench, xml sik, markers 0, ledger 356355:a66a3a54..., frozen 15/15, disk 71G free)",
+    "khanza-r5/evidence/p13/r5_p13_frozen_manifest_20261025.sha256 (6 P13 files, sha256sum -c OK, chattr +i on box)",
+    "khanza-r5/docs/khanza_r5_p13_opencode_report.md (full report, all numbers with file references)"
+  ],
+  "checks": [
+    "T1 sampler determinism: two runs N=30 produce identical sha256 2b742f59... - PASS",
+    "T1 --verify NC: planted ineligible visit (HAS detail_nota_jalan row) -> exit 1 naming it; clean file -> exit 0 - DISCRIMINATING",
+    "T2 kill test: SIGTERM mid-run leaves database.xml on sik, no grant, no marker, clone KEPT with 8 triggers (not half-state) - PASS",
+    "T3 comparator clean clone: 30/30 ALL-EQUAL on A_form==C, B==C, fresh-B - PASS",
+    "T3 comparator NC: +1 billing on 2026/10/04/000527 and +1 payment on 2027/09/30/800059 (ROW_COUNT=1 each) -> exit 1 naming both exactly - DISCRIMINATING",
+    "Stage 0 (N=30): oracle exit 0, 30/30 BILLED, comparator ALL-EQUAL, rate ~38 visits/min (2x-corrected: ~19 visits/min true) - PASS",
+    "Stage 1 (N=300): oracle exit 0, 300/300 BILLED, comparator ALL-EQUAL - PASS",
+    "Stage 2 (N=3000): oracle exit 0, 3000/3000 BILLED, comparator ALL-EQUAL - PASS",
+    "Live-state baseline (2026-10-24T20:33Z) and final (2026-10-25T00:56Z): identical - PASS",
+    "Ledger content hash 356355:a66a3a54... matches the pin in khanza_r5_release_manifest.md - PASS",
+    "Frozen P12 manifest 15/15 OK before and after all P13 runs - PASS",
+    "No stop rule fired in any stage - PASS"
+  ],
+  "limitations": [
+    "3,330 sampled encounters = 3.9% of the 85,387 eligible DR encounters without form-saved payments",
+    "No population bound claimed beyond the stated assumption (simple random draws within strata of a synthetic cohort; Clopper-Pearson 95% upper bound on mismatch rate ~0.022% for n=3330, k=0)",
+    "The stale-payment row 2026/10/23/000408 is excluded from the P13 sample (it has a detail_nota_jalan row) and remains un-cleaned (live write, needs owner approval)",
+    "Driver rate line counts 2 lines per visit (cosmetic bug, does not affect stop-rule percentage or comparator results); corrected true rates: stage 0 ~9.6/min, stage 1 ~11.5/min, stage 2 ~17.0/min",
+    "Full 85,387-encounter cohort not run (~3-8 days box time)"
+  ],
+  "result": "PASS (scoped)",
+  "not_pushed": true
+}

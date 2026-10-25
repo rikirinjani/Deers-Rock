@@ -1,0 +1,11 @@
+pre-state database.xml targets: sik
+clone: creating sik_p13w
+clone sik_p13w ready (1464593 billing rows)
+audit triggers: 8 (need 8)
+grant: benchmark@localhost on sik_p13w
+harness+consumer database.xml -> sik_p13w (RETARGET-VERIFIED)
+oracle: freeze-only (RUN_ID=p13w_20261024T204932Z)
+oracle: freeze-only exit=0
+oracle: real run (RUN_ID=p13w_20261024T204932Z)
+cleanup: clone sik_p13w KEPT — run p13_drop_clone.sh after the comparator
+cleanup-final: sik_dbs=sik,sik_bench,sik_p13w, dbxml_targets=sik

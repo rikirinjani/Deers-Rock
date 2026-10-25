@@ -1197,5 +1197,64 @@ remain external inputs; the export archives need durable storage off the box tha
   `real_value_rows = 2–5` in `B3_sampled_form_diff.md` of run `Bseries_20261012T045027Z`: the consumer
   baseline was empty because an interrupted attempt had reset-deleted the sampled visits (§4 / RC-4,
   already recorded); the form's totals equal the consumer's logged totals (delta 0, §4 table). The R4
-  sample is the opposite case: 0 of its 999 visits had zero consumer rows. So 4/216 does not contradict
-  0/999, and it is not evidence of a charge error; it is also not a clean measurement (RC-4 stands).
+   sample is the opposite case: 0 of its 999 visits had zero consumer rows. So 4/216 does not contradict
+   0/999, and it is not evidence of a charge error; it is also not a clean measurement (RC-4 stands).
+
+## 25. P13: wider real-form sample — form vs consumer vs ledger per encounter (2026-10-24/25, new)
+
+**1. What ran.** A fresh, seeded, stratified sample of DR encounters that have no form-saved payment
+(`detail_nota_jalan`), drawn in three disjoint stages: N=30 (stage 0), N=300 (stage 1), N=3000
+(stage 2), all on a disposable clone `sik_p13w` with 8 audit triggers (the `p7_write_audit` table),
+under the run lock `P13-OPENCODE-20261024`. Each stage: build the clone, retarget `database.xml`,
+run the frozen oracle (`sampled_real_form_diff_r5.py`, SHA `e2c1d2f9…`) in `--freeze-only` then
+real-form mode, restore `database.xml`, run the P13 comparator, drop the clone. Total: 3,330
+encounters (disjoint across stages), 0 differing encounters on any of the three comparisons.
+
+**2. Results (per stage, from the comparator + driver logs):**
+
+| Stage | N | with fresh B (benchmark) | A_form == C | B == C | differing encounters | oracle exit | elapsed (s) |
+|---|---|---|---|---|---|---|---|
+| 0 | 30 | 30/30 | 30/30 | 30/30 | 0 | 0 | 187 |
+| 1 | 300 | 300/300 | 300/300 | 300/300 | 0 | 0 | 1,568 |
+| 2 | 3,000 | 3000/3000 | 3000/3000 | 3000/3000 | 0 | 0 | 10,615 |
+
+Evidence: `evidence/p13/stage{0,1,2}/driver.log` (the `P13W stage=…` line),
+`evidence/p13/stage{0,1,2}/comparator*.csv` (each has 0 data rows = header only),
+`evidence/p13/stage{0,1,2}/B3_sampled_form_diff_r5.md` (verdict PASS, drift=0).
+
+**3. Fresh-B proof.** The comparator's third check reads the `p7_write_audit` trigger table: every
+sampled encounter has exactly one `detail_nota_jalan` INSERT with `acct LIKE 'benchmark@%'`
+(30/30, 300/300, 3000/3000). This is the audit-trigger proof that B was written by the form
+during this run, not a stale surviving row (the §24.5 finding).
+
+**4. Stale-payment implication.** The P12 §24.5 finding (a live `detail_nota_jalan` row can be
+stale) is now directly addressed: the oracle's `RESET_TABLES` deletes `detail_nota_jalan` before the
+form run, so B in every P13 stage is freshly written by the form. The fresh-B check (3) is the proof.
+
+**5. Negative controls.**
+- T1 sampler: two runs produce identical sha256 `2b742f59…`; `--verify` with a planted ineligible
+  visit exits 1 naming it (`evidence/p13/negctl/`).
+- T3 comparator: a scratch clone copy with one billing +1 and one payment +1 (each ROW_COUNT()=1)
+  produces exit 1 naming exactly those two encounters; the unplanted copy produces exit 0
+  (`evidence/p13/negctl/comparator_nc.log`, DISCRIMINATING).
+- Kill test: SIGTERM to the driver mid-run leaves `database.xml` on `sik`, no grant, no writer
+  marker, clone KEPT with 8 triggers (not half-state) (`evidence/p13/killtest/`).
+
+**6. Live-state proof.** Baseline (2026-10-24T20:33Z) and final (2026-10-25T00:56Z): databases
+`sik sik_bench`, both `database.xml` on `sik`, ledger `356355:a66a3a54…`, 0 writer markers, 0
+benchmark grants on `sik_p13w`, frozen manifest 15/15 OK, disk 71 GB free. Identical. No live
+writes. `evidence/p13/live_state_final.txt`.
+
+**7. Still not claimed.**
+- The 3,330-encounter sample is 3.9 % of the 85,387 eligible DR encounters (without form-saved
+  payments). The zero-mismatch result does **not** establish a population bound beyond the stated
+  assumption (simple random draws within strata of a synthetic cohort; Clopper–Pearson 95 % upper
+  bound on the mismatch rate ≈ 0.022 % for n=3330, k=0).
+- The B == C comparison measures whether the form's saved payment equals the DR ledger total for
+  the sampled encounters; it does not measure the full billing detail (per-component amounts are
+  in A_form, not B). B is note-level (per-visit total), as in P2.
+- No population-wide claim beyond the sample. The full 85,387-encounter cohort would take ~3–8 days
+  of box time; not run.
+- The §24.5 stale-payment row (`2026/10/23/000408`) is excluded from the P13 sample (it has a
+  `detail_nota_jalan` row) and remains un-cleaned (a live write, needs owner approval).
+

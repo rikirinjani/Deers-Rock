@@ -1,0 +1,7 @@
+=== P13 COMPARATOR SUMMARIES ===
+--- stage0 (N=30) ---
+clone dropped; see earlier evidence
+--- stage1 (N=300) ---
+comparator: see evidence/p13/stage1/comparator.csv (0 diffs = ALL-EQUAL)
+--- stage2 (N=3000) ---
+comparator: ALL-EQUAL (3000/3000 on all three, 0 differences)

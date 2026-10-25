@@ -50,6 +50,14 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | `p8_builder_all_check.sh` (builder `--window ALL` into an empty scratch ledger must reproduce the live ledger; P9: exits 1 on a difference, `P9_PLANT_MISMATCH` test hook) | `4d9118a586605e02f53d80a91f7b7ff797977e51157a4b19a53c93342bb96878` |
 | `p9_terminal_path_check.sh` (P9: forced real-check failure through the wrapper → exit 1, fixture kept, then `--teardown-kept`) | `63f4dcc45692a93ca7c8cf4eaea317f478dc51558126b2a06e10d5c4c4223372` |
 | `p7_three_count_contract_test.py` (three_count exit-code contract) | `3857538f01eb1a927e2d47e4ba3ab07e1b191450caec4430178c37862723466a` |
+| `p13_draw_sample.py` (P13 T1: SELECT-only deterministic stratified sampler; `random.Random(20261024)`; `--verify` negative-control mode) | `ec28a18ea6ca6de79b9e8ad6b00455ccb67b28b0f05dd72fa5155454d669ed0a` |
+| `p13_wide_sample.sh` (P13 T2: run driver — builds `sik_p13w` clone with 8 audit triggers, retargets `database.xml`, runs oracle freeze+form, restores xml, keeps clone for comparator; EXIT trap restores on every exit) | `da013ebef95ea52eb988a6288e99b64cd287717c9badc91499c29487463d64cf` |
+| `p13_sample_compare.py` (P13 T3: per-encounter A_form/C/B/fresh-B comparator, batched queries, SELECT-only; exit 0 = all equal, 1 = differences in CSV) | `fbded01ffdc3e764ff7faae60fd36295c7e5999b81c86b26912405812d296bb0` |
+| `p13_drop_clone.sh` (P13: drops the `sik_p13w` clone after the comparator; revokes the benchmark grant, restores xml, drops the DB; needs the run lock) | `93a77adbdf95e1522a02fbd0a51ecde631ca7362bbc70ceb7bd4403170c35488` |
+| `p13_compare_negctl.sh` (P13 T3 NC: scratch-copy plant test — +1 on one billing, +1 on one payment, ROW_COUNT()=1 asserted; DISCRIMINATING when exit 1 names both plants) | `bc6f28f9358c1a420546477d267666ae5dc9afaac2b41a3a499872f5c07cf7e3` |
+| `p13_kill_test.sh` (P13 T2 kill-test driver: starts a 5-visit pilot, SIGTERMs the driver mid-run, asserts clean post-kill state: xml on sik, no grant, no marker, clone not half-state) | `26e8df4d87f22d949108d6b67f47cbf9619f339f75bb6a0992ee5e4cc221322e` |
+
+> 2026-10-25 (R5 §25, P13) adds the six P13 tool pins above; frozen set of 21 files: `evidence/p13/r5_p13_frozen_manifest_20261025.sha256` (the 15 P12 files + 6 P13 files, new files only in the P13 manifest). P13 wide-sample evidence: `evidence/p13/` (stage 0/1/2 driver + oracle + comparator, sampler, both NC transcripts, kill test, live-state proof).
 
 > 2026-10-24 (R5 §23) re-pins the wrapper (`0865400d…`→`6967805d…`) and the NC driver (`0bba1931…`→`e65238ca…`) and adds `dr_runlock.sh` and `runlock_negctl.sh`; frozen manifest `evidence/runlock/r5_frozen_manifest_20261024.sha256`.
 >

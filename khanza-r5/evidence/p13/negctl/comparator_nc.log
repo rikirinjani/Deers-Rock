@@ -1,0 +1,33 @@
+=== P13 T3 comparator negative control (fixed) 2026-10-24T20:58:02Z ===
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+[dbxml] RESTORE-VERIFIED sik
+clone ready: 1464593 billing rows
+triggers: 8
+retargeted to sik_p13w
+freeze exit=0
+oracle real run exit=0
+[21:02:07] date 2027-09-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:02:13] date 2027-09-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:02:19] date 2027-09-30: rc=0 visits=1 sukses_true=1 -> BILLED
+database.xml restored
+P13 compare: 30 encounters | with B: 30 | A_form==C: 30/30 | B==C: 30/30 | fresh-B(benchmark,1): 30/30 | differences: 0 -> /tmp/p13_nc_clean.csv
+RESULT: ALL-EQUAL
+clean comparator exit=0
+plant NR1 (billing +1): 2026/10/04/000527
+billing plant NR1=2026/10/04/000527 RC=1
+plant NR2 (payment +1): 2027/09/30/800059
+payment plant NR2=2027/09/30/800059 RC=1
+P13 compare: 30 encounters | with B: 30 | A_form==C: 29/30 | B==C: 29/30 | fresh-B(benchmark,1): 30/30 | differences: 2 -> /tmp/p13_nc_plant.csv
+RESULT: DIFFERENCES
+planted comparator exit=1
+planted: NR1=2026/10/04/000527 in diffs=1 NR2=2027/09/30/800059 in diffs=1
+P13-NC: DISCRIMINATING (exit 1, both planted encounters named, ROW_COUNT=1 each)
+NR1=2026/10/04/000527 FOUND=1 NR2=2027/09/30/800059 FOUND=1
+check,no_rawat,component,left_rows,left_amount,right_rows,right_amount
+A_vs_C,2026/10/04/000527,registration,1,10001,1,10000
+B_vs_C,2027/09/30/800059,total,1,544717,5,544716
+---
+CLEAN comparator said: exit=0 (expected 0 = ALL-EQUAL)
+teardown: dropped sik_p13w
+final state: dbs=sik sik_bench  xml=sik

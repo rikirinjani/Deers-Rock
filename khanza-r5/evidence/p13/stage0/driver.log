@@ -1,0 +1,81 @@
+pre-state database.xml targets: sik
+clone: creating sik_p13w
+clone sik_p13w ready (1464593 billing rows)
+audit triggers: 8 (need 8)
+grant: benchmark@localhost on sik_p13w
+harness+consumer database.xml -> sik_p13w (RETARGET-VERIFIED)
+oracle: freeze-only (RUN_ID=p13w_20261024T210528Z)
+oracle: freeze-only exit=0
+oracle: real run (RUN_ID=p13w_20261024T210528Z)
+oracle: real run exit=0 elapsed=187s
+[21:06:35] ALIGNED-PREDICATE: 30 visits from p13_stage_30_visits.txt, all eligible (AC-6)
+[21:06:37] ALIGNED-PREDICATE: 30 visits from p13_stage_30_visits.txt, all eligible (AC-6)
+[21:06:38] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[21:06:39] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:06:45] date 2026-10-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:06:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:06:51] date 2026-10-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:06:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:06:57] date 2026-10-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:06:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:03] date 2026-10-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:03] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:09] date 2026-11-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:09] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:15] date 2026-11-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:21] date 2026-12-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:27] date 2026-12-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:33] date 2027-01-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:40] date 2027-01-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:46] date 2027-02-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:47] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:52] date 2027-02-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:07:58] date 2027-03-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:07:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:04] date 2027-03-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:05] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:10] date 2027-04-13: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:11] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:17] date 2027-04-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:17] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:23] date 2027-05-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:24] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:29] date 2027-05-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:30] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:35] date 2027-06-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:42] date 2027-06-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:48] date 2027-06-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:08:54] date 2027-07-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:08:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:00] date 2027-07-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:06] date 2027-07-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:12] date 2027-08-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:18] date 2027-08-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:24] date 2027-08-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:25] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:31] date 2027-09-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:31] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:37] date 2027-09-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[21:09:38] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[21:09:43] date 2027-09-30: rc=0 visits=1 sukses_true=1 -> BILLED
+form: 60/60 sukses=true, 0 sukses=false
+sukses: 0/60 false (0%)
+database.xml restored (exit=0)
+rate: 19.25 visits/min
+P13W stage=STAGE0 oracle_exit=0 elapsed=187s visits=30
+clone sik_p13w KEPT for the comparator (drop with p13_drop_clone.sh)
+cleanup: clone sik_p13w KEPT — run p13_drop_clone.sh after the comparator
+cleanup-final: sik_dbs=sik,sik_bench,sik_p13w, dbxml_targets=sik
