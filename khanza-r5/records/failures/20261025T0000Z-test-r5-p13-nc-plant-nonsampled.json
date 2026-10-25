@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-24T20:58:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P13 comparator negative control first planted its defects on encounters outside the sample",
+  "what_went_wrong": [
+    "The first version planted +1 on 2026/02/25/000001 and 2027/09/30/800059, which were not in the N=30 sample, so the comparator correctly reported 0 differences and the control would have been vacuous."
+  ],
+  "root_cause": "The plant targets were chosen without checking they belong to the visits file under test (the same class of defect as the P12 reconcile control, failure record 20261024T1148Z).",
+  "detection": "The control's own verdict; reported by the agent in its report (Problems item 1).",
+  "impact": "None on results: fixed before any stage ran (plants moved to sampled visits, ROW_COUNT()=1 asserted); log evidence/p13/negctl/comparator_nc.log.",
+  "correction": {
+    "applied": "Plants re-targeted to the first and last sampled visits.",
+    "result": "Planted run: differences 2, both encounters named; clean run: 0."
+  },
+  "rule": "A negative control must assert both that its mutation took effect and that its target is inside the checked set.",
+  "related_records": [
+    "records/failures/20261024T1148Z-test-r5-p12-reconcile-negctl-vacuous-plant.json"
+  ],
+  "agent": "opencode (recorded by orchestrator review)",
+  "status": "corrected"
+}

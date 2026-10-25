@@ -39,7 +39,7 @@
     "T2 kill test: SIGTERM mid-run leaves database.xml on sik, no grant, no marker, clone KEPT with 8 triggers (not half-state) - PASS",
     "T3 comparator clean clone: 30/30 ALL-EQUAL on A_form==C, B==C, fresh-B - PASS",
     "T3 comparator NC: +1 billing on 2026/10/04/000527 and +1 payment on 2027/09/30/800059 (ROW_COUNT=1 each) -> exit 1 naming both exactly - DISCRIMINATING",
-    "Stage 0 (N=30): oracle exit 0, 30/30 BILLED, comparator ALL-EQUAL, rate ~38 visits/min (2x-corrected: ~19 visits/min true) - PASS",
+    "Stage 0 (N=30): oracle exit 0, 30/30 BILLED, comparator ALL-EQUAL, rate 9.63 visits/min (corrected 2026-10-25; the driver line double-counted) - PASS",
     "Stage 1 (N=300): oracle exit 0, 300/300 BILLED, comparator ALL-EQUAL - PASS",
     "Stage 2 (N=3000): oracle exit 0, 3000/3000 BILLED, comparator ALL-EQUAL - PASS",
     "Live-state baseline (2026-10-24T20:33Z) and final (2026-10-25T00:56Z): identical - PASS",
@@ -49,7 +49,7 @@
   ],
   "limitations": [
     "3,330 sampled encounters = 3.9% of the 85,387 eligible DR encounters without form-saved payments",
-    "No population bound claimed beyond the stated assumption (simple random draws within strata of a synthetic cohort; Clopper-Pearson 95% upper bound on mismatch rate ~0.022% for n=3330, k=0)",
+    "No population bound claimed beyond the stated assumption (simple random draws within strata of a synthetic cohort; Clopper-Pearson 95% upper bound on mismatch rate 0.090% one-sided / 0.111% two-sided for n=3330, k=0; corrected 2026-10-25, an earlier 0.022% was 4x too small)",
     "The stale-payment row 2026/10/23/000408 is excluded from the P13 sample (it has a detail_nota_jalan row) and remains un-cleaned (live write, needs owner approval)",
     "Driver rate line counts 2 lines per visit (cosmetic bug, does not affect stop-rule percentage or comparator results); corrected true rates: stage 0 ~9.6/min, stage 1 ~11.5/min, stage 2 ~17.0/min",
     "Full 85,387-encounter cohort not run (~3-8 days box time)"

@@ -1,0 +1,33 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p13-review-corrections",
+  "timestamp": "2026-10-25T12:58:15.211141+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "docs/khanza_benchmark_report_R5.md",
+    "docs/khanza_r5_p13_opencode_report.md",
+    "docs/khanza_session_handoff_20261025.md",
+    "records/failures/20261025T0000Z-test-r5-p13-nc-plant-nonsampled.json",
+    "records/failures/20261025T0001Z-tool-r5-p13-driver-sukses-doubled.json",
+    "records/qms/VER-2026-10-25-DR-KHANZA-R5-P13-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p13-review-corrections",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................--.-..-.........................................-.--...-",
+  "action": "Orchestrator review of P13 (21/28): strike-through corrections of the Clopper-Pearson bound, doubled rates, stale claims; two failure records"
+}

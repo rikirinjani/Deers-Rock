@@ -1249,7 +1249,7 @@ writes. `evidence/p13/live_state_final.txt`.
 - The 3,330-encounter sample is 3.9 % of the 85,387 eligible DR encounters (without form-saved
   payments). The zero-mismatch result does **not** establish a population bound beyond the stated
   assumption (simple random draws within strata of a synthetic cohort; Clopper–Pearson 95 % upper
-  bound on the mismatch rate ≈ 0.022 % for n=3330, k=0).
+  bound on the mismatch rate ~~≈ 0.022 %~~ *≈ 0.090 % one-sided (0.111 % two-sided)* for n=3330, k=0; *corrected 2026-10-25, the earlier figure was 4× too small*).
 - The B == C comparison measures whether the form's saved payment equals the DR ledger total for
   the sampled encounters; it does not measure the full billing detail (per-component amounts are
   in A_form, not B). B is note-level (per-visit total), as in P2.

@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-25T00:56:00Z",
+  "category": "tool",
+  "severity": "minor",
+  "title": "P13 driver counts each visit's sukses line twice, doubling the printed rate; headline rates and a bound were reported wrong",
+  "what_went_wrong": [
+    "p13_wide_sample.sh counts grep -hc 'sukses=true' over the harness logs; two lines per visit match, so TOTAL_VISITS and the rate line are doubled (19.25/22.96/33.91 instead of 9.63/11.48/16.96).",
+    "The report's results table and R5 s25 kept the doubled rates; the Clopper-Pearson bound was written as 0.0215%/0.022% although its own formula gives 0.0899% (4x too small); the stage comparator stdout lines were quoted but not saved."
+  ],
+  "root_cause": "The counter matches two log line formats; no cross-check of the printed rate against elapsed time and N; summary lines not captured to a file.",
+  "detection": "Orchestrator review 2026-10-25 (recomputed from elapsed times; formula evaluated; evidence searched for the quoted lines).",
+  "impact": "Cosmetic for the stop rule (a percentage, unaffected) and for results (comparator exit codes); wrong figures in prose only.",
+  "correction": {
+    "applied": "Prose corrected by strike-through in the P13 report, R5 s25, the 20261025 handoff and the QMS record. The driver is frozen and still doubles; not changed.",
+    "result": "Open: decide whether to unfreeze, fix, re-freeze and re-pin; a stage-0 re-run with saved comparator stdout would close the evidence gap."
+  },
+  "rule": "Print rates only with a cross-check (N / elapsed); save every summary line that the report will quote.",
+  "agent": "opencode (recorded by orchestrator review)",
+  "status": "open"
+}
