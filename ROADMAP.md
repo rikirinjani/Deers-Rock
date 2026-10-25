@@ -1,6 +1,6 @@
 ﻿# Deer's Rock HOE — Roadmap
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-25 (Epic XI added; Epics I–X unchanged since 2026-10-07)
 **Steward:** Coordinator OC
 
 ---
@@ -303,6 +303,47 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 
 ---
 
+## Epic XI — DR→Khanza E2E Billing Benchmark
+
+Prove that DR-generated outpatient billing flows correctly into a real SIMRS Khanza install, by comparing three independent sources per encounter: A = Khanza consumer `billing`, B = Khanza's own form save (`nota_jalan`/`detail_nota_jalan`), C = DR ledger `sik_bench.dr_charge_ledger`. Everything lives in `khanza-r5/` (branch `khanza-r5-p6`); the authoritative state is the latest `khanza-r5/docs/khanza_session_handoff_*.md`, and results are in `khanza-r5/docs/khanza_benchmark_report_R5.md` (§0–§25).
+
+**Status:** 🟡 Benchmark evidence complete through P13; reproducibility rehearsal and the next external assessment are blocked (no third box, no assessment quota). External score: Astra (`gpt-6-astra`, Kaggle) 35 → 43 → 43 → 52 → 58 → 60 → 62 → **63/100** (v10, "Needs targeted rework").
+
+### Milestone 11.1: Integration & first real-form evidence (R1–R4) ✅
+- [x] Khanza VPS install, DR consumer + headless form harness (`docs/KHANZA-*.md`)
+- [x] R4 real-form sample: 0/999 visits differing
+
+### Milestone 11.2: Oracle & gates (R5 P1–P5) ✅
+- [x] P1 hardened oracle `sampled_real_form_diff_r5.py` (frozen baseline, staged reset, `kill -9` recovery)
+- [x] P2 three-source gates: independent B, fail-closed ledger builder, integer rupiah, full window
+- [x] P4 agent-runnable close-out (strata re-check), P5 fail-closed enforcement
+
+### Milestone 11.3: Executable acceptance & provenance (P6–P7) ✅
+- [x] P6 acceptance suite (`p6_acceptance_suite.sh`, exits non-zero on FAIL)
+- [x] P7 fail-closed gates, write provenance (form writes `billing` — B-subset caveat withdrawn), integer tax `(s*11+50)//100`, live-state guards
+- [x] Live ledger rebuilt and re-pinned (owner-approved): 356,355 rows / Rp 34,870,243,633, 1 quantity corrected
+
+### Milestone 11.4: Recovery contract & negative controls (P8–P11) ✅
+- [x] P8 claim wording, gate defects, recovery fault injection
+- [x] P9 recovery acceptance contract; P10 integrated recovery-preservation experiment (suite 39/39)
+- [x] P11 discriminating checks, negative controls 5/5, unit 33/33
+
+### Milestone 11.5: Run lock, reproducibility & wide sample (P12–P13) 🟡
+- [x] VPS run lock + negative control; migration to mac-mini-vultr
+- [x] P12 evidence chain re-run on frozen bytes, per-encounter reconciliation, sources published
+- [x] P13 wide sample N=30/300/3000: form vs consumer vs ledger, **0/3330 differing** (95 % one-sided upper bound ≈ 0.090 %; 3.9 % of the 85,387 eligible visits)
+- [ ] Clean-box rebuild from repo + export on a third home — **blocked** (owner: third home waits; mac-mini-vultr ends ~2026-11-20)
+- [ ] Copy the export archives to durable off-box storage — before ~2026-11-20
+- [ ] Full cohort (86k visits) — skipped by owner decision 2026-10-25
+
+### Milestone 11.6: External assessment & publication 🟡
+- [x] Astra v5–v10 assessments (Kaggle Benchmarks)
+- [ ] Astra v11 — waits for Kaggle quota, or another provider offering `gpt-6-astra` (OpenAI API not checked yet)
+- [ ] **Standing reminder:** any future publication must carry the query-provenance disclosure (R5 §12 item 7)
+- [ ] Commercialization strategy (Indonesia / US / EU packs) — brainstorm only, Claude Doc; feeds Epic X
+
+---
+
 ## Summary
 
 | Epic | Status | Tests | Notes |
@@ -316,6 +357,8 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
-| **X** International Billing | 🔴 Deferred | — | Design only |
+| **X** International Billing | 🔴 Deferred | — | Design only; commercialization brainstorm (ID/US/EU) exists as a Claude Doc |
+| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 33/33 | P1–P13 done, 0/3330 on the wide sample, Astra 63/100; rebuild rehearsal + v11 blocked |
 
-**Overall:** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
+**Overall (HOE platform, as of 2026-10-07):** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
+**Epic XI (as of 2026-10-25):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.
