@@ -26,12 +26,12 @@ Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 3 | **Third home before ~11-20**, and durable off-box storage of the export archives (`docs/khanza_r5_reproduce.md` §2) | owner | undecided (owner is considering it) — **now urgent: P13 evidence is in `evidence/p13/` and the box terminates ~11-20** |
 | 4 | MemPalace outbox delivery (`self-harness/outbox/mempalace-queue-20261020T0133Z.md`) | next session | PENDING |
 | 5 | Re-run the suite and NC 5/5 on the re-pinned bytes under a held lock | done 2026-10-24 (R5 §24) | **done** |
-| 6 | Ledger backup table `sik_bench.dr_charge_ledger_bak_20261017` retention | owner | undecided |
-| 7 | "Published artifact" in R5 §12 item 7 | owner | undefined, ask |
-| 8 | Untracked `kaggle/deers-rock-assessment/` task files and downloads | owner | uncommitted, leave |
+| 6 | Ledger backup table `sik_bench.dr_charge_ledger_bak_20261017` retention | owner | **decided 2026-10-25: keep** (revisit at the third-home move) |
+| 7 | **REMINDER — query-provenance disclosure** (R5 §12 item 7) | every session | **decided 2026-10-25:** applies to any future publication (none yet). Before any paper/preprint/README/external page reports these query results, add the `top_diagnoses` + raw-`billing` disclosure. Do not drop this item. |
+| 8 | Untracked `kaggle/deers-rock-assessment/` task files and downloads | owner | **decided 2026-10-25:** gitignored, left on disk |
 | 9 | Push of the local commits | owner | ask first |
 | 10 | Lock is advisory and covers two tools; `p6_acceptance_suite.sh` run directly is not guarded | known limit | |
-| 11 | `2026/10/23/000408`: stale payment 62,873.2 (a form re-run writes 204,506); live row left as is | owner | explained (R5 §24.5); cleaning stale `detail_nota_jalan` rows would be a live write and needs approval |
+| 11 | `2026/10/23/000408`: stale payment 62,873.2 (a form re-run writes 204,506); live row left as is | owner | **decided 2026-10-25: keep the row as is** (R5 §24.5); cleaning stale `detail_nota_jalan` rows would be a live write and needs approval |
 | 12 | Clean-box rebuild from the repo + export (the third-home rehearsal) | next session | not done; needs a box |
 | 13 | P13 wide-sample (N=30/300/3000) | opencode | **done** 2026-10-25 (R5 §25); 0/3330 differing; report `docs/khanza_r5_p13_opencode_report.md` |
 | 14 | **Known cosmetic bug:** the P13 driver's `sukses` count and rate line are doubled (two matching lines per visit). The stop-rule percentage and all comparator results are unaffected. Corrected true rates: stage 0 ≈ 9.6/min, stage 1 ≈ 11.5/min, stage 2 ≈ 17.0/min. ~~Fixed in the local working copy (`p13_wide_sample.sh`), but the box copy still has the old count~~ *Not fixed anywhere: the local copy is byte-identical to the frozen box copy and still has the doubled `grep -hc` (orchestrator review 2026-10-25). Fixing it needs un-freezing, re-freezing and re-pinning the P13 manifest.* | next session | documented in the report §Problems item 2; decide whether to re-run |
@@ -162,3 +162,11 @@ Commit `db603eb` (P13 session close, local, not pushed): synced the local P13 to
 to the box bytes (byte-identical to the frozen manifest), expanded the trace's key_files
 from 14 to 44 entries, updated the report's commit hash to `f378e33`.
 Retrace: `Directory is trace-clean.`
+
+## 7. Owner decisions 2026-10-25 (after the P13 review)
+
+- Third home: **waits** (open item 3 stays open; deadline ~11-20 still applies).
+- Astra v11: **waits** for quota, unless another provider offers Astra (`gpt-6-astra`; the OpenAI API is the first candidate — not checked yet).
+- P13 doubled rate (item 14): **leave as documented**, no re-freeze.
+- Full cohort: **skipped**. MemPalace (item 4): **skipped for now**.
+- Items 6, 7, 8, 11 decided as recorded in the table above.

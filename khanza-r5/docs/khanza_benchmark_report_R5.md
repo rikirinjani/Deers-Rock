@@ -339,7 +339,10 @@ data + partners beyond this repository.
 6. **5× burst re-run — NOT TESTED** (now agent-runnable, E2).
 7. **Query provenance disclosure — FLAGGED:** `top_diagnoses` is benchmark-authored + empty-set
    at prefix cutoffs; the six native-table queries read raw `billing` (EXPLAIN-confirmed).
-   §5 carries the disclosure; the published artifact does not yet.
+   §5 carries the disclosure. ~~The published artifact does not yet.~~ **[REMINDER — owner
+   decision 2026-10-25] Applies to any future publication:** no artifact is published yet; any
+   paper, preprint, README or external page that reports these query results must carry this
+   disclosure. Check this item before every publication (tracked as handoff open item 7).
 
 ## 13. Remaining caveats to carry into any paper
 

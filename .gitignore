@@ -22,3 +22,8 @@ tmp*
 build_task*
 _gen_task.py
 embedded_sources*.json
+
+# Kaggle assessment task scripts and downloads (owner decision 2026-10-25: keep local, untracked)
+kaggle/deers-rock-assessment/
+kaggle/khanza-dr-benchmark/scaling_study.py
+khanza-benchmark-asset/
