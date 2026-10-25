@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """P13 T3: per-encounter comparison of form output vs consumer vs ledger on a P13 clone.
 
 For each sampled encounter (from the visits file, in the clone after the form run):

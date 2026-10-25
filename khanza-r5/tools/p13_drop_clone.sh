@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # P13: drop the sik_p13w clone after the comparator has run.
 # Requires the run lock. The clone must still exist.
 set -u

@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # P13 T2: run driver for the wide sample. Builds a throwaway clone with 8 audit
 # triggers, retargets database.xml, runs the oracle (freeze + real form run),
 # restores database.xml, and keeps the clone for the comparator.
@@ -112,13 +112,13 @@ res "oracle: real run exit=$ORACLE_RC elapsed=${ELAPSED}s"
 grep -aE "reset |BILLED|FAILED|STAGE-RESTOR|ORACLE_|ALIGNED|WRITER" /tmp/p13w_freeze.log | cut -c1-200 | tee -a "$OUT"
 
 # Collect per-visit form output from ALL harness logs (one per date batch)
-# The harness produces one log per date; each visit produces two lines matching
-# "sukses=true" (the status line + the === VISIT ... DONE line). Count only the
-# === VISIT DONE lines (one per visit) so the absolute numbers are correct.
+# The harness produces one log per date; grep -ac across all of them.
+# Each line has exactly one of: sukses=true or sukses=false.
 RUNID_HARNESS_DIR="/opt/dr-benchmark/results/$RUN_ID/B3_oracle_run_r5"
 HLOG_ALL="$RUNID_HARNESS_DIR"/harness_*.log
-SUKESES_TRUE=$(grep -hc '=== VISIT.*DONE sukses=true' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
-SUKESES_FALSE=$(grep -hc '=== VISIT.*DONE sukses=false' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
+# Count successes and failures across all harness logs (each log has 1 line per visit)
+SUKESES_TRUE=$(grep -hc 'sukses=true' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
+SUKESES_FALSE=$(grep -hc 'sukses=false' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
 TOTAL_VISITS=$((SUKESES_TRUE + SUKESES_FALSE))
 res "form: $SUKESES_TRUE/$TOTAL_VISITS sukses=true, $SUKESES_FALSE sukses=false"
 if [ "$TOTAL_VISITS" -gt 0 ]; then

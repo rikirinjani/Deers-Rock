@@ -3,7 +3,7 @@
 ## Summary
 - Outcome: **PASS** — all three stages (0/1/2) completed with every sampled encounter equal on A_form==C, B==C, and fresh-B (benchmark-written). 0 differing encounters across 3,330 total draws (30+300+3000). No stop rule fired.
 - Stages completed: **0 / 1 / 2** (N=30, N=300, N=3000). All three run to completion.
-- Commits (local, not pushed): `234c296` `khanza-r5: P13 wide sample - N=30/300/3000 form-vs-consumer-vs-ledger, 0/3330 differing`
+- Commits (local, not pushed): `f378e33` `khanza-r5: P13 wide sample - N=30/300/3000 form-vs-consumer-vs-ledger, 0/3330 differing`
 - Tool SHA-256 (LF, local = box):
   - `p13_draw_sample.py` `ec28a18ea6ca6de79b9e8ad6b00455ccb67b28b0f05dd72fa5155454d669ed0a`
   - `p13_wide_sample.sh` `da013ebef95ea52eb988a6288e99b64cd287717c9badc91499c29487463d64cf`

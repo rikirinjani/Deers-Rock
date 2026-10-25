@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # P13 kill-test: start a 5-visit pilot, SIGTERM it mid-run, verify clean state
 set -u
 cd /opt/Deers-Rock/tools

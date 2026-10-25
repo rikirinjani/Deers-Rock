@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # P13 T3 negative control: on a scratch copy of the P13 clone, change one billing
 # amount by +1 and one payment by +1; the comparator must exit 1 and name exactly
 # those two encounters. Assert ROW_COUNT()=1 for each plant.
