@@ -1,0 +1,8 @@
+## NC1: planted live visit 2026/10/01/800162
+VERIFY-FAIL EXISTS-IN-LIVE 2026/10/01/800162
+P14-VERIFY: 28 visits, 1 violations, strata {'E1': 4, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+nc1_rc=1
+## NC2: planted SQL line naming sik.
+VERIFY-FAIL LIVE-REFERENCE line 90: DELETE FROM sik.billing WHERE no_rawat='2027/12/31/900001';
+P14-VERIFY: 27 visits, 1 violations, strata {'E1': 3, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+nc2_rc=1

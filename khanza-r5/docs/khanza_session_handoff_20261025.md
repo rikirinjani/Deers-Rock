@@ -36,7 +36,9 @@ Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 13 | P13 wide-sample (N=30/300/3000) | opencode | **done** 2026-10-25 (R5 §25); 0/3330 differing; report `docs/khanza_r5_p13_opencode_report.md` |
 | 14 | **Known cosmetic bug:** the P13 driver's `sukses` count and rate line are doubled (two matching lines per visit). The stop-rule percentage and all comparator results are unaffected. Corrected true rates: stage 0 ≈ 9.6/min, stage 1 ≈ 11.5/min, stage 2 ≈ 17.0/min. ~~Fixed in the local working copy (`p13_wide_sample.sh`), but the box copy still has the old count~~ *Not fixed anywhere: the local copy is byte-identical to the frozen box copy and still has the doubled `grep -hc` (orchestrator review 2026-10-25). Fixing it needs un-freezing, re-freezing and re-pinning the P13 manifest.* | next session | documented in the report §Problems item 2; decide whether to re-run |
 | 15 | **P13 evidence is 3.9 % of the cohort.** The zero-mismatch result is scoped: 3,330 of 85,387 eligible DR encounters (without form-saved payments). No population bound is claimed beyond the stated assumption (simple random draws within strata of a synthetic cohort; Clopper–Pearson 95 % upper bound ~~≈ 0.022 %~~ *≈ 0.090 % one-sided, 0.111 % two-sided* for n=3330, k=0). | owner | the full cohort would take ~3-8 days of box time; not recommended unless a stage shows a difference |
-| 16 | **P14: edge strata (B3) + charge-line identity** — task doc `docs/khanza_r5_task_p14_edge_strata_line_identity.md` written 2026-10-26, nothing run yet; needs the box before ~11-20 (~1.5–2 h) | next session | task doc written; awaiting owner go to execute |
+| 16 | **P14: edge strata (B3) + charge-line identity** | done 2026-10-26 | **done** (R5 §26): fixture 27/27 match pre-registration; line identity 300/300 real visits (181 EQUAL, 119 EQUAL-CTX); NC discriminating; live unchanged; 12 tools frozen |
+| 17 | **P15 candidates from P14** (owner decisions): (a) builder crashes fail-closed on fractional `jml` (one 0.5 dispense blocks the whole build); (b) ledger has no embalase/tuslah; (c) ledger bills DR's own reg fee/tariff where Khanza bills 0; (d) display-name collisions make 40 % of real visits EQUAL-CTX only | owner | open |
+| 18 | **HOE Epic V branch** `epic-v-dashboard` (commit `0d60971`, worktree `../Deers-Rock-epicv`): dashboard script dead since 10-07 fixed, real sim pause/speed, SSE, search, theme, exports | owner | committed, not merged or pushed |
 
 ## 2. Standing rules (unchanged from 10-24, repeated for the next session)
 
@@ -171,3 +173,20 @@ Retrace: `Directory is trace-clean.`
 - P13 doubled rate (item 14): **leave as documented**, no re-freeze.
 - Full cohort: **skipped**. MemPalace (item 4): **skipped for now**.
 - Items 6, 7, 8, 11 decided as recorded in the table above.
+
+## 8. P14 session (2026-10-26)
+
+P14 ran on mac-mini-vultr under lock `P14-CLAUDE-20261026` (released). Results in R5 §26, task doc
+`docs/khanza_r5_task_p14_edge_strata_line_identity.md` (self-score 28/28, pending independent review),
+evidence `evidence/p14/`, QMS `VER-2026-10-26-DR-KHANZA-R5-P14-001`, four failure records
+(`records/failures/20261026T*`). Frozen tools now 33 files: 15 P12 + 6 P13 + 12 P14
+(`evidence/p14/r5_p14_frozen_manifest_20261026.sha256`).
+
+New facts (do not rediscover):
+- Every DR visit has exactly 1 procedure, 0 embalase/tuslah, `biaya_reg = 10000` (T0).
+- Clone builds take ~65 s (not ~20 min); the frozen builder rebuilds the full DR ledger on a clone in
+  ~5 s and reproduces the pin on non-fixture rows.
+- The oracle has `--allow-strata` for out-of-envelope visits (exit 4 expected).
+- The consumer bills from an ENC-only input without rewriting `detail_pemberian_obat` (fixture baseline).
+- Strict `sql_mode` rejects legacy zero dates in `databarang`: copy lookup tables with a relaxed session mode.
+- The real form rounds PPN half-up at exact half rupiah and keeps the half rupiah in fractional line amounts.

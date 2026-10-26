@@ -332,6 +332,8 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] VPS run lock + negative control; migration to mac-mini-vultr
 - [x] P12 evidence chain re-run on frozen bytes, per-encounter reconciliation, sources published
 - [x] P13 wide sample N=30/300/3000: form vs consumer vs ledger, **0/3330 differing** (95 % one-sided upper bound ≈ 0.090 %; 3.9 % of the 85,387 eligible visits)
+- [x] P14 (2026-10-26): B3 edge strata, 27 visits / 8 strata through the real form, 27/27 match pre-registration; per-encounter charge-line identity on 300 real visits, 0 line differences (181 EQUAL, 119 EQUAL-CTX); same-price code-swap blind spot closed (NC discriminating)
+- [ ] P15 candidates from P14: builder crash on fractional quantity; embalase/tuslah and DR-own-fee scope; name-collision identity
 - [ ] Clean-box rebuild from repo + export on a third home — **blocked** (owner: third home waits; mac-mini-vultr ends ~2026-11-20)
 - [ ] Copy the export archives to durable off-box storage — before ~2026-11-20
 - [ ] Full cohort (86k visits) — skipped by owner decision 2026-10-25
@@ -358,7 +360,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
 | **X** International Billing | 🔴 Deferred | — | Design only; commercialization brainstorm (ID/US/EU) exists as a Claude Doc |
-| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 33/33 | P1–P13 done, 0/3330 on the wide sample, Astra 63/100; rebuild rehearsal + v11 blocked |
+| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 33/33 | P1–P14 done (P14: B3 edge strata + line identity 300/300), Astra 63/100; rebuild rehearsal + v11 blocked; P15 candidates open |
 
 **Overall (HOE platform, as of 2026-10-07):** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
 **Epic XI (as of 2026-10-25):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.

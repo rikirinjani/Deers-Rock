@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-26T06:11:22Z",
+  "category": "tool",
+  "severity": "major",
+  "title": "Frozen ledger builder crashes (fail-closed) on a fractional drug quantity; one 0.5 dispense blocks the whole cohort build",
+  "what_went_wrong": [
+    "build_dr_charge_ledger_p2.py does int(q) on SUM(jml); jml=0.5 raises ValueError: invalid literal for int() with base 10: '0.5'.",
+    "The P14 task doc predicted truncation to 0 (E6); the prediction was wrong."
+  ],
+  "root_cause": "The builder assumes integer quantities; Khanza stores detail_pemberian_obat.jml as double and the DR cohort never had a fractional value, so no test reached it.",
+  "detection": "P14 kill-test attempt 1 (evidence/p14/kill_driver_attempt1.log), 2026-10-26.",
+  "impact": "Availability: the P6-3 rollback leaves the ledger unchanged, so nothing partial survives, but any fractional dispense in a cohort makes the ledger unbuildable. No effect on the 86,455-visit DR cohort (all integer).",
+  "correction": {
+    "applied": "None to the frozen builder. P14 loaded the two fractional visits after the ledger build and reported the whole visit as the delta (R5 s26.3).",
+    "result": "Open: P15 candidate, owner decision on the rule (round, reject per visit, or carry decimals)."
+  },
+  "rule": "Pre-register a code-derived prediction only after running the code path once on a throwaway input; edge-strata fixtures must include every column type's edge (double, null, zero).",
+  "agent": "claude (P14 executor)",
+  "status": "open"
+}

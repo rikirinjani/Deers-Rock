@@ -1,0 +1,1180 @@
+{
+ "meta": {
+  "date": "2027-12-31",
+  "p1": "A001",
+  "p2": "C013",
+  "pair_price_codes": [
+   "JP000229",
+   "JP000234"
+  ],
+  "template": "2026/10/01/800162",
+  "zero_proc": "C011"
+ },
+ "visits": {
+  "2027/12/31/900001": {
+   "desc": "embalase 100",
+   "expected_delta": {
+    "drug": "100",
+    "tax": "11"
+   },
+   "form_drug_subtotal": "31532.0",
+   "no_rkm_medis": "DR000001",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31532.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3469.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E1"
+  },
+  "2027/12/31/900002": {
+   "desc": "embalase 250",
+   "expected_delta": {
+    "drug": "250",
+    "tax": "28"
+   },
+   "form_drug_subtotal": "62762.0",
+   "no_rkm_medis": "DR000002",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "drug|2018003": [
+     "1",
+     "31330.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6904.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "drug|2018003": [
+     "1",
+     "31080"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6876"
+    ]
+   },
+   "stratum": "E1"
+  },
+  "2027/12/31/900003": {
+   "desc": "embalase 1000",
+   "expected_delta": {
+    "drug": "1000",
+    "tax": "110"
+   },
+   "form_drug_subtotal": "72280.0",
+   "no_rkm_medis": "DR000003",
+   "predicted_form": {
+    "drug|A000000007": [
+     "2",
+     "72280.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "7951.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|A000000007": [
+     "2",
+     "71280"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "7841"
+    ]
+   },
+   "stratum": "E1"
+  },
+  "2027/12/31/900004": {
+   "desc": "tuslah 100",
+   "expected_delta": {
+    "drug": "100",
+    "tax": "11"
+   },
+   "form_drug_subtotal": "31532.0",
+   "no_rkm_medis": "DR000004",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31532.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3469.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E2"
+  },
+  "2027/12/31/900005": {
+   "desc": "tuslah 250",
+   "expected_delta": {
+    "drug": "250",
+    "tax": "28"
+   },
+   "form_drug_subtotal": "62762.0",
+   "no_rkm_medis": "DR000005",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "drug|2018003": [
+     "1",
+     "31330.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6904.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "drug|2018003": [
+     "1",
+     "31080"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6876"
+    ]
+   },
+   "stratum": "E2"
+  },
+  "2027/12/31/900006": {
+   "desc": "tuslah 1000",
+   "expected_delta": {
+    "drug": "1000",
+    "tax": "110"
+   },
+   "form_drug_subtotal": "72280.0",
+   "no_rkm_medis": "DR000006",
+   "predicted_form": {
+    "drug|A000000007": [
+     "2",
+     "72280.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "7951.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|A000000007": [
+     "2",
+     "71280"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "7841"
+    ]
+   },
+   "stratum": "E2"
+  },
+  "2027/12/31/900007": {
+   "desc": "3 procs: equal-tariff pair + 1",
+   "expected_delta": {},
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000007",
+   "predicted_form": {
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "procedure|JP000229": [
+     "1",
+     "5000.0"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "procedure|JP000229": [
+     "1",
+     "5000"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E3"
+  },
+  "2027/12/31/900008": {
+   "desc": "same code twice + pair partner + drug",
+   "expected_delta": {},
+   "form_drug_subtotal": "31432.0",
+   "no_rkm_medis": "DR000008",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "procedure|JP000229": [
+     "2",
+     "10000.0"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|JP000229": [
+     "2",
+     "10000"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E3"
+  },
+  "2027/12/31/900009": {
+   "desc": "4 procs",
+   "expected_delta": {},
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000009",
+   "predicted_form": {
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "procedure|C013": [
+     "1",
+     "65000.0"
+    ],
+    "procedure|JP000229": [
+     "1",
+     "5000.0"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "procedure|C013": [
+     "1",
+     "65000"
+    ],
+    "procedure|JP000229": [
+     "1",
+     "5000"
+    ],
+    "procedure|JP000234": [
+     "1",
+     "5000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E3"
+  },
+  "2027/12/31/900010": {
+   "desc": "drug subtotal 14850 (mod 100 = 50)",
+   "expected_delta": {},
+   "form_drug_subtotal": "14850.0",
+   "no_rkm_medis": "DR000010",
+   "predicted_form": {
+    "drug|B000000650": [
+     "1",
+     "14850.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "1634.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000650": [
+     "1",
+     "14850"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "1634"
+    ]
+   },
+   "stratum": "E4"
+  },
+  "2027/12/31/900011": {
+   "desc": "drug subtotal 11550 (mod 100 = 50)",
+   "expected_delta": {},
+   "form_drug_subtotal": "11550.0",
+   "no_rkm_medis": "DR000011",
+   "predicted_form": {
+    "drug|B000000770": [
+     "1",
+     "11550.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "1271.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000770": [
+     "1",
+     "11550"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "1271"
+    ]
+   },
+   "stratum": "E4"
+  },
+  "2027/12/31/900012": {
+   "desc": "drug subtotal 19450 (mod 100 = 50)",
+   "expected_delta": {},
+   "form_drug_subtotal": "19450.0",
+   "no_rkm_medis": "DR000012",
+   "predicted_form": {
+    "drug|B000000855": [
+     "1",
+     "19450.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2140.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000855": [
+     "1",
+     "19450"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2140"
+    ]
+   },
+   "stratum": "E4"
+  },
+  "2027/12/31/900013": {
+   "desc": "drug subtotal 42649 (mod 100 = 49)",
+   "expected_delta": {},
+   "form_drug_subtotal": "42649.0",
+   "no_rkm_medis": "DR000013",
+   "predicted_form": {
+    "drug|B000000400": [
+     "1",
+     "42649.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "4691.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000400": [
+     "1",
+     "42649"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "4691"
+    ]
+   },
+   "stratum": "E4"
+  },
+  "2027/12/31/900014": {
+   "desc": "drug subtotal 651 (mod 100 = 51)",
+   "expected_delta": {},
+   "form_drug_subtotal": "651.0",
+   "no_rkm_medis": "DR000014",
+   "predicted_form": {
+    "drug|B000000110": [
+     "3",
+     "651.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "72.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000110": [
+     "3",
+     "651"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "72"
+    ]
+   },
+   "stratum": "E4"
+  },
+  "2027/12/31/900015": {
+   "desc": "biaya_reg 0 + zero-priced untariffed proc + drug",
+   "expected_delta": {
+    "registration": "-10000"
+   },
+   "form_drug_subtotal": "31432.0",
+   "no_rkm_medis": "DR000015",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "procedure|C011": [
+     "1",
+     "0.0"
+    ],
+    "registration|REG": [
+     "1",
+     "0.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|C011": [
+     "1",
+     "0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E5a"
+  },
+  "2027/12/31/900016": {
+   "desc": "biaya_reg 0 + tariffed proc",
+   "expected_delta": {
+    "registration": "-10000"
+   },
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000016",
+   "predicted_form": {
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "0.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E5a"
+  },
+  "2027/12/31/900017": {
+   "desc": "tariffed proc billed 0 + drug",
+   "expected_delta": {
+    "procedure": "-10000"
+   },
+   "form_drug_subtotal": "31432.0",
+   "no_rkm_medis": "DR000017",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "0.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E5b"
+  },
+  "2027/12/31/900018": {
+   "desc": "equal-tariff proc billed 0",
+   "expected_delta": {
+    "procedure": "-5000"
+   },
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000018",
+   "predicted_form": {
+    "procedure|JP000229": [
+     "1",
+     "0.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|JP000229": [
+     "1",
+     "5000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E5b"
+  },
+  "2027/12/31/900019": {
+   "desc": "jml 0.5 (odd price)",
+   "expected_delta": {
+    "drug": "9813.5",
+    "tax": "1079"
+   },
+   "form_drug_subtotal": "9813.5",
+   "no_rkm_medis": "DR000019",
+   "predicted_form": {
+    "drug|A000000118": [
+     "0.5",
+     "9813.5"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "1079.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|A000000118": [
+     "0",
+     "0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E6"
+  },
+  "2027/12/31/900020": {
+   "desc": "jml 1.5 (odd price)",
+   "expected_delta": {
+    "drug": "9813.5",
+    "tax": "1079"
+   },
+   "form_drug_subtotal": "29440.5",
+   "no_rkm_medis": "DR000020",
+   "predicted_form": {
+    "drug|A000000118": [
+     "1.5",
+     "29440.5"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3238.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|A000000118": [
+     "1",
+     "19627"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2159"
+    ]
+   },
+   "stratum": "E6"
+  },
+  "2027/12/31/900021": {
+   "desc": "split: same drug in 2 rows of jml 1",
+   "expected_delta": {},
+   "form_drug_subtotal": "62864.0",
+   "no_rkm_medis": "DR000021",
+   "predicted_form": {
+    "drug|2018001": [
+     "2",
+     "62864.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6915.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "2",
+     "62864"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6915"
+    ]
+   },
+   "stratum": "E6"
+  },
+  "2027/12/31/900022": {
+   "desc": "drugs only",
+   "expected_delta": {},
+   "form_drug_subtotal": "62512.0",
+   "no_rkm_medis": "DR000022",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "drug|2018003": [
+     "1",
+     "31080.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6876.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "drug|2018003": [
+     "1",
+     "31080"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "6876"
+    ]
+   },
+   "stratum": "E7"
+  },
+  "2027/12/31/900023": {
+   "desc": "procedure only",
+   "expected_delta": {},
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000023",
+   "predicted_form": {
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E7"
+  },
+  "2027/12/31/900024": {
+   "desc": "two procedures only",
+   "expected_delta": {},
+   "form_drug_subtotal": "0.0",
+   "no_rkm_medis": "DR000024",
+   "predicted_form": {
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "procedure|C013": [
+     "1",
+     "65000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ]
+   },
+   "predicted_ledger": {
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "procedure|C013": [
+     "1",
+     "65000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ]
+   },
+   "stratum": "E7"
+  },
+  "2027/12/31/900025": {
+   "desc": "colliding drug name",
+   "expected_delta": {},
+   "form_drug_subtotal": "22440.0",
+   "no_rkm_medis": "DR000025",
+   "predicted_form": {
+    "drug|B000000208": [
+     "1",
+     "22440.0"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2468.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000208": [
+     "1",
+     "22440"
+    ],
+    "procedure|A001": [
+     "1",
+     "10000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2468"
+    ]
+   },
+   "stratum": "E8"
+  },
+  "2027/12/31/900026": {
+   "desc": "colliding procedure name",
+   "expected_delta": {},
+   "form_drug_subtotal": "31432.0",
+   "no_rkm_medis": "DR000026",
+   "predicted_form": {
+    "drug|2018001": [
+     "1",
+     "31432.0"
+    ],
+    "procedure|J000840": [
+     "1",
+     "100000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|2018001": [
+     "1",
+     "31432"
+    ],
+    "procedure|J000840": [
+     "1",
+     "100000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "3458"
+    ]
+   },
+   "stratum": "E8"
+  },
+  "2027/12/31/900027": {
+   "desc": "both collide",
+   "expected_delta": {},
+   "form_drug_subtotal": "22440.0",
+   "no_rkm_medis": "DR000027",
+   "predicted_form": {
+    "drug|B000000208": [
+     "1",
+     "22440.0"
+    ],
+    "procedure|J000840": [
+     "1",
+     "100000.0"
+    ],
+    "registration|REG": [
+     "1",
+     "10000.0"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2468.0"
+    ]
+   },
+   "predicted_ledger": {
+    "drug|B000000208": [
+     "1",
+     "22440"
+    ],
+    "procedure|J000840": [
+     "1",
+     "100000"
+    ],
+    "registration|REG": [
+     "1",
+     "10000"
+    ],
+    "tax|PPN11": [
+     "1",
+     "2468"
+    ]
+   },
+   "stratum": "E8"
+  }
+ }
+}

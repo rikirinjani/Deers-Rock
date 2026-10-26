@@ -1,0 +1,77 @@
+=== P14 post 2026-10-26T06:44:55Z ===
+## T4 fixture comparator (--expect, ledger = clone ledger)
+ENC 2027/12/31/900001 E1 verdict=DIFFER delta={"drug": "100", "tax": "11"} A=55001 B=55001 C=54890 freshB=1/1 expected={"drug": "100", "tax": "11"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900002 E1 verdict=DIFFER delta={"drug": "250", "tax": "28"} A=89666 B=89666 C=89388 freshB=1/1 expected={"drug": "250", "tax": "28"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900003 E1 verdict=DIFFER delta={"drug": "1000", "tax": "110"} A=100231 B=100231 C=99121 freshB=1/1 expected={"drug": "1000", "tax": "110"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900004 E2 verdict=DIFFER delta={"drug": "100", "tax": "11"} A=55001 B=55001 C=54890 freshB=1/1 expected={"drug": "100", "tax": "11"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900005 E2 verdict=DIFFER delta={"drug": "250", "tax": "28"} A=89666 B=89666 C=89388 freshB=1/1 expected={"drug": "250", "tax": "28"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900006 E2 verdict=DIFFER delta={"drug": "1000", "tax": "110"} A=100231 B=100231 C=99121 freshB=1/1 expected={"drug": "1000", "tax": "110"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900007 E3 verdict=EQUAL delta={} A=30000 B=30000 C=30000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900008 E3 verdict=EQUAL delta={} A=59890 B=59890 C=59890 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900009 E3 verdict=EQUAL delta={} A=95000 B=95000 C=95000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900010 E4 verdict=EQUAL delta={} A=36484 B=36484 C=36484 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900011 E4 verdict=EQUAL delta={} A=32821 B=32821 C=32821 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900012 E4 verdict=EQUAL delta={} A=41590 B=41590 C=41590 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900013 E4 verdict=EQUAL delta={} A=67340 B=67340 C=67340 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900014 E4 verdict=EQUAL delta={} A=20723 B=20723 C=20723 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900015 E5a verdict=DIFFER delta={"registration": "-10000"} A=34890 B=34890 C=44890 freshB=1/1 expected={"registration": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900016 E5a verdict=DIFFER delta={"registration": "-10000"} A=10000 B=10000 C=20000 freshB=1/1 expected={"registration": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900017 E5b verdict=DIFFER delta={"procedure": "-10000"} A=44890 B=44890 C=54890 freshB=1/1 expected={"procedure": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900018 E5b verdict=DIFFER delta={"procedure": "-5000"} A=10000 B=10000 C=15000 freshB=1/1 expected={"procedure": "-5000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900019 E6 verdict=DIFFER delta={"drug": "9813.5", "procedure": "10000", "registration": "10000", "tax": "1079"} A=30892.5 B=30892.5 C=0 freshB=1/1 expected={"drug": "9813.5", "procedure": "10000", "registration": "10000", "tax": "1079"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900020 E6 verdict=DIFFER delta={"drug": "29440.5", "procedure": "10000", "registration": "10000", "tax": "3238"} A=52678.5 B=52678.5 C=0 freshB=1/1 expected={"drug": "29440.5", "procedure": "10000", "registration": "10000", "tax": "3238"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900021 E6 verdict=EQUAL delta={} A=89779 B=89779 C=89779 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900022 E7 verdict=EQUAL delta={} A=79388 B=79388 C=79388 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900023 E7 verdict=EQUAL delta={} A=20000 B=20000 C=20000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900024 E7 verdict=EQUAL delta={} A=85000 B=85000 C=85000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900025 E8 verdict=EQUAL-CTX delta={} A=44908 B=44908 C=44908 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900026 E8 verdict=EQUAL-CTX delta={} A=144890 B=144890 C=144890 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900027 E8 verdict=EQUAL-CTX delta={} A=134908 B=134908 C=134908 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+P14-LINE-IDENTITY: encounters=27 pass=27 fail=0 verdicts={"DIFFER": 12, "EQUAL": 12, "EQUAL-CTX": 3} mode=expect db=sik_p14e ledger=sik_p14e out=/opt/dr-benchmark/p14/compare/fixture_lines.csv
+fixture_compare_exit=0
+## T3 negative controls
+ERROR 1292 (22007) at line 1: Incorrect date value: '0000-00-00' for column 'expire' at row 3
+scratch sik_p14n: billing=450 ledger=97
+## unplanted
+ENC 2027/12/31/900021  verdict=UNMAPPED delta={} A=89779 B=89779 C=89779 freshB=1/1
+ENC 2027/12/31/900022  verdict=UNMAPPED delta={} A=79388 B=79388 C=79388 freshB=1/1
+P14-LINE-IDENTITY: encounters=3 pass=1 fail=2 verdicts={"EQUAL": 1, "UNMAPPED": 2} mode=equal db=sik_p14n ledger=sik_p14n out=/tmp/p14_nc_clean.csv
+unplanted exit=1 (0 needed)
+plant (a): 900007 line JP000229 ('Pelayanan Mobil Ambulance > 5 km. per km ', 5000) renamed to R201 ('Ambulance Tanpa Pendamping Luar Kota Setiap Tambahan 1 km', same price)
+plant (a) ROW_COUNT=1
+plant (b) ROW_COUNT=1
+plant (c) ROW_COUNT=1
+## planted
+ENC 2027/12/31/900007  verdict=DIFFER delta={} A=30000 B=30000 C=30000 freshB=1/1
+ENC 2027/12/31/900021  verdict=UNMAPPED delta={} A=89779 B=89779 C=89779 freshB=1/1
+ENC 2027/12/31/900022  verdict=UNMAPPED delta={} A=79388 B=79388 C=79388 freshB=1/1
+P14-LINE-IDENTITY: encounters=3 pass=0 fail=3 verdicts={"DIFFER": 1, "UNMAPPED": 2} mode=equal db=sik_p14n ledger=sik_p14n out=/tmp/p14_nc_plant.csv
+planted exit=1 (1 needed)
+NC(a) same-price swap: verdict=DIFFER component_delta={} -> CAUGHT (line level only)
+NC(b) qty/unit with same amount: verdict=UNMAPPED component_delta={} -> NOT CAUGHT
+NC(c) collision rename: verdict=UNMAPPED -> NOT CAUGHT
+P14-LINE-NC: NOT-DISCRIMINATING (clean=1 planted=1 rows=1/1/1 judge=1)
+teardown: sik_p14n dropped
+negctl_exit=1
+## T5 real-cohort line identity (300, ledger = live-pinned sik_bench)
+P14-LINE-IDENTITY: encounters=300 pass=300 fail=0 verdicts={"EQUAL": 181, "EQUAL-CTX": 119} mode=equal db=sik_p14e ledger=sik_bench out=/opt/dr-benchmark/p14/compare/real300_lines.csv
+real_compare_exit=0
+## teardown
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 
+## final live state
+# P14 live state: final 2026-10-26T06:45:07Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 15/15 OK
+frozen P13: 6/6 OK
+lock: session=P14-CLAUDE-20261026
+disk: /dev/vda2        94G   19G   71G  21% /
+=== P14 post done 06:45:09 ===

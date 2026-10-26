@@ -1,0 +1,397 @@
+# P14 T0 discovery — 2026-10-26T06:00:41Z (SELECT-only)
+
+### columns: detail_pemberian_obat
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik' AND table_name='detail_pemberian_obat' ORDER BY ORDINAL_POSITION
++---------------+-----------------------+
+| COLUMN_NAME   | COLUMN_TYPE           |
++---------------+-----------------------+
+| tgl_perawatan | date                  |
+| jam           | time                  |
+| no_rawat      | varchar(17)           |
+| kode_brng     | varchar(15)           |
+| h_beli        | double                |
+| biaya_obat    | double                |
+| jml           | double                |
+| embalase      | double                |
+| tuslah        | double                |
+| total         | double                |
+| status        | enum('Ralan','Ranap') |
+| kd_bangsal    | char(5)               |
+| no_batch      | varchar(20)           |
+| no_faktur     | varchar(20)           |
++---------------+-----------------------+
+
+### columns: rawat_jl_dr
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik' AND table_name='rawat_jl_dr' ORDER BY ORDINAL_POSITION
++------------------+--------------------------------+
+| COLUMN_NAME      | COLUMN_TYPE                    |
++------------------+--------------------------------+
+| no_rawat         | varchar(17)                    |
+| kd_jenis_prw     | varchar(15)                    |
+| kd_dokter        | varchar(20)                    |
+| tgl_perawatan    | date                           |
+| jam_rawat        | time                           |
+| material         | double                         |
+| bhp              | double                         |
+| tarif_tindakandr | double                         |
+| kso              | double                         |
+| menejemen        | double                         |
+| biaya_rawat      | double                         |
+| stts_bayar       | enum('Sudah','Belum','Suspen') |
++------------------+--------------------------------+
+
+### columns: reg_periksa
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik' AND table_name='reg_periksa' ORDER BY ORDINAL_POSITION
++----------------+------------------------------------------------------------------------------------------------+
+| COLUMN_NAME    | COLUMN_TYPE                                                                                    |
++----------------+------------------------------------------------------------------------------------------------+
+| no_reg         | varchar(8)                                                                                     |
+| no_rawat       | varchar(17)                                                                                    |
+| tgl_registrasi | date                                                                                           |
+| jam_reg        | time                                                                                           |
+| kd_dokter      | varchar(20)                                                                                    |
+| no_rkm_medis   | varchar(15)                                                                                    |
+| kd_poli        | char(5)                                                                                        |
+| p_jawab        | varchar(100)                                                                                   |
+| almt_pj        | varchar(200)                                                                                   |
+| hubunganpj     | varchar(20)                                                                                    |
+| biaya_reg      | double                                                                                         |
+| stts           | enum('Belum','Sudah','Batal','Berkas Diterima','Dirujuk','Meninggal','Dirawat','Pulang Paksa') |
+| stts_daftar    | enum('-','Lama','Baru')                                                                        |
+| status_lanjut  | enum('Ralan','Ranap')                                                                          |
+| kd_pj          | char(3)                                                                                        |
+| umurdaftar     | int                                                                                            |
+| sttsumur       | enum('Th','Bl','Hr')                                                                           |
+| status_bayar   | enum('Sudah Bayar','Belum Bayar')                                                              |
+| status_poli    | enum('Lama','Baru')                                                                            |
++----------------+------------------------------------------------------------------------------------------------+
+
+### columns: billing
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik' AND table_name='billing' ORDER BY ORDINAL_POSITION
++--------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| COLUMN_NAME  | COLUMN_TYPE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
++--------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| noindex      | int                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| no_rawat     | varchar(17)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| tgl_byr      | date                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| no           | varchar(50)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| nm_perawatan | varchar(200)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| pemisah      | char(1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| biaya        | double                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| jumlah       | double                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| tambahan     | double                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| totalbiaya   | double                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| status       | enum('Laborat','Radiologi','Operasi','Obat','Ranap Dokter','Ranap Dokter Paramedis','Ranap Paramedis','Ralan Dokter','Ralan Dokter Paramedis','Ralan Paramedis','Tambahan','Potongan','Administrasi','Kamar','-','Registrasi','Harian','Service','TtlObat','TtlRanap Dokter','TtlRanap Paramedis','TtlRalan Dokter','TtlRalan Paramedis','TtlKamar','Dokter','Perawat','TtlTambahan','Retur Obat','TtlRetur Obat','Resep Pulang','TtlResep Pulang','TtlPotongan','TtlLaborat','TtlOperasi','TtlRadiologi','Tagihan') |
++--------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+### columns: jns_perawatan
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik' AND table_name='jns_perawatan' ORDER BY ORDINAL_POSITION
++------------------+---------------+
+| COLUMN_NAME      | COLUMN_TYPE   |
++------------------+---------------+
+| kd_jenis_prw     | varchar(15)   |
+| nm_perawatan     | varchar(80)   |
+| kd_kategori      | char(5)       |
+| material         | double        |
+| bhp              | double        |
+| tarif_tindakandr | double        |
+| tarif_tindakanpr | double        |
+| kso              | double        |
+| menejemen        | double        |
+| total_byrdr      | double        |
+| total_byrpr      | double        |
+| total_byrdrpr    | double        |
+| kd_pj            | char(3)       |
+| kd_poli          | char(5)       |
+| status           | enum('0','1') |
++------------------+---------------+
+
+### columns: sik_bench.dr_tariff
+$ SELECT COLUMN_NAME, COLUMN_TYPE FROM information_schema.columns WHERE table_schema='sik_bench' AND table_name='dr_tariff' ORDER BY ORDINAL_POSITION
++-------------+-----------------------------------------+
+| COLUMN_NAME | COLUMN_TYPE                             |
++-------------+-----------------------------------------+
+| kind        | enum('registration','procedure','drug') |
+| code        | varchar(32)                             |
+| dr_price    | decimal(14,2)                           |
+| source_note | varchar(64)                             |
++-------------+-----------------------------------------+
+
+### DR cohort date range and size
+$ SELECT MIN(tgl_registrasi), MAX(tgl_registrasi), COUNT(*) FROM sik.reg_periksa WHERE no_rkm_medis LIKE 'DR%'
++---------------------+---------------------+----------+
+| MIN(tgl_registrasi) | MAX(tgl_registrasi) | COUNT(*) |
++---------------------+---------------------+----------+
+| 2026-10-01          | 2027-09-30          |    86455 |
++---------------------+---------------------+----------+
+
+### all-visit date range
+$ SELECT MIN(tgl_registrasi), MAX(tgl_registrasi), COUNT(*) FROM sik.reg_periksa
++---------------------+---------------------+----------+
+| MIN(tgl_registrasi) | MAX(tgl_registrasi) | COUNT(*) |
++---------------------+---------------------+----------+
+| 2026-02-23          | 2027-09-30          |    86676 |
++---------------------+---------------------+----------+
+
+### candidate fixture date 2027-12-31: visits on it (need 0)
+$ SELECT COUNT(*) FROM sik.reg_periksa WHERE tgl_registrasi='2027-12-31' OR no_rawat LIKE '2027/12/31/%'
++----------+
+| COUNT(*) |
++----------+
+|        0 |
++----------+
+
+### reserved no_rawat range 2027/12/31/9xxxxx anywhere (need 0)
+$ SELECT (SELECT COUNT(*) FROM sik.reg_periksa WHERE no_rawat LIKE '2027/12/31/%') reg, (SELECT COUNT(*) FROM sik.billing WHERE no_rawat LIKE '2027/12/31/%') bil, (SELECT COUNT(*) FROM sik_bench.dr_charge_ledger WHERE no_rawat LIKE '2027/12/31/%') led
++------+------+------+
+| reg  | bil  | led  |
++------+------+------+
+|    0 |    0 |    0 |
++------+------+------+
+
+### embalase/tuslah in the DR cohort (expect 0, consumer writes 0)
+$ SELECT COUNT(*), SUM(d.embalase<>0), SUM(d.tuslah<>0) FROM sik.detail_pemberian_obat d JOIN sik.reg_periksa r ON r.no_rawat=d.no_rawat WHERE r.no_rkm_medis LIKE 'DR%'
++----------+--------------------+------------------+
+| COUNT(*) | SUM(d.embalase<>0) | SUM(d.tuslah<>0) |
++----------+--------------------+------------------+
+|   113389 |                  0 |                0 |
++----------+--------------------+------------------+
+
+### biaya_reg values in the DR cohort
+$ SELECT biaya_reg, COUNT(*) FROM sik.reg_periksa WHERE no_rkm_medis LIKE 'DR%' GROUP BY biaya_reg
++-----------+----------+
+| biaya_reg | COUNT(*) |
++-----------+----------+
+|     10000 |    86455 |
++-----------+----------+
+
+### procedures per DR visit (distribution)
+$ SELECT n, COUNT(*) FROM (SELECT r.no_rawat, COUNT(rj.kd_jenis_prw) n FROM sik.reg_periksa r LEFT JOIN sik.rawat_jl_dr rj ON rj.no_rawat=r.no_rawat WHERE r.no_rkm_medis LIKE 'DR%' GROUP BY r.no_rawat) t GROUP BY n
++---+----------+
+| n | COUNT(*) |
++---+----------+
+| 1 |    86455 |
++---+----------+
+
+### template visit: one DR visit with 2 procedures and >=2 drugs
+$ SELECT r.* FROM sik.reg_periksa r WHERE r.no_rkm_medis LIKE 'DR%' AND (SELECT COUNT(*) FROM sik.rawat_jl_dr x WHERE x.no_rawat=r.no_rawat)=2 AND (SELECT COUNT(*) FROM sik.detail_pemberian_obat d WHERE d.no_rawat=r.no_rawat)>=2 ORDER BY r.no_rawat LIMIT 1\G
+
+TEMPLATE_VISIT=
+
+### template rawat_jl_dr rows
+$ SELECT * FROM sik.rawat_jl_dr WHERE no_rawat=''\G
+
+### template detail_pemberian_obat rows
+$ SELECT * FROM sik.detail_pemberian_obat WHERE no_rawat=''\G
+
+### template billing rows (form/consumer output)
+$ SELECT noindex, no, nm_perawatan, pemisah, biaya, jumlah, tambahan, totalbiaya, status FROM sik.billing WHERE no_rawat='' ORDER BY noindex
+
+### template ledger rows
+$ SELECT * FROM sik_bench.dr_charge_ledger WHERE no_rawat=''
+
+### dr_tariff: kinds and counts
+$ SELECT kind, COUNT(*), MIN(dr_price), MAX(dr_price), SUM(dr_price=0) FROM sik_bench.dr_tariff GROUP BY kind
++--------------+----------+---------------+---------------+-----------------+
+| kind         | COUNT(*) | MIN(dr_price) | MAX(dr_price) | SUM(dr_price=0) |
++--------------+----------+---------------+---------------+-----------------+
+| registration |        2 |      10000.00 |      10000.00 |               0 |
+| procedure    |      293 |       4600.00 |     195000.00 |               0 |
+| drug         |      390 |         26.00 |      48840.00 |               0 |
++--------------+----------+---------------+---------------+-----------------+
+
+### dr_tariff: registration row(s)
+$ SELECT * FROM sik_bench.dr_tariff WHERE kind='registration'
++--------------+--------+----------+-------------------+
+| kind         | code   | dr_price | source_note       |
++--------------+--------+----------+-------------------+
+| registration | REG    | 10000.00 | DR-adopted-bundle |
+| registration | REG-DR | 10000.00 | DR-owned          |
++--------------+--------+----------+-------------------+
+
+### E3: procedure codes used by DR with EQUAL dr_tariff price (pairs, top 10 prices)
+$ SELECT t.dr_price, COUNT(*) n, GROUP_CONCAT(t.code ORDER BY t.code SEPARATOR ',') codes FROM sik_bench.dr_tariff t WHERE t.kind='procedure' AND t.code IN (SELECT DISTINCT kd_jenis_prw FROM sik.rawat_jl_dr rj JOIN sik.reg_periksa r ON r.no_rawat=rj.no_rawat WHERE r.no_rkm_medis LIKE 'DR%') GROUP BY t.dr_price HAVING n>=2 ORDER BY n DESC LIMIT 10
++-----------+----+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| dr_price  | n  | codes                                                                                                                                                                     |
++-----------+----+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 100000.00 | 20 | C102,C370,C492,C497,J000533,J000601,J000611,J000840,J000844,J000845,J000848,J000853,J100598,JP000004,JP000011,JP000015,JP000110,JP000215,JP1324565,RJ00860                |
+|  25000.00 | 20 | E003,J000412,J000460,J000461,J000503,J000508,J000563,JP000018,JP000046,JP000091,JP000093,JP000106,JP000121,JP000123,JP000164,JP000181,JP000182,JP000184,JP000217,JP000336 |
+|  15000.00 | 16 | J000400,J000401,J000431,J000449,J000484,J000485,J000496,J000497,J000646,J000650,J000752,J000753,JP000040,JP000048,JP000049,JP000205                                       |
+| 110000.00 | 13 | C070,C197,C334,C431,J000537,JP000067,JP000068,JP000069,JP000070,JP000071,JP000076,JP000082,RJ00866                                                                        |
+|  75000.00 | 11 | C080,C372,J000388,J000825,J000829,J000838,J000851,JP000026,JP000034,JP000165,JP000209                                                                                     |
+|  10000.00 | 10 | A001,J000376,J000382,J000383,J000514,J000515,J000521,J000522,JP000084,JP000335                                                                                            |
+|  80000.00 |  9 | C198,C316,C508,J000349,JP000061,JP000063,JP000064,JP000066,JP000074                                                                                                       |
+| 150000.00 |  9 | G009,J000631,J000639,J000659,J000754,J000808,JP000078,JP000079,JP000085                                                                                                   |
+|  30000.00 |  9 | C318,J000472,J000556,J000805,J000833,JP000016,JP000038,JP000043,JP000088                                                                                                  |
+|  50000.00 |  8 | C327,C512,JP000101,JP000119,JP000163,JP000190,JP000228,JP000232                                                                                                           |
++-----------+----+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+### E3: Khanza jns_perawatan price for DR procedure codes (vs dr_tariff)
+$ SELECT j.kd_jenis_prw, j.nm_perawatan, j.total_byrdr, t.dr_price FROM sik.jns_perawatan j LEFT JOIN sik_bench.dr_tariff t ON t.kind='procedure' AND t.code=j.kd_jenis_prw WHERE j.kd_jenis_prw IN (SELECT DISTINCT kd_jenis_prw FROM sik.rawat_jl_dr rj JOIN sik.reg_periksa r ON r.no_rawat=rj.no_rawat WHERE r.no_rkm_medis LIKE 'DR%') ORDER BY j.kd_jenis_prw LIMIT 40
++--------------+----------------------------------------------------------------------------------+-------------+-----------+
+| kd_jenis_prw | nm_perawatan                                                                     | total_byrdr | dr_price  |
++--------------+----------------------------------------------------------------------------------+-------------+-----------+
+| A001         | Pendaftaran Pasien Baru                                                          |       10000 |  10000.00 |
+| C013         | Aff/Angkat Tampon Dgn Penyulit Oleh Dokter Spesialis                             |       65000 |  65000.00 |
+| C014         | Aff/Angkat Tampon Dgn Penyulit Oleh Dokter Umum                                  |       40000 |  40000.00 |
+| C042         | Aspirasi Bula Tanpa penyulit Oleh Dokter Umum                                    |       35000 |  35000.00 |
+| C070         | Bedah Minor Ekstirpasi Tanpa Penyulit Dengan Anestesi Lokal Oleh Dokter Umum     |      110000 | 110000.00 |
+| C080         | Cross Incisi Oleh Dokter Spesialis                                               |       75000 |  75000.00 |
+| C102         | Debridement/ Nekrotomi Ringan (<25cm2) Dengan Anestesi Lokal Tanpa penyulit Oleh |      100000 | 100000.00 |
+| C138         | Extraksi Cerumen Dengan Penyulit Oleh Dokter Spesialis                           |       62000 |  62000.00 |
+| C139         | Extraksi Cerumen Dengan Penyulit Oleh Dokter Umum                                |       37000 |  37000.00 |
+| C142         | Extraksi Cerumen Tanpa Penyulit Oleh Dokter Umum                                 |       23500 |  23500.00 |
+| C158         | Gastric Lavage/Bilas Lambung di Rawat Inap Dengan Penyulit Kelas III Oleh Dokter |      140000 | 140000.00 |
+| C168         | Gastric Lavage/Bilas Lambung di Rawat Inap Tanpa penyulit Kelas II Oleh Dokter U |       52500 |  52500.00 |
+| C185         | Incisi Furunkeal/Insisi Abses Dengan Penyulit Oleh Dokter Umum                   |       65000 |  65000.00 |
+| C187         | Incisi Furunkeal/Insisi Abses Tanpa penyulit Oleh Dokter Spesialis               |      115000 | 115000.00 |
+| C197         | Injeksi Haemoroid Tanpa penyulit Oleh Dokter Spesialis                           |      110000 | 110000.00 |
+| C198         | Injeksi Intra Articular Oleh Dokter Spesialis                                    |       80000 |  80000.00 |
+| C202         | Injeksi Intra Cutan Oleh Dokter Umum                                             |       22500 |  22500.00 |
+| C205         | Injeksi Intra Muskuler Oleh Dokter Spesialis                                     |       27500 |  27500.00 |
+| C211         | Injeksi Intra Vena Melalui Selang Infus Oleh Dokter Umum                         |       17500 |  17500.00 |
+| C214         | Injeksi Intra Vena Oleh Dokter Spesialis                                         |       27500 |  27500.00 |
+| C215         | Injeksi Intra Vena Oleh Dokter Umum                                              |       17500 |  17500.00 |
+| C223         | Injeksi Tender Poin Oleh Dokter Spesialis                                        |       47500 |  47500.00 |
+| C233         | Intepretasi/Expertise/Pembacaan EKG Oleh Dokter Umum                             |       35000 |  35000.00 |
+| C236         | Irigasi Mata Dengan Penyulit Oleh Dokter Spesialis                               |       87000 |  87000.00 |
+| C237         | Irigasi Mata Dengan Penyulit Oleh Dokter Umum                                    |       37000 |  37000.00 |
+| C264         | Kompresi Bimanual Eksterna Oleh Dokter Umum                                      |       70000 |  70000.00 |
+| C269         | Konseling Laktasi Oleh Dokter Spesialis                                          |       57500 |  57500.00 |
+| C270         | Konseling Laktasi Oleh Dokter Umum                                               |       27500 |  27500.00 |
+| C315         | Pap Smear Oleh Dokter Spesialis                                                  |      155000 | 155000.00 |
+| C316         | Pap Smear Oleh Dokter Umum                                                       |       80000 |  80000.00 |
+| C318         | Pasang Pemplon                                                                   |       30000 |  30000.00 |
+| C319         | Pasang infus                                                                     |       60000 |  60000.00 |
+| C327         | Pemasangan Bidai Tanpa penyulit Oleh Dokter Umum                                 |       50000 |  50000.00 |
+| C334         | Pemasangan Endotracheal Tube Oleh Dokter Umum                                    |      110000 | 110000.00 |
+| C352         | Pemasangan Mitela/Arm Sling Oleh Dokter Spesialis                                |       54000 |  54000.00 |
+| C353         | Pemasangan Mitela/Arm Sling Oleh Dokter Umum                                     |       24000 |  24000.00 |
+| C356         | Pemasangan NGT / OGT Dengan Penyulit Oleh Dokter Umum                            |       30500 |  30500.00 |
+| C358         | Pemasangan NGT / OGT Tanpa penyulit Oleh Dokter Spesialis                        |       40500 |  40500.00 |
+| C364         | Pemasangan NPA/OPA Tanpa penyulit Oleh Dokter Spesialis                          |       40500 |  40500.00 |
+| C370         | Pemasangan Pesarium Ring Dengan Penyulit Oleh Dokter Spesialis                   |      100000 | 100000.00 |
++--------------+----------------------------------------------------------------------------------+-------------+-----------+
+
+### E5: procedures with Khanza price 0 among DR codes
+$ SELECT j.kd_jenis_prw, j.nm_perawatan, j.total_byrdr, t.dr_price FROM sik.jns_perawatan j LEFT JOIN sik_bench.dr_tariff t ON t.kind='procedure' AND t.code=j.kd_jenis_prw WHERE j.total_byrdr=0 LIMIT 10
++--------------+-----------------------------------------------------------+-------------+----------+
+| kd_jenis_prw | nm_perawatan                                              | total_byrdr | dr_price |
++--------------+-----------------------------------------------------------+-------------+----------+
+| C011         | Aff/Angkat Kanul Epidural Oleh Perawat                    |           0 |     NULL |
+| C012         | Aff/Angkat Tampon Dgn Penyulit Oleh Bidan                 |           0 |     NULL |
+| C015         | Aff/Angkat Tampon Dgn Penyulit Oleh Perawat               |           0 |     NULL |
+| C016         | Aff/Angkat Tampon Tanpa Penyulit Oleh Bidan               |           0 |     NULL |
+| C019         | Aff/Angkat Tampon Tanpa Penyulit Oleh Perawat             |           0 |     NULL |
+| C022         | Aff/Lepas Drain Oleh Perawat                              |           0 |     NULL |
+| C025         | Aff/Lepas Gips (Satu Lokasi) Dengan Penyulit Oleh Perawat |           0 |     NULL |
+| C028         | Aff/Lepas Gips (Satu Lokasi) Tanpa penyulit Oleh Perawat  |           0 |     NULL |
+| C029         | Aff/Lepas Infus Oleh Bidan                                |           0 |     NULL |
+| C030         | Aff/Lepas Infus Oleh Perawat                              |           0 |     NULL |
++--------------+-----------------------------------------------------------+-------------+----------+
+
+### E4: DR drugs and ralan prices (mod 100) used by the cohort
+$ SELECT b.kode_brng, b.nama_brng, b.ralan, MOD(b.ralan,100) m, t.dr_price FROM sik.databarang b LEFT JOIN sik_bench.dr_tariff t ON t.kind='drug' AND t.code=b.kode_brng WHERE b.kode_brng IN (SELECT DISTINCT d.kode_brng FROM sik.detail_pemberian_obat d JOIN sik.reg_periksa r ON r.no_rawat=d.no_rawat WHERE r.no_rkm_medis LIKE 'DR%') ORDER BY m, b.ralan LIMIT 40
++------------+-----------------------------------+-------+------+----------+
+| kode_brng  | nama_brng                         | ralan | m    | dr_price |
++------------+-----------------------------------+-------+------+----------+
+| B000000867 | Loratadin Tablet                  |   400 |    0 |   400.00 |
+| B000001751 | SIMARC 2                          |  1800 |    0 |  1800.00 |
+| A000000088 | ID Band Bayi                      |  2400 |    0 |  2400.00 |
+| B000001402 | Syringe OM 1 cc                   |  2400 |    0 |  2400.00 |
+| B000001596 | Ataroc Tablet                     |  2400 |    0 |  2400.00 |
+| B000001649 | Sanprima Tablet                   |  2400 |    0 |  2400.00 |
+| B000001890 | TRIFED SAN A                      |  2400 |    0 |  2400.00 |
+| B000000693 | Dexamethason inj                  |  2900 |    0 |  2900.00 |
+| A000000089 | ID Band Dewasa                    |  3000 |    0 |  3000.00 |
+| B000001148 | Zinkid*                           |  3300 |    0 |  3300.00 |
+| B000001409 | GELANG ID BAYI                    |  4800 |    0 |  4800.00 |
+| B000001530 | Angintriz Tab ( Beli )            |  4800 |    0 |  4800.00 |
+| A000000076 | ECG Elektrode                     |  5400 |    0 |  5400.00 |
+| A000000106 | Pampers New Born                  |  6000 |    0 |  6000.00 |
+| B000001736 | MINYAK KAYU PUTIH LANG            |  6000 |    0 |  6000.00 |
+| B000001791 | KETOROLAC 30 MG INJEKSI (ENSEVAL) |  6000 |    0 |  6000.00 |
+| B000001991 | KALNEX 500 MAWAR                  |  6000 |    0 |  6000.00 |
+| B000008005 | RACIKAN VITAMIN                   |  6000 |    0 |  6000.00 |
+| B000000160 | Biocombin inj                     |  6600 |    0 |  6600.00 |
+| B000001085 | Texorate Tablet                   |  6600 |    0 |  6600.00 |
+| B000001212 | Torasic 10 mg tab                 |  6600 |    0 |  6600.00 |
+| B000001231 | Amoxycillin Dry Syr 125 mg/ 5 ml  |  6600 |    0 |  6600.00 |
+| B000001606 | XXXXXX                            |  6600 |    0 |  6600.00 |
+| B000001670 | MKP LANG KECIL                    |  6600 |    0 |  6600.00 |
+| A000000805 | XXX                               |  9600 |    0 |  9600.00 |
+| B000000592 | Artrodar                          |  9600 |    0 |  9600.00 |
+| B000001410 | KAPAS CEBOK                       |  9600 |    0 |  9600.00 |
+| B000001528 | DORNER                            |  9600 |    0 |  9600.00 |
+| B000001990 | CANDERIN 8 (BELI KF)              |  9600 |    0 |  9600.00 |
+| B000002006 | PEMBALUT BELI                     |  9600 |    0 |  9600.00 |
+| B000000597 | Asta Plus Tablet*                 |  9900 |    0 |  9900.00 |
+| B000000835 | Ketorolac 10 mg Injeksi           |  9900 |    0 |  9900.00 |
+| B000000913 | Myotonic inj                      |  9900 |    0 |  9900.00 |
+| B000000156 | Alovell 10 mg tab                 | 12000 |    0 | 12000.00 |
+| A000000109 | Under Pad                         | 12600 |    0 | 12600.00 |
+| B000000769 | Gastrul tab                       | 13200 |    0 | 13200.00 |
+| B000008008 | NATRIUM DICLOFENAC                | 14400 |    0 | 14400.00 |
+| B000001586 | CALADIN LOTION KECIL (BELI)       | 15000 |    0 | 15000.00 |
+| B000001734 | CALADIN LOTION INDOMARET          | 15600 |    0 | 15600.00 |
+| B000000377 | Valvir Kaplet                     | 16500 |    0 | 16500.00 |
++------------+-----------------------------------+-------+------+----------+
+
+### E8: drug display-name collisions (nama_brng (jenis.nama)) across ALL databarang
+$ SELECT CONCAT(b.nama_brng,' (',j.nama,')') k, COUNT(*) n, GROUP_CONCAT(b.kode_brng) codes FROM sik.databarang b JOIN sik.jenis j ON j.kdjns=b.kdjns GROUP BY k HAVING n>1 ORDER BY n DESC LIMIT 10
++-------------------------------------+----+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| k                                   | n  | codes                                                                                                                                                                                                 |
++-------------------------------------+----+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| xxx (OBAT ORAL)                     | 18 | B000000206,B000000208,B000000262,B000000335,B000000364,B000000403,B000000420,B000000423,B000000577,B000000688,B000000710,B000000853,B000000953,B000000961,B000001289,B000001323,B000001486,B000001571 |
+| XX (OBAT ORAL)                      |  5 | B000001191,B000001709,B000001740,B000001804,B000000189                                                                                                                                                |
+| El (LOGISTIK)                       |  3 | A000000077,A000000078,A000000079                                                                                                                                                                      |
+| La (OBAT NON ORAL)                  |  2 | B000000842,B000001228                                                                                                                                                                                 |
+| XXXXXX (OBAT ORAL)                  |  2 | B000001606,B000001714                                                                                                                                                                                 |
+| xxx (OBAT NON ORAL)                 |  2 | B000000199,B000000244                                                                                                                                                                                 |
+| XXX (ALKES HABIS PAKAI)             |  2 | A000000805,B000000480                                                                                                                                                                                 |
+| Vib Albumin Plus Sachet (OBAT ORAL) |  2 | B000001211,B000000450                                                                                                                                                                                 |
+| Pregnolin tab (OBAT ORAL)           |  2 | B000000320,B000000398                                                                                                                                                                                 |
+| Ottopan syr (OBAT ORAL)             |  2 | B000000200,B000001193                                                                                                                                                                                 |
++-------------------------------------+----+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+### E8: drug display-name collisions among DR-used drugs only
+$ SELECT CONCAT(b.nama_brng,' (',j.nama,')') k, COUNT(*) n, GROUP_CONCAT(b.kode_brng) codes FROM sik.databarang b JOIN sik.jenis j ON j.kdjns=b.kdjns WHERE b.kode_brng IN (SELECT DISTINCT d.kode_brng FROM sik.detail_pemberian_obat d JOIN sik.reg_periksa r ON r.no_rawat=d.no_rawat WHERE r.no_rkm_medis LIKE 'DR%') GROUP BY k HAVING n>1 LIMIT 10
++-----------------+---+-----------------------+
+| k               | n | codes                 |
++-----------------+---+-----------------------+
+| xxx (OBAT ORAL) | 2 | B000000208,B000000262 |
++-----------------+---+-----------------------+
+
+### procedure name collisions in jns_perawatan
+$ SELECT nm_perawatan, COUNT(*) n, GROUP_CONCAT(kd_jenis_prw) FROM sik.jns_perawatan GROUP BY nm_perawatan HAVING n>1 ORDER BY n DESC LIMIT 10
++-----------------------------------------+----+---------------------------------------------------------------------------------------------------------------------------------+
+| nm_perawatan                            | n  | GROUP_CONCAT(kd_jenis_prw)                                                                                                      |
++-----------------------------------------+----+---------------------------------------------------------------------------------------------------------------------------------+
+| Administrasi  Asuransi / Pihak ke - III | 16 | J000824,J000825,J000826,J000827,J000828,J000829,J000830,J000831,J000832,J000833,J000834,J000835,J000836,J000837,J000838,J000851 |
+| Periksa Poliklinik Umum / IGD           | 14 | J000353,J000823,J000839,J000840,J000841,J000842,J000843,J000844,J000845,J000846,J000847,J000848,J000849,J000854                 |
+| Jasa Fisioterapi                        |  8 | J000646,J000647,J000648,J000649,J000650,J000750,J000752,J000753                                                                 |
+| Cek Lab Hematologi Rutin                |  7 | J000350,J000364,J000365,J000366,J000367,J000368,J000369                                                                         |
+| Cek Lab Hematologi Lengkap              |  7 | J000349,J000354,J000355,J000356,J000357,J000358,J000363                                                                         |
+| Widal                                   |  7 | J000352,J000436,J000437,J000438,J000439,J000440,J000441                                                                         |
+| Methamphetamine (MET)                   |  6 | J000586,J000587,J000588,J000589,J000590,J000591                                                                                 |
+| Globulin                                |  6 | J000526,J000527,J000528,J000529,J000530,J000531                                                                                 |
+| Glukosa 2 J PP                          |  6 | J000466,J000467,J000468,J000469,J000470,J000471                                                                                 |
+| Glukosa Puasa                           |  6 | J000460,J000461,J000462,J000463,J000464,J000465                                                                                 |
++-----------------------------------------+----+---------------------------------------------------------------------------------------------------------------------------------+
+
+### billing status values for DR visits (sample 2026-10-01)
+$ SELECT status, COUNT(*) FROM sik.billing WHERE no_rawat LIKE '2026/10/01/%' GROUP BY status
++--------------+----------+
+| status       | COUNT(*) |
++--------------+----------+
+| -            |     1925 |
+| Dokter       |      275 |
+| Registrasi   |      275 |
+| Ralan Dokter |      550 |
+| Obat         |      878 |
+| TtlObat      |      222 |
+| Tambahan     |      275 |
+| Potongan     |      275 |
++--------------+----------+
+
+# END T0

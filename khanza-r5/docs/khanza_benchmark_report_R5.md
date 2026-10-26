@@ -311,7 +311,7 @@ the existing infrastructure; the split is corrected here (source: roadmap "who c
 | Item | Gate / need | Status | Now-who |
 |---|---|---|---|
 | **B2 — 999-visit real-form sample at B3** | real-form Xvfb+faketime; oracle path | **TESTED — 0/999** (`r4_b2_1000`) | agent |
-| **B3 — Edge strata on a scratch copy** | author flagged synthetic visits (embalase, tuslah, ≥3 proc lines, half-rupiah PPN, zero-fee clinic); run through real form on scratch | **NOT TESTED** | **agent** (fixture authoring + scratch run) |
+| **B3 — Edge strata on a scratch copy** | author flagged synthetic visits (embalase, tuslah, ≥3 proc lines, half-rupiah PPN, zero-fee clinic); run through real form on scratch | ~~**NOT TESTED**~~ **TESTED (P14, §26):** 27 visits / 8 strata, 27/27 match pre-registration; ledger gaps found (embalase/tuslah, own reg fee, fractional qty) | **agent** (fixture authoring + scratch run) |
 | **C1 — Calibrate the diagnosis mix** | real PRB dispensing + published morbidity source | **NOT TESTED** | human (data license) |
 | **C2 — Clinically coherent content** | pharmacist rules table + 100-visit plausibility sample | **NOT TESTED** | human (pharmacist) |
 | **C3 — Payer mix / demographics / rhythm** | age/sex/dx rules, weekly/seasonal, returning-patient, payer (BPJS/general/private) | **NOT TESTED** | human (policy) — re-baselines §1/§2/§5 revenue |
@@ -1261,3 +1261,126 @@ writes. `evidence/p13/live_state_final.txt`.
 - The §24.5 stale-payment row (`2026/10/23/000408`) is excluded from the P13 sample (it has a
   `detail_nota_jalan` row) and remains un-cleaned (a live write, needs owner approval).
 
+
+## 26. P14: edge strata (B3) through the real form + per-encounter charge-line identity (2026-10-26, new)
+
+Task doc (written before execution; §2a was amended after T0 and before any billing run):
+`docs/khanza_r5_task_p14_edge_strata_line_identity.md`. Lock `P14-CLAUDE-20261026`, acquired
+06:03:21Z and released after the final proof. Evidence: `evidence/p14/`. Tools: twelve new files,
+frozen (`evidence/p14/r5_p14_frozen_manifest_20261026.sha256`, 12/12 OK, `chattr +i`). The 21 P12+P13
+frozen files were 15/15 and 6/6 OK before and after (`live_state_baseline.txt`,
+`live_state_final2.txt`).
+
+**1. What T0 found (SELECT-only, `evidence/p14/t0_discovery.txt`).** All 86,455 DR visits have
+exactly one procedure line, no non-zero `embalase`/`tuslah`, and `biaya_reg = 10000`. So multi-line
+procedures, dispensing fees and zero fees had never been through the form on this install. Display
+names collide: two DR-used drugs share `xxx (OBAT ORAL)`, and `Periksa Poliklinik Umum / IGD` maps to
+14 procedure codes, four of them DR-used.
+
+**2. Fixture (T1).** 27 synthetic DR visits on the reserved range `2027/12/31/9000NN`, in 8 strata:
+- E1 embalase; E2 tuslah;
+- E3 ≥3 procedure lines, including the same code twice and an equal-tariff pair;
+- E4 half-rupiah PPN, `s ≡ 49/50/51 (mod 100)`;
+- E5a/E5b zero fees;
+- E6 fractional and split quantities;
+- E7 drugs-only and procedures-only;
+- E8 name collisions.
+
+The fixture is deterministic: two authoring runs gave identical sha256 (`8f365a92…` SQL,
+`8c5fdc9a…` manifest). In the `--verify` negative controls, a planted live visit and a planted `sik.`
+SQL line each exit 1 naming the plant (`t1_negctl.txt`). The fixture existed only in the clone: 0
+fixture rows in live `sik`/`sik_bench` at baseline and at the final proof.
+
+**3. Finding: the frozen builder fails closed on a fractional quantity.** The first kill-test attempt
+built the clone ledger with the fixture loaded. The builder stopped with `FAIL-CLOSED: mid-build
+failure (ValueError: invalid literal for int() with base 10: '0.5'); session rolled back, ledger
+unchanged (P6-3)` (`kill_driver_attempt1.log`).
+- **Cause:** the builder's `int(q)` on `SUM(jml)` cannot take `0.5`.
+- **Effect:** one fractional dispense anywhere in the cohort blocks the whole ledger build. The P6-3
+  rollback works, so nothing partial is left. This is an availability defect, not the truncation the
+  task doc predicted.
+- **Pre-registration:** ~~E6: ledger quantity truncates to 0~~. Amended before the billing run: the
+  two fractional visits are loaded *after* the ledger build (`p14_fixture_split.py`), so C has no rows
+  for them and the expected delta is the whole form amount.
+- **P15 candidate:** the builder needs a fractional-quantity rule. Owner decision: round, reject per
+  visit, or carry decimals.
+
+**4. Safety (T2).**
+- **Builder env guard:** with `P2_LEDGER_DB` unset, the driver exits 3 before invoking the builder
+  (`t2_guard_selftest.txt`). A wrong lock session also exits 3.
+- **Kill test:** SIGTERM was sent to the driver's process group while 3 harness processes were alive.
+  Afterwards: 0 harness processes, `database.xml` on `sik`, 0 clone grants, 0 writer markers, clone
+  dropped (`t2_kill_test.txt`).
+- **First attempt not exercised:** the builder failure in §3 ended the driver before the kill point.
+  The script now reports `KILL-TEST-NOT-EXERCISED` in that case instead of continuing.
+
+**5. Reproducibility.** On each clone, the frozen builder rebuilt the whole DR ledger from the clone's
+`sik`. The non-fixture rows reproduced the pin `356355:a66a3a546cc322…` (`REPRODUCES-PIN`) all three
+times: kill test, main run, NC rerun.
+
+**6. Fixture through the real form (T4).** The consumer produced a baseline from ENC-only input, then
+the frozen oracle ran with `--allow-strata`:
+- **Form:** 27/27 `sukses=true`.
+- **Oracle:** exit 4 (`PARTIAL-NOT-COVERED`), as expected, because the 9 E1–E3 visits are outside the
+  oracle's envelope. Its own diff on the 18 in-envelope visits: drift 0
+  (`runs/fixture/B3_sampled_form_diff_r5.md`).
+- **Line identity** against the clone ledger with `--expect`: **27/27 MATCH their pre-registered
+  outcome to the rupiah**. Fresh-B was 1/1 and B = A_form on every visit. The predicted form lines
+  and ledger lines matched on all 27 (`form_model=MATCH ledger_model=MATCH`, `post.log`).
+
+| Stratum | Visits | Observed A_form − C | Meaning |
+|---|---|---|---|
+| E1 embalase 100/250/1000 | 3 | drug +100/+250/+1000, tax +11/+28/+110 | the form bills the fee and taxes it; the ledger has no embalase component |
+| E2 tuslah 100/250/1000 | 3 | same as E1 | same, for tuslah |
+| E3 ≥3 procedure lines | 3 | 0 (EQUAL) | multi-line and repeated-code procedures bill exactly |
+| E4 half-rupiah PPN | 5 | 0 (EQUAL) | the real form rounds PPN half-up at `s ≡ 50 (mod 100)`, as the integer rule |
+| E5a `biaya_reg = 0` | 2 | registration −10,000 | the form bills Khanza's fee; the ledger bills DR's own fee |
+| E5b procedure billed 0 | 2 | procedure −10,000 / −5,000 | the ledger bills the DR tariff regardless |
+| E6 jml 0.5 / 1.5 | 2 | whole visit (no ledger rows) | §3 above |
+| E6 split rows | 1 | 0 (EQUAL) | two rows of one drug merge correctly |
+| E7 drugs-only / procedures-only | 3 | 0 (EQUAL) | empty sections, absent PPN row |
+| E8 name collisions | 3 | 0 (EQUAL-CTX) | mapped only through the encounter's ledger codes |
+
+The E1/E2/E5 deltas are **ledger scope gaps, not form errors**. The DR consumer never writes
+embalase/tuslah, and every DR visit has `biaya_reg = 10000`, so these cases do not occur in the
+cohort. A ledger used outside the cohort would misstate these charges. They are P15 candidates; the
+owner decides whether to model them or declare them out of scope.
+
+**7. Line-identity sensitivity (T3 NC).** On a verified scratch copy (`nc_rerun.log`), the unplanted
+copy gave 3/3 EQUAL. Then:
+- **(a) Same-price code swap** (JP000229 → R201, both 5,000): component delta `{}` while line identity
+  says DIFFER. This is the blind spot Astra v10 named.
+- **(b) Qty +1 with the unit lowered so the amount is unchanged:** component delta `{}`, line identity
+  DIFFER.
+- **(c) Rename to a colliding display name:** AMBIGUOUS.
+
+`ROW_COUNT()=1` each → `P14-LINE-NC: DISCRIMINATING`.
+
+The first NC run was vacuous (`post_attempt1_nc_vacuous.log`). The scratch copy of `databarang`
+failed on a `'0000-00-00'` date under strict `sql_mode`, the script carried on, and every drug line
+became UNMAPPED. The script now copies with a relaxed session `sql_mode` and fails closed unless every
+copied table matches its source row count.
+
+**8. Real cohort, line level (T5).** The 300 P13 stage-1 visits were re-billed through the real form
+on the same clone, in a second oracle run with its own RUN_ID. (This deviates from the planned
+separate P13-style clone; the deviation is recorded in §2a.)
+- **Oracle:** exit 0, 300/300 `sukses=true`, drift 0 against the consumer baseline.
+- **Line identity** against the **live-pinned** `sik_bench` ledger: **300/300 pass, 1,240 lines, 0
+  line differences**. B = C and fresh-B 1/1 on every visit (`compare/real300_lines*.{csv,json}`).
+- **Verdicts:** 181 EQUAL and **119 EQUAL-CTX**. 40 % of real visits contain a procedure or drug whose
+  display name maps to more than one code. For those visits, identity rests on the encounter's own
+  ledger codes, which is weaker than a name-unique mapping.
+- **Bound:** Clopper–Pearson 95 % upper bound on the line-level mismatch rate for n = 300, k = 0 is
+  0.99 % one-sided and 1.22 % two-sided, under the P13 sampling assumption.
+
+**9. Live state.** The baseline (06:03:46Z) and both final proofs (06:45:07Z, 06:48:55Z) are
+identical on every line except the time:
+- databases `sik sik_bench`, `database.xml` → `sik`, 0 writer markers;
+- no grants on P14 clones (the benchmark account's standing grants on `sik`/`sik_bench` are the
+  Khanza app's own, and unchanged);
+- ledger `356355:a66a3a54…`, 0 fixture rows in live;
+- live row counts unchanged: `86676 reg, 1464593 billing, 86488 nota, 1100 dnota`.
+
+**Scope.** The 27 authored visits test the paths named in §2. They are not a sample, and no rate is
+claimed from them. The line-level result covers 300 real visits only. The ledger gaps in §3 and §6 are
+reported, not fixed: P14 changed no frozen tool and no live row.

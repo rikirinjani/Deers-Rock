@@ -59,6 +59,21 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 
 > 2026-10-25 (R5 §25, P13) adds the six P13 tool pins above; frozen set of 21 files: `evidence/p13/r5_p13_frozen_manifest_20261025.sha256` (the 15 P12 files + 6 P13 files, new files only in the P13 manifest). P13 wide-sample evidence: `evidence/p13/` (stage 0/1/2 driver + oracle + comparator, sampler, both NC transcripts, kill test, live-state proof).
 
+| `p14_t0_discovery.sh` (P14 T0: SELECT-only discovery (schema, DR cohort shape, tariff groups, name collisions)) | `c6b29dd3fca31b1f2fcb8a2ad5cdaf2940031fcbad327d20aff4335e24272d47` |
+| `p14_live_state.sh` (P14: SELECT-only live-state proof (databases, xml, markers, grants, ledger hash, fixture rows in live, frozen sets, lock)) | `32c0faad259f0386149d883cca5c10a8bd0e6e5e3e1995490741bdbc059dabcb` |
+| `p14_edge_fixture.py` (P14 T1: deterministic B3 edge-strata fixture author (27 visits, 8 strata, predicted form/ledger lines and expected deltas); `--verify` NC mode) | `da1018b5623dba198d5bfc3b00f39dd1d776bf8a71f98601e24f061966094f7b` |
+| `p14_fixture_split.py` (P14 amendment: splits the verified fixture into main + late SQL (fractional-jml visits loaded after the ledger build)) | `bf2ffae77d302d62624149ce4c628e6d4a2219f0b61c054496bc78aef71ecc63` |
+| `p14_edge_run.sh` (P14 T2: run driver (clone `sik_p14e`, 8 audit triggers, fixture load, dr_tariff copy, env-guarded frozen builder, ENC-only consumer baseline, oracle fixture `--allow-strata` + optional real run, EXIT trap)) | `8988972cab856f0e4f1d2f55bacdd36b02e46af500e806b682cdd38ffc4bc5ae` |
+| `p14_line_identity.py` (P14 T3: per-encounter charge-line identity comparator (name/ctx mapping, EQUAL/EQUAL-CTX/DIFFER/UNMAPPED/AMBIGUOUS, component deltas, B, fresh-B, `--expect`)) | `9fdfa3f94f1b0661cbeb7da5517ed2f771a1e64ba7304f43aca1127d02f72f82` |
+| `p14_line_negctl.sh` (P14 T3 NC: same-price code swap, qty/unit with same amount, collision rename on a verified scratch copy; ROW_COUNT()=1 each) | `2702d02711c88ec501da8148213e8a2e60e78d6de33d843463c3caf35bd295d3` |
+| `p14_kill_test.sh` (P14 T2 kill test: SIGTERM to the driver's process group during the real form run; asserts clean post-kill state) | `5ff662e37bd8256a990208b129e66d30ed5fbeff50ebb9f5f62c4e57970d6a4c` |
+| `p14_drop_clone.sh` (P14: drops `sik_p14e`/`sik_p14n` only; restores xml, revokes grant; needs the run lock) | `e498eb2781586ee30136d1826459a1f0bd4fb13ee1bd1055e898f0eca45f58f1` |
+| `p14_t1_negctl.sh` (P14 T1 NC: planted live visit and planted `sik.` SQL line, `--verify` must exit 1 naming each) | `71cba69e92dd6f4eeef2a25c4ea57a4f5499c5f757862e43b2c84b8dba82659e` |
+| `p14_post.sh` (P14 post chain: T4 fixture comparator, T3 NC, T5 real-300 line identity, teardown, final live state) | `33ef1eda2dc08e72ef123e6d9a2727313126c4ec4a206b54fe5d5c8120a7a584` |
+| `p14_nc_rerun.sh` (P14: fixture-only rebuild + NC rerun after the scratch-copy fix) | `b0fb14ae7ed4b60cda8e3de7442c2eaf337072f9ca9631da0fdd9f3cea53cbb0` |
+
+> 2026-10-26 (R5 §26, P14) adds the twelve P14 tool pins above; frozen on the box (`chattr +i`, `sha256sum -c` 12/12 OK): `evidence/p14/r5_p14_frozen_manifest_20261026.sha256` (P14 files only; the 21 P12+P13 files stay under their manifests, 15/15 and 6/6 OK before and after P14). P14 evidence: `evidence/p14/`.
+
 > 2026-10-24 (R5 §23) re-pins the wrapper (`0865400d…`→`6967805d…`) and the NC driver (`0bba1931…`→`e65238ca…`) and adds `dr_runlock.sh` and `runlock_negctl.sh`; frozen manifest `evidence/runlock/r5_frozen_manifest_20261024.sha256`.
 >
 > 2026-10-24 (R5 §24, P12) re-pins the wrapper again (`6967805d…`→`39979e3c…`, STRATA pin) and adds the four rows above; frozen set of 15 files: `evidence/p12/r5_frozen_manifest_20261024c.sha256`. Published sources: `src/PUBLISHED.sha256`.

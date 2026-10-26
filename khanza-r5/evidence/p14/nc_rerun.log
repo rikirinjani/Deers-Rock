@@ -1,0 +1,48 @@
+=== P14 NC rerun 2026-10-26T06:45:57Z ===
+driver_exit=0
+clone ledger (non-fixture rows): 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+oracle[fixture]: freeze-only (RUN_ID=p14e_fixture_20261026T064557Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: real run exit=4 elapsed=91s
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+P14E fixture_rc=4 real_rc=n/a clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+scratch copy verified: lookup rows jns_perawatan=1287 databarang=2011 jenis=18
+scratch sik_p14n: billing=450 ledger=97
+## unplanted
+P14-LINE-IDENTITY: encounters=3 pass=3 fail=0 verdicts={"EQUAL": 3} mode=equal db=sik_p14n ledger=sik_p14n out=/tmp/p14_nc_clean.csv
+unplanted exit=0 (0 needed)
+plant (a): 900007 line JP000229 ('Pelayanan Mobil Ambulance > 5 km. per km ', 5000) renamed to R201 ('Ambulance Tanpa Pendamping Luar Kota Setiap Tambahan 1 km', same price)
+plant (a) ROW_COUNT=1
+plant (b) ROW_COUNT=1
+plant (c) ROW_COUNT=1
+## planted
+ENC 2027/12/31/900007  verdict=DIFFER delta={} A=30000 B=30000 C=30000 freshB=1/1
+ENC 2027/12/31/900021  verdict=AMBIGUOUS delta={} A=89779 B=89779 C=89779 freshB=1/1
+ENC 2027/12/31/900022  verdict=DIFFER delta={} A=79388 B=79388 C=79388 freshB=1/1
+P14-LINE-IDENTITY: encounters=3 pass=0 fail=3 verdicts={"AMBIGUOUS": 1, "DIFFER": 2} mode=equal db=sik_p14n ledger=sik_p14n out=/tmp/p14_nc_plant.csv
+planted exit=1 (1 needed)
+NC(a) same-price swap: verdict=DIFFER component_delta={} -> CAUGHT (line level only)
+NC(b) qty/unit with same amount: verdict=DIFFER component_delta={} -> CAUGHT (line level only)
+NC(c) collision rename: verdict=AMBIGUOUS -> CAUGHT
+P14-LINE-NC: DISCRIMINATING (unplanted pass; (a),(b),(c) caught; ROW_COUNT()=1 each)
+teardown: sik_p14n dropped
+negctl_exit=0
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 
+# P14 live state: final-after-nc-rerun 2026-10-26T06:48:55Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 15/15 OK
+frozen P13: 6/6 OK
+lock: session=P14-CLAUDE-20261026
+disk: /dev/vda2        94G   19G   71G  21% /
+=== P14 NC rerun done 06:48:57 ===

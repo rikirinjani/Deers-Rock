@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-26T06:11:42Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P14 kill test attempt 1 sent SIGTERM to an already-exited driver and still printed a post-kill state",
+  "what_went_wrong": [
+    "The driver ended early (builder failure); the kill test's wait loop broke on driver exit and then sent SIGTERM to a dead process group (kill: No such process) and printed a clean state that was not produced by a kill."
+  ],
+  "root_cause": "The kill test did not check that the kill point (oracle running, harness alive) was reached.",
+  "detection": "Reading t2_kill_test_attempt1_builder_failclosed.txt (harness alive before kill: 0).",
+  "impact": "None claimed from attempt 1; it is kept as evidence of the driver's failure-path cleanup only.",
+  "correction": {
+    "applied": "Kill test now exits 1 with KILL-TEST-NOT-EXERCISED if the driver is gone before the kill point, and waits for a live BilingHarness before killing.",
+    "result": "Attempt 2: harness alive 3 at kill, clean post-kill state (evidence/p14/t2_kill_test.txt)."
+  },
+  "rule": "A fault-injection test must prove the fault landed (target alive at injection) before judging recovery.",
+  "agent": "claude (P14 executor)",
+  "status": "closed"
+}

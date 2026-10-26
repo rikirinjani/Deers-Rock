@@ -1,0 +1,16 @@
+P14-VERIFY: 27 visits, 0 violations, strata {'E1': 3, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+clone: creating sik_p14e
+clone sik_p14e ready in 65s (1464593 billing rows)
+fixture loaded: reg=27 proc=34 dpo=25
+live untouched by the load: 0 fixture rows in sik.reg_periksa
+audit triggers: 8 (need 8)
+dr_tariff copied into sik_p14e: 685 rows (sik_bench read only)
+builder: exit=1 (7 log lines)
+[06:11:17] window=ALL cohort=dr fallback=False require-tariff=True
+[06:11:17] dr_tariff authority rows: 685
+[06:11:18] registration rows: 86482
+[06:11:19] procedure rows: 86488
+[06:11:22] FAIL-CLOSED: mid-build failure (ValueError: invalid literal for int() with base 10: '0.5'); session rolled back, ledger unchanged (P6-3)
+ABORT: builder failed
+cleanup: clone sik_p14e dropped (half-built or freeze failure)
+cleanup-final: sik_dbs=sik,sik_bench, dbxml_targets=sik  clone_grants=0

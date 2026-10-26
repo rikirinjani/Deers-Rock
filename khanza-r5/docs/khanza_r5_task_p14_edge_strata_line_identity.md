@@ -87,6 +87,50 @@ in the named component. Any other delta, or EQUAL where DIFFER is expected, is a
 E8 is run only if T0 finds a real collision in `databarang`. Otherwise it is reported as
 "not applicable: no collision in this install", with the query quoted.
 
+### 2a. Pre-run amendments after T0 (2026-10-26T06:00Z, before any fixture or billing run)
+
+T0 (`evidence/p14/t0_discovery.txt`) changed what can be predicted. These amendments were made
+**before** the fixture was authored, and they replace the §2 cells named below. Nothing in §2 is
+deleted.
+
+- **E3:** T0 found that all 86,455 DR visits have **exactly 1** procedure line (distribution `n=1: 86455`).
+  So ≥2 procedure lines, including the same code twice, have never gone through the form on this install.
+  The expectation stays EQUAL. The pair is two DR-used codes from one equal-`dr_tariff` price group,
+  with unique names.
+- **E5** splits into E5a and E5b:
+  - **E5a** (`biaya_reg = 0`, plus a procedure that Khanza prices 0 and `dr_tariff` lacks): expected
+    DIFFER(registration = −10,000) and procedure EQUAL. T0 shows the zero-priced Khanza procedures
+    have no `dr_tariff` row, so the builder falls back to the source price 0.
+  - **E5b** (a tariffed DR procedure with `rawat_jl_dr.biaya_rawat = 0`): expected
+    DIFFER(procedure = −dr_tariff price).
+  - ~~E5 expected DIFFER(registration = −DR fee; procedure = −tariff)~~ (superseded by E5a/E5b).
+- **E6:** predicted from the builder code, no longer OPEN. The builder does `q = int(SUM(jml))` and
+  `amount = tariff × q`. So `jml = 0.5` gives ledger quantity 0 and amount 0, and `jml = 1.5` gives
+  quantity 1. Expected DIFFER(drug = −form amount for 0.5; −0.5 × price for 1.5), with the matching
+  tax delta. The split-row case (2 rows, `jml = 1` each) stays EQUAL. ~~E6 OPEN~~
+- **E8 is applicable.** Two DR-used drugs share the display name `xxx (OBAT ORAL)`
+  (B000000208, B000000262). Procedure names collide too: `Periksa Poliklinik Umum / IGD` belongs to
+  14 codes, including the DR-used J000840/J000844/J000845/J000848. Line-identity verdicts gain one
+  class, **EQUAL-CTX**: equal, but at least one line was mapped only by choosing the single
+  candidate code that the ledger holds for that encounter. That is weaker than a name-unique
+  mapping, and it is always reported separately. If no candidate, or more than one, is in the
+  ledger, the line stays AMBIGUOUS. Expected for E8: EQUAL-CTX.
+- **Line values:** value rows are form rows with `no = ''` and `pemisah = ':'`, plus the
+  `Registrasi` row. Zero-amount value rows are kept, so a zero-priced line is compared as a line
+  instead of being filtered out. Per (component, code), quantities and amounts are summed on both
+  sides before comparison. Repeated rows are reported for information only.
+- **T5 deviation:** T5 runs on the same clone `sik_p14e`, as a second oracle run with its own
+  RUN_ID. It does not rebuild a separate P13-style clone. This saves one clone build (~20 min).
+  T5 still compares against the live-pinned `sik_bench` ledger, as specified. In addition, the
+  clone ledger rebuilt from the clone's `sik` must reproduce the pinned content hash on its
+  non-fixture rows, a free reproducibility check. ~~T5 rebuilds a P13-style clone with the frozen
+  P13 driver~~
+- **Consumer baseline:** before the form runs, the DR consumer bills the fixture from an
+  ENC-only input (no OBAT lines, so the fixture's drug rows are not rewritten). The oracle then
+  freezes a real, non-empty baseline, and its own diff adds A_consumer vs A_form on the edge
+  strata. Strata visits are out of the oracle's envelope, so they run with `--allow-strata`, and
+  oracle exit 4 (PARTIAL-NOT-COVERED) is the **expected** exit for the fixture run.
+
 ## 3. Tasks (T0–T7)
 
 | ID | What | Check | Negative control |
@@ -183,3 +227,25 @@ one of those five at 1. **Reject:** <20, or any of those five at 0.
 
 After execution, a read-only review in a separate session re-scores this rubric from the
 evidence files alone (as for P13).
+
+## 10. Result and self-score (2026-10-26, after execution; pending the independent review)
+
+Results: R5 §26. Evidence: `evidence/p14/`.
+
+| # | Score | Evidence / note |
+|---|---|---|
+| R1 | 2 | `t0_discovery.txt`: every query quoted; 1-procedure cohort, equal-tariff groups, name collisions |
+| R2 | 2 | identical sha256 twice; both `--verify` NCs exit 1 naming the plant (`t1_negctl.txt`) |
+| R3 | 2 | guard self-test exit 3; kill test clean (`t2_kill_test.txt`); attempt 1 was not exercised (builder failure) and is kept as `t2_kill_test_attempt1_builder_failclosed.txt` |
+| R4 | 2 | per-line multiset, UNMAPPED/AMBIGUOUS never resolved silently; EQUAL-CTX reported apart |
+| R5 | 2 | `nc_rerun.log` DISCRIMINATING; **the first NC run was vacuous** (scratch copy failed, script continued), fixed fail-closed before freezing |
+| R6 | 2 | §2a amendments before any billing run; **the E6 truncation prediction was falsified** by the builder crash; struck through and reported as a finding, not re-predicted to match |
+| R7 | 2 | 27/27 MATCH, deltas exact to the rupiah, raw lines in `compare/fixture_lines.csv` |
+| R8 | 2 | E4: form rounds PPN half-up at `s ≡ 50`; E6: form keeps the half rupiah in the line amount (9,813.5) and rounds only PPN |
+| R9 | 2 | 300/300, 1,240 lines, 0 line differences, bound and scope stated; 119 EQUAL-CTX disclosed |
+| R10 | 2 | lock acquired/released; 15/15 + 6/6 before and after; P14 set 12/12 frozen |
+| R11 | 2 | baseline and two final proofs identical apart from time; ledger pin |
+| R12 | 2 | P15 candidates: fractional-qty builder crash, embalase/tuslah, DR-own reg fee and tariff vs Khanza zero fees; no fix made |
+| R13 | 2 | this doc first; R5 §26; manifest pins; QMS; failure records; pm1 trace; retrace (see commit) |
+| R14 | 2 | LF bytes local = box (12/12); secret scan clean; no push; no Kaggle; no frozen-tool edit |
+| **Total** | **28/28 (self)** | Deviations: T5 on the same clone (§2a); NC run after T4 instead of before (it needs form output); E6 visits loaded after the build; the first kill test and the first NC were not valid and were re-run. |

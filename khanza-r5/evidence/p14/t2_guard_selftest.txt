@@ -1,0 +1,4 @@
+guard self-test: calling run_builder with P2_LEDGER_DB unset
+BUILDER-GUARD: refusing (P2_LEDGER_DB='<unset>' P2_CONSUMER_DB='<unset>', both must be sik_p14e)
+cleanup-final: sik_dbs=sik,sik_bench, dbxml_targets=sik  clone_grants=0
+guard_rc=3

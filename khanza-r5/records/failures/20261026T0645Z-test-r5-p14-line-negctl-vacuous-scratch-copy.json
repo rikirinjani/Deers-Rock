@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-26T06:45:00Z",
+  "category": "test",
+  "severity": "major",
+  "title": "P14 line-identity negative control ran on a partial scratch copy and was vacuous",
+  "what_went_wrong": [
+    "p14_line_negctl.sh copied databarang into the scratch DB with INSERT ... SELECT; strict sql_mode rejected a '0000-00-00' expire date (ERROR 1292), the copy failed, and the script continued.",
+    "With an empty databarang every drug line became UNMAPPED, so NC (b) and (c) could not discriminate; the unplanted run already failed."
+  ],
+  "root_cause": "The scratch build did not check its own result (no exit-code or row-count check), i.e. fail-open setup inside a fail-closed control.",
+  "detection": "The control's own judge: P14-LINE-NC: NOT-DISCRIMINATING (evidence/p14/post_attempt1_nc_vacuous.log).",
+  "impact": "No false claim: the control reported NOT-DISCRIMINATING. Cost one clone rebuild and fixture re-run (~3 min).",
+  "correction": {
+    "applied": "Copy with SET SESSION sql_mode=''; abort exit 3 on copy error or when any copied table's row count differs from its source.",
+    "result": "Re-run DISCRIMINATING: (a) same-price swap DIFFER with component delta {}, (b) DIFFER, (c) AMBIGUOUS, ROW_COUNT()=1 each (evidence/p14/nc_rerun.log)."
+  },
+  "rule": "Every scratch or fixture build step in a control asserts its own row counts before the control runs.",
+  "agent": "claude (P14 executor)",
+  "status": "closed"
+}

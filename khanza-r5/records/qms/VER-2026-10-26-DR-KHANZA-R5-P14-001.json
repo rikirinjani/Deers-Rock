@@ -1,0 +1,60 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-26-DR-KHANZA-R5-P14-001",
+  "date": "2026-10-26",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 s26 (P14): B3 edge strata through the real form + per-encounter charge-line identity (fixture 27 visits / 8 strata; real 300 visits)",
+  "trigger": "owner request 2026-10-26; R5 HUMAN-GATED B3 (NOT TESTED, agent-runnable); Astra v10 weakest financial leg (same-price code-swap blind spot)",
+  "tool_sha256": {
+    "p14_t0_discovery.sh": "c6b29dd3fca31b1f2fcb8a2ad5cdaf2940031fcbad327d20aff4335e24272d47",
+    "p14_live_state.sh": "32c0faad259f0386149d883cca5c10a8bd0e6e5e3e1995490741bdbc059dabcb",
+    "p14_edge_fixture.py": "da1018b5623dba198d5bfc3b00f39dd1d776bf8a71f98601e24f061966094f7b",
+    "p14_fixture_split.py": "bf2ffae77d302d62624149ce4c628e6d4a2219f0b61c054496bc78aef71ecc63",
+    "p14_edge_run.sh": "8988972cab856f0e4f1d2f55bacdd36b02e46af500e806b682cdd38ffc4bc5ae",
+    "p14_line_identity.py": "9fdfa3f94f1b0661cbeb7da5517ed2f771a1e64ba7304f43aca1127d02f72f82",
+    "p14_line_negctl.sh": "2702d02711c88ec501da8148213e8a2e60e78d6de33d843463c3caf35bd295d3",
+    "p14_kill_test.sh": "5ff662e37bd8256a990208b129e66d30ed5fbeff50ebb9f5f62c4e57970d6a4c",
+    "p14_drop_clone.sh": "e498eb2781586ee30136d1826459a1f0bd4fb13ee1bd1055e898f0eca45f58f1",
+    "p14_t1_negctl.sh": "71cba69e92dd6f4eeef2a25c4ea57a4f5499c5f757862e43b2c84b8dba82659e",
+    "p14_post.sh": "33ef1eda2dc08e72ef123e6d9a2727313126c4ec4a206b54fe5d5c8120a7a584",
+    "p14_nc_rerun.sh": "b0fb14ae7ed4b60cda8e3de7442c2eaf337072f9ca9631da0fdd9f3cea53cbb0"
+  },
+  "frozen_sets": "P12 15/15 and P13 6/6 OK before and after; P14 12/12 frozen (evidence/p14/r5_p14_frozen_manifest_20261026.sha256)",
+  "evidence": [
+    "khanza-r5/evidence/p14/t0_discovery.txt (1-procedure cohort; embalase/tuslah 0; biaya_reg 10000; name collisions)",
+    "khanza-r5/evidence/p14/t1_negctl.txt (both --verify plants exit 1 naming the plant)",
+    "khanza-r5/evidence/p14/t2_guard_selftest.txt (BUILDER-GUARD exit 3)",
+    "khanza-r5/evidence/p14/t2_kill_test.txt (harness alive 3 at SIGTERM; post-kill clean)",
+    "khanza-r5/evidence/p14/kill_driver_attempt1.log (builder FAIL-CLOSED ValueError on jml 0.5)",
+    "khanza-r5/evidence/p14/main_run.log (clone ledger REPRODUCES-PIN; fixture 27/27 sukses, oracle exit 4 expected; real 300/300 sukses, oracle exit 0)",
+    "khanza-r5/evidence/p14/post.log (T4 fixture 27/27 MATCH, form_model/ledger_model MATCH; T5 300/300 pass)",
+    "khanza-r5/evidence/p14/nc_rerun.log (P14-LINE-NC: DISCRIMINATING)",
+    "khanza-r5/evidence/p14/compare/ (fixture and real-300 per-line CSV + per-encounter JSON)",
+    "khanza-r5/evidence/p14/live_state_baseline.txt, live_state_final.txt, live_state_final2.txt (identical apart from time)"
+  ],
+  "checks": [
+    "T1 fixture deterministic (identical sha256 twice) and confined to the clone (0 fixture rows in live at baseline and final) - PASS",
+    "T2 builder env guard refuses with P2_LEDGER_DB unset (exit 3) - PASS",
+    "T2 kill test (attempt 2): clean post-kill state - PASS; attempt 1 not exercised (recorded)",
+    "Clone ledger rebuilt from clone sik reproduces the pin 356355:a66a3a54... on non-fixture rows, three times - PASS",
+    "T4 fixture: 27/27 encounters match the pre-registered A_form - C per component to the rupiah; fresh-B 1/1 each - PASS",
+    "T3 NC: same-price code swap caught at line level with component delta {}; qty/unit swap caught; collision rename AMBIGUOUS; ROW_COUNT()=1 each - DISCRIMINATING (after a vacuous first run, recorded)",
+    "T5 real 300: 300/300 line-identity pass, 1,240 lines, 0 line differences, B = C, fresh-B 1/1 - PASS",
+    "Live state baseline = final; ledger pin unchanged; no frozen tool edited - PASS"
+  ],
+  "findings": [
+    "Builder crashes (fail-closed) on fractional jml - P15 candidate",
+    "Ledger does not model embalase/tuslah - P15 candidate (scope decision)",
+    "Ledger bills DR's own registration fee and procedure tariff where Khanza bills 0 - P15 candidate (scope decision)",
+    "Real form rounds PPN half-up at exact half rupiah (matches the integer rule)",
+    "119/300 real visits identify only through EQUAL-CTX (display-name collisions)"
+  ],
+  "limitations": [
+    "27 authored edge visits are a path test, not a sample; no rate claimed from them",
+    "Line-level bound for n=300, k=0: 0.99% one-sided / 1.22% two-sided (Clopper-Pearson 95%) under the P13 sampling assumption",
+    "EQUAL-CTX identity is weaker than name-unique mapping (uses the encounter's ledger codes to resolve collisions)",
+    "T5 ran on the same clone as the fixture (second oracle run) instead of a separate P13-style clone"
+  ],
+  "result": "PASS (scoped), pending independent review",
+  "not_pushed": true
+}

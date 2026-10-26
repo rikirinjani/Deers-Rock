@@ -1,0 +1,15 @@
+[06:16:40] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/12/31/900004', '2027/12/31/900005']
+[06:16:41] FROZEN 27 visits -> /opt/dr-benchmark/results/p14e_fixture_20261026T061525Z/B3_oracle_run_r5/baseline_frozen (sha256_all=d87e67bef8258ab0)
+[06:16:42] verify-frozen: PASS
+[06:16:42] FREEZE-ONLY exit 0 (administrative mode; no billing comparison performed; P6-2c)
+[06:16:42] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/12/31/900004', '2027/12/31/900005']
+[06:16:43] verify-frozen: PASS
+[06:16:43] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[06:16:44] stage-backup 27 visits -> r5_stage_B3_p14e_fixture_20261026T061525Z_* (12 output tables + reg.status_bayar)
+[06:16:44] stage-content-hash r5_stage_B3_p14e_fixture_20261026T061525Z batch 2027-12-31 source=stage (sha256=acca038454445c14...)
+[06:16:44] reset 27 visits (output cleared, status_bayar=Belum Bayar)
+[06:18:11] date 2027-12-31: rc=0 visits=27 sukses_true=27 -> BILLED
+[06:18:12] stage-drop r5_stage_B3_p14e_fixture_20261026T061525Z_* verified (0 remaining; box left clean)
+[06:18:12] artifact written: /opt/dr-benchmark/results/p14e_fixture_20261026T061525Z/B3_sampled_form_diff_r5.md
+[06:18:12] FINAL: sampled_rows=27 in_envelope=18 out_of_envelope=9 failed_batches=0 drift(in-envelope)=0 parse_errors=0 stage_drop_verified=True (P5-1/P6)
+[06:18:12] ORACLE_PARTIAL-NOT-COVERED: exit 4 (fail-closed, P5-1/P6-2e)

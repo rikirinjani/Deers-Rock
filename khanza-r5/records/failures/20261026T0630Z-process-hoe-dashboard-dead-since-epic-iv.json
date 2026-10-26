@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-26T06:30:00Z",
+  "category": "process",
+  "severity": "major",
+  "title": "HOE dashboard main script did not parse from 2026-10-07 to 2026-10-26; Epic V M5.2 marked done on controls that never acted on the simulation",
+  "what_went_wrong": [
+    "Commit fd96038 (Epic IV M4.2 charts) left three Chart.js options objects without a closing brace; the whole dashboard <script> failed to parse, so no panel refreshed.",
+    "Epic V M5.2 pause/resume and 1x/2x/5x were ticked done: they only changed the browser poll interval (the world kept stepping), and the speed <select> onchange had a stray quote."
+  ],
+  "root_cause": "No syntax or smoke check of public/*.html in CI or tests; roadmap items were ticked from code presence, not from running the app.",
+  "detection": "Epic V audit 2026-10-26 (vm.Script parse of the inline script; main had the same error).",
+  "impact": "The single-page dashboard was non-functional for 19 days; ROADMAP overstated Epic V.",
+  "correction": {
+    "applied": "Branch epic-v-dashboard commit 0d60971: braces fixed, real run controller (/api/sim/*), SSE /api/stream, verified in the running app; ROADMAP marks corrected.",
+    "result": "Open until merged; suggested follow-up: a test that parses every inline <script> in public/*.html."
+  },
+  "rule": "Mark a UI roadmap item done only after exercising it in the running app; parse-check inline scripts in the test suite.",
+  "agent": "claude (Epic V audit)",
+  "status": "open"
+}
