@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-26T09:30:00Z",
+  "category": "test",
+  "severity": "major",
+  "title": "Grant probes in the P13 kill test (and the P12/P13 live-state lines) could never match: wrong grantee quoting",
+  "what_went_wrong": [
+    "p13_kill_test.sh l.46 queries information_schema.schema_privileges with grantee='\"benchmark\"@\"localhost\"'; the column stores 'benchmark'@'localhost' (single quotes), so the probe always returns nothing.",
+    "The P13 kill test's 'grant on sik_p13w: (none)' and the handoff's 'No benchmark grants on sik/sik_bench' rest on a probe that could not see a grant; the app account in fact holds DML on sik and broad privileges on sik_bench (P14 probe with LIKE '%benchmark%')."
+  ],
+  "root_cause": "No positive control for the probe (it was never shown to report a grant that exists).",
+  "detection": "P15 verification of Astra v11 finding D4 (2026-10-26).",
+  "impact": "The P13 kill-test 'no grant left' claim is unproven (P14's kill test used a working probe and showed 0 clone grants). The handoff statement is stale.",
+  "correction": {
+    "applied": "Recorded; P15 A7 replaces every grant probe with a correctly quoted one and requires a positive case; D4 corrects the handoff.",
+    "result": "Open until P15 runs."
+  },
+  "rule": "Every absence probe needs a positive control showing it can detect presence.",
+  "agent": "claude (P15 verification)",
+  "status": "open"
+}

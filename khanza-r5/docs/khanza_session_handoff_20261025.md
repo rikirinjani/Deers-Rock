@@ -38,7 +38,8 @@ Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 15 | **P13 evidence is 3.9 % of the cohort.** The zero-mismatch result is scoped: 3,330 of 85,387 eligible DR encounters (without form-saved payments). No population bound is claimed beyond the stated assumption (simple random draws within strata of a synthetic cohort; Clopper–Pearson 95 % upper bound ~~≈ 0.022 %~~ *≈ 0.090 % one-sided, 0.111 % two-sided* for n=3330, k=0). | owner | the full cohort would take ~3-8 days of box time; not recommended unless a stage shows a difference |
 | 16 | **P14: edge strata (B3) + charge-line identity** | done 2026-10-26 | **done** (R5 §26): fixture 27/27 match pre-registration; line identity 300/300 real visits (181 EQUAL, 119 EQUAL-CTX); NC discriminating; live unchanged; 12 tools frozen |
 | 17 | **P15 candidates from P14** (owner decisions): (a) builder crashes fail-closed on fractional `jml` (one 0.5 dispense blocks the whole build); (b) ledger has no embalase/tuslah; (c) ledger bills DR's own reg fee/tariff where Khanza bills 0; (d) display-name collisions make 40 % of real visits EQUAL-CTX only | owner | open |
-| 18 | **HOE Epic V branch** `epic-v-dashboard` (commit `0d60971`, worktree `../Deers-Rock-epicv`): dashboard script dead since 10-07 fixed, real sim pause/speed, SSE, search, theme, exports | owner | committed, not merged or pushed |
+| 18 | **HOE Epic V branch** `epic-v-dashboard`: merged into `main` as `0d60971` and pushed 2026-10-26 | done | **done** |
+| 19 | **Astra v11 = 66/100** (run 5496287, $3.53 incl. gemini; `evidence/astra_v11_*`). P15 task doc written from it: `docs/khanza_r5_task_p15_safety_and_line_identity.md` (every v11 finding verified against the source; safety first, then discriminating line identity) | next session | doc written, nothing run |
 
 ## 2. Standing rules (unchanged from 10-24, repeated for the next session)
 

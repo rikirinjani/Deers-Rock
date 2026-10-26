@@ -1,0 +1,35 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p15-task-doc",
+  "timestamp": "2026-10-26T09:15:42.847744+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "docs/khanza_r5_task_p15_safety_and_line_identity.md",
+    "docs/khanza_session_handoff_20261025.md",
+    "records/failures/20261026T0930Z-test-r5-p13-vacuous-grant-probe.json",
+    "evidence/astra_v11_5496287_output.md",
+    "evidence/astra_v11_5496287_NOTE.md",
+    "evidence/astra_v11_validation_gemini_5496266_output.md",
+    "tools/kaggle/build_astra_task_r11.py",
+    "tools/kaggle/task_r11_merged.py"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p15-task-doc",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "Verified every Astra v11 finding against the source (C/P/N table, incl. new S7 vacuous grant probe) and wrote the P15 task doc before execution: safety A1-A7, predicates B1-B6, source-row line identity C1-C4 with same-name wrong-code NC, recovery repairs E1-E6, doc corrections D1-D9."
+}
