@@ -7,25 +7,25 @@ import { type World } from "../src/engine/world.js";
 
 describe("Morgue / Death Roll", () => {
   it("starts empty", () => {
-    const w = createWorld(10);
+    let w = createWorld(10, undefined, 42);
     expect(w.state.morgue).toBeDefined();
     expect(w.state.morgue!.length).toBe(0);
   });
 
   it("has morgueCapacity default of 10", () => {
-    const w = createWorld(10);
+    let w = createWorld(10, undefined, 42);
     expect(w.state.morgueCapacity).toBe(10);
   });
 
   it("morgue grows when deaths occur in simulation", () => {
-    const w = createWorld(100);
-    runWorld(w, 200);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 200);
     expect(w.state.morgue.length).toBeGreaterThanOrEqual(0);
   });
 
   it("morgue records have required fields", () => {
-    const w = createWorld(100);
-    runWorld(w, 200);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 200);
     
     for (const record of w.state.morgue) {
       expect(record).toHaveProperty("encounterId");
@@ -38,8 +38,8 @@ describe("Morgue / Death Roll", () => {
   });
 
   it("death tick increases monotonically", () => {
-    const w = createWorld(100);
-    runWorld(w, 300);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 300);
     
     const ticks = w.state.morgue.map(m => m.deathTick).sort((a, b) => a - b);
     for (let i = 1; i < ticks.length; i++) {
@@ -48,8 +48,8 @@ describe("Morgue / Death Roll", () => {
   });
 
   it.skip("mortuary data persists through snapshot/resume", () => {
-    const w = createWorld(100);
-    runWorld(w, 100);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 100);
     
     const morgueBefore = w.state.morgue.length;
     const tickBefore = w.clock.tick;
@@ -65,24 +65,24 @@ describe("Morgue / Death Roll", () => {
   });
 
   it("does not crash with zero patients", () => {
-    const w = createWorld(1);
-    runWorld(w, 1);
+    let w = createWorld(1, undefined, 42);
+    w = runWorld(w, 1);
     expect(w.state.morgue).toBeDefined();
   });
 });
 
 describe("Outcome Tracker — mortality", () => {
   it("tracks deceased count", () => {
-    const w = createWorld(100);
-    runWorld(w, 200);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 200);
     
     const deceased = w.state.morgue.length;
     expect(deceased).toBeGreaterThanOrEqual(0);
   });
 
   it("mortality rate is computable", () => {
-    const w = createWorld(100);
-    runWorld(w, 300);
+    let w = createWorld(100, undefined, 42);
+    w = runWorld(w, 300);
     
     const totalDischarged = Array.from(w.state.encounters.values())
       .filter(e => e.status !== "active").length;

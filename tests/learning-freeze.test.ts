@@ -69,18 +69,21 @@ describe("Epic II / Milestone 2.6 — Learning Freeze Toggle", () => {
 
   it("frozen learning does not accumulate memory across runs", () => {
     process.env.DR_FREEZE_LEARNING = "1";
-    const w = createWorld(30, undefined, 42);
-    for (let i = 0; i < 200; i++) runWorld(w, 1);
+    let w = createWorld(30, undefined, 42);
+    for (let i = 0; i < 200; i++) w = runWorld(w, 1);
+    expect(w.clock.tick).toBe(200);
+    expect(w.state._outcomeRecords.length).toBeGreaterThan(0);
     const memorySize = w.state._learningMemory?.byDiagnosis.size ?? 0;
     expect(memorySize).toBe(0);
   });
 
   it("unfrozen learning does not crash (regression guard)", () => {
     delete process.env.DR_FREEZE_LEARNING;
-    const w = createWorld(50, undefined, 42);
-    for (let i = 0; i < 1000; i++) runWorld(w, 1);
-    // Learning handler should not throw; memory may or may not accumulate
-    // depending on outcome density — the guard is that it runs without error.
-    expect(() => w.state._learningMemory).not.toThrow();
+    let w = createWorld(50, undefined, 42);
+    for (let i = 0; i < 500; i++) w = runWorld(w, 1);
+    expect(w.clock.tick).toBe(500);
+    // Unfrozen, memory accumulates and each outcome is learned exactly once.
+    expect(w.state._learningMemory.byDiagnosis.size).toBeGreaterThan(0);
+    expect(w.state._learningMemory.learnedOutcomes).toBe(w.state._outcomeRecords.length);
   });
 });

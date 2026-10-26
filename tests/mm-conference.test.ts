@@ -5,15 +5,15 @@ import { runMmConference, resetMmConferenceCounter } from "../src/engine/mm-conf
 describe("M&M Conference", () => {
   it("does not crash with minimal world", () => {
     resetMmConferenceCounter();
-    const w = createWorld(5);
-    runWorld(w, 10);
+    let w = createWorld(5, undefined, 42);
+    w = runWorld(w, 10);
     expect(() => runMmConference(w.state, w.clock, w.queue)).not.toThrow();
   });
 
   it("returns valid structure", () => {
     resetMmConferenceCounter();
-    const w = createWorld(20);
-    runWorld(w, 100);
+    let w = createWorld(20, undefined, 42);
+    w = runWorld(w, 100);
     const result = runMmConference(w.state, w.clock, w.queue);
     expect(result).toBeDefined();
     expect(result.state).toBeDefined();
@@ -21,8 +21,8 @@ describe("M&M Conference", () => {
 
   it("increments conference ID", () => {
     resetMmConferenceCounter();
-    const w = createWorld(20);
-    runWorld(w, 100);
+    let w = createWorld(20, undefined, 42);
+    w = runWorld(w, 100);
     const r1 = runMmConference(w.state, w.clock, w.queue);
     const r2 = runMmConference(w.state, w.clock, w.queue);
     if (r1.conference && r2.conference) {
@@ -32,8 +32,8 @@ describe("M&M Conference", () => {
 
   it("persists in state", () => {
     resetMmConferenceCounter();
-    const w = createWorld(20);
-    runWorld(w, 100);
+    let w = createWorld(20, undefined, 42);
+    w = runWorld(w, 100);
     runMmConference(w.state, w.clock, w.queue);
     expect(w.state._mmLastConferenceTick).toBeGreaterThanOrEqual(0);
   });

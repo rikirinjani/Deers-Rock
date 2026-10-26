@@ -11,24 +11,27 @@ import { getDischargePlans } from "../src/engine/discharge-planning.js";
 
 describe("Epic VI Full Pipeline Integration", () => {
   it("sick leave: agents get sick, recover, replacements tracked", () => {
-    const w = createWorld(20, undefined, 42);
+    let w = createWorld(20, undefined, 42);
     // Run enough ticks for agents to accumulate fatigue and get sick
     for (let i = 0; i < 200; i++) {
-      runWorld(w, 1);
+      w = runWorld(w, 1);
     }
     const agentState = (w.state as unknown as { _agentState?: { pool: { agents: Map<string, any> } } })._agentState;
     const sickState = (w.state as unknown as { _sickLeaveState?: { records: Map<string, any>; counter: number } })._sickLeaveState;
+    expect(w.clock.tick).toBe(200);
     expect(agentState).toBeDefined();
     expect(sickState).toBeDefined();
     // Check that at least some agents exist
     expect(agentState.pool.agents.size).toBeGreaterThan(0);
+    // Leave is recorded for sakit_berat agents (was never recorded before 2026-10-26).
+    expect(sickState.records.size).toBeGreaterThan(0);
   });
 
   it("kamar jenazah: tracks body registry for deceased patients", () => {
-    const w = createWorld(20, undefined, 42);
+    let w = createWorld(20, undefined, 42);
     // Run to tick 200 — enough for some deaths to occur with high-risk patients
     for (let i = 0; i < 200; i++) {
-      runWorld(w, 1);
+      w = runWorld(w, 1);
     }
     const kujRecords = getKamarJenazahRecords(w.state);
     // Records should exist if any deaths occurred
@@ -38,7 +41,7 @@ describe("Epic VI Full Pipeline Integration", () => {
   });
 
   it("appointment scheduling: state initialized and queryable", () => {
-    const w = createWorld(20, undefined, 42);
+    let w = createWorld(20, undefined, 42);
     const apptState = (w.state as unknown as { _appointmentState?: { appointments: Map<string, any>; counter: number } })._appointmentState;
     expect(apptState).toBeDefined();
     expect(apptState.counter).toBe(0);
@@ -46,8 +49,8 @@ describe("Epic VI Full Pipeline Integration", () => {
   });
 
   it("ward census: all beds have ward assignments", () => {
-    const w = createWorld(20, undefined, 42);
-    for (let i = 0; i < 100; i++) runWorld(w, 1);
+    let w = createWorld(20, undefined, 42);
+    for (let i = 0; i < 100; i++) w = runWorld(w, 1);
     const beds = Array.from(w.state.beds.values());
     expect(beds.length).toBeGreaterThan(0);
     const wards = new Set(beds.map(b => b.ward));
@@ -55,8 +58,8 @@ describe("Epic VI Full Pipeline Integration", () => {
   });
 
   it("supply consumption: dept consumption tracked over time", () => {
-    const w = createWorld(20, undefined, 42);
-    for (let i = 0; i < 100; i++) runWorld(w, 1);
+    let w = createWorld(20, undefined, 42);
+    for (let i = 0; i < 100; i++) w = runWorld(w, 1);
     const consumption = getDeptConsumption(w.state);
     // Should have some entries from central supply handler
     // Not guaranteed at tick 100 since consumption happens on discharge
@@ -64,8 +67,8 @@ describe("Epic VI Full Pipeline Integration", () => {
   });
 
   it("rujuk balik: discharge plans created for chronic conditions", () => {
-    const w = createWorld(20, undefined, 42);
-    for (let i = 0; i < 100; i++) runWorld(w, 1);
+    let w = createWorld(20, undefined, 42);
+    for (let i = 0; i < 100; i++) w = runWorld(w, 1);
     const plans = getDischargePlans(w.state);
     // At tick 100, no discharges yet (inpatient LOS is 3-7 days = 4320-10080 ticks)
     // But outpatient discharges happen sooner
@@ -73,8 +76,8 @@ describe("Epic VI Full Pipeline Integration", () => {
   });
 
   it("patient morgueId: deceased patients marked correctly", () => {
-    const w = createWorld(20, undefined, 42);
-    for (let i = 0; i < 100; i++) runWorld(w, 1);
+    let w = createWorld(20, undefined, 42);
+    for (let i = 0; i < 100; i++) w = runWorld(w, 1);
     const patients = Array.from(w.state.patients.values());
     // All patients should have morgueId field (null for living)
     for (const p of patients) {
