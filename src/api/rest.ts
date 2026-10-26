@@ -35,6 +35,7 @@ import {
 import { getConsumptionByDept, getConsumptionByItem, getDeptConsumption, checkReorderAlerts } from "../engine/dept-consumption.js";
 import { getDischargePlans, getFollowUpStats } from "../engine/discharge-planning.js";
 import { getKamarJenazahRecords } from "../engine/kamar-jenazah.js";
+import { summarizeAgentHealth } from "../agent/system.js";
 import { getUpcomingAppointments } from "../engine/appointment-scheduling.js";
 import { getAllCoderProfiles } from "../engine/ai-coder.js";
 import type { SimControl, SimEvent } from "../engine/sim-control.js";
@@ -242,6 +243,8 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     for (const a of agents) byRole[a.role] = (byRole[a.role] ?? 0) + 1;
     json(res, { total: agents.length, available: agents.filter(a => a.status.inShift && a.status.kesehatan !== "sakit_berat").length, byRole, sick: agents.filter(a => a.status.kesehatan !== "sehat").length, pregnant: agents.filter(a => a.status.isHamil).length }); return true;
   }
+  // Epic VI M6.1: agent health status + fatigue alerts (dashboard Staff Health panel)
+  if (p === "/api/agents/health") { json(res, summarizeAgentHealth(w.state)); return true; }
   if (p === "/api/referral") { json(res, { letters: toArr(w.state._referralState.letters), stats: { total: w.state._referralState.letters.size, facilities: w.state._referralState.facilities.size } }); return true; }
   if (p === "/api/referral/letters") { json(res, toArr(w.state._referralState.letters)); return true; }
   if (p === "/api/referral/facilities") { json(res, Array.from(w.state._referralState.facilities.values())); return true; }
@@ -578,7 +581,7 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   if (p === "/api/kamar-jenazah" && req.method === "GET") {
     const records = Array.from(getKamarJenazahRecords(w.state).values());
     const active = records.filter(r => r.status !== "released");
-    json(res, { total: records.length, active, byStatus: { received: records.filter(r=>r.status==="received").length, stored: records.filter(r=>r.status==="stored").length, released: records.filter(r=>r.status==="released").length }, byForensic: { none: records.filter(r=>r.forensicFlag==="none").length, suspicious: records.filter(r=>r.forensicFlag==="suspicious").length, legal_hold: records.filter(r=>r.forensicFlag==="legal_hold").length, autopsy: records.filter(r=>r.forensicFlag==="autopsy_required").length } });
+    json(res, { total: records.length, active, byStatus: { received: records.filter(r=>r.status==="received").length, stored: records.filter(r=>r.status==="stored").length, autopsy_done: records.filter(r=>r.status==="autopsy_done").length, released: records.filter(r=>r.status==="released").length }, certified: records.filter(r=>r.causeOfDeathCertified).length, byForensic: { none: records.filter(r=>r.forensicFlag==="none").length, suspicious: records.filter(r=>r.forensicFlag==="suspicious").length, legal_hold: records.filter(r=>r.forensicFlag==="legal_hold").length, autopsy: records.filter(r=>r.forensicFlag==="autopsy_required").length } });
     return true;
   }
   // Epic VI: Sick leave records

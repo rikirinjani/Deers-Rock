@@ -85,6 +85,8 @@ export interface SickLeaveRecord {
   startedTick: number;
   recoveredTick: number | null;
   replacementAgentId: string | null;
+  /** Encounter assignments handed over from the sick agent to the replacement. */
+  reassignedEncounters?: number;
 }
 
 export interface SickLeaveState {
@@ -96,6 +98,30 @@ export function initSickLeaveState(): SickLeaveState {
   return { records: new Map(), counter: 0 };
 }
 
+/** Fatigue (consecutive ticks on duty) at which agentHandler degrades health. */
+export const FATIGUE_WARN = 20;
+export const FATIGUE_CRITICAL = 40;
+
+function isFitForCover(a: HospitalAgent): boolean {
+  return a.status.inShift && (a.status.kesehatan === "sehat" || a.status.kesehatan === "lelah");
+}
+
+/**
+ * Pick a backup for a sick agent: same department + role first, then the same
+ * role from any department (float pool). Prefers "sehat" over "lelah", then
+ * lower fatigue, then agent ID — no rng, so replacement is deterministic.
+ */
+function pickReplacement(agents: Map<string, HospitalAgent>, sick: HospitalAgent, onLeave: Set<string>): HospitalAgent | null {
+  const rank = (a: HospitalAgent, b: HospitalAgent): number =>
+    (a.status.kesehatan === "sehat" ? 0 : 1) - (b.status.kesehatan === "sehat" ? 0 : 1)
+    || a.status.kelelahan - b.status.kelelahan
+    || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  const pool = Array.from(agents.values()).filter(a => a.id !== sick.id && a.role === sick.role && !onLeave.has(a.id) && isFitForCover(a));
+  const sameDept = pool.filter(a => a.department === sick.department).sort(rank);
+  if (sameDept.length > 0) return sameDept[0]!;
+  return pool.sort(rank)[0] ?? null;
+}
+
 export function sickLeaveHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const agentState = (state as unknown as { _agentState?: AgentState })._agentState;
   const sickState = (state as unknown as { _sickLeaveState?: SickLeaveState })._sickLeaveState;
@@ -103,6 +129,8 @@ export function sickLeaveHandler(state: HospitalState, clock: Clock, _queue: Eve
 
   const newAgents = new Map(agentState.pool.agents);
   const newRecords = new Map(sickState.records);
+  let counter = sickState.counter;
+  let assignments = agentState.pool.assignments;
 
   for (const [id, agent] of newAgents) {
     const st = agent.status;
@@ -118,36 +146,107 @@ export function sickLeaveHandler(state: HospitalState, clock: Clock, _queue: Eve
     }
   }
 
-  // Find agents who became sick this tick and record sick leave with replacement
-  for (const [id, agent] of newAgents) {
-    const origAgent = agentState.pool.agents.get(id);
-    if (!origAgent) continue;
-    if (origAgent.status.kesehatan !== "sakit_berat" && agent.status.kesehatan === "sakit_berat") {
-      // Agent just became sick — find replacement from same dept+role pool
-      const replacements = Array.from(newAgents.values())
-        .filter(a => a.department === agent.department && a.role === agent.role
-          && a.id !== id && a.status.kesehatan === "sehat" && a.status.inShift);
-      const replacementId = replacements.length > 0 ? replacements[0]!.id : null;
-      const record: SickLeaveRecord = {
-        agentId: id, department: agent.department, role: agent.role,
-        startedTick: clock.tick, recoveredTick: null, replacementAgentId: replacementId,
-      };
-      newRecords.set(`SL-${String(sickState.counter++).padStart(4, "0")}`, record);
-    }
-    // Recovery: mark recovered tick
-    if (agent.status.kesehatan === "sehat" || agent.status.kesehatan === "lelah") {
-      for (const [rid, rec] of newRecords) {
-        if (rec.agentId === id && rec.recoveredTick === null) {
-          newRecords.set(rid, { ...rec, recoveredTick: clock.tick });
-        }
-      }
+  // Close leave for agents no longer sakit_berat.
+  const onLeave = new Set<string>();
+  for (const [rid, rec] of newRecords) {
+    if (rec.recoveredTick !== null) continue;
+    const agent = newAgents.get(rec.agentId);
+    if (!agent || agent.status.kesehatan !== "sakit_berat") {
+      newRecords.set(rid, { ...rec, recoveredTick: clock.tick });
+    } else {
+      onLeave.add(rec.agentId);
     }
   }
 
-  const newPool = { agents: newAgents, assignments: agentState.pool.assignments };
+  // Open leave for every sakit_berat agent without an open record. Detection is
+  // state-based, not transition-based: health changes in agentHandler (every
+  // tick) while this handler runs every 10 ticks, so a before/after diff
+  // inside this handler never sees the transition.
+  const sickIds = Array.from(newAgents.values())
+    .filter(a => a.status.kesehatan === "sakit_berat" && !onLeave.has(a.id))
+    .map(a => a.id)
+    .sort();
+  for (const id of sickIds) onLeave.add(id);
+  for (const id of sickIds) {
+    const agent = newAgents.get(id)!;
+    const replacement = pickReplacement(newAgents, agent, onLeave);
+    let reassigned = 0;
+    if (replacement) {
+      // Hand the sick agent's encounter assignments over to the backup.
+      for (const [key, agentId] of assignments) {
+        if (agentId !== id) continue;
+        if (assignments === agentState.pool.assignments) assignments = new Map(assignments);
+        assignments.set(key, replacement.id);
+        reassigned++;
+      }
+    }
+    newRecords.set(`SL-${String(counter++).padStart(4, "0")}`, {
+      agentId: id, department: agent.department, role: agent.role,
+      startedTick: clock.tick, recoveredTick: null,
+      replacementAgentId: replacement?.id ?? null, reassignedEncounters: reassigned,
+    });
+  }
+
+  const newPool = { agents: newAgents, assignments };
   const newState = Object.assign({}, state, {
     _agentState: { pool: newPool },
-    _sickLeaveState: { records: newRecords, counter: sickState.counter },
+    _sickLeaveState: { records: newRecords, counter },
   }) as HospitalState;
   return newState;
+}
+
+export interface AgentHealthAlert {
+  agentId: string;
+  nama: string;
+  role: string;
+  department: string;
+  kesehatan: KeadaanKesehatan;
+  kelelahan: number;
+  level: "critical" | "warning";
+  reason: string;
+}
+
+export interface AgentHealthSummary {
+  total: number;
+  available: number;
+  byHealth: Record<KeadaanKesehatan, number>;
+  fatigue: { mean: number; max: number; overWarn: number; overCritical: number };
+  sickLeave: { open: number; uncovered: number; total: number };
+  alertCount: { critical: number; warning: number };
+  alerts: AgentHealthAlert[];
+}
+
+/**
+ * Epic VI M6.1: agent health + fatigue alerts for /api/agents/health and the
+ * dashboard. Critical = sakit_berat; warning = fatigue at or above
+ * FATIGUE_CRITICAL (the level where agentHandler degrades lelah → sakit_ringan).
+ */
+export function summarizeAgentHealth(state: HospitalState, maxAlerts: number = 20): AgentHealthSummary {
+  const agents = Array.from((state as unknown as { _agentState?: AgentState })._agentState?.pool.agents.values() ?? []);
+  const records = Array.from((state as unknown as { _sickLeaveState?: SickLeaveState })._sickLeaveState?.records.values() ?? []);
+  const byHealth: Record<KeadaanKesehatan, number> = { sehat: 0, lelah: 0, sakit_ringan: 0, sakit_berat: 0 };
+  let fatigueSum = 0, fatigueMax = 0, overWarn = 0, overCritical = 0;
+  const alerts: AgentHealthAlert[] = [];
+  for (const a of agents) {
+    byHealth[a.status.kesehatan]++;
+    const f = a.status.kelelahan;
+    fatigueSum += f;
+    if (f > fatigueMax) fatigueMax = f;
+    if (f >= FATIGUE_WARN) overWarn++;
+    if (f >= FATIGUE_CRITICAL) overCritical++;
+    const base = { agentId: a.id, nama: a.nama, role: a.role, department: a.department, kesehatan: a.status.kesehatan, kelelahan: f };
+    if (a.status.kesehatan === "sakit_berat") alerts.push({ ...base, level: "critical", reason: "sakit berat — on sick leave" });
+    else if (f >= FATIGUE_CRITICAL) alerts.push({ ...base, level: "warning", reason: `fatigue ${f} ≥ ${FATIGUE_CRITICAL}` });
+  }
+  const open = records.filter(r => r.recoveredTick === null);
+  alerts.sort((x, y) => (x.level === y.level ? 0 : x.level === "critical" ? -1 : 1) || y.kelelahan - x.kelelahan || (x.agentId < y.agentId ? -1 : 1));
+  return {
+    total: agents.length,
+    available: agents.filter(a => a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan").length,
+    byHealth,
+    fatigue: { mean: agents.length > 0 ? Math.round((fatigueSum / agents.length) * 10) / 10 : 0, max: fatigueMax, overWarn, overCritical },
+    sickLeave: { open: open.length, uncovered: open.filter(r => r.replacementAgentId === null).length, total: records.length },
+    alertCount: { critical: alerts.filter(a => a.level === "critical").length, warning: alerts.filter(a => a.level === "warning").length },
+    alerts: alerts.slice(0, maxAlerts),
+  };
 }

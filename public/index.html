@@ -139,6 +139,7 @@
     <div class=panel><div class=panel-header>🩸 Dialysis <span id=dialysisCount style=color:var(--accent)>0</span></div><div class=panel-body><div id=dialysisList></div></div></div>
     <div class=panel><div class=panel-header>🩸 Blood Bank <span id=bloodCount style=color:var(--red)>0</span></div><div class=panel-body><div id=bloodList></div></div></div>
     <div class=panel><div class=panel-header>⚰️ Morgue <span id=morgueCount style=color:var(--red)>0</span></div><div class=panel-body><div id=morgueList></div></div></div>
+    <div class=panel><div class=panel-header>👷 Staff Health <span id=staffCount style=color:var(--red)>0</span></div><div class=panel-body><div id=staffList></div></div></div>
     <div class=panel><div class=panel-header>📋 M&M Conference <span id=mmCount style=color:var(--purple)>0</span></div><div class=panel-body><div id=mmList></div></div></div>
     <div class=panel><div class=panel-header>📅 Calendar <span id=calDate style=color:var(--accent);font-size:7px></span></div><div class=panel-body><div id=calList></div></div></div>
     <div class=panel><div class=panel-header>🌋 Scenario <span id=scenarioCount style=color:var(--orange)>0</span></div><div class=panel-body><div id=scenarioList></div></div></div>
@@ -293,7 +294,7 @@ async function refreshInner(){
 refreshTick++;
 const fullRebuild = refreshTick % 5 === 1;
 try{
-const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases,poliData,learnData,cals,morgueData,mmData,bloodData,microData,pathoData,cssdData,biomedData,ipcData,nutData,rtData,dialysisData,scenarioData]=await Promise.all([
+const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,charges,claims,pays,inv,aiDoc,aiNurse,outcomes,perf,pharmCases,poliData,learnData,cals,morgueData,mmData,bloodData,microData,pathoData,cssdData,biomedData,ipcData,nutData,rtData,dialysisData,scenarioData,staffData]=await Promise.all([
   drFetch('/api/status').then(r=>r.json()),drFetch('/api/beds').then(r=>r.json()),drFetch('/api/encounters').then(r=>r.json()),
   drFetch('/api/labs').then(r=>r.json()),drFetch('/api/radiology').then(r=>r.json()),drFetch('/api/medications').then(r=>r.json()),
   drFetch('/api/surgery').then(r=>r.json()),drFetch('/api/nursing').then(r=>r.json()),drFetch('/api/orders').then(r=>r.json()),
@@ -317,6 +318,7 @@ const[s,beds,enc,labs,rad,meds,surg,nursing,docs,ed,resp,diet,social,charts,char
   drFetch('/api/radiotherapy').then(r=>r.json()),
   drFetch('/api/dialysis').then(r=>r.json()),
   drFetch('/api/scenarios').then(r=>r.json()),
+  drFetch('/api/agents/health').then(r=>r.json()),
 ]);
 
 document.getElementById('hTime').textContent=s.time;document.getElementById('hTick').textContent=s.tick;
@@ -491,6 +493,16 @@ morgueEl.innerHTML=morgueTotal===0?'<div style=color:var(--muted);padding:4px>�
   :'<table><thead><tr><th>Diagnosis</th><th>Age</th><th>Cause</th></tr></thead><tbody>'+
   morgueBodies.slice(-4).reverse().map(m=>`<tr><td style=font-size:7px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${m.primaryDiagnosis}</td><td style=font-size:8px;color:var(--muted)>${m.age}</td><td style=font-size:7px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--red)>${m.causeOfDeath}</td></tr>`).join('')+'</tbody></table>'
   +(topCauses.length>0?`<div style=font-size:7px;color:var(--muted);padding:2px 4px;border-top:1px solid var(--border)>Top: ${topCauses.map(([d,c])=>`${d} (${c})`).join(', ')}</div>`:'');
+
+// Staff Health (Epic VI M6.1): health mix, fatigue, sick leave, alerts
+const staffAlerts=staffData.alerts||[];
+const sh=staffData.byHealth||{};
+document.getElementById('staffCount').textContent=(staffData.alertCount?staffData.alertCount.critical+staffData.alertCount.warning:0)+' ⚠';
+document.getElementById('staffList').innerHTML=`<div style=font-size:7px;color:var(--muted);padding:2px 0>${staffData.available||0}/${staffData.total||0} available · sehat ${sh.sehat||0} · lelah ${sh.lelah||0} · ringan ${sh.sakit_ringan||0} · <span style=color:var(--red)>berat ${sh.sakit_berat||0}</span></div>`
+  +`<div style=font-size:7px;color:var(--muted);padding:2px 0>Fatigue mean ${(staffData.fatigue||{}).mean||0} · max ${(staffData.fatigue||{}).max||0} · Sick leave ${(staffData.sickLeave||{}).open||0} open (${(staffData.sickLeave||{}).uncovered||0} uncovered)</div>`
+  +(staffAlerts.length===0?'<div style=color:var(--muted);padding:4px>No alerts</div>'
+  :'<table><thead><tr><th>Agent</th><th>Role</th><th>Alert</th></tr></thead><tbody>'+
+  staffAlerts.slice(0,5).map(a=>`<tr><td style=font-size:7px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap>${a.nama}</td><td style=font-size:7px;color:var(--muted)>${a.role}</td><td style=font-size:7px;color:${a.level==='critical'?'var(--red)':'var(--yellow)'}>${a.reason}</td></tr>`).join('')+'</tbody></table>');
 
 // M&M Conference
 const mmLatest=mmData.latest;
