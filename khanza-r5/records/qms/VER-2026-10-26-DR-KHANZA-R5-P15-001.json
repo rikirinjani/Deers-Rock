@@ -1,0 +1,61 @@
+{
+  "record_type": "verification",
+  "id": "VER-2026-10-26-DR-KHANZA-R5-P15-001",
+  "date": "2026-10-26",
+  "project": "DR-Khanza E2E benchmark",
+  "title": "R5 s27 (P15): driver safety, acceptance predicates, discriminating (source-row) line identity, recovery-check repairs",
+  "trigger": "Astra v11 run 5496287 (66/100); every finding verified against the source first (task doc s1)",
+  "tool_sha256": {
+    "sampled_real_form_diff_r5.py": "1bd83aa8cadfcfc19e89d48c36dea317ea6553cf4ac52f796dce3891d7044b31",
+    "p6_acceptance_suite.sh": "6a071595c45bcf660ead21bd9f98e9bd6d7b9c169894aff16aeceac061d05d95",
+    "p10_preservation_check.sh": "75b91bccb14f55f977634894cc72bec81e7da5a38f0a100debd7982f45d401dc",
+    "p8_recovery_unit_test.py": "767b6fba96b1e4afcd01823fae799f1ea929ebe8b68f9525f79eb50258e212ed",
+    "p11_negative_controls.sh": "f116ee53ed511dfa56b9ae4446adf4a938a5464f276899e1eda3b845c4d55173",
+    "p12_perencounter_reconcile.py": "56f55ee268c45de6134508f0b45f2b023bfd71131ec5c372511a52fc192988c1",
+    "p13_wide_sample.sh": "e72c5be3ecdef1415da4f20ece98d3708360f4c2325ec2ce3d40dbdaae9b5c73",
+    "p13_sample_compare.py": "5c11b900b58e583543460804314f8b7247e74f28d049bbfe435e9c9baf705936",
+    "p13_kill_test.sh": "7e0a566562bf6d279ac1ef423aed87142b6ebf6f4fa675ce06ef716bce3f4008",
+    "p14_edge_run.sh": "57649869f47eb121f2337442f11ec073623c7e2a217be8309eba026855dfa770",
+    "p15_lib.sh": "53f4682e6939dd5804e3c4053aef7dcba74807058335a263963dda82553c0cf0",
+    "p15_lib_test.sh": "a9195de37e75303bbe34b59f7c760a114b3e3f7b85ac0380c4cd407d7d5deff2",
+    "p15_line_identity.py": "f4f6a0f523256fd2da63536f6a8a061c587b8d088ed2b41405e7289947df7046",
+    "p15_line_negctl.sh": "2420c101ade0f2691630450eba70eda7047e1e725fe08ffbea44f831ba199134",
+    "p15_a_negctl.sh": "081325a3d358816d43fb90f301b878b2e725e66123a3bb8a2e24f4ea077ea070",
+    "p15_b6_negctl.sh": "7b22021692754e0e5fbe371d87511bbdecd1e7709f4a338eb1744827fd8b057a",
+    "p15_chain.sh": "6e3689badc3b54f069746d4abfc0af27c5bac6e314fd0ca4d5a2915daa1952bf",
+    "p15_chain_e.sh": "35654e4886fbdcda1953296fa4a7caee4cba4e0556c2a78fe62a1e55e6dab0c2"
+  },
+  "frozen_sets": "P15 manifest b, 18/18 OK before and after, chattr +i; manifest a kept as history",
+  "evidence": [
+    "khanza-r5/evidence/p15/chain.log",
+    "khanza-r5/evidence/p15/chain_e.log",
+    "khanza-r5/evidence/p15/chain/a_lib_test.txt (19/19)",
+    "khanza-r5/evidence/p15/chain/a_negctl.txt (9/9)",
+    "khanza-r5/evidence/p15/chain/fixture_lines_summary.json (27/27)",
+    "khanza-r5/evidence/p15/chain/real300_lines_summary.json (300/300, 1240 lines, 0 differ, EQUAL 181 / EQUAL-SRC 119)",
+    "khanza-r5/evidence/p15/chain/line_negctl.txt (24/24 incl. C2 old hole vs new closure)",
+    "khanza-r5/evidence/p15/chain_e/b6_negctl.txt (6/6)",
+    "khanza-r5/evidence/p15/chain_e/r5_p6_acceptance_20261026T125031Z.md (39/39)",
+    "khanza-r5/evidence/p15/chain_e/r5_p10_preservation_20261026T125731Z.md (PASS)",
+    "khanza-r5/evidence/p15/chain_e/e_unit.txt (44/44)",
+    "khanza-r5/evidence/p15/chain_e/r5_p11_negative_controls_20261026T125926Z.md (5/5)",
+    "khanza-r5/evidence/p15/chain_e/live_state_final.txt",
+    "khanza-r5/evidence/p15/lock_release.txt"
+  ],
+  "checks": [
+    "A1-A7 driver safety with old-vs-new demonstrations - PASS",
+    "B1-B6 acceptance predicates with negative controls - PASS",
+    "C1 source-row identity; C2 same-name same-price wrong code caught (old comparator passes it) - PASS",
+    "C4 rerun: fixture 27/27 under the stricter predicate, real 300/300 vs live-pinned ledger - PASS",
+    "E1-E6 recovery repairs: suite 39/39, preservation PASS (snapshot-bound), unit 44/44, NC 5/5 - PASS (after fix 2)",
+    "Live state identical baseline/final incl. standing grants; ledger pin - PASS"
+  ],
+  "limitations": [
+    "Billing rows carry names only: a form billing a different code under a shared name is not detectable without form-side provenance (C3 not done)",
+    "Per-encounter bound for n=300, k=0: 0.99% one-sided / 1.22% two-sided under the P13 sampling assumption",
+    "First frozen bytes had two defects in P15's own code (NC1 helper scope, B6 old-arm import); fixed, re-frozen, re-run",
+    "Not done: X2 hash independence, A11 inventory, inner restore order, clean-box rebuild, P14 ledger scope gaps"
+  ],
+  "result": "PASS (scoped), pending independent review",
+  "not_pushed": true
+}

@@ -175,6 +175,9 @@ expect("C2 pid file removed only after the proof", os.path.exists(pidf), False)
 
 # ---- P11-T4 marker crash-safety (atomic write + fail-closed + operator fallback) ----
 MARKER = o._exclusion_marker("fx")
+# P15 E6: recovery now checks that the granted privileges are visible afterwards, so the
+# T4 cases mock the benchmark account's privileges as present after a GRANT.
+o._bench_dml_privs = lambda db: ["DELETE", "INSERT", "UPDATE"]
 
 # (a) malformed / truncated marker -> refuse, marker KEPT, nothing granted (fail-closed)
 with open(MARKER, "w") as f:
@@ -242,6 +245,54 @@ with open(MARKER, "w") as f:
 rm_new = o.recover_writer_exclusion("fx", log)
 expect("T4 NEW behaviour: the same unreadable marker is REFUSED and KEPT (no fail-open)",
        (rm_new, os.path.exists(MARKER)), (False, True), "WRITER-EXCLUSION marker unreadable")
+
+# ---- P15 E6: marker schema, grant verification, live holder ----
+os.path.exists(MARKER) and os.remove(MARKER)
+with open(MARKER, "w") as f:
+    json.dump({}, f)
+del EXEC[:]
+expect("E6 marker {} -> unreadable: refuse, KEPT, no GRANT",
+       (o.recover_writer_exclusion("fx", log), os.path.exists(MARKER),
+        [x for x in EXEC if x.startswith("GRANT")]), (False, True, []), "lacks pid/privs")
+with open(MARKER, "w") as f:
+    json.dump({"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pid": 999999}, f)
+o._bench_dml_privs = lambda db: []          # the GRANT does not take effect
+del EXEC[:]
+expect("E6 grants not visible after GRANT -> refuse, marker KEPT",
+       (o.recover_writer_exclusion("fx", log), os.path.exists(MARKER)), (False, True),
+       "still missing after GRANT")
+expect("E6 --recover-grants with grants not visible after GRANT -> refuse",
+       o._recover_grants_expected("fx", log, "DELETE,INSERT,UPDATE"), False, "still missing")
+o._bench_dml_privs = lambda db: ["DELETE", "INSERT", "UPDATE"]
+with open(MARKER, "w") as f:
+    json.dump({"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pid": os.getppid()}, f)
+del EXEC[:]
+expect("E6 --recover-grants while the marker's holder is ALIVE -> refused, no GRANT, marker KEPT",
+       (o._recover_grants_expected("fx", log, "DELETE,INSERT,UPDATE"),
+        [x for x in EXEC if x.startswith("GRANT")], os.path.exists(MARKER)),
+       (False, [], True), "held by live pid")
+with open(MARKER, "w") as f:
+    json.dump({"db": "fx", "privs": ["DELETE", "INSERT", "UPDATE"], "pid": 999999}, f)
+expect("E6 --recover-grants on a READABLE marker -> granted, marker left for validation",
+       (o._recover_grants_expected("fx", log, "DELETE,INSERT,UPDATE"), os.path.exists(MARKER)),
+       (True, True), "left for validation")
+expect("E6 ... then recover_writer_exclusion validates it against the expected set and deletes it",
+       (o.recover_writer_exclusion("fx", log, expected_privs=["DELETE", "INSERT", "UPDATE"]),
+        os.path.exists(MARKER)), (True, False), "WRITER-EXCLUSION recovered")
+
+# ---- P15 E5: negative-control switches act only on the exact value 1, never on live ----
+for _v, _want in (("0", False), ("", False), ("yes", False), ("1", True)):
+    os.environ["R5_NEGCTL_BACKUP_NO_TXN"] = _v
+    expect("E5 R5_NEGCTL_BACKUP_NO_TXN=%r on a fixture -> %s" % (_v, _want),
+           o._negctl("R5_NEGCTL_BACKUP_NO_TXN", "fx"), _want)
+os.environ["R5_NEGCTL_BACKUP_NO_TXN"] = "1"
+try:
+    o._negctl("R5_NEGCTL_BACKUP_NO_TXN", "sik")
+    _live = "not refused"
+except RuntimeError:
+    _live = "refused"
+expect("E5 switch=1 on live sik -> refused inside the helper", _live, "refused")
+del os.environ["R5_NEGCTL_BACKUP_NO_TXN"]
 
 # ---- P11-T6 stage-hash / live-hash coherence (two functions agree on identical data) ----
 # _content_hash (live tables) and _stage_content_hash (stage tables) must give the

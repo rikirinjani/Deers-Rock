@@ -106,7 +106,7 @@ deleted.
   - ~~E5 expected DIFFER(registration = −DR fee; procedure = −tariff)~~ (superseded by E5a/E5b).
 - **E6:** predicted from the builder code, no longer OPEN. The builder does `q = int(SUM(jml))` and
   `amount = tariff × q`. So `jml = 0.5` gives ledger quantity 0 and amount 0, and `jml = 1.5` gives
-  quantity 1. Expected DIFFER(drug = −form amount for 0.5; −0.5 × price for 1.5), with the matching
+  quantity 1. Expected DIFFER(drug = ~~−form amount for 0.5; −0.5 × price for 1.5~~ *+form amount for 0.5; +0.5 × price for 1.5: A−C is positive when C truncates, P15 D6*), with the matching
   tax delta. The split-row case (2 rows, `jml = 1` each) stays EQUAL. ~~E6 OPEN~~
 - **E8 is applicable.** Two DR-used drugs share the display name `xxx (OBAT ORAL)`
   (B000000208, B000000262). Procedure names collide too: `Periksa Poliklinik Umum / IGD` belongs to
@@ -249,3 +249,19 @@ Results: R5 §26. Evidence: `evidence/p14/`.
 | R13 | 2 | this doc first; R5 §26; manifest pins; QMS; failure records; pm1 trace; retrace (see commit) |
 | R14 | 2 | LF bytes local = box (12/12); secret scan clean; no push; no Kaggle; no frozen-tool edit |
 | **Total** | **28/28 (self)** | Deviations: T5 on the same clone (§2a); NC run after T4 instead of before (it needs form output); E6 visits loaded after the build; the first kill test and the first NC were not valid and were re-run. |
+
+### 10a. Re-score after Astra v11 (P15 D7, 2026-10-26)
+
+The 28/28 self-score above is withdrawn. These items do not hold at 2 on the evidence:
+
+| # | Was | Now | Reason |
+|---|---|---|---|
+| R3 | 2 | 1 | Driver safety: cleanup ran before validation and was not run-scoped (global `pkill`, REVOKE on any existing clone); exit codes accepted a stop rule; pin mismatch did not fail (P15 S2, S5, S6) |
+| R4 | 2 | 1 | Identity used the expected ledger to resolve name collisions (EQUAL-CTX); per-code aggregate, not a line multiset (P15 G1, G4) |
+| R6 | 2 | 1 | E6 was re-specified after an executed experiment, and the amendment had the wrong sign (P15 D6) |
+| R9 | 2 | 1 | 119/300 encounters rest on ledger-conditioned identity; the bound was mislabelled as line-level (P15 D5) |
+| R11 | 2 | 1 | Row counts + ledger hash are not a proof that all live data is unchanged; the "no grants" statement came from a vacuous probe (P15 S7, D4) |
+| R14 | 2 | 1 | Several claims exceeded the implemented assertions (B not gated, models not gated: P15 G2) |
+
+**Re-score: 22/28**, with R4 and R11 (both critical items) at 1. Under the P14 rule that is **Accept with
+fixes**. The fixes are P15.

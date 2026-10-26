@@ -83,6 +83,17 @@ def main():
                 s1_bad += 1
                 diffs.append(("S1", nr, comp, av[0], av[1], cv[0], cv[1]))
     print("S1 A vs C per encounter x component: %d differences" % s1_bad)
+    # P15 B6: coverage is asserted, not only printed. A DR encounter with no ledger rows or no
+    # billing rows would otherwise agree as {} == {}; each is listed and fails the run.
+    no_c = sorted(dr - ledger_enc)
+    no_a = sorted(dr - set(A))
+    for nr in no_c:
+        diffs.append(("S1-COVERAGE", nr, "ledger", 0, 0, 0, 0))
+    for nr in no_a:
+        diffs.append(("S1-COVERAGE", nr, "billing", 0, 0, 0, 0))
+    print("S1 coverage: DR encounters without ledger rows %d, without billing rows %d"
+          % (len(no_c), len(no_a)))
+    ok &= (len(no_c) == 0 and len(no_a) == 0)
     ok &= (s1_bad == 0)
 
     # S2 B vs C on the form-saved set

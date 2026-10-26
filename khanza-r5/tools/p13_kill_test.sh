@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # P13 kill-test: start a 5-visit pilot, SIGTERM it mid-run, verify clean state
 set -u
 cd /opt/Deers-Rock/tools
@@ -43,7 +43,8 @@ tail -30 /tmp/p13_kill_test.log
 echo "--- post-kill state ---"
 echo "databases: $(mysql -uroot -N -e 'SHOW DATABASES' | grep '^sik' | tr '\n' ' ')"
 echo "database.xml: $(python3 /opt/Deers-Rock/tools/p6_dbxml.py probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u | tr '\n' ' ')"
-echo "grant on $FX: $(mysql -uroot -N -e "SELECT privilege_type FROM information_schema.schema_privileges WHERE grantee='\"benchmark\"@\"localhost\"' AND table_schema='$FX'" 2>/dev/null | sort -u | tr '\n' ' ')"
+# P15 A7: grantee is stored as 'benchmark'@'localhost' (single quotes); the old double-quoted probe never matched
+echo "grant on $FX: $(mysql -uroot -N -e "SELECT privilege_type FROM information_schema.schema_privileges WHERE grantee=\"'benchmark'@'localhost'\" AND table_schema='$FX'" 2>/dev/null | sort -u | tr '\n' ' ')"
 echo "writer markers: $(ls /opt/dr-benchmark/results/.writer_exclusion_* 2>/dev/null | wc -l)"
 
 # If the clone is still there (driver's EXIT trap kept it), verify it's not half-state

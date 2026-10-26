@@ -25,6 +25,9 @@
 # Exits 0 only if every assertion holds. Usage (root on the VPS): bash p10_preservation_check.sh
 set -u
 cd /opt/Deers-Rock/tools
+# P15 A2: the lock is checked before anything else, so a refused run installs no EXIT trap
+# (its cleanup would restore database.xml and revoke the fixture grant of the run holding the lock).
+. ./dr_runlock.sh; dr_runlock_require p10_preservation_check.sh
 export DBUTIL_FORCE_ROOT=1
 SQL() { mysql -uroot -N -e "$1"; }
 cnt() { local n; n=$(grep -ac "$1" "$2" 2>/dev/null); echo "${n:-0}"; }
@@ -103,7 +106,9 @@ else
   # re-build and reuse the kept fixture
   printf "P10 reuse: kept $FX fixture (r6_p10 stage tables present; no wrapper re-run)\n" > /tmp/p10_pc_run.log
 fi
-EV=$(ls -t $PC/r5_p6_acceptance_*.md | head -1)
+# P15 E1/E4: the suite evidence of THIS build (the wrapper prints "evidence: <path>"), never ls -t.
+EV=${P15_SUITE_EV:-$(grep -a '^evidence: ' /tmp/p10_pc_run.log 2>/dev/null | tail -1 | sed 's/^evidence: //')}
+[ -n "$EV" ] && [ -f "$EV" ] || { echo "ABORT: suite evidence of this build not identified (set P15_SUITE_EV or run the build here)" | tee -a "$OUT"; exit 3; }
 cp "$EV" $PC/r5_p10_preservation_suite_${TS}.md
 echo "## 1. Failing suite run (P10_INJECT=1, P9_FORCE_FAIL_CHECK=30); suite evidence: $(basename "$EV")" | tee -a "$OUT"
 grep -a "^P10 injection\|^A30\|^A0:\|^A13:\|^PASS=" "$EV" | tee -a "$OUT"
@@ -111,22 +116,50 @@ ok "fixture kept with populated r6_p10 stage tables" $([ "$(SQL "SHOW DATABASES 
 # record the PRE-OPERATION snapshot (the P11-T2 baseline: before any re-hash or retry).
 # When the P10_INJECT suite block recorded it (wrapper build), reuse it; when reusing a
 # kept fixture record it now, before the destructive re-hash.
-[ -f "$PREOP" ] || { python3 p10_hash_state.py $FX r6_p10 $PC/r6_two.txt $PC/r6_p10_protected.txt > "$PREOP" 2>/tmp/p11_preop.err; echo "pre-op snapshot re-recorded on the kept fixture (P11-T2 baseline; exit=$?)" | tee -a "$OUT"; }
-[ -f "$PREOP" ] || { echo "ABORT: pre-operation snapshot missing" | tee -a "$OUT"; exit 3; }
+# P15 E4: a missing pre-operation snapshot ABORTS. Re-recording it here (pre-P15) produced a
+# post-failure baseline labelled pre-operation, the exact v10 failure mode.
+[ -f "$PREOP" ] || { echo "ABORT: pre-operation snapshot missing ($PREOP) - never re-recorded after a failure" | tee -a "$OUT"; exit 3; }
+[ -f "$PRE" ] || { echo "ABORT: post-failure pre-hash missing ($PRE)" | tee -a "$OUT"; exit 3; }
+# P15 E4: both snapshots must have been written by THIS build's suite run (mtime at or after the
+# suite run's start, taken from its evidence file name r5_p6_acceptance_<UTC>.md), not survive
+# from an earlier run under the same global file names.
+python3 - "$EV" "$PREOP" "$PRE" <<'PY' | tee -a "$OUT"
+import os, re, sys, calendar, time
+ev, preop, pre = sys.argv[1:4]
+m = re.search(r"r5_p6_acceptance_(\d{8}T\d{6}Z)\.md$", ev)
+if not m:
+    print("SNAPSHOT-BINDING ERROR: cannot read the suite start from %s" % os.path.basename(ev)); sys.exit(1)
+start = calendar.timegm(time.strptime(m.group(1), "%Y%m%dT%H%M%SZ"))
+bad = [p for p in (preop, pre) if os.path.getmtime(p) < start]
+print("SNAPSHOT-BINDING suite start %s; pre-op and post-failure snapshots %s"
+      % (m.group(1), "written by this run" if not bad else "OLDER than this run: %s" % bad))
+sys.exit(1 if bad else 0)
+PY
+[ "${PIPESTATUS[0]}" = "0" ] || { echo "ABORT: snapshots not bound to this run" | tee -a "$OUT"; exit 3; }
 # P11-T2: the pre-op snapshot is taken BEFORE the run creates stage tables, so its
 # stage inventory is legitimately empty. The expected stage inventory for assertion
 # (b) is the POST-FAILURE pre-hash ($PRE), written right after the injected run.
-[ -f "$PRE" ] || { echo "ABORT: post-failure pre-hash missing ($PRE)" | tee -a "$OUT"; exit 3; }
 POSTF=$PC/p11_preserve_after_fail.json
 # P11-T3: assert the stage inventory is COMPLETE (exactly the table set recorded in
 # the post-failure pre-hash) — a dropped stage table makes this hash call exit 1
 # with a "expected stage tables missing" error instead of silently passing.
 EXP_LIST=$(python3 - "$PRE" <<'PY'
+# P15 E4: the expected inventory is the oracle's SPECIFICATION (one stage table per reset
+# table + the _reg table), not the post-failure observation; the observation must equal it.
 import json, sys
-d = json.load(open(sys.argv[1]))
-print(",".join(sorted(d.get("stage", {}))))
+sys.path.insert(0, '/opt/Deers-Rock/tools')
+import sampled_real_form_diff_r5 as o
+pfx = o._stage_prefix('r6_p10', 'B3')
+spec = sorted(["%s_%s" % (pfx, t) for t in o.RESET_TABLES] + ["%s_reg" % pfx])
+seen = sorted(json.load(open(sys.argv[1])).get("stage", {}))
+if seen != spec:
+    sys.stderr.write("INVENTORY-SPEC MISMATCH: post-failure observation %s vs specification %s\n"
+                     % (sorted(set(spec) ^ set(seen)), len(spec)))
+print(",".join(spec))
+sys.exit(1 if seen != spec else 0)
 PY
 )
+SPEC_RC=$?
 python3 p10_hash_state.py $FX r6_p10 $PC/r6_two.txt $PC/r6_p10_protected.txt --stage-tables-list "$EXP_LIST" > "$POSTF" 2>/tmp/p11_post.err
 RCH=$?
 [ "$RCH" = "0" ] || grep -a "HASH-STATE ERROR" /tmp/p11_post.err | tee -a "$OUT"
@@ -154,7 +187,7 @@ print("PRESERVATION-RESULT a(sample-immediate)=%s b(stage-preservation)=%s c(pro
 if not (ok_a and ok_b and ok_c):
     print("PRESERVATION-RESULT NOT-EQUAL (kept for inspection; P11-T7)")
 PY
-ok "independent hashes: sample equal to the pre-operation snapshot (a); stage tables preserved (b); protected + live unchanged (c); stage tables populated" $([ "$RCH" = "0" ] && grep -q "PRESERVATION-RESULT a(sample-immediate)=EQUAL b(stage-preservation)=EQUAL c(protected-live)=EQUAL" "$PREOP_OUT" && echo 0 || echo 1)
+ok "independent hashes: sample equal to the pre-operation snapshot (a); stage tables preserved (b); protected + live unchanged (c); stage tables populated" $([ "$RCH" = "0" ] && [ "$SPEC_RC" = "0" ] && grep -q "PRESERVATION-RESULT a(sample-immediate)=EQUAL b(stage-preservation)=EQUAL c(protected-live)=EQUAL" "$PREOP_OUT" && echo 0 || echo 1)
 if [ -n "${R5_NEGCTL_SKIP_IMMEDIATE_RESTORE:-}" ]; then
   # P11-T2 NC: the switch was set, so the oracle's failure path skipped the
   # immediate stage_restore; assertion (a) must therefore be DIFFERENT.

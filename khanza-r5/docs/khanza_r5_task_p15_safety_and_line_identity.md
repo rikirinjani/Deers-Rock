@@ -210,3 +210,23 @@ and NC chain ~25 min; NC scratch copies a few minutes each).
 **Accept:** ≥ 20/24 **and** R2, R4, R5, R8, R9 at 2. **Accept with fixes:** 16–19, or one of
 those five at 1. **Reject:** < 16, or any of those five at 0. An independent read-only review
 re-scores from the evidence alone. The executor's self-score is reported as such.
+
+## 7. Result and self-score (2026-10-26, after execution; pending the independent review)
+
+Results: R5 §27. Evidence: `evidence/p15/`. Final bytes: manifest `r5_p15_frozen_manifest_20261026b`.
+
+| # | Score | Evidence / note |
+|---|---|---|
+| R1 | 2 | §1 table: every v11 finding checked against the source, with verdict and location; S7 added |
+| R2 | 2 | `chain/a_lib_test.txt` 19/19, `chain/a_negctl.txt` 9/9; old bytes shown failing on the same setup |
+| R3 | 2 | `chain/line_negctl.txt` 24/24 (B1–B5), `chain_e/b6_negctl.txt` 6/6, P13 comparator B4/B5 exits 0/1/2 |
+| R4 | 2 | collisions resolved from source rows only; AMBIGUOUS fails; 0 AMBIGUOUS on 300 |
+| R5 | 2 | C2: old comparator EQUAL-CTX/MATCH (hole), new DIFFER/MISMATCH (closed), same scratch copy |
+| R6 | 2 | 300 + 27 on a fresh clone; summaries saved; per-encounter bound and the name-only limit stated |
+| R7 | 1 | E1–E6 discriminating under the repaired runner (5/5), **but only after fix 2**: the first frozen bytes had NC1 not discriminating and a broken B6 old arm |
+| R8 | 2 | unfreeze/re-freeze for all changes; manifests a and b; local = box; evidence names its bytes |
+| R9 | 2 | corrected grant probe with a positive case; standing grants identical at three points; ledger pin |
+| R10 | 2 | D1–D7, D9 struck through with reasons; P14 re-scored 22/28; D8 via the captured P15 release |
+| R11 | 2 | doc first; R5 §27; manifest; QMS; failure records; trace; retrace (see the commit) |
+| R12 | 2 | both invalid first results kept (`chain/`), recorded and re-run; no claim beyond the runs |
+| **Total** | **23/24 (self)** | Critical items R2, R4, R5, R8, R9 all at 2 → **Accept** under §6, pending review |

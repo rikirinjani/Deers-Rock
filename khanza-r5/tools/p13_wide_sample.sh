@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # P13 T2: run driver for the wide sample. Builds a throwaway clone with 8 audit
 # triggers, retargets database.xml, runs the oracle (freeze + real form run),
 # restores database.xml, and keeps the clone for the comparator.
@@ -11,12 +11,14 @@
 # EXIT trap restores database.xml and revokes the grant even on failure.
 # Derived from p12_visit_replay.sh structure.
 set -u
+set -o pipefail   # P15 A3
 cd /opt/Deers-Rock/tools
 export DBUTIL_FORCE_ROOT=1
 FX=sik_p13w
 STAGE=${1:?stage name}
 VISITS=${2:?visits file}
 . ./dr_runlock.sh; dr_runlock_require p13_wide_sample.sh
+. ./p15_lib.sh
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 OUT=/opt/dr-benchmark/p-chain/r5_p13_wide_${STAGE}_${TS}.md
 DBXML="python3 /opt/Deers-Rock/tools/p6_dbxml.py"
@@ -24,40 +26,46 @@ SQL() { mysql -uroot -N -e "$1"; }
 res() { echo "$1" | tee -a "$OUT"; }
 BUILT=0
 ORACLE_RC=0
+CREATED=0; GRANTED=0; RETARGETED=0   # P15 A1/A2: cleanup undoes only what this run did
 TOTAL_VISITS=0
 
 cleanup() {
-  # Always restore database.xml and revoke the grant. The clone is kept
-  # unless BUILT=0 (it was never created). On freeze-only failure the clone
-  # may be half-built — drop it in that case.
-  $DBXML restore >> /tmp/p13w_dbxml.log 2>&1
-  pkill -f BilingHarness 2>/dev/null
-  SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM \`benchmark\`@\`localhost\`;" 2>/dev/null
-  if [ "$BUILT" = "1" ] && [ "$ORACLE_RC" -ne 3 ]; then
-    res "cleanup: clone $FX KEPT — run p13_drop_clone.sh after the comparator"
-  else
-    SQL "DROP DATABASE IF EXISTS $FX;"
-    res "cleanup: clone $FX dropped"
+  # P15 A1/A2: undo only what this run did. A clone this run did not create is never dropped;
+  # only this run's harness process groups are signalled (no global pkill).
+  p15_kill_run_harness "${RUN_ID:-}"
+  [ "$RETARGETED" = "1" ] && $DBXML restore >> /tmp/p13w_dbxml.log 2>&1
+  [ "$GRANTED" = "1" ] && SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM 'benchmark'@'localhost';" 2>/dev/null
+  if [ "$CREATED" = "1" ]; then
+    if [ "$BUILT" = "1" ] && [ "$ORACLE_RC" -ne 3 ]; then
+      res "cleanup: clone $FX KEPT — run p13_drop_clone.sh after the comparator"
+    else
+      SQL "DROP DATABASE IF EXISTS $FX;"
+      res "cleanup: clone $FX dropped (created by this run, not complete)"
+    fi
   fi
   # Post-cleanup proof line
   XML_STATE=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
   DB_STATE=$(SQL 'SHOW DATABASES' | grep '^sik' | tr '\n' ',')
-  res "cleanup-final: sik_dbs=${DB_STATE} dbxml_targets=${XML_STATE}"
+  res "cleanup-final: sik_dbs=${DB_STATE} dbxml_targets=${XML_STATE} clone_grants=$(p15_grant_count $FX)"
 }
-trap cleanup EXIT
 
 # Pre-state: database.xml must be on sik (both copies)
 XML_PRE=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
 echo "pre-state database.xml targets: $XML_PRE"
-[ "$XML_PRE" = "sik" ] || { res "ABORT: database.xml not on sik ($XML_PRE)"; exit 3; }
+[ "$XML_PRE" = "sik" ] || { echo "ABORT: database.xml not on sik ($XML_PRE) - refusing, nothing touched"; exit 3; }
 
 # Build the clone (fail-closed: refuse if already present)
-[ -n "$(SQL "SHOW DATABASES LIKE '$FX'")" ] && { res "$FX exists - refusing (run p13_drop_clone.sh first)"; exit 3; }
+[ -n "$(SQL "SHOW DATABASES LIKE '$FX'")" ] && { echo "$FX exists - refusing, nothing touched (run p13_drop_clone.sh first)"; exit 3; }
+trap cleanup EXIT   # P15 A1: installed only after every refusal check
 { echo "# P13 wide sample - stage $STAGE"; echo "Run $TS UTC - $(wc -l < "$VISITS") visits"; echo; } > "$OUT"
 res "clone: creating $FX"
 SQL "CREATE DATABASE $FX CHARACTER SET $(SQL "SELECT default_character_set_name FROM information_schema.schemata WHERE schema_name='sik'") COLLATE $(SQL "SELECT default_collation_name FROM information_schema.schemata WHERE schema_name='sik'")"
+CREATED=1
 BUILT=1
+ORACLE_RC=3   # P15: until the oracle has run, any abort drops the half-built clone (was 0: kept)
 mysqldump -uroot --single-transaction --quick --skip-lock-tables sik | mysql -uroot $FX || { res "ABORT: mysqldump failed (half-clone will be dropped by EXIT trap)"; exit 3; }
+p15_clone_matches_sik $FX | tee -a "$OUT"
+[ "${PIPESTATUS[0]}" = "0" ] || { res "ABORT: clone does not match sik (will drop the half-clone)"; ORACLE_RC=3; exit 3; }
 res "clone $FX ready ($(SQL "SELECT COUNT(*) FROM $FX.billing") billing rows)"
 
 # 8 audit triggers (same as p12_visit_replay.sh)
@@ -80,11 +88,13 @@ res "audit triggers: $TRIG_COUNT (need 8)"
 [ "$TRIG_COUNT" = "8" ] || { res "ABORT: only $TRIG_COUNT audit triggers (will drop half-built clone)"; exit 3; }
 
 # Grant benchmark on the clone
-SQL "GRANT SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* TO \`benchmark\`@\`localhost\`;"
-res "grant: benchmark@localhost on $FX"
+SQL "GRANT SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* TO 'benchmark'@'localhost';"
+GRANTED=1
+res "grant: benchmark@localhost on $FX (probe sees $(p15_grant_count $FX) privileges; P15 A7 positive case)"
 
 # Retarget database.xml to the clone
 $DBXML retarget $FX > /tmp/p13w_dbxml.log 2>&1
+RETARGETED=1
 grep -q "RETARGET-VERIFIED $FX" /tmp/p13w_dbxml.log || { res "ABORT: retarget not verified (will drop clone)"; exit 3; }
 res "harness+consumer database.xml -> $FX (RETARGET-VERIFIED)"
 
@@ -117,22 +127,19 @@ grep -aE "reset |BILLED|FAILED|STAGE-RESTOR|ORACLE_|ALIGNED|WRITER" /tmp/p13w_fr
 RUNID_HARNESS_DIR="/opt/dr-benchmark/results/$RUN_ID/B3_oracle_run_r5"
 HLOG_ALL="$RUNID_HARNESS_DIR"/harness_*.log
 # Count successes and failures across all harness logs (each log has 1 line per visit)
-SUKESES_TRUE=$(grep -hc 'sukses=true' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
-SUKESES_FALSE=$(grep -hc 'sukses=false' $HLOG_ALL 2>/dev/null | awk '{s+=$1}END{print s+0}')
-TOTAL_VISITS=$((SUKESES_TRUE + SUKESES_FALSE))
-res "form: $SUKESES_TRUE/$TOTAL_VISITS sukses=true, $SUKESES_FALSE sukses=false"
-if [ "$TOTAL_VISITS" -gt 0 ]; then
-  PCT=$((SUKESES_FALSE * 100 / TOTAL_VISITS))
-  res "sukses: $SUKESES_FALSE/$TOTAL_VISITS false ($PCT%)"
-  if [ "$PCT" -gt 2 ]; then
-    res "STOP RULE: >2% sukses=false - keeping clone, stopping here"
-    exit 1
-  fi
+SUKESES_TRUE=$(p15_count_sukses "$RUNID_HARNESS_DIR" true)
+SUKESES_FALSE=$(p15_count_sukses "$RUNID_HARNESS_DIR" false)
+TOTAL_VISITS=$(wc -l < "$VISITS")
+res "form: distinct visits $SUKESES_TRUE sukses=true, $SUKESES_FALSE sukses=false (of $TOTAL_VISITS; P15: counted once per visit)"
+if p15_stop_rule_fires "$SUKESES_FALSE" "$TOTAL_VISITS"; then
+  res "STOP RULE: $SUKESES_FALSE/$TOTAL_VISITS sukses=false (>2 %) - keeping clone, stopping here"
+  exit 1
 fi
 
 # Restore database.xml (clone stays for the comparator)
 $DBXML restore >> /tmp/p13w_dbxml.log 2>&1
 RES=$?
+[ "$RES" = "0" ] && RETARGETED=0
 res "database.xml restored (exit=$RES)"
 XML_POST=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
 [ "$XML_POST" = "sik" ] || res "WARN: database.xml not on sik after restore ($XML_POST)"

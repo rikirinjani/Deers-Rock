@@ -495,7 +495,10 @@ res "A25 drug=$K25 exit=$RC source_drift_lines=$DR reset_lines=$RS fingerprint_d
 
 # ---- P10: integrity of the recovery path ----
 stage_cks() { local t; t=$(SQL "SELECT GROUP_CONCAT(CONCAT('${FX}.', table_name) ORDER BY table_name) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5\_stage\_B3\_$1\_%';")
-  [ -n "$t" ] && [ "$t" != "NULL" ] && SQL "CHECKSUM TABLE $t EXTENDED" | awk '{print $2}' | tr '\n' ':'; }
+  [ -n "$t" ] && [ "$t" != "NULL" ] || return 0
+   local c; c=$(SQL "CHECKSUM TABLE $t EXTENDED" | awk '{print $2}')
+   echo "$c" | grep -qx 'NULL' && return 0   # P15 E3: a NULL checksum is never comparable
+   echo "$c" | tr '\n' ':'; }
 bench_privs() { SQL "SELECT COALESCE(GROUP_CONCAT(privilege_type ORDER BY privilege_type), 'none') FROM information_schema.schema_privileges WHERE grantee=\"'benchmark'@'localhost'\" AND table_schema='${FX}';"; }
 
 echo "=== A27: a sampled drug PRICE changed after freeze -> SOURCE-CONTENT DRIFT, exit 3, nothing reset ==="
@@ -706,7 +709,13 @@ check 31 "A31 the harness account's grants on ${FX} are the same at the end as a
 # ---- P11: discriminating negative-control checks (self-contained; P11_ONLY=<ids>) ----
 if [ -n "${P11_ONLY:-}" ]; then
  stage_cks_p11() { local t; t=$(SQL "SELECT GROUP_CONCAT(CONCAT('${FX}.', table_name) ORDER BY table_name) FROM information_schema.tables WHERE table_schema='${FX}' AND table_name LIKE 'r5\_stage\_B3\_$1\_%';")
-   [ -n "$t" ] && [ "$t" != "NULL" ] && SQL "CHECKSUM TABLE $t EXTENDED" | awk '{print $2}' | tr '\n' ':'; }
+   [ -n "$t" ] && [ "$t" != "NULL" ] || return 0
+   local c; c=$(SQL "CHECKSUM TABLE $t EXTENDED" | awk '{print $2}')
+   echo "$c" | grep -qx 'NULL' && return 0   # P15 E3: a NULL checksum is never comparable
+   echo "$c" | tr '\n' ':'; }
+ # P15 E3 (fix 2): defined HERE, inside the P11 block; the first P15 bytes defined it in the
+ # main-suite block that P11_ONLY runs skip, so the A28' fixture hash was always empty.
+ hash_p11() { python3 -c "import sys;sys.path.insert(0,'/opt/Deers-Rock/tools');import sampled_real_form_diff_r5 as o;print(o._content_hash(open('$1').read().split(),'$FX',lambda *a:None))"; }
  if sel 28; then
   echo "=== A28' P11: discriminating re-backup — a non-transactional (pre-P10) backup loses the earlier staged rows ==="
   PFX28=r5_stage_B3_r6_a28p
@@ -726,6 +735,7 @@ log = print
 o.stage_backup(nrs, fx, rd, log, rid, stage='B3', batch='2026-10-01')
 PY
    C0P=$(stage_cks_p11 r6_a28p)
+   H28PRE=$(hash_p11 /tmp/r6_p11_a28.txt)   # P15 E3: the fixture's own state before the test
    # between the first backup and the faulty retry: the live rows of the batch are CHANGED
    # (then restored with the verified path is NOT needed here — the point is that live now
    # differs from staged), so a NON-transactional re-backup would replace the staged rows
@@ -762,19 +772,30 @@ except Exception as e:
 PY
    fi
    C1P=$(stage_cks_p11 r6_a28p)
-   # restore the live rows with the verified path so the fixture ends clean
-   python3 - "$FX" r6_a28p <<'PY'
+   # P15 E3: restore with the verified path and ASSERT its result; drop the stage tables only
+   # after a verified restore; then require the fixture to equal its pre-test hash. The old
+   # unconditional "-5" corrupted the fixture whenever the restore had already removed the +5.
+   R28=$(python3 - "$FX" r6_a28p <<'PY'
 import sys, json, os
 sys.path.insert(0, '/opt/Deers-Rock/tools')
 import sampled_real_form_diff_r5 as o
 fx, rid = sys.argv[1], sys.argv[2]
 rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
 nrs = open('/tmp/r6_p11_a28.txt').read().split()
-o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
-o.stage_drop(fx, rid, print, stage='B3')
+ok = o.stage_restore(nrs, fx, rd, lambda *a: None, rid, stage='B3', batch='2026-10-01')
+if ok:
+    o.stage_drop(fx, rid, lambda *a: None, stage='B3')
+print("restored" if ok else "restore-not-verified")
 PY
-   # revert the live-row perturbation so later checks see the true state
-   SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
+)
+   H28POST=$(hash_p11 /tmp/r6_p11_a28.txt)
+   if [ "$H28POST" != "$H28PRE" ]; then
+     # only the NC (autocommit) arm reaches here: its staged rows already held the +5, so the
+     # restore put the +5 back; undo the plant once and re-check
+     SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
+     H28POST=$(hash_p11 /tmp/r6_p11_a28.txt)
+   fi
+   res "A28' restore=$R28 fixture hash before/after the test: ${H28PRE:0:16} / ${H28POST:0:16}"
    # Always assert the P11 property: a failed re-backup (regardless of mode) must leave
    # the earlier staged rows intact, i.e. C0 == C1. Without the NC switch the re-backup is
    # transactional and rolls back (C0 == C1 -> PASS). With R5_NEGCTL_BACKUP_NO_TXN the
@@ -782,21 +803,19 @@ PY
    # the property check FAILS), which is exactly the discriminating evidence the handoff
    # requires: the check FAILS when the property is removed.
    res "A28' C0=$C0P C1=$C1P mode=${NO_TXN:+NC-autocommit}"
-   check 28 "A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchanged; with R5_NEGCTL_BACKUP_NO_TXN (autocommit) the live-row change leaks into the stage tables and this check FAILS" $([ -n "$C0P" ] && [ -n "$C1P" ] && [ "$C0P" = "$C1P" ] && echo 0 || echo 1)
+   check 28 "A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchanged; with R5_NEGCTL_BACKUP_NO_TXN (autocommit) the live-row change leaks into the stage tables and this check FAILS" $([ -n "$C0P" ] && [ -n "$C1P" ] && [ "$C0P" = "$C1P" ] && [ -n "$H28PRE" ] && [ "$H28POST" = "$H28PRE" ] && echo 0 || echo 1)
  fi
  if sel 31; then
   echo "=== A31 P11: snapshot coherence — immediately after a backup, hash(stage) == hash(live) ==="
   PFX31=r5_stage_B3_r6_a31p
   printf "2026/10/01/800085\n2026/10/01/800128\n" > /tmp/r6_p11_a31.txt
   freeze r6_a31p B3 --visits-file /tmp/r6_p11_a31.txt
+    # P15 E2: both arms run the SAME steps and the SAME predicate; the only difference is the
+    # hash source. The fault hook drifts one live row between the stage copy and the hashing in
+    # both arms. Property: the stored pre-reset hash equals an independent recomputation of the
+    # staged content, and (after the drift is reverted) stage equals live.
     LATE=${R5_NEGCTL_HASH_FROM_LIVE_LATE:-}
-    if [ -n "$LATE" ]; then
-     # NC: the pre-P11 order hashed the LIVE tables (the oracle stores
-     # hash_source=live-late-NC when the switch is set). Simulate the drift the
-     # old order was vulnerable to: one live row changes between the stage-copy
-     # commit and the hashing, so the staged rows no longer equal the live
-     # tables, and the SAME coherence check FAILS.
-     env R5_NEGCTL_HASH_FROM_LIVE_LATE=1 python3 - "$FX" r6_a31p <<'PY'
+    env R5_FAULT_DRIFT_AFTER_STAGE_COPY=1 ${LATE:+R5_NEGCTL_HASH_FROM_LIVE_LATE=1} python3 - "$FX" r6_a31p <<'PY'
 import sys
 sys.path.insert(0, '/opt/Deers-Rock/tools')
 import sampled_real_form_diff_r5 as o
@@ -805,111 +824,31 @@ rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
 nrs = open('/tmp/r6_p11_a31.txt').read().split()
 o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
 PY
-     HSTAGE=$(python3 - "$FX" r6_a31p <<'PY'
+    A31VALS=$(python3 - "$FX" r6_a31p <<'PY'
 import sys
 sys.path.insert(0, '/opt/Deers-Rock/tools')
 import sampled_real_form_diff_r5 as o
 fx, rid = sys.argv[1], sys.argv[2]
+rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
 nrs = open('/tmp/r6_p11_a31.txt').read().split()
 pfx = o._stage_prefix(rid, 'B3')
-print(o._stage_content_hash(nrs, fx, pfx, print))
+stored, prob = o.read_prereset_hash(nrs, rd, pfx, '2026-10-01')
+print(o._stage_content_hash(nrs, fx, pfx, lambda *a: None), stored or "NONE", o._content_hash(nrs, fx, lambda *a: None))
 PY
 )
-     # drift the live row AFTER the stage-copy commit (the pre-P11 order's
-     # vulnerability): hash(live) now differs from hash(stage)
-     SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
-     HLIVE=$(python3 - "$FX" r6_a31p <<'PY'
-import sys
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-print(o._content_hash(nrs, fx, print))
-PY
-)
-     # revert so the fixture ends clean
-     SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-1 WHERE no_rawat='2026/10/01/800085';"
-     res "A31' (NC live-late order) stage-hash=$HSTAGE live-hash=$HLIVE (drift between commit and hashing)"
-     # P11 property check (same in both modes): hash(stage) == hash(live);
-     # in NC mode the drift makes them differ, so the check FAILS
-     check 31 "A31' immediately after a backup, hash(stage) == hash(live) for the batch (snapshot coherence); with R5_NEGCTL_HASH_FROM_LIVE_LATE a live row drifted between commit and hashing, so hash(stage) != hash(live) and this check FAILS" $([ "$HSTAGE" = "$HLIVE" ] && [ -n "$HSTAGE" ] && echo 0 || echo 1)
-     python3 - "$FX" r6_a31p <<'PY'
-import sys, os
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
-o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
-o.stage_drop(fx, rid, print, stage='B3')
-PY
-    else
-     python3 - "$FX" r6_a31p <<'PY'
+    read HSTAGE STORED HLIVE <<< "$A31VALS"
+    res "A31' mode=${LATE:+NC-live-late}${LATE:-stage} stage=${HSTAGE:0:16} stored=${STORED:0:16} live=${HLIVE:0:16} (drift injected between copy and hash in both arms)"
+    check 31 "A31' with a live drift injected between the stage copy and the hashing (both arms), the stored pre-reset hash equals the independently recomputed staged content, and stage equals live afterwards; with R5_NEGCTL_HASH_FROM_LIVE_LATE the stored hash captures the drifted live row and this check FAILS" $([ -n "$HSTAGE" ] && [ "$STORED" = "$HSTAGE" ] && [ "$HSTAGE" = "$HLIVE" ] && echo 0 || echo 1)
+    python3 - "$FX" r6_a31p <<'PY'
 import sys
 sys.path.insert(0, '/opt/Deers-Rock/tools')
 import sampled_real_form_diff_r5 as o
 fx, rid = sys.argv[1], sys.argv[2]
 rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
 nrs = open('/tmp/r6_p11_a31.txt').read().split()
-o.stage_backup(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
+if o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01'):
+    o.stage_drop(fx, rid, print, stage='B3')
 PY
-     HSTAGE=$(python3 - "$FX" r6_a31p <<'PY'
-import sys
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-pfx = o._stage_prefix(rid, 'B3')
-print(o._stage_content_hash(nrs, fx, pfx, print))
-PY
-)
-     HLIVE=$(python3 - "$FX" r6_a31p <<'PY'
-import sys
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-print(o._content_hash(nrs, fx, print))
-PY
-)
-     STORED=$(python3 - "$FX" r6_a31p <<'PY'
-import sys
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-h, prob = o.read_prereset_hash(nrs, rd, o._stage_prefix(rid, 'B3'), '2026-10-01')
-print(h if h else '')
-PY
-)
-     # unit-test: the two hash functions agree on identical data
-     python3 - "$FX" r6_a31p <<'PY'
-import sys
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-pfx = o._stage_prefix(rid, 'B3')
-assert o._stage_content_hash(nrs, fx, pfx, print) == o._content_hash(nrs, fx, print), \
-    "stage-hash and live-hash disagree on identical data"
-print('A31p stage-hash == live-hash on identical data (unit agreement)')
-PY
-     UNITRC=$?
-     # the P11 property: immediately after a backup the stored pre-reset hash
-     # (taken FROM the staged rows) equals hash(stage) AND hash(live)
-     check 31 "A31' immediately after a backup, hash(stage) == the stored pre-reset hash == hash(live) for the batch (snapshot coherence, the hash is computed FROM the staged rows), and the two hash functions agree on identical data" $([ "$HSTAGE" = "$HLIVE" ] && [ "$HSTAGE" = "$STORED" ] && [ -n "$HSTAGE" ] && [ "$UNITRC" = "0" ] && echo 0 || echo 1)
-     python3 - "$FX" r6_a31p <<'PY'
-import sys, os
-sys.path.insert(0, '/opt/Deers-Rock/tools')
-import sampled_real_form_diff_r5 as o
-fx, rid = sys.argv[1], sys.argv[2]
-nrs = open('/tmp/r6_p11_a31.txt').read().split()
-rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
-o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01')
-o.stage_drop(fx, rid, print, stage='B3')
-PY
-    fi
  fi
  if sel 22b; then
   echo "=== A22b P11: RETRY-REFUSED clears the stale restored flag (restored=False, restore_state=refused) ==="

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """P13 T3: per-encounter comparison of form output vs consumer vs ledger on a P13 clone.
 
 For each sampled encounter (from the visits file, in the clone after the form run):
@@ -81,18 +81,20 @@ def fetch_c(nrs):
     return C
 
 
-def fetch_audit(cl, nrs):
+def fetch_audit(cl, nrs, since=None):
     """Batch-fetch the audit-table fresh-B counts: total detail_nota_jalan INSERTs
-    and how many were written by benchmark@localhost."""
+    and how many were written by benchmark@localhost (P15 B5: only rows at or after
+    `since`, the run start, when given)."""
     audit = {}
+    cond = (" AND at >= '%s'" % since) if since else ""
     for _, chunk in in_chunks(nrs):
         inl = ",".join("'%s'" % n for n in chunk)
         for nr, cnt, bcnt in q(cl,
                 "SELECT no_rawat, COUNT(*), "
                 "SUM(CASE WHEN acct LIKE CONCAT('benchmark@', CHAR(37)) THEN 1 ELSE 0 END) "
                 "FROM p7_write_audit "
-                "WHERE tbl='detail_nota_jalan' AND op='INSERT' AND no_rawat IN (%s) "
-                "GROUP BY no_rawat" % inl):
+                "WHERE tbl='detail_nota_jalan' AND op='INSERT'%s AND no_rawat IN (%s) "
+                "GROUP BY no_rawat" % (cond, inl)):
             audit[nr] = [int(cnt or 0), int(bcnt or 0)]
     return audit
 
@@ -100,18 +102,22 @@ def fetch_audit(cl, nrs):
 def main():
     argv = sys.argv[1:]
     if not argv or argv[0].startswith("--"):
-        print("usage: p13_sample_compare.py <visits-file> --db <clone> [--out CSV]")
+        print("usage: p13_sample_compare.py <visits-file> --db <clone> [--out CSV] [--since 'Y-m-d H:M:S.f']")
         return 2
     visits_file = argv[0]
     cl = argv[argv.index("--db") + 1] if "--db" in argv else "sik_p13w"
     out = argv[argv.index("--out") + 1] if "--out" in argv else "/tmp/p13_compare_diffs.csv"
+    since = argv[argv.index("--since") + 1] if "--since" in argv else None
 
     with open(visits_file) as f:
         nrs = [l.strip() for l in f if l.strip()]
     if not nrs:
         print("no visits in %s" % visits_file)
         return 2
-    nrs = sorted(set(nrs))
+    if len(set(nrs)) != len(nrs):   # P15 B4: a duplicate is an input error, not silently merged
+        print("duplicate visits in %s (%d listed, %d unique)" % (visits_file, len(nrs), len(set(nrs))))
+        return 2
+    nrs = sorted(nrs)
     print("fetching A/B/audit for %d encounters from %s ..." % (len(nrs), cl))
     A, B = fetch_all(cl, nrs)
     print("fetching C for %d encounters from %s ..." % (len(nrs), LEDGER_DB))
@@ -156,10 +162,10 @@ def main():
             with_b += 1
 
     print("fetching audit (fresh-B) for %d encounters ..." % len(nrs))
-    audit = fetch_audit(cl, nrs)
+    audit = fetch_audit(cl, nrs, since)
     for nr in nrs:
         cnt, bcnt = audit.get(nr, [0, 0])
-        if bcnt == 1 and cnt >= 1:
+        if bcnt == 1 and cnt == 1:   # P15 B5: exactly one INSERT, by benchmark@ (was cnt >= 1)
             fresh_ok += 1
         else:
             ok = False

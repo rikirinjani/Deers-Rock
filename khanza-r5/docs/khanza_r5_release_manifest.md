@@ -6,7 +6,7 @@ Task: `C:\Users\think\khanza_r5_task_p4_agentblock.md` · Deliverable 5 of 6.
 This is the agent-runnable part of D3: tag + pin + manifest. The DOI-Zenodo
 archive is the human step (out of scope). The manifest below is the
 reproducibility anchor — every runtime component is pinned by version and/or
-SHA-256 so the benchmark is re-derivable without the original live box.
+SHA-256 ~~so the benchmark is re-derivable without the original live box~~ *(P15 D1, 2026-10-26: overclaim withdrawn. The pins identify the bytes; they do not supply the Khanza tree, the DB dumps or the secrets, and no clean-box rebuild has been done. Correct claim: repeatable on the existing installation.)*
 
 ## Pinned runtime components
 
@@ -73,6 +73,27 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 | `p14_nc_rerun.sh` (P14: fixture-only rebuild + NC rerun after the scratch-copy fix) | `b0fb14ae7ed4b60cda8e3de7442c2eaf337072f9ca9631da0fdd9f3cea53cbb0` |
 
 > 2026-10-26 (R5 §26, P14) adds the twelve P14 tool pins above; frozen on the box (`chattr +i`, `sha256sum -c` 12/12 OK): `evidence/p14/r5_p14_frozen_manifest_20261026.sha256` (P14 files only; the 21 P12+P13 files stay under their manifests, 15/15 and 6/6 OK before and after P14). P14 evidence: `evidence/p14/`.
+
+| `sampled_real_form_diff_r5.py` (P15) | `1bd83aa8cadfcfc19e89d48c36dea317ea6553cf4ac52f796dce3891d7044b31` |
+| `p6_acceptance_suite.sh` (P15) | `6a071595c45bcf660ead21bd9f98e9bd6d7b9c169894aff16aeceac061d05d95` |
+| `p10_preservation_check.sh` (P15) | `75b91bccb14f55f977634894cc72bec81e7da5a38f0a100debd7982f45d401dc` |
+| `p8_recovery_unit_test.py` (P15) | `767b6fba96b1e4afcd01823fae799f1ea929ebe8b68f9525f79eb50258e212ed` |
+| `p11_negative_controls.sh` (P15) | `f116ee53ed511dfa56b9ae4446adf4a938a5464f276899e1eda3b845c4d55173` |
+| `p12_perencounter_reconcile.py` (P15) | `56f55ee268c45de6134508f0b45f2b023bfd71131ec5c372511a52fc192988c1` |
+| `p13_wide_sample.sh` (P15) | `e72c5be3ecdef1415da4f20ece98d3708360f4c2325ec2ce3d40dbdaae9b5c73` |
+| `p13_sample_compare.py` (P15) | `5c11b900b58e583543460804314f8b7247e74f28d049bbfe435e9c9baf705936` |
+| `p13_kill_test.sh` (P15) | `7e0a566562bf6d279ac1ef423aed87142b6ebf6f4fa675ce06ef716bce3f4008` |
+| `p14_edge_run.sh` (P15) | `57649869f47eb121f2337442f11ec073623c7e2a217be8309eba026855dfa770` |
+| `p15_lib.sh` (P15) | `53f4682e6939dd5804e3c4053aef7dcba74807058335a263963dda82553c0cf0` |
+| `p15_lib_test.sh` (P15) | `a9195de37e75303bbe34b59f7c760a114b3e3f7b85ac0380c4cd407d7d5deff2` |
+| `p15_line_identity.py` (P15) | `f4f6a0f523256fd2da63536f6a8a061c587b8d088ed2b41405e7289947df7046` |
+| `p15_line_negctl.sh` (P15) | `2420c101ade0f2691630450eba70eda7047e1e725fe08ffbea44f831ba199134` |
+| `p15_a_negctl.sh` (P15) | `081325a3d358816d43fb90f301b878b2e725e66123a3bb8a2e24f4ea077ea070` |
+| `p15_b6_negctl.sh` (P15) | `7b22021692754e0e5fbe371d87511bbdecd1e7709f4a338eb1744827fd8b057a` |
+| `p15_chain.sh` (P15) | `6e3689badc3b54f069746d4abfc0af27c5bac6e314fd0ca4d5a2915daa1952bf` |
+| `p15_chain_e.sh` (P15) | `35654e4886fbdcda1953296fa4a7caee4cba4e0556c2a78fe62a1e55e6dab0c2` |
+
+> 2026-10-26 (R5 §27, P15) re-pins the 10 changed files above and adds 8 new ones; frozen on the box (`chattr +i`, 18/18 OK): `evidence/p15/r5_p15_frozen_manifest_20261026b.sha256` (manifest a, 17 files, kept as history). Where a file appears in an earlier pin row, **this row supersedes it** for evidence after P15; earlier evidence stays bound to the bytes it names (originals in `.bak_p15_20261026/` on the box).
 
 > 2026-10-24 (R5 §23) re-pins the wrapper (`0865400d…`→`6967805d…`) and the NC driver (`0bba1931…`→`e65238ca…`) and adds `dr_runlock.sh` and `runlock_negctl.sh`; frozen manifest `evidence/runlock/r5_frozen_manifest_20261024.sha256`.
 >
@@ -160,7 +181,7 @@ SHA-256 so the benchmark is re-derivable without the original live box.
 ## Honest limitation
 - No DOI-Zenodo archive (human step, D3 remainder). The manifest + pinned SHAs let a
   third party reproduce the *gates and oracle* given the Khanza jar + DB schema; the
-  raw 12-month DB images are too large to pin by hash and are the human-archival
+  raw 12-month DB images ~~are too large to pin by hash and~~ *(P15 D2: size is not a reason; a 25 MB dump hashes in under a second. They are unpinned because they are not archived yet)* are the human-archival
   responsibility.
 - The P4-E2 burst found the consumer ceiling is ~1,802 v/min (warm) / ~916 v/min
   (cold scratch), so a 5× burst is not a provided headroom (see P4-E2 evidence).

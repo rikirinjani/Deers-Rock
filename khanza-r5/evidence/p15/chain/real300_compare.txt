@@ -1,0 +1,1 @@
+P15-LINE-IDENTITY: {"b_eq_a": 300, "db": "sik_p14e", "encounters": 300, "fail": 0, "fresh_b_ok": 300, "ledger": "sik_bench", "line_differ": 0, "lines": 1240, "mode": "equal", "pass": 300, "since": "2026-10-26 11:58:44.832062", "verdicts": {"EQUAL": 181, "EQUAL-SRC": 119}}

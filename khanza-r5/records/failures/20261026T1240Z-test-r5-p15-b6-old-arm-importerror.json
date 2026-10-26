@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-26T12:40:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P15 B6 control: the old-bytes arm died on ImportError (exit 1) instead of demonstrating the {} == {} defect",
+  "what_went_wrong": [
+    "The old p12_perencounter_reconcile.py ran from .bak_p15 (only the changed files), so its sys.path import of dbutil failed; exit 1 for the wrong reason; one log file was shared by all arms, hiding the traceback."
+  ],
+  "root_cause": "The old-arm runner did not provide the shared modules and did not keep per-arm logs.",
+  "detection": "P15 chain step 3e: 'B6 OLD bytes pass the uncovered encounter' got 1, want 0.",
+  "impact": "No false claim; the control reported FAIL.",
+  "correction": {
+    "applied": "PYTHONPATH to the tools dir for every arm, one log per arm; re-frozen (manifest b) and re-run in p15_chain_e.sh.",
+    "result": "see p15_chain_e evidence"
+  },
+  "rule": "An old-bytes control must first prove the old bytes run (a clean arm on the old bytes) before its result means anything.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}

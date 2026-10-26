@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-26T12:40:00Z",
+  "category": "test",
+  "severity": "major",
+  "title": "P15 E3: the A28' fixture-hash helper was defined in a suite block that P11_ONLY runs skip, so NC1 failed in both arms",
+  "what_went_wrong": [
+    "The E3 patch anchored on the first CHECKSUM line in the suite, which belongs to the P10 stage_cks (inside the main-suite block guarded by -z P11_ONLY), not to stage_cks_p11.",
+    "hash_p11 was therefore undefined in the P11_ONLY=28 runs; the fixture hash was empty, the A28' check failed WITH and WITHOUT the switch: NC 1 NOT-DISCRIMINATING (p15_chain NC 4/5).",
+    "The intended NULL guard landed on the P10 stage_cks instead of stage_cks_p11 (harmless there; full suite 39/39)."
+  ],
+  "root_cause": "Patch anchored on text, not on the function name; no dev run of P11_ONLY=28 before freezing.",
+  "detection": "P15 chain step 5d (NC 1: with-switch=FAIL without=FAIL); suite evidence shows 'fixture hash before/after:  / '.",
+  "impact": "No false claim: the runner reported NOT-DISCRIMINATING and the chain exit nc=1.",
+  "correction": {
+    "applied": "hash_p11 moved into the P11 block, NULL guard added to stage_cks_p11; suite unfrozen/re-frozen (manifest 20261026b); E steps re-run by p15_chain_e.sh.",
+    "result": "see p15_chain_e evidence"
+  },
+  "rule": "Before freezing, run every selective path (P11_ONLY=<id>) once, not only the full suite.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}

@@ -333,7 +333,7 @@ data + partners beyond this repository.
 4. **B3-scale independent form-level count — RESTATED (RC-8):** the 999-visit real-form sample
    passed 0/999. **The roadmap's "≥1,000" acceptance box was checked with 999 visits; the
    criterion is restated to "999 stratified visits (≈1,000, one short of the literal box)."**
-   Edge-strata count (B3, now agent-runnable) remains NOT TESTED. B-settlement equivalence is
+   ~~Edge-strata count (B3, now agent-runnable) remains NOT TESTED.~~ *(P15 D3: tested in P14, §26.)* B-settlement equivalence is
    out of scope (subset, §13).
 5. **dx frequency calibration — NOT TESTED** (human C1).
 6. **5× burst re-run — NOT TESTED** (now agent-runnable, E2).
@@ -1128,7 +1128,7 @@ checks exercise, but the full-suite and NC runs were **not** repeated on the new
 
 ## 24. P12: evidence chain re-run on the run-lock bytes, per-encounter reconciliation, reproducibility closure (2026-10-24, new)
 
-**1. The P11 evidence is re-taken on the bytes that now run.** One chain, one held lock
+**1. The P11 evidence is re-taken on the bytes that now run.** One chain, ~~one held lock~~ *(P15 D9: one lock session, released and re-acquired inside the chain for the run-lock negative control, chain log STEP 5b)*
 (`P12-RERUN-20261024B`), mac-mini-vultr, frozen set of 15 files
 (`evidence/p12/r5_frozen_manifest_20261024b.sha256`, `sha256sum -c` OK before and after), transcript
 `evidence/p12/r5_p12_rerun_chain_20261024T112518Z.log`:
@@ -1370,7 +1370,7 @@ separate P13-style clone; the deviation is recorded in §2a.)
 - **Verdicts:** 181 EQUAL and **119 EQUAL-CTX**. 40 % of real visits contain a procedure or drug whose
   display name maps to more than one code. For those visits, identity rests on the encounter's own
   ledger codes, which is weaker than a name-unique mapping.
-- **Bound:** Clopper–Pearson 95 % upper bound on the line-level mismatch rate for n = 300, k = 0 is
+- **Bound:** Clopper–Pearson 95 % upper bound on the ~~line-level~~ *per-encounter (P15 D5: the trials are encounters, not the 1,240 lines, which are not independent)* mismatch rate for n = 300, k = 0 is
   0.99 % one-sided and 1.22 % two-sided, under the P13 sampling assumption.
 
 **9. Live state.** The baseline (06:03:46Z) and both final proofs (06:45:07Z, 06:48:55Z) are
@@ -1384,3 +1384,155 @@ identical on every line except the time:
 **Scope.** The 27 authored visits test the paths named in §2. They are not a sample, and no rate is
 claimed from them. The line-level result covers 300 real visits only. The ledger gaps in §3 and §6 are
 reported, not fixed: P14 changed no frozen tool and no live row.
+
+## 27. P15: driver safety, acceptance predicates, discriminating line identity (2026-10-26, new)
+
+**Source.** Astra v11 (`evidence/astra_v11_5496287_output.md`, **66/100**). Every v11 finding was
+checked against the source before any change. Results: 33 confirmed, 4 partly true, 1 not confirmed
+(P14 never dropped a clone on refusal; P13 did). One new defect was found during the check (S7).
+The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identity.md`, §1 table.
+
+**Run.**
+- Lock `P15-CLAUDE-20261026`, acquired 09:19:33Z, released 13:11:37Z. The release is captured in
+  `evidence/p15/lock_release.txt` (`RUNLOCK-RELEASED` then `RUNLOCK-FREE`). This also closes D8 for
+  P15; the P14 release is shown indirectly by `RUNLOCK-FREE` at P15 start.
+- Evidence: `evidence/p15/` (`chain.log`, `chain_e.log`, `chain/`, `chain_e/`).
+- Frozen bytes: 18 files, `evidence/p15/r5_p15_frozen_manifest_20261026b.sha256`, 18/18 OK before
+  and after, `chattr +i`.
+- Manifest a (17 files) is kept as history. Only the suite and the B6 control changed between a and
+  b, plus the new `p15_chain_e.sh`.
+- 6 of the 15 P12 files, 3 of the 6 P13 files and 1 of the 12 P14 files are replaced by P15 bytes.
+  Their old bytes are in `.bak_p15_20261026/` on the box. Evidence before P15 stays valid for the
+  bytes it names.
+
+**A. Driver safety** (`p15_lib.sh`, P13 and P14 drivers, preservation check, P13 kill test):
+
+- Every validation (lock, `database.xml`, clone exists, disk) now runs before the EXIT trap. A
+  refusal touches nothing.
+- Cleanup undoes only what the run did: its own clone, its own grant, its own xml retarget, and
+  its own harness process groups from the oracle's `.pid` files. There is no global `pkill`.
+- `pipefail` is set; the clone is validated against `sik` (1,100 tables, 6 key tables
+  row-equal); the stop rule is `bad*100 > 2*total`; a ledger pin mismatch fails; P14 has an exit
+  table; grant probes are correctly quoted, with a positive case.
+- The P13 driver also kept a half-built clone after an abort before the oracle (`ORACLE_RC=0`);
+  that is fixed too.
+- **Evidence:** `chain/a_lib_test.txt` 19/19; `chain/a_negctl.txt` 9/9.
+- **The old bytes are shown failing on the same setup:**
+  - the old P13 refusal destroyed an existing clone (`sentinel=0`);
+  - the old P14 refusal killed an unrelated `BilingHarness` process and revoked the grant
+    (`grant=0 dummy=dead`);
+  - the new bytes leave all of them intact (`sentinel=1 grant=4 dummy=alive`);
+  - a failing `mysqldump` now aborts with exit 3 and drops only the half-clone this run created.
+- The library test also reproduces both old defects. The integer stop rule does not stop at 7/300
+  (2.33 %), and the old P13 grant probe reports 0 while the grant exists (**S7: the P13 kill test's
+  "no grant" line, and the handoff's "No benchmark grants on sik/sik_bench", rested on that
+  vacuous probe**). The live standing grants of the Khanza app account (`benchmark@localhost`:
+  DML on `sik`, broad on `sik_bench`) were identical at baseline, chain start and final (line
+  hash `ae5da20e…` three times).
+
+**B/C. Acceptance predicates and line identity** (`p15_line_identity.py`, new; the frozen P14 comparator is unchanged):
+
+- **Name collisions:** resolved from the encounter's own source rows (`rawat_jl_dr`,
+  `detail_pemberian_obat`), never from the expected ledger. EQUAL-CTX is replaced by EQUAL-SRC;
+  0 or more than 1 candidates → AMBIGUOUS, which fails.
+- **`--expect` PASS** also requires B = A_form, `form_model` = MATCH and `ledger_model` = MATCH.
+- **Input errors (exit 2):** duplicate ledger keys, an empty or duplicate visit list, and
+  NULL/empty numerics.
+- **Quantity** is compared for every component.
+- **Fresh-B** means exactly one INSERT, by `benchmark@`, at or after the run start that the driver
+  recorded (MySQL `NOW(6)`).
+- **P13 comparator and P12 reconcile:** the same B4/B5 changes went into the P13 comparator; P12
+  reconcile asserts coverage (B6).
+
+| Result | Value | Evidence |
+|---|---|---|
+| C4 clone, ledger | `REPRODUCES-PIN` (`356355:a66a3a54…`); clone matches `sik` | `chain/c4_driver.log` |
+| C4 form runs | fixture 27/27 `sukses=true`, oracle exit 4 (expected); real 300/300, oracle exit 0; driver exit 0 | same |
+| Fixture, `--expect`, stricter B1 | **27/27 pass**; B = A 27/27; fresh-B 27/27; verdicts DIFFER 12 / EQUAL 12 / EQUAL-SRC 3 | `chain/fixture_lines_summary.json` |
+| Real 300 vs live-pinned ledger | **300/300 pass, 1,240 lines, 0 line differences**; EQUAL 181 / **EQUAL-SRC 119** / AMBIGUOUS 0; B = A 300/300; fresh-B 300/300 | `chain/real300_lines_summary.json` |
+| P13 comparator B4/B5 | run window → 300/300 fresh-B exit 0; window in the future → exit 1; duplicate list → exit 2 | `chain/p13cmp_*.txt` |
+| B1–B5 + C2 controls | **24/24**, each plant `ROW_COUNT()=1` | `chain/line_negctl.txt` |
+| B6 control | **6/6** (after fix 2, see below) | `chain_e/b6_negctl.txt` |
+
+**C2, the v11 hole, shown and closed on the same scratch copy.** In encounter 900026 the ledger code
+J000840 was changed to J000844: same display name, same price, and the wrong code is the one
+present in the ledger.
+- **Old P14 comparator:** EQUAL-CTX, MATCH. The wrong code passes.
+- **New comparator:** DIFFER, MISMATCH. The source rows say J000840.
+
+The other plants each fail only their own encounter:
+- B1a, payment −1;
+- B1b, quantity and unit changed with the amount unchanged, caught through `form_model`;
+- B3, registration quantity 2;
+- B5a, an extra INSERT by `root@`;
+- B5b, the fresh row moved before the run start.
+
+The planted run had 0 failures among the unplanted encounters.
+
+**Limit (stated, unchanged).** Billing rows carry names, not codes. Suppose the form billed code Y
+under a display name it shares with the source's code X. Neither the source rows nor the ledger
+would show it. Only form-side provenance would (the C3 stretch, not done). The 119 EQUAL-SRC
+encounters agree with their own source rows; that is not an independent observation of the code
+the form used. Clopper–Pearson 95 % upper bound on the **per-encounter** mismatch rate for n = 300,
+k = 0: 0.99 % one-sided, 1.22 % two-sided, under the P13 sampling assumption.
+
+**E. Recovery-check repairs** (oracle, suite, preservation check, NC runner, unit test):
+
+- **E1, NC runner:** each run's own `evidence:` file is used, never `ls -t`. A missing file or
+  verdict line is ERROR, not PASS. NC2/NC5 require their specific assertion. The STRATA dump is
+  pinned by sha256.
+- **E2, NC4:** a fault hook drifts one live row between the stage copy and the hashing in **both**
+  arms, which differ only by the hash source. The predicate is the same in both arms: the stored
+  hash equals the recomputed staged content. The hash file is now written atomically.
+- **E3, A28′:** no unconditional −5; the restore result is asserted; the stage tables are dropped
+  only after a verified restore; the fixture must equal its pre-test hash; NULL checksums are never
+  comparable.
+- **E4, preservation:** a missing pre-op snapshot aborts and is never re-recorded. The snapshots
+  must be newer than this run's suite start. The expected stage inventory comes from the oracle's
+  specification (`RESET_TABLES` + `_reg`), and the post-failure observation must equal it.
+- **E5, switches:** active only on exactly `1`, and refused on live inside the helper.
+- **E6, grant recovery:** refused while the marker's holder is alive; the granted privileges must
+  be visible afterwards; a readable marker is validated by `recover_writer_exclusion` before it is
+  deleted; `{}` is rejected.
+
+| Result | Value | Evidence |
+|---|---|---|
+| Full fresh suite | **PASS=39 FAIL=0** | `chain_e/r5_p6_acceptance_20261026T125031Z.md` |
+| Preservation | **PASS**; `SNAPSHOT-BINDING … written by this run` | `chain_e/r5_p10_preservation_20261026T125731Z.md` |
+| Recovery unit test | **44/44** (33 + 11 new E5/E6 cases) | `chain_e/e_unit.txt` |
+| Negative controls, repaired runner | **DISCRIMINATING=5 NOT-DISCRIMINATING=0** | `chain_e/r5_p11_negative_controls_20261026T125926Z.md` |
+
+**Two defects in P15's own first bytes (recorded, fixed, re-run).**
+- **First chain, NC1** was NOT-DISCRIMINATING (with = FAIL, without = FAIL). The E3 patch had
+  defined the fixture-hash helper inside the main-suite block that `P11_ONLY` runs skip, so the
+  hash was empty in both arms (`chain/r5_p11_negative_controls_20261026T123509Z.md`). The same
+  patch put the NULL guard on the P10 `stage_cks`, where it is harmless (full suite 39/39 on both
+  byte sets), instead of `stage_cks_p11`.
+- **First chain, B6:** its old-bytes arm died on ImportError (exit 1 for the wrong reason).
+- **Fix 2** moved the helper into the P11 block, gave the B6 arms the shared modules and one log
+  each, and re-froze (manifest b). The E steps and B6 were re-run on those bytes (`chain_e.log`).
+- **Failure records:** `20261026T1240Z-test-r5-p15-a28-hash-helper-out-of-scope`,
+  `…-b6-old-arm-importerror`.
+
+**D. Document corrections** (strike-through, reasons inline):
+- D1, D2 manifest overclaims;
+- D3, the R5 §12 item 4 edge strata;
+- D4, the handoff "no grants" statement;
+- D5, the P14 bound relabelled per-encounter;
+- D6, the E6 sign;
+- D7, the P14 rubric re-scored 22/28;
+- D9, the P12 "one held lock" wording.
+
+**Live state.** Baseline (09:19Z, 11:55Z) and final (13:10Z) are identical apart from time:
+- `sik sik_bench`, `database.xml` → `sik`, 0 writer markers;
+- standing app grants identical, no clone grants;
+- ledger `356355:a66a3a54…`, 0 fixture rows in live;
+- live counts `86676 reg, 1464593 billing, 86488 nota, 1100 dnota`.
+
+**Not done in P15 (stated):**
+- C3 form-side code provenance;
+- X2 (independent hashes share the oracle module);
+- A11's operation inventory;
+- inner restore order;
+- the clean-box rebuild;
+- the P14 ledger scope gaps (owner decisions).

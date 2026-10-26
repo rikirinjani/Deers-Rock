@@ -1,0 +1,806 @@
+[11:58:29] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[11:58:44] FROZEN 300 visits -> /opt/dr-benchmark/results/p15e_real_20261026T115538Z/B3_oracle_run_r5/baseline_frozen (sha256_all=daa656288c860aff)
+[11:58:44] verify-frozen: PASS
+[11:58:44] FREEZE-ONLY exit 0 (administrative mode; no billing comparison performed; P6-2c)
+[11:58:49] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[11:59:00] verify-frozen: PASS
+[11:59:00] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[11:59:00] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:00] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-01 source=stage (sha256=b6ef704af1d35114...)
+[11:59:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:06] date 2026-10-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:06] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-02 source=stage (sha256=c4dbd7a914861c2e...)
+[11:59:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:12] date 2026-10-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:13] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:13] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-03 source=stage (sha256=3169ca73537f1acc...)
+[11:59:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:19] date 2026-10-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:19] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:19] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-04 source=stage (sha256=294dbcbc5afb59c5...)
+[11:59:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:25] date 2026-10-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:25] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:25] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-06 source=stage (sha256=9437d96fdcacf815...)
+[11:59:25] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:31] date 2026-10-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:31] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:31] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-07 source=stage (sha256=aa8a963239c7e195...)
+[11:59:32] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:37] date 2026-10-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:37] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:38] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-09 source=stage (sha256=dd1b5a157ede1741...)
+[11:59:38] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:43] date 2026-10-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:44] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:44] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-10 source=stage (sha256=27c8d1e2976f2394...)
+[11:59:44] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:49] date 2026-10-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:50] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:50] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-12 source=stage (sha256=01c7004300f0929f...)
+[11:59:50] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[11:59:56] date 2026-10-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[11:59:56] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[11:59:56] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-13 source=stage (sha256=749f00f885ec73d5...)
+[11:59:56] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:05] date 2026-10-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:00:05] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:06] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-14 source=stage (sha256=16490b6df92dbff7...)
+[12:00:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:11] date 2026-10-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:00:12] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:12] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-15 source=stage (sha256=bc34dd14a2b607b7...)
+[12:00:12] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:18] date 2026-10-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:00:18] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:18] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-19 source=stage (sha256=f420d40e2f876c55...)
+[12:00:18] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:30] date 2026-10-19: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:00:30] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:31] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-20 source=stage (sha256=b61303a3acd53125...)
+[12:00:31] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:36] date 2026-10-20: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:00:36] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:37] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-22 source=stage (sha256=b3a1754e35443b69...)
+[12:00:37] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:42] date 2026-10-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:00:43] stage-backup 4 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:43] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-23 source=stage (sha256=e84fa3b4c24dab47...)
+[12:00:43] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[12:00:58] date 2026-10-23: rc=0 visits=4 sukses_true=4 -> BILLED
+[12:00:58] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:00:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-25 source=stage (sha256=be60cfe798992185...)
+[12:00:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:04] date 2026-10-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:01:04] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:05] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-26 source=stage (sha256=767023858f3eaf4c...)
+[12:01:05] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:14] date 2026-10-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:01:14] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:14] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-27 source=stage (sha256=d654b2bd74f5c9e2...)
+[12:01:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:20] date 2026-10-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:01:20] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-28 source=stage (sha256=53d7ca4c86b60758...)
+[12:01:21] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:26] date 2026-10-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:01:26] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:27] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-30 source=stage (sha256=83d094d9fef95d53...)
+[12:01:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:35] date 2026-10-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:01:36] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:36] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-10-31 source=stage (sha256=a8c3fd699fca4527...)
+[12:01:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:41] date 2026-10-31: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:01:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-02 source=stage (sha256=390bd79cc01cde84...)
+[12:01:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:47] date 2026-11-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:01:48] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-03 source=stage (sha256=199f5368a7c13561...)
+[12:01:48] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:01:57] date 2026-11-03: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:01:57] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:01:57] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-04 source=stage (sha256=9555c6e4799edad4...)
+[12:01:57] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:06] date 2026-11-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:02:06] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-05 source=stage (sha256=9cda70efb58d0b4b...)
+[12:02:07] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:15] date 2026-11-05: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:02:15] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:16] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-06 source=stage (sha256=493e10258db927a7...)
+[12:02:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:21] date 2026-11-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:02:22] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:22] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-09 source=stage (sha256=212297764c65a278...)
+[12:02:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:27] date 2026-11-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:02:28] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:28] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-10 source=stage (sha256=cd11c39c00e4b3fd...)
+[12:02:28] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:40] date 2026-11-10: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:02:40] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-11 source=stage (sha256=fa13c310f2e9c5d4...)
+[12:02:41] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:49] date 2026-11-11: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:02:50] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:50] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-12 source=stage (sha256=11783b45752fd81c...)
+[12:02:50] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:02:56] date 2026-11-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:02:56] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:02:56] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-13 source=stage (sha256=cb9b6c129d2e5f7b...)
+[12:02:56] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:05] date 2026-11-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:03:05] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:05] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-16 source=stage (sha256=810bc8b7de09779d...)
+[12:03:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:11] date 2026-11-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:03:11] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:12] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-18 source=stage (sha256=a590622478ed0a53...)
+[12:03:12] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:20] date 2026-11-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:03:21] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:21] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-21 source=stage (sha256=34131d5629c1972e...)
+[12:03:21] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:30] date 2026-11-21: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:03:30] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:30] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-25 source=stage (sha256=a31ebc5ac7c93d28...)
+[12:03:30] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:36] date 2026-11-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:03:36] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:36] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-11-26 source=stage (sha256=f1f918b2b28d7d5e...)
+[12:03:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:42] date 2026-11-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:03:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-01 source=stage (sha256=69ad1817bdc80a02...)
+[12:03:43] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:48] date 2026-12-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:03:48] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-02 source=stage (sha256=4ecdd68cde3cae7a...)
+[12:03:49] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:03:57] date 2026-12-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:03:58] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:03:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-03 source=stage (sha256=b1e557d4c69541ef...)
+[12:03:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:04] date 2026-12-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:04:04] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:04] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-04 source=stage (sha256=600198bb6f7592a9...)
+[12:04:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:10] date 2026-12-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:04:10] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:10] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-07 source=stage (sha256=288f40da9ba54aba...)
+[12:04:10] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:19] date 2026-12-07: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:04:19] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-10 source=stage (sha256=400401e52f36f7e9...)
+[12:04:20] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:28] date 2026-12-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:04:29] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:29] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-11 source=stage (sha256=c7024811f0e1ad7a...)
+[12:04:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:35] date 2026-12-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:04:35] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:35] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-14 source=stage (sha256=e03a3228fa366974...)
+[12:04:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:41] date 2026-12-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:04:41] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:41] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-16 source=stage (sha256=5785ed78abb322f9...)
+[12:04:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:04:47] date 2026-12-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:04:47] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:04:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-17 source=stage (sha256=41c7e07515496bb0...)
+[12:04:48] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:00] date 2026-12-17: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:05:00] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:00] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-18 source=stage (sha256=d99e64ffb1a54fc7...)
+[12:05:00] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:09] date 2026-12-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:05:09] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:09] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-19 source=stage (sha256=802677fbe1311da9...)
+[12:05:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:15] date 2026-12-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:15] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:16] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-22 source=stage (sha256=1c716089dbe219be...)
+[12:05:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:21] date 2026-12-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:22] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:22] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-23 source=stage (sha256=cd43952f27d0a12b...)
+[12:05:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:28] date 2026-12-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:28] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:28] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-24 source=stage (sha256=c0f5cd3d859b324d...)
+[12:05:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:33] date 2026-12-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:34] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-28 source=stage (sha256=af89b65578aa19f4...)
+[12:05:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:40] date 2026-12-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:40] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-29 source=stage (sha256=ba155096c181eeac...)
+[12:05:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:46] date 2026-12-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:05:46] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:46] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2026-12-30 source=stage (sha256=5ed237b743b8b46c...)
+[12:05:47] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:05:55] date 2026-12-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:05:55] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:05:56] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-01 source=stage (sha256=d5f3c9713785c8a9...)
+[12:05:56] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:04] date 2027-01-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:06:05] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:05] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-03 source=stage (sha256=79d8e888d47a9161...)
+[12:06:05] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:11] date 2027-01-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:06:11] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:11] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-04 source=stage (sha256=f27281eba1ceb7b9...)
+[12:06:11] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:20] date 2027-01-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:06:20] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-07 source=stage (sha256=496f408e9e3036d0...)
+[12:06:20] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:32] date 2027-01-07: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:06:33] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:33] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-10 source=stage (sha256=83c3e07ef438d7e7...)
+[12:06:33] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:38] date 2027-01-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:06:39] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:39] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-11 source=stage (sha256=89aaee0ce554796e...)
+[12:06:39] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:45] date 2027-01-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:06:45] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:45] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-12 source=stage (sha256=9e52225e5bb5162c...)
+[12:06:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:06:51] date 2027-01-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:06:51] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:06:51] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-15 source=stage (sha256=13440aee0871eb9f...)
+[12:06:52] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:00] date 2027-01-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:07:00] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:01] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-18 source=stage (sha256=a7188de8ab0d07e2...)
+[12:07:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:06] date 2027-01-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:07:07] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-20 source=stage (sha256=61eca6a170e05b7c...)
+[12:07:07] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:19] date 2027-01-20: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:07:19] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:19] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-21 source=stage (sha256=b0c6bb9a7198ff1e...)
+[12:07:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:25] date 2027-01-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:07:25] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:26] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-22 source=stage (sha256=e76e3fbc79a0052a...)
+[12:07:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:31] date 2027-01-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:07:32] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:32] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-26 source=stage (sha256=8d0bccd0c7a8241e...)
+[12:07:32] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:44] date 2027-01-26: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:07:44] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:44] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-27 source=stage (sha256=e0ef8992267ac604...)
+[12:07:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:50] date 2027-01-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:07:50] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:50] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-01-28 source=stage (sha256=ad8a3a3c277c5f0b...)
+[12:07:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:07:56] date 2027-01-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:07:56] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:07:57] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-02 source=stage (sha256=20d9dd3eb826bc58...)
+[12:07:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:02] date 2027-02-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:08:03] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:03] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-03 source=stage (sha256=4f79c069a450a2b9...)
+[12:08:03] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:08] date 2027-02-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:08:09] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:09] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-04 source=stage (sha256=d3ce4dc7ed2385d1...)
+[12:08:09] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:17] date 2027-02-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:08:18] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:18] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-06 source=stage (sha256=c459f767581764db...)
+[12:08:18] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:24] date 2027-02-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:08:24] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:24] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-09 source=stage (sha256=7ae9123c4df209a0...)
+[12:08:24] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:36] date 2027-02-09: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:08:36] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:37] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-10 source=stage (sha256=206c9d596449b79a...)
+[12:08:37] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:46] date 2027-02-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:08:46] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:46] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-15 source=stage (sha256=dcd2ee4fd6a98212...)
+[12:08:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:52] date 2027-02-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:08:52] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:52] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-16 source=stage (sha256=22d9f33380fe3cb5...)
+[12:08:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:08:58] date 2027-02-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:08:58] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:08:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-19 source=stage (sha256=fec861641d6b0da8...)
+[12:08:59] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:10] date 2027-02-19: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:09:11] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:11] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-22 source=stage (sha256=eed89cdca11a4d1b...)
+[12:09:11] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:16] date 2027-02-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:09:17] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:17] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-23 source=stage (sha256=30f458ff4b601a46...)
+[12:09:17] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:29] date 2027-02-23: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:09:29] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:29] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-24 source=stage (sha256=1c06002750028586...)
+[12:09:29] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:38] date 2027-02-24: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:09:38] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:39] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-02-26 source=stage (sha256=97207232f33715e9...)
+[12:09:39] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:47] date 2027-02-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:09:48] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-02 source=stage (sha256=87e9f8fe906c3779...)
+[12:09:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:09:54] date 2027-03-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:09:54] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:09:54] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-04 source=stage (sha256=876315b49f03aff7...)
+[12:09:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:00] date 2027-03-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:00] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:00] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-05 source=stage (sha256=375dc169d825403b...)
+[12:10:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:06] date 2027-03-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:06] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:06] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-08 source=stage (sha256=bb8afedc8526cef2...)
+[12:10:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:12] date 2027-03-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:12] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:12] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-09 source=stage (sha256=ff7e8d7bff66aa5e...)
+[12:10:12] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:18] date 2027-03-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:18] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:18] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-11 source=stage (sha256=4fdbe7083ddd991f...)
+[12:10:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:24] date 2027-03-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:24] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:24] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-13 source=stage (sha256=9b5cff629998088f...)
+[12:10:25] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:33] date 2027-03-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:10:34] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-15 source=stage (sha256=25364417d16447cc...)
+[12:10:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:40] date 2027-03-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:40] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-16 source=stage (sha256=7aca40ba59a3928b...)
+[12:10:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:46] date 2027-03-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:46] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:46] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-17 source=stage (sha256=5d46b50497345821...)
+[12:10:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:10:52] date 2027-03-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:10:52] stage-backup 4 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:10:52] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-18 source=stage (sha256=f7e16418a57c21bc...)
+[12:10:53] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:08] date 2027-03-18: rc=0 visits=4 sukses_true=4 -> BILLED
+[12:11:08] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:08] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-19 source=stage (sha256=dabe55c074bf5e64...)
+[12:11:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:14] date 2027-03-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:11:14] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:14] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-24 source=stage (sha256=ab37604115f89208...)
+[12:11:15] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:23] date 2027-03-24: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:11:23] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:24] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-25 source=stage (sha256=1197af1ee67c09cd...)
+[12:11:24] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:32] date 2027-03-25: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:11:33] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:33] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-26 source=stage (sha256=9403bc313151d069...)
+[12:11:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:42] date 2027-03-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:11:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-30 source=stage (sha256=d37a650a329061be...)
+[12:11:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:48] date 2027-03-30: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:11:48] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-03-31 source=stage (sha256=70f2f7277d088e6a...)
+[12:11:49] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:11:57] date 2027-03-31: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:11:57] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:11:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-05 source=stage (sha256=55f62c468fff7c9b...)
+[12:11:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:03] date 2027-04-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:04] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:04] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-06 source=stage (sha256=762d01bfd113dbaa...)
+[12:12:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:10] date 2027-04-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:10] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:10] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-08 source=stage (sha256=7c26046e62af1d42...)
+[12:12:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:16] date 2027-04-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:16] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:16] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-09 source=stage (sha256=a6da2deb30ae45ab...)
+[12:12:16] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:25] date 2027-04-09: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:12:25] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:26] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-10 source=stage (sha256=e7fff182e3d3e87e...)
+[12:12:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:31] date 2027-04-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:32] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:32] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-11 source=stage (sha256=6cb90fd561adc58b...)
+[12:12:32] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:38] date 2027-04-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:38] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:38] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-13 source=stage (sha256=72fe4f3e8a53f15a...)
+[12:12:38] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:44] date 2027-04-13: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:12:44] stage-backup 4 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:12:44] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-14 source=stage (sha256=41250cee8dabf258...)
+[12:12:44] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[12:12:59] date 2027-04-14: rc=0 visits=4 sukses_true=4 -> BILLED
+[12:12:59] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:00] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-19 source=stage (sha256=070009bb1efb093e...)
+[12:13:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:05] date 2027-04-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:05] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:06] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-20 source=stage (sha256=11bf02f1544dc171...)
+[12:13:06] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:15] date 2027-04-20: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:13:15] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:15] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-22 source=stage (sha256=72189cce1bd8cf30...)
+[12:13:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:21] date 2027-04-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:21] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:21] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-23 source=stage (sha256=37a69cd6be94ed47...)
+[12:13:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:27] date 2027-04-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:27] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:27] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-26 source=stage (sha256=9e84e73251446988...)
+[12:13:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:33] date 2027-04-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:33] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-27 source=stage (sha256=ad4d1dfad3adc0b2...)
+[12:13:34] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:46] date 2027-04-27: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:13:46] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:46] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-28 source=stage (sha256=96aa26c520ab318e...)
+[12:13:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:52] date 2027-04-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:52] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:52] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-29 source=stage (sha256=43898cb918743d4c...)
+[12:13:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:13:58] date 2027-04-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:13:58] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:13:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-04-30 source=stage (sha256=961611d1d4e1a64f...)
+[12:13:59] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:07] date 2027-04-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:14:07] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-01 source=stage (sha256=396d2f66bae69222...)
+[12:14:08] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:20] date 2027-05-01: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:14:20] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-03 source=stage (sha256=0d5f6cd7d52ddae7...)
+[12:14:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:26] date 2027-05-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:14:26] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:26] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-04 source=stage (sha256=747b6a8e685ac910...)
+[12:14:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:32] date 2027-05-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:14:32] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:32] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-05 source=stage (sha256=27f32457ab0c9a97...)
+[12:14:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:41] date 2027-05-05: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:14:41] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-07 source=stage (sha256=30dd5daa78d9dbb5...)
+[12:14:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:47] date 2027-05-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:14:48] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-10 source=stage (sha256=67dc23b46b43568e...)
+[12:14:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:14:54] date 2027-05-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:14:54] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:14:54] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-11 source=stage (sha256=b04bd228b4c9d0f9...)
+[12:14:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:00] date 2027-05-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:00] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:00] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-12 source=stage (sha256=a074e1ae9c7363ea...)
+[12:15:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:06] date 2027-05-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:06] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:06] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-13 source=stage (sha256=4336fe816381bddb...)
+[12:15:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:12] date 2027-05-13: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:12] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:12] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-14 source=stage (sha256=0dea8615cc6d7470...)
+[12:15:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:18] date 2027-05-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:19] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:19] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-15 source=stage (sha256=93a5a5e289ecd709...)
+[12:15:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:24] date 2027-05-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:25] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:25] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-17 source=stage (sha256=152ed26628e5da65...)
+[12:15:25] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:34] date 2027-05-17: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:15:34] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-19 source=stage (sha256=22440ba19e9b2d7b...)
+[12:15:34] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:43] date 2027-05-19: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:15:43] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:44] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-25 source=stage (sha256=51a17b1a6d8c5b85...)
+[12:15:44] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:49] date 2027-05-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:15:50] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:50] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-26 source=stage (sha256=5e9a9cd211f433e6...)
+[12:15:50] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:15:59] date 2027-05-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:15:59] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:15:59] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-27 source=stage (sha256=5043a99e4e825d14...)
+[12:15:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:05] date 2027-05-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:16:05] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:05] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-05-29 source=stage (sha256=6bd58c31b4921e29...)
+[12:16:05] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:14] date 2027-05-29: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:16:14] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:15] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-01 source=stage (sha256=26079925ddb03de1...)
+[12:16:15] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:24] date 2027-06-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:16:24] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:24] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-02 source=stage (sha256=42cdb2f1706f581c...)
+[12:16:24] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:33] date 2027-06-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:16:33] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:33] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-03 source=stage (sha256=7891f187d525a52e...)
+[12:16:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:42] date 2027-06-03: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:16:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:43] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-05 source=stage (sha256=30815ea2adaf6f30...)
+[12:16:43] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:48] date 2027-06-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:16:48] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:49] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-08 source=stage (sha256=236cea77b9fd6f42...)
+[12:16:49] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:16:54] date 2027-06-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:16:54] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:16:55] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-12 source=stage (sha256=2ffd5a349e2f5097...)
+[12:16:55] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:00] date 2027-06-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:17:00] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:01] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-14 source=stage (sha256=db748d996d25e631...)
+[12:17:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:06] date 2027-06-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:17:07] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-15 source=stage (sha256=b372dca53ced9fc3...)
+[12:17:07] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:16] date 2027-06-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:17:16] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:16] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-16 source=stage (sha256=2ce395cdf8997e97...)
+[12:17:17] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:28] date 2027-06-16: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:17:29] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:29] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-17 source=stage (sha256=05273a599ed716dd...)
+[12:17:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:35] date 2027-06-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:17:35] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:35] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-18 source=stage (sha256=781c40399d3502c8...)
+[12:17:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:41] date 2027-06-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:17:41] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:41] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-19 source=stage (sha256=e94b432d372beccc...)
+[12:17:42] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:50] date 2027-06-19: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:17:50] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:51] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-23 source=stage (sha256=a4b592adca2c4516...)
+[12:17:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:17:56] date 2027-06-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:17:57] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:17:57] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-24 source=stage (sha256=582182f272365724...)
+[12:17:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:03] date 2027-06-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:03] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:03] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-25 source=stage (sha256=fd6e93e9119acf53...)
+[12:18:03] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:15] date 2027-06-25: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:18:15] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:15] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-06-29 source=stage (sha256=3b5e8276bfecfdf3...)
+[12:18:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:21] date 2027-06-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:21] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:22] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-01 source=stage (sha256=574e01c72969857a...)
+[12:18:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:27] date 2027-07-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:27] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:28] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-05 source=stage (sha256=771a45183a110273...)
+[12:18:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:33] date 2027-07-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:34] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-06 source=stage (sha256=d8508a62247b1d8f...)
+[12:18:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:40] date 2027-07-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:40] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-09 source=stage (sha256=fe58e3fb8fa9abfc...)
+[12:18:40] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:52] date 2027-07-09: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:18:52] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:52] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-12 source=stage (sha256=212b4eb5329e730c...)
+[12:18:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:18:58] date 2027-07-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:18:58] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:18:59] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-13 source=stage (sha256=b69def33b5a63371...)
+[12:18:59] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:11] date 2027-07-13: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:19:11] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:11] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-15 source=stage (sha256=4670a2e3e93422dc...)
+[12:19:11] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:20] date 2027-07-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:19:20] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-16 source=stage (sha256=99d1b4fefe1e6903...)
+[12:19:21] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:29] date 2027-07-16: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:19:30] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:30] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-19 source=stage (sha256=664609e1f19a373c...)
+[12:19:30] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:36] date 2027-07-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:19:36] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:36] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-21 source=stage (sha256=0779bdb50b5f3c16...)
+[12:19:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:42] date 2027-07-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:19:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-22 source=stage (sha256=971b46f4c599d990...)
+[12:19:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:48] date 2027-07-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:19:48] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-23 source=stage (sha256=eb088574653b2b4c...)
+[12:19:49] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:19:57] date 2027-07-23: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:19:58] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:19:58] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-26 source=stage (sha256=83c0e52eabbc4993...)
+[12:19:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:04] date 2027-07-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:20:04] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:04] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-27 source=stage (sha256=12547070c88ec3da...)
+[12:20:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:10] date 2027-07-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:20:10] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:10] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-29 source=stage (sha256=f093f5538623f259...)
+[12:20:10] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:22] date 2027-07-29: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:20:22] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:23] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-07-31 source=stage (sha256=f85860efa13345a5...)
+[12:20:23] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:28] date 2027-07-31: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:20:29] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:29] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-02 source=stage (sha256=dee7840a1c7e99e9...)
+[12:20:29] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:38] date 2027-08-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:20:38] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:38] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-04 source=stage (sha256=e5d00061a4aedc00...)
+[12:20:38] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:47] date 2027-08-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:20:47] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:47] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-05 source=stage (sha256=747f3f0ea313465d...)
+[12:20:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:20:53] date 2027-08-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:20:53] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:20:54] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-06 source=stage (sha256=6e2a1ea4fb7459cd...)
+[12:20:54] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:02] date 2027-08-06: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:21:03] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:03] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-09 source=stage (sha256=617c6c753369f0f0...)
+[12:21:03] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:12] date 2027-08-09: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:21:12] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:12] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-11 source=stage (sha256=1046dffbe7148bdd...)
+[12:21:12] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:18] date 2027-08-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:21:18] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:18] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-12 source=stage (sha256=bd47d87d139d9194...)
+[12:21:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:24] date 2027-08-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:21:24] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:25] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-13 source=stage (sha256=1f9f2a0c4451fc38...)
+[12:21:25] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:34] date 2027-08-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:21:34] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:34] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-19 source=stage (sha256=2232a7ba6837101f...)
+[12:21:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:40] date 2027-08-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:21:40] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-23 source=stage (sha256=39542be93470bd58...)
+[12:21:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:46] date 2027-08-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:21:46] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:46] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-24 source=stage (sha256=9842d0a8ed966895...)
+[12:21:46] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:21:58] date 2027-08-24: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:21:58] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:21:59] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-25 source=stage (sha256=ad9e9cb4f7209ac0...)
+[12:21:59] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:08] date 2027-08-25: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:22:08] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:08] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-28 source=stage (sha256=6107e5eafecbe4ec...)
+[12:22:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:14] date 2027-08-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:22:14] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:14] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-30 source=stage (sha256=497af0d70f453ce0...)
+[12:22:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:20] date 2027-08-30: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:22:20] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:20] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-08-31 source=stage (sha256=274a7b176dd29080...)
+[12:22:20] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:32] date 2027-08-31: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:22:32] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:33] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-01 source=stage (sha256=80e6314124f3bf52...)
+[12:22:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:41] date 2027-09-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:22:42] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:42] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-02 source=stage (sha256=4b614c8ad1bf8c1f...)
+[12:22:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:48] date 2027-09-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:22:48] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:48] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-07 source=stage (sha256=bbe5c938dd0ee3a4...)
+[12:22:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:22:54] date 2027-09-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:22:54] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:22:54] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-08 source=stage (sha256=27d9f4d64cb153e3...)
+[12:22:54] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:06] date 2027-09-08: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:23:06] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:07] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-09 source=stage (sha256=3db791dc8adb4859...)
+[12:23:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:12] date 2027-09-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:23:12] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:13] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-10 source=stage (sha256=59bd069e65e741ae...)
+[12:23:13] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:21] date 2027-09-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:23:22] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:22] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-11 source=stage (sha256=8b57513d7bcec5a8...)
+[12:23:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:28] date 2027-09-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:23:28] stage-backup 3 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:28] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-13 source=stage (sha256=d8083890a08d721f...)
+[12:23:28] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:40] date 2027-09-13: rc=0 visits=3 sukses_true=3 -> BILLED
+[12:23:40] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:40] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-15 source=stage (sha256=741c54b278c1152a...)
+[12:23:41] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:46] date 2027-09-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:23:46] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:47] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-17 source=stage (sha256=6190c0e107c15dc6...)
+[12:23:47] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:52] date 2027-09-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:23:53] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:53] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-20 source=stage (sha256=19d1f7be5cd0003d...)
+[12:23:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:23:58] date 2027-09-20: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:23:59] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:23:59] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-21 source=stage (sha256=f4cf5af7e2199cfb...)
+[12:23:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:05] date 2027-09-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:05] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:05] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-22 source=stage (sha256=b90487364d705a85...)
+[12:24:05] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:11] date 2027-09-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:11] stage-backup 2 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:11] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-23 source=stage (sha256=a6e727b5a3cd45d7...)
+[12:24:11] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:20] date 2027-09-23: rc=0 visits=2 sukses_true=2 -> BILLED
+[12:24:20] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:21] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-24 source=stage (sha256=ca28ed623aeaf94e...)
+[12:24:21] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:26] date 2027-09-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:26] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:27] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-28 source=stage (sha256=a92ef1bd7022c486...)
+[12:24:27] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:32] date 2027-09-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:33] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:33] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-29 source=stage (sha256=113195ecdd46e19a...)
+[12:24:33] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:39] date 2027-09-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:39] stage-backup 1 visits -> r5_stage_B3_p15e_real_20261026T115538Z_* (12 output tables + reg.status_bayar)
+[12:24:39] stage-content-hash r5_stage_B3_p15e_real_20261026T115538Z batch 2027-09-30 source=stage (sha256=caa767b4d21305c4...)
+[12:24:39] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[12:24:45] date 2027-09-30: rc=0 visits=1 sukses_true=1 -> BILLED
+[12:24:51] stage-drop r5_stage_B3_p15e_real_20261026T115538Z_* verified (0 remaining; box left clean)
+[12:24:51] artifact written: /opt/dr-benchmark/results/p15e_real_20261026T115538Z/B3_sampled_form_diff_r5.md
+[12:24:51] FINAL: sampled_rows=300 in_envelope=300 out_of_envelope=0 failed_batches=0 drift(in-envelope)=0 parse_errors=0 stage_drop_verified=True (P5-1/P6)

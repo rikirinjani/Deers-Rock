@@ -358,6 +358,17 @@ def verify_frozen(rundir, db, log):
     return ok
 
 
+def _negctl(name, db):
+    """P15 E5: a test-only negative-control switch is active ONLY on the exact value '1'
+    (before P15 any non-empty value, including '0', activated the fault), and it is
+    refused inside the helper on a live database, not only at the entry point."""
+    if os.environ.get(name) != "1":
+        return False
+    if db in LIVE_DBS:
+        raise RuntimeError("%s=1 refused: negative-control switches never act on live %s" % (name, db))
+    return True
+
+
 def _pid_alive(pid):
     try:
         os.kill(int(pid), 0)
@@ -459,7 +470,7 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     # autocommit statements (the pre-P10 behaviour). Without a transaction a failing
     # re-backup leaves the earlier staged rows destroyed, so the stage checksums after
     # a failed retry differ from before; the discriminating A28' check relies on that.
-    if os.environ.get("R5_NEGCTL_BACKUP_NO_TXN"):
+    if _negctl("R5_NEGCTL_BACKUP_NO_TXN", db):
         log("stage-backup NC: R5_NEGCTL_BACKUP_NO_TXN set — DELETE/REPLACE as autocommit "
             "(pre-P10 behaviour, test-only; not transactional)")
         stmts = []
@@ -509,34 +520,37 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     # hash of the LIVE tables after the stage copy commits; a live row changed
     # between the copy and the hashing then disagrees with the staged rows and
     # the equality check must FAIL.
-    if os.environ.get("R5_NEGCTL_HASH_FROM_LIVE_LATE"):
-        log("stage-hash NC: R5_NEGCTL_HASH_FROM_LIVE_LATE set — hashing the live "
-            "tables (pre-P11 order, test-only)")
-        # NC fidelity: simulate the exact hazard of the old order — one live row
-        # drifts AFTER the stage copy commits and BEFORE the hash, then is
-        # reverted. The live-late hash captures the drifted row, so the stored
-        # hash disagrees with the staged rows and the coherence check must FAIL;
-        # the P11 order (hash from the staged rows) is immune to any such drift.
-        drift_done = False
+    # P15 E2: the drift that the old live-late order was vulnerable to is a separate test-only
+    # FAULT hook (R5_FAULT_DRIFT_AFTER_STAGE_COPY=1): one live row changes after the stage copy
+    # commits and before the hash, then is reverted. The suite's A31' sets it in BOTH arms, so
+    # the arms differ only by the hash source; the P11 order (hash from the staged rows) is
+    # immune, the live-late NC order is not.
+    drift_done = False
+    if _negctl("R5_FAULT_DRIFT_AFTER_STAGE_COPY", db):
         try:
             dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya+1 "
                                "WHERE no_rawat='%s'" % nrs[0], force_root=True)
             drift_done = True
+            log("stage-hash FAULT: live row of %s drifted between copy and hash (test-only)" % nrs[0])
         except Exception as e:
-            log("stage-hash NC: drift UPDATE failed (%s); hashing the undrifted "
-                "live tables" % str(e)[:120])
-        h = _content_hash(nrs, db, log)
+            log("stage-hash FAULT: drift UPDATE failed (%s)" % str(e)[:120])
+    try:
+        if _negctl("R5_NEGCTL_HASH_FROM_LIVE_LATE", db):
+            log("stage-hash NC: R5_NEGCTL_HASH_FROM_LIVE_LATE set — hashing the live "
+                "tables (pre-P11 order, test-only)")
+            h = _content_hash(nrs, db, log)
+            hash_source = "live-late-NC"
+        else:
+            h = _stage_content_hash(nrs, db, pfx, log)
+            hash_source = "stage"
+    finally:
         if drift_done:
             dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya-1 "
                                "WHERE no_rawat='%s'" % nrs[0], force_root=True)
-        hash_source = "live-late-NC"
-    else:
-        h = _stage_content_hash(nrs, db, pfx, log)
-        hash_source = "stage"
     hpath = _hash_path(rundir, pfx, batch)
-    with open(hpath, "w") as f:
-        json.dump({"pfx": pfx, "batch": batch, "nrs": nrs, "sha256": h,
-                   "hash_source": hash_source}, f)
+    # P15: published atomically (temp file, fsync, rename), like the exclusion marker
+    _write_marker_atomic(hpath, {"pfx": pfx, "batch": batch, "nrs": nrs, "sha256": h,
+                                 "hash_source": hash_source})
     log("stage-content-hash %s batch %s source=%s (sha256=%s...)"
         % (pfx, batch, hash_source, h[:16]))
 
@@ -744,6 +758,8 @@ def recover_writer_exclusion(db, log, expected_privs=None):
         m = json.load(open(mp))
         if not isinstance(m, dict):
             raise ValueError("marker is not a JSON object")
+        if "pid" not in m or "privs" not in m:   # P15 E6: {} or a partial record is unreadable
+            raise ValueError("marker lacks pid/privs")
     except Exception as e:
         # P11-T4: unreadable marker -> fail CLOSED: keep the file, never delete it,
         # never grant from an unknown record; the caller must stop (exit 3) and an
@@ -770,6 +786,11 @@ def recover_writer_exclusion(db, log, expected_privs=None):
         dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
                        force_root=True)
     back = _bench_dml_privs(db)
+    missing = sorted(set(privs) - set(back))
+    if missing:   # P15 E6: the grants must actually be back before the record is deleted
+        log("WRITER-EXCLUSION recovery on %s incomplete: %s still missing after GRANT (now %s) "
+            "- marker KEPT, refusing to proceed" % (db, missing, back))
+        return False
     os.remove(mp)
     log("WRITER-EXCLUSION recovered (P10-B4): pid %s died with exclusion on; granted %s back "
         "on %s (now %s)" % (m.get("pid"), privs or "nothing", db, back))
@@ -778,25 +799,47 @@ def recover_writer_exclusion(db, log, expected_privs=None):
 
 def _recover_grants_expected(db, log, grants_csv):
     """P11-T4 operator fallback: grant an explicit privilege list back to the
-    benchmark account on a fixture, then clear any unreadable marker of a dead
-    process so the target can be restored. Only for fixtures (refused on live)."""
+    benchmark account on a fixture. Only for fixtures (refused on live).
+
+    P15 E6: refused while a LIVE process holds the marker; succeeds only when every
+    requested privilege is visible afterwards; a READABLE marker is left in place for
+    recover_writer_exclusion() to validate against the expected set and delete (the
+    main path calls it next); only an UNREADABLE marker (the case this override exists
+    for) is removed here."""
     if db in LIVE_DBS:
         log("WRITER-EXCLUSION recover-grants refused: %s is live; grants are never "
             "changed there" % db)
         return False
     privs = [p.strip() for p in grants_csv.split(",") if p.strip()]
+    mp = _exclusion_marker(db)
+    m = None
+    if os.path.exists(mp):
+        try:
+            m = json.load(open(mp))
+        except Exception:
+            m = None
+        if isinstance(m, dict) and m.get("pid") and _pid_alive(m["pid"])                 and int(m["pid"]) != os.getpid():
+            log("WRITER-EXCLUSION recover-grants refused on %s: marker held by live pid %s"
+                % (db, m["pid"]))
+            return False
     if privs:
         dbutil.execute(db, "GRANT %s ON `%s`.* TO %s" % (", ".join(privs), db, BENCH_ACCOUNT),
                        force_root=True)
     back = _bench_dml_privs(db)
-    mp = _exclusion_marker(db)
-    if os.path.exists(mp):
+    missing = sorted(set(p for p in privs if p in BENCH_DML) - set(back))
+    if missing:
+        log("WRITER-EXCLUSION recover-grants on %s: %s still missing after GRANT (now %s) "
+            "- refusing" % (db, missing, back))
+        return False
+    readable = isinstance(m, dict) and "pid" in m and "privs" in m
+    if os.path.exists(mp) and not readable:
         os.remove(mp)
         log("WRITER-EXCLUSION recover-grants (P11-T4) %s: operator granted %s back; "
-            "marker cleared (now %s)" % (db, privs or "nothing", back))
+            "unreadable marker cleared (now %s)" % (db, privs or "nothing", back))
     else:
-        log("WRITER-EXCLUSION recover-grants (P11-T4) %s: operator granted %s back; "
-            "no marker present (now %s)" % (db, privs or "nothing", back))
+        log("WRITER-EXCLUSION recover-grants (P11-T4) %s: operator granted %s back; %s (now %s)"
+            % (db, privs or "nothing",
+               "readable marker left for validation" if readable else "no marker present", back))
     return True
 
 
@@ -1480,7 +1523,7 @@ def main():
                     # the refusal; R5_NEGCTL_KEEP_STALE_FLAG (test-only, inert unless
                     # set) keeps the pre-P11 behaviour (flag left as-is) so the
                     # extended A22b negative control must FAIL with it.
-                    if not os.environ.get("R5_NEGCTL_KEEP_STALE_FLAG"):
+                    if not _negctl("R5_NEGCTL_KEEP_STALE_FLAG", db):
                         b["restored"] = False
                         b["restore_state"] = "refused"
                     save_state(rundir, st)
@@ -1590,7 +1633,7 @@ def _bill_date(d, b, st, rundir, db, tool, log, deadline, repair_consumer=False)
         # but record restored=True (the pre-P11 defect that a wrong/absent
         # immediate restoration would be claimed as restored); the preservation
         # check must FAIL with it.
-        skip_restore = os.environ.get("R5_NEGCTL_SKIP_IMMEDIATE_RESTORE")
+        skip_restore = _negctl("R5_NEGCTL_SKIP_IMMEDIATE_RESTORE", db)
         if skip_restore:
             restored = True
             log("date %s: FAILED NC — R5_NEGCTL_SKIP_IMMEDIATE_RESTORE set: immediate "
