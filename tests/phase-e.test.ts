@@ -3,6 +3,7 @@ import { createWorld, runWorld, step } from "../src/engine/world.js";
 import { computeSupplyStress } from "../src/engine/central-supply.js";
 import { selectPrimaryDiagnosisCode } from "../src/engine/markov.js";
 import { mapMacroDisasterToScenario, getScenarioEffects } from "../src/engine/scenario.js";
+import { outpatientHandler } from "../src/engine/outpatient.js";
 
 // ==========================================================================
 // E1 — Macro → Micro coupling
@@ -123,8 +124,25 @@ describe("E1 staff_shortage — macro→micro coupling", () => {
       w.queue.schedule("staff_shortage", 0, { modifier: 0.5 });
       return runWorld(w, 50);
     })();
-    // Admission encounters should be unaffected by staff shortage
+    // Admission encounters should be unaffected by staff shortage.
+    // 2026-10-26: this held at seed 42 only by coincidence of counts (the
+    // encounter sets differed). outpatientHandler now draws from its own
+    // seeded sub-stream, so the capacity change no longer shifts later
+    // handlers' rng. The sets are identical here. A residual, real coupling
+    // remains for some seeds (e.g. 2): a patient still queued at a poli
+    // cannot present at the ED at the same time.
     expect(withShortage.state.encounters.size).toBe(baseline.state.encounters.size);
+    const ids = (w: typeof baseline) => Array.from(w.state.encounters.keys()).filter(k => !k.startsWith("POLI-")).sort();
+    expect(ids(withShortage)).toEqual(ids(baseline));
+  });
+
+  it("outpatient draws from its own sub-stream, leaving clock.rng untouched", () => {
+    const w = createWorld(20, undefined, 42);
+    const before = w.clock.rng;
+    let draws = 0;
+    w.clock.rng = () => { draws++; return before(); };
+    outpatientHandler(w.state, { ...w.clock, tick: 12 }, w.queue); // arrivals fire when tick % 4 === 0
+    expect(draws).toBe(0);
   });
 });
 

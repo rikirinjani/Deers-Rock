@@ -1,5 +1,5 @@
 import type { HospitalState, OutpatientVisit } from "./state-store.js";
-import type { Clock } from "./clock.js";
+import { createRng, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js";
 import { LAB_TESTS } from "./lab.js";
@@ -51,7 +51,15 @@ const DIAGNOSIS_POOL = [
   { icd: "P59", name: "Neonatal jaundice", poli: "POLI-AK" },
 ];
 
+const OUTPATIENT_RNG_SALT = 0x4f50_4f4c; // "OPOL"
+
 export function outpatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  // Outpatient-local sub-stream, seeded from (world seed, tick). This
+  // handler's draw count depends on poli capacity (staff_shortage) and the
+  // waiting queue; on the shared rng that shifted every later handler's
+  // draws, so a capacity change rippled into ED and inpatient admissions.
+  // Declared seed break (cf. ADR-016 D7): trajectories differ from pre-2026-10-26 runs.
+  const rng = createRng((clock.rngSeed ^ Math.imul(clock.tick + 1, 0x9E3779B1) ^ OUTPATIENT_RNG_SALT) | 0).next;
   let visits = new Map(state._outpatientVisits ?? []);
   let newEncounters = new Map(state.encounters);
   let newLabOrders = new Map(state.labOrders);
@@ -63,7 +71,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     const referrals = Array.from(state._referralState?.letters?.values() ?? [])
       .filter(l => l.status === "received" && !Array.from(visits.values()).some(v => v.referralId === l.id));
 
-    const walkInsNeeded = Math.max(0, Math.floor(clock.rng() * 3));
+    const walkInsNeeded = Math.max(0, Math.floor(rng() * 3));
     const arrivals: { patientId: string; referralId: string | null; diagnosis: typeof DIAGNOSIS_POOL[0] }[] = [];
 
     for (const ref of referrals) {
@@ -74,8 +82,8 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     for (let i = 0; i < walkInsNeeded; i++) {
       const pats = Array.from(state.patients.values());
       if (pats.length === 0) break;
-      const dx = DIAGNOSIS_POOL[Math.floor(clock.rng() * DIAGNOSIS_POOL.length)]!;
-      arrivals.push({ patientId: pats[Math.floor(clock.rng() * pats.length)]!.id, referralId: null, diagnosis: dx });
+      const dx = DIAGNOSIS_POOL[Math.floor(rng() * DIAGNOSIS_POOL.length)]!;
+      arrivals.push({ patientId: pats[Math.floor(rng() * pats.length)]!.id, referralId: null, diagnosis: dx });
     }
 
     for (const arrival of arrivals) {
@@ -89,7 +97,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       // every encounter references a real Patient entity and payer derives
       // from the Patient record (ADR-015 D5) instead of re-rolling.
       if (!pat) {
-        pat = generatePatient(clock.rng);
+        pat = generatePatient(rng);
         state.patients.set(pat.id, pat);
       }
 
@@ -100,7 +108,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
         startTime: clock.hospitalTimeMs,
         endTime: null,
         status: "active",
-        payer: assignPayer(pat, clock.rng),
+        payer: assignPayer(pat, rng),
         // Phase D: outpatient encounters carry the clinic-visit diagnosis
         // (referral-matched or walk-in pool draw) — the acute reason for the visit.
         primaryDiagnosis: dx.icd,
@@ -139,18 +147,18 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     const doctors = agentPool ? Array.from(agentPool.agents.values()).filter(
       a => (a.role === "dokter_umum" || a.role === "dokter_spesialis") && a.status.inShift
     ) : [];
-    const doctor = doctors[Math.floor(clock.rng() * doctors.length)];
+    const doctor = doctors[Math.floor(rng() * doctors.length)];
 
     visits.set(visit.id, { ...visit, status: "in-consultation", doctorId: doctor?.id ?? null });
   }
 
   const consultingVisits = Array.from(visits.values()).filter(v => v.status === "in-consultation");
   for (const visit of consultingVisits) {
-    if (clock.rng() > 0.35) continue;
+    if (rng() > 0.35) continue;
 
     const dx = DIAGNOSIS_POOL.find(d => d.icd === visit.icdCode);
-    if (dx && clock.rng() > 0.4) {
-      const lab = LAB_TESTS[Math.floor(clock.rng() * LAB_TESTS.length)]!;
+    if (dx && rng() > 0.4) {
+      const lab = LAB_TESTS[Math.floor(rng() * LAB_TESTS.length)]!;
       const labOrder: LabOrder = {
         id: `POLI-LAB-${clock.tick}-${visit.patientId}-${lab.code}`,
         encounterId: visit.encounterId, patientId: visit.patientId,
@@ -162,14 +170,14 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       newLabOrders.set(labOrder.id, labOrder);
     }
 
-    if (dx && clock.rng() > 0.5) {
-      const med = MEDICATIONS[Math.floor(clock.rng() * MEDICATIONS.length)]!;
+    if (dx && rng() > 0.5) {
+      const med = MEDICATIONS[Math.floor(rng() * MEDICATIONS.length)]!;
       const medOrder: MedicationOrder = {
         id: `POLI-MED-${clock.tick}-${visit.patientId}-${med.code}`,
         encounterId: visit.encounterId, patientId: visit.patientId,
         medication: { code: med.code, name: med.name, dose: med.dose, route: med.route },
         status: "ordered", dose: med.dose, route: med.route,
-        frequency: clock.rng() > 0.5 ? "QD" : "BID",
+        frequency: rng() > 0.5 ? "QD" : "BID",
         orderedAt: clock.hospitalTimeMs, administeredAt: null,
       };
       newMedOrders.set(medOrder.id, medOrder);
