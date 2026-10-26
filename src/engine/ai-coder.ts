@@ -40,6 +40,17 @@ const CODER_PROFILES: CoderProfile[] = [
   { name: "AI Coder Delta", specialty: "general", baseAccuracy: 0.85, accuracy: 0.85, casesProcessed: 0, correctAssignments: 0, icdPrefixes: ["A", "B", "C", "D", "H", "L", "O", "U", "Z"] },
 ];
 
+/** Restore coder profiles to their base accuracy. Profiles are module-global
+ *  and mutated by recordCoderOutcome, so createWorld must reset them or one
+ *  world's coder learning leaks into the next (same-process determinism). */
+export function resetCoderProfiles(): void {
+  for (const c of CODER_PROFILES) {
+    c.accuracy = c.baseAccuracy;
+    c.casesProcessed = 0;
+    c.correctAssignments = 0;
+  }
+}
+
 // ── ICD-10 Validation ─────────────────────────────────────────────────────
 export interface IcdValidationResult {
   code: string;

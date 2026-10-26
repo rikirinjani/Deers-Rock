@@ -43,11 +43,11 @@ import { agentHandler, initAgentState } from "../agent/system.js";
 import { referralHandler, initReferralState } from "../referral/system.js";
 import { ambulanceHandler, initAmbulanceState } from "../referral/ambulance.js";
 import { jrProvenanceHandler, initJrState } from "../referral/jr-provenance.js";
-import { dischargePlanningHandler } from "./discharge-planning.js";
+import { dischargePlanningHandler, resetDischargePlanCounter } from "./discharge-planning.js";
 import { sickLeaveHandler, initSickLeaveState } from "../agent/system.js";
 import { kamarJenazahHandler, initKamarJenazahState } from "./kamar-jenazah.js";
 import { appointmentHandler, initAppointmentState } from "./appointment-scheduling.js";
-import { aiCoderHandler } from "./ai-coder.js";
+import { aiCoderHandler, resetCoderProfiles } from "./ai-coder.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
@@ -83,6 +83,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string, se
   resetIpcCounter(); resetMicrobiologyCounter(); resetPathologyCounter();
   resetMmConferenceCounter(); resetRadiotherapyCounters(); resetBiomedCounter();
   resetJournalPurgeTick(); resetJournalExportTick();
+  resetCoderProfiles(); resetDischargePlanCounter();
 
   const worldRng = seed !== undefined ? createRng(seed).next : undefined;
   const effectiveRng = worldRng;

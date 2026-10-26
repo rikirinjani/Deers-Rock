@@ -59,6 +59,7 @@ export interface DischargePlan {
 }
 
 let counter = 0;
+export function resetDischargePlanCounter(): void { counter = 0; }
 
 /**
  * Determine if a discharge warrants rujuk balik.
