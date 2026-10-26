@@ -1,0 +1,218 @@
+
+=== 0 FROZEN + LIVE BASELINE (14:02:54Z) ===
+frozen P16: 21/21 OK
+lsattr i-flag: 21/21
+# P14 live state: p16-chain-baseline 2026-10-26T14:02:54Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P16-CLAUDE-20261026
+disk: /dev/vda2        94G   19G   71G  22% /
+
+=== 1a LIB TEST (A4-A7, A2/N8) (14:02:56Z) ===
+P15-LIB-TEST: PASS=23 FAIL=0
+lib exit=0
+
+=== 1b P15 A1-A3 CONTROLS (old = .bak_p15) (14:03:07Z) ===
+PASS A1 OLD P13 refusal destroyed the existing clone (the defect) (got sentinel=0)
+PASS A1 NEW P13 refusal exit (got 3)
+PASS A1 NEW P13 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+PASS A2 OLD P14 refusal killed the unrelated harness and revoked the grant (the defect) (got grant=0 dummy=dead)
+PASS A2 NEW P14 refusal exit (got 3)
+PASS A2 NEW P14 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+PASS A3 pipefail abort exit (got 3)
+PASS A3 abort names the pipeline (got 1)
+PASS A3 half-clone created by this run is dropped (got 0)
+P15-A-NC: PASS=9 FAIL=0
+a-nc exit=0
+
+=== 2a P16 A/E4 CONTROLS (14:03:14Z) ===
+PASS precondition: database.xml on sik (got sik )
+PASS A1 OLD refusal exit (got 3)
+PASS A1 OLD refusal revoked a grant it did not create (the defect) (got 0)
+PASS A1 NEW refusal exit (got 3)
+PASS A1 NEW refusal leaves the grant (got 4)
+PASS A1 NEW refusal leaves the fixture (got 1)
+PASS A1 database.xml still on sik (got sik )
+PASS A3 tail extracted (non-empty, ends with exit 1) (got yes)
+PASS A3 fixture 4, real 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 0 -> driver exit 0 (got 0)
+PASS A3 fixture 4, no real run -> driver exit 0 (got 0)
+PASS A3 fixture 0 (strata not out of envelope) -> driver exit 1 (got 1)
+PASS A3 fixture 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 4 -> driver exit 1 (got 1)
+PASS A3 pin segment extracted (2 lines) (got 2)
+PASS A3 pin mismatch: driver aborts (no CONTINUED) (got 0)
+PASS A3 pin mismatch: clone kept (KEEP=1) (got 1)
+PASS A3 pin mismatch: names the ABORT (got 1)
+PASS A3 pin match: driver continues (got 1)
+PASS E4 precondition: a suite evidence file to point at (got yes)
+PASS E4 precondition: a pre-op snapshot exists to move aside (got yes)
+PASS E4 exit with the pre-op snapshot missing (got 3)
+PASS E4 names the missing snapshot (got 1)
+PASS E4 snapshot restored after the control (got yes)
+PASS database.xml on sik at the end (got sik )
+P16-A-NC: PASS=25 FAIL=0
+p16-a-nc exit=0
+
+=== 2b P16 E1/E2/E3 CONTROLS (14:03:17Z) ===
+PASS extracted nc_status_e, ev_of, teardown_fx, ensure_fx (got function function function function )
+PASS E3 missing file -> ERROR (got ERROR)
+PASS E3 empty path -> ERROR (got ERROR)
+PASS E3 file without the verdict line -> ERROR (got ERROR)
+PASS E3 FAIL line -> FAIL (got FAIL)
+PASS E3 PASS line -> PASS (got PASS)
+PASS E3 PASS line of another check -> ERROR (got ERROR)
+PASS no =${R5_NEGCTL_*:-} capture in the suite or the preservation check (got 0)
+PASS no -n test of an R5_NEGCTL switch in the preservation check (got 0)
+PASS mutation applied to the NEW copy (got 1)
+PASS mutation applied to the OLD copy (got 1)
+PASS E1 OLD: A28' still PASSES (the failed restore is masked: the defect) (got PASS)
+PASS E1 NEW: A28' FAILS (got FAIL)
+PASS E1 NEW: the reported restore result is in the evidence (got 1)
+PASS E2 OLD: 0 activates the NC arm (the defect) (got 1)
+PASS E2 NEW: 0 is inert (no NC arm) (got 0)
+PASS E2 NEW: A28' PASSES with the switch at 0 (got PASS)
+PASS baseline NEW, no switch: A28' PASSES (got PASS)
+PASS NEW: switch =1 still activates the NC arm and A28' FAILS (got FAIL)
+PASS NEW: switch =1 names the NC arm (got 1)
+P16-E-NC: PASS=20 FAIL=0
+p16-e-nc exit=0
+
+=== 3 C4 FIXTURE + 300 REAL ON A FRESH CLONE (14:05:31Z) ===
+clone matches sik: tables=1100-equal, 6 key tables row-equal
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+grant: benchmark@localhost on sik_p14e (probe sees 4 privileges; positive case for P15 A7)
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261026T140531Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-26 14:06:49.371182
+oracle[fixture]: real run exit=4 elapsed=91s
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+oracle[real]: freeze-only (RUN_ID=p15e_real_20261026T140531Z, 300 visits)
+oracle[real]: freeze-only exit=0
+oracle[real]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-26 14:08:41.569113
+oracle[real]: real run exit=0 elapsed=1566s
+form[real]: distinct visits sukses=true 300, sukses=false 0 (of 300); rate 11.49 visits/min
+P15E OK fixture_rc=4 real_rc=0 clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+driver exit=0
+run starts: fixture=2026-10-26 14:06:49.371182 (/opt/dr-benchmark/p15/runs/fixture_run_start_20261026T140531Z.txt) real=2026-10-26 14:08:41.569113 (/opt/dr-benchmark/p15/runs/real_run_start_20261026T140531Z.txt)
+
+=== 3a FIXTURE (expect mode, clone ledger) (14:34:48Z) ===
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14e", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14e", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-26 14:06:49.371182", "verdicts": {"DIFFER": 12, "EQUAL": 12, "EQUAL-SRC": 3}}
+fixture compare exit=0
+
+=== 3b REAL 300 (equal mode, live-pinned ledger) (14:34:48Z) ===
+P15-LINE-IDENTITY: {"b_eq_a": 300, "db": "sik_p14e", "encounters": 300, "fail": 0, "fresh_b_ok": 300, "ledger": "sik_bench", "line_differ": 0, "lines": 1240, "mode": "equal", "pass": 300, "since": "2026-10-26 14:08:41.569113", "verdicts": {"EQUAL": 181, "EQUAL-SRC": 119}}
+real compare exit=0
+
+=== 3c P13 COMPARATOR (14:34:48Z) ===
+positive (since=run start) exit=0 (0 expected)
+P13 compare: 300 encounters | with B: 300 | A_form==C: 300/300 | B==C: 300/300 | fresh-B(benchmark,1): 300/300 | differences: 0 -> /opt/dr-benchmark/p16/chain/p13cmp_pos.csv
+RESULT: ALL-EQUAL
+since in the future exit=1 (1 expected)
+duplicate list exit=2 (2 expected)
+
+=== 3d LINE CONTROLS (B1-B5d, B3, C2; old p15 comparator = .bak_p16) (14:34:49Z) ===
+PASS unplanted exit (got 0)
+PASS unplanted summary records the full run start (P16 B1) (got 2026-10-26 14:06:49.371182)
+PASS plant C2 ROW_COUNT (got 1)
+PASS plant B1a ROW_COUNT (got 1)
+PASS plant B1b ROW_COUNT (got 1)
+PASS plant B3 ROW_COUNT (got 1)
+PASS plant B5a ROW_COUNT (got 1)
+PASS plant B5b ROW_COUNT (got 1)
+PASS plant B5c ROW_COUNT (got 1)
+PASS plant B5d ROW_COUNT (got 1)
+PASS planted new exit (got 1)
+PASS C2 new verdict (same-name same-price wrong code) (got DIFFER)
+PASS C2 new outcome (got MISMATCH)
+PASS B1a payment -1 (got MISMATCH)
+PASS B1b qty/unit, same amount (form_model) (got MISMATCH)
+PASS B3 registration qty (got MISMATCH)
+PASS B5a extra INSERT by another account (got MISMATCH)
+PASS B5b fresh row before run start (got MISMATCH)
+PASS B5c pre-run INSERT by benchmark@ (exactly one in total) (got MISMATCH)
+PASS B5d fresh row exactly at the run start is accepted (got MATCH)
+PASS no unplanted encounter fails (got 0)
+PASS C2 old verdict (ledger-conditioned) (got EQUAL-CTX)
+PASS C2 old outcome (the hole: wrong code passes) (got MATCH)
+PASS B5c OLD p15 comparator accepts the pre-run INSERT (the hole) (got MATCH)
+FAIL B4 empty list exit (got 1, want 2)
+PASS B4 duplicate list exit (got 2)
+PASS plant B4c ROW_COUNT (got 1)
+PASS B4 NULL numeric exit (got 2)
+PASS plant B3n ROW_COUNT (got 1)
+PASS B3 NULL payment exit (p15 comparator) (got 2)
+PASS B3 NULL payment exit (p13 comparator) (got 2)
+PASS plant B2 ROW_COUNT (got 1)
+PASS B2 duplicate ledger key exit (got 2)
+P15-LINE-NC: PASS=32 FAIL=1
+line-nc exit=1
+
+=== 3e B6 CONTROL (old p12 = .bak_p15) (14:34:51Z) ===
+PASS B6 unplanted, new bytes (got 0)
+PASS B6 plant removed exactly the 18 counted billing rows (P16 B4) (got yes)
+PASS B6 plant removed exactly the 5 counted ledger rows (P16 B4) (got yes)
+PASS B6 OLD bytes pass the uncovered encounter ({} == {}, the defect) (got 0)
+PASS B6 NEW bytes fail it (got 1)
+PASS B6 NEW bytes list it (got 2)
+P15-B6-NC: PASS=6 FAIL=0
+b6 exit=0
+
+=== 3f TEARDOWN (14:34:52Z) ===
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 
+
+=== 4a FULL FRESH SUITE (14:35:03Z) ===
+PASS=39 FAIL=0 — a PASS covers only the property in its row, on fixture sik_p6f.
+evidence: /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261026T143607Z.md
+suite exit=0
+
+=== 4b PRESERVATION CHECK (14:43:08Z) ===
+SNAPSHOT-BINDING suite start 20261026T144410Z; pre-op and post-failure snapshots written by this run
+PRESERVATION-CHECK PASS
+evidence: /opt/dr-benchmark/p-chain/r5_p10_preservation_20261026T144308Z.md
+preservation exit=0
+
+=== 4c RECOVERY UNIT TEST (14:45:01Z) ===
+P8/P9 recovery unit test: 44/44 cases PASS
+unit exit=0
+
+=== 4d P11 NEGATIVE CONTROLS (14:45:01Z) ===
+NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 2: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 3: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 4: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 5: with-switch=FAIL without=PASS -> DISCRIMINATING
+=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===
+evidence: /opt/dr-benchmark/p-chain/r5_p11_negative_controls_20261026T144501Z.md
+nc exit=0
+
+=== 5 FINAL (14:56:15Z) ===
+frozen P16: 21/21 OK
+lsattr i-flag: 21/21
+# P14 live state: p16-chain-final 2026-10-26T14:56:15Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P16-CLAUDE-20261026
+disk: /dev/vda2        94G   19G   71G  22% /
+
+=== P16 CHAIN DONE: lib=0 a-nc=0 p16-a=0 p16-e=0 c4=0 fixture=0 real=0 line-nc=1 b6=0 suite=0 preservation=0 unit=0 nc=0 ===

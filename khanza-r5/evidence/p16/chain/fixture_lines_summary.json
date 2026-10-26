@@ -1,0 +1,18 @@
+{
+ "b_eq_a": 27,
+ "db": "sik_p14e",
+ "encounters": 27,
+ "fail": 0,
+ "fresh_b_ok": 27,
+ "ledger": "sik_p14e",
+ "line_differ": 24,
+ "lines": 105,
+ "mode": "expect",
+ "pass": 27,
+ "since": "2026-10-26 14:06:49.371182",
+ "verdicts": {
+  "DIFFER": 12,
+  "EQUAL": 12,
+  "EQUAL-SRC": 3
+ }
+}

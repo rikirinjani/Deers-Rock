@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-26T14:15:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "D class (v11 D1-D9 and review R10): documents claimed more than the evidence showed",
+  "what_went_wrong": [
+    "Manifest overclaims (D1, D2), the R5 edge-strata statement (D3), the handoff 'no grants' line resting on a vacuous probe (D4), a per-encounter bound labelled otherwise (D5), the E6 sign (D6), the P14 rubric score (D7), the run-lock release (D8), the P12 'one held lock' wording (D9). In P15 itself: 'RUNLOCK-FREE at P15 start' and the 'ae5da20e' line hash had no file behind them, and the 'partly true' count did not match the table."
+  ],
+  "root_cause": "Statements were carried forward from earlier waves or written from memory of the run, not from a named evidence file.",
+  "detection": "Astra v11 D1-D9; independent P15 review R10-R12.",
+  "impact": "Readers could rely on a state the record did not show.",
+  "correction": {
+    "applied": "Strike-through with reasons (P15 D1-D9); P16 D1-D3: the unevidenced P15 claims struck, the count recomputed, the grant-line hash reproduced from the evidence files (evidence/p16/grant_line_hashes_p15.txt), the lock state captured before acquisition and after release.",
+    "result": "see R5 section 28"
+  },
+  "rule": "A claim in a record cites a file and a line, or it is not made.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}

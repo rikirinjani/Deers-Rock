@@ -1,0 +1,75 @@
+
+=== 0 FROZEN (14:57:55Z) ===
+frozen P16 (b): 22/22 OK; lsattr i-flag: 22
+
+=== 1 FIXTURE-ONLY C4 DRIVER (14:57:55Z) ===
+clone matches sik: tables=1100-equal, 6 key tables row-equal
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261026T145755Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-26 14:59:11.779676
+oracle[fixture]: real run exit=4 elapsed=91s
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+P15E OK fixture_rc=4 real_rc=n/a clone=sik_p14e kept for comparators
+driver exit=0
+run start: 2026-10-26 14:59:11.779676 (/opt/dr-benchmark/p15/runs/fixture_run_start_20261026T145755Z.txt)
+
+=== 2 LINE CONTROLS (15:00:43Z) ===
+PASS unplanted exit (got 0)
+PASS unplanted summary records the full run start (P16 B1) (got 2026-10-26 14:59:11.779676)
+PASS plant C2 ROW_COUNT (got 1)
+PASS plant B1a ROW_COUNT (got 1)
+PASS plant B1b ROW_COUNT (got 1)
+PASS plant B3 ROW_COUNT (got 1)
+PASS plant B5a ROW_COUNT (got 1)
+PASS plant B5b ROW_COUNT (got 1)
+PASS plant B5c ROW_COUNT (got 1)
+PASS plant B5d ROW_COUNT (got 1)
+PASS planted new exit (got 1)
+PASS C2 new verdict (same-name same-price wrong code) (got DIFFER)
+PASS C2 new outcome (got MISMATCH)
+PASS B1a payment -1 (got MISMATCH)
+PASS B1b qty/unit, same amount (form_model) (got MISMATCH)
+PASS B3 registration qty (got MISMATCH)
+PASS B5a extra INSERT by another account (got MISMATCH)
+PASS B5b fresh row before run start (got MISMATCH)
+PASS B5c pre-run INSERT by benchmark@ (exactly one in total) (got MISMATCH)
+PASS B5d fresh row exactly at the run start is accepted (got MATCH)
+PASS no unplanted encounter fails (got 0)
+PASS C2 old verdict (ledger-conditioned) (got EQUAL-CTX)
+PASS C2 old outcome (the hole: wrong code passes) (got MATCH)
+PASS B5c OLD p15 comparator accepts the pre-run INSERT (the hole) (got MATCH)
+PASS B4 empty list exit (got 2)
+PASS B4 duplicate list exit (got 2)
+PASS plant B4c ROW_COUNT (got 1)
+PASS B4 NULL numeric exit (got 2)
+PASS plant B3n ROW_COUNT (got 1)
+PASS B3 NULL payment exit (p15 comparator) (got 2)
+PASS B3 NULL payment exit (p13 comparator) (got 2)
+PASS plant B2 ROW_COUNT (got 1)
+PASS B2 duplicate ledger key exit (got 2)
+P15-LINE-NC: PASS=33 FAIL=0
+line-nc exit=0
+
+=== 3 TEARDOWN (15:00:45Z) ===
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 
+
+=== 4 FINAL (15:00:56Z) ===
+frozen P16 (b): 22/22 OK; lsattr i-flag: 22
+# P14 live state: p16-chain-b-final 2026-10-26T15:00:56Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P16-CLAUDE-20261026
+disk: /dev/vda2        94G   19G   71G  22% /
+
+=== P16 CHAIN-B DONE: driver=0 line-nc=0 ===

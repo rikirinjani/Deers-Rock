@@ -1,0 +1,32 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p16-evidence",
+  "timestamp": "2026-10-26T15:02:20.472024+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p16/chain.log",
+    "khanza-r5/evidence/p16/chain_b.log",
+    "khanza-r5/evidence/p16/lock_release.txt",
+    "khanza-r5/evidence/p16/grant_line_hashes_p16.txt",
+    "khanza-r5/evidence/p16/r5_p16_frozen_manifest_20261026b.sha256"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p16-evidence",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P16 evidence: lib 23/23, controls, C4 rerun 27/27 + 300/300, suite 39/39, NC 5/5, lsattr 21/21 and 22/22, lock free before and after"
+}

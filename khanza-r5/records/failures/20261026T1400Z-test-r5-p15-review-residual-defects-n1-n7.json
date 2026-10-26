@@ -1,0 +1,26 @@
+{
+  "timestamp_utc": "2026-10-26T14:00:00Z",
+  "category": "test",
+  "severity": "major",
+  "title": "P15 left residual defects that an independent review found (preservation-check trap, unquoted --since, fresh-B window, NULL payments, A28' restore, switch =0, B6 count)",
+  "what_went_wrong": [
+    "N1: p10_preservation_check.sh installed its EXIT trap before its refusals; the trap restores database.xml and revokes the fixture grant unconditionally (v11 S2 left open in a file the A2 package named).",
+    "N2: p15_line_negctl.sh passed --since $SINCE unquoted, so the comparator received a midnight timestamp and B5 was never tested at the run-start boundary.",
+    "N3: fresh-B counted only INSERTs at or after the run start, so a stale pre-run INSERT was ignored.",
+    "N4: COALESCE turned a NULL payment into 0 in both comparators.",
+    "N5: the A28' predicate did not assert the restore result; the conditional -5 ran in either arm.",
+    "N6: the suite mapped any non-empty switch (including 0) to 1, undoing the exact-1 rule of the oracle.",
+    "N7: B6 plants asserted ROW_COUNT >= 1, not an exact count.",
+    "R5 section 27 stated several of these as done (a refusal touches nothing; the restore result is asserted; B5b before the run start)."
+  ],
+  "root_cause": "Each control and claim was checked against the package text, not against every file the package named; the control for B5 was run with a value that happened to satisfy the weaker boundary.",
+  "detection": "docs/khanza_r5_p15_review.md (independent read-only reviewer, 17/24 against the executor's 23/24); each item confirmed against the source before P16.",
+  "impact": "No false result reached an outside party; the P15 self-score was overstated by 6 points; the claims in R5 section 27 were struck through.",
+  "correction": {
+    "applied": "P16 (docs/khanza_r5_task_p16_review_fixes.md): fixes N1-N8, old-vs-new controls for each, C4 rerun under the stricter fresh-B rule.",
+    "result": "see R5 section 28"
+  },
+  "rule": "A claim of the form 'every X touches nothing / asserts Y' is checked by grepping all files of the class, and a boundary control must record the value it actually used.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}

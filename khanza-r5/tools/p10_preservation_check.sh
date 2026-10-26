@@ -40,6 +40,8 @@ PREOP=$PC/p11_preserve_preop.json   # P11-T2: the suite's P10_INJECT block write
 PRE=$PC/p10_preserve_pre.json       # the suite's post-failure pre-hash (preservation reference for assertion b)
 FAILS=0
 FORCED=0
+# P16 A1: the EXIT trap acts only on what THIS run did (flags set immediately before the action).
+XML_TOUCHED=0; GRANTED=0
 FORCE_FAIL=${P11_FORCE_FAIL:-}   # P11-T7: force assertion <n> to FAIL (0..99; empty = none)
 ok() {
   local name=$1 pass=$2
@@ -61,8 +63,8 @@ ok() {
 # the fixture; the fixture itself is kept on failure (no --teardown-kept) and the teardown
 # command is printed so an operator can inspect it.
 pcleanup() {
-  python3 /opt/Deers-Rock/tools/p6_dbxml.py restore >> /tmp/p11_pc_xml.log 2>&1
-  SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM \`benchmark\`@\`localhost\`;" 2>/dev/null
+  [ "$XML_TOUCHED" = "1" ] && python3 /opt/Deers-Rock/tools/p6_dbxml.py restore >> /tmp/p11_pc_xml.log 2>&1
+  [ "$GRANTED" = "1" ] && SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM \`benchmark\`@\`localhost\`;" 2>/dev/null
   XML=$(python3 p6_dbxml.py probe 2>&1 | awk '{print $NF}' | sort -u | tr '\n' ' ')
   GR=$(SQL "SHOW GRANTS FOR benchmark@localhost" | grep -c "$FX")
   echo "P11-T7 exit-trap: database.xml targets: $XML · benchmark grant on $FX: $GR" | tee -a "$OUT"
@@ -95,7 +97,7 @@ fi
 # taken by the suite's P10_INJECT block BEFORE the destructive oracle run.
 if [ -z "$(SQL "SHOW DATABASES LIKE '$FX'")" ]; then
   # no kept fixture: build+keep one through the failing wrapper (P10_INJECT)
-  if [ -n "${R5_NEGCTL_SKIP_IMMEDIATE_RESTORE:-}" ]; then
+  if [ "${R5_NEGCTL_SKIP_IMMEDIATE_RESTORE:-}" = "1" ]; then   # P16 E2: exactly 1, 0 is inert
     P10_INJECT=1 P9_FORCE_FAIL_CHECK=30 R5_NEGCTL_SKIP_IMMEDIATE_RESTORE=1 bash p6_run_suite_fresh.sh > /tmp/p10_pc_run.log 2>&1
   else
     P10_INJECT=1 P9_FORCE_FAIL_CHECK=30 bash p6_run_suite_fresh.sh > /tmp/p10_pc_run.log 2>&1
@@ -188,7 +190,7 @@ if not (ok_a and ok_b and ok_c):
     print("PRESERVATION-RESULT NOT-EQUAL (kept for inspection; P11-T7)")
 PY
 ok "independent hashes: sample equal to the pre-operation snapshot (a); stage tables preserved (b); protected + live unchanged (c); stage tables populated" $([ "$RCH" = "0" ] && [ "$SPEC_RC" = "0" ] && grep -q "PRESERVATION-RESULT a(sample-immediate)=EQUAL b(stage-preservation)=EQUAL c(protected-live)=EQUAL" "$PREOP_OUT" && echo 0 || echo 1)
-if [ -n "${R5_NEGCTL_SKIP_IMMEDIATE_RESTORE:-}" ]; then
+if [ "${R5_NEGCTL_SKIP_IMMEDIATE_RESTORE:-}" = "1" ]; then   # P16 E2: exactly 1, 0 is inert
   # P11-T2 NC: the switch was set, so the oracle's failure path skipped the
   # immediate stage_restore; assertion (a) must therefore be DIFFERENT.
   ok "negative control R5_NEGCTL_SKIP_IMMEDIATE_RESTORE: with the switch the immediate-restore assertion (a) FAILS (the sample no longer equals the pre-op snapshot)" $([ "$(grep -c 'a(sample-immediate)=DIFFERENT' "$PREOP_OUT")" -ge 1 ] && echo 0 || echo 1)
@@ -196,6 +198,7 @@ fi
 
 # 3. retry under writer exclusion on the kept fixture
 echo "## 3. Retry of the FAILED batch on the kept fixture (writer exclusion)" | tee -a "$OUT"
+GRANTED=1
 SQL "GRANT SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* TO \`benchmark\`@\`localhost\`;"
 # make the retry NEED a restore (so it runs under writer exclusion): change every billing
 # row of the FAILED batch's visit after the preservation hashes were taken; P11-T7 asserts
@@ -204,6 +207,7 @@ NCH_BEFORE=$(SQL "SELECT COUNT(*) FROM $FX.billing WHERE no_rawat='2026/10/01/80
 NCH=$(mysql -uroot -N -e "UPDATE $FX.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085'; SELECT ROW_COUNT();")
 echo "perturbation: counted $NCH_BEFORE billing rows of 2026/10/01/800085 before; the UPDATE changed $NCH rows (+1 each)" | tee -a "$OUT"
 ok "perturbation row count asserted: the UPDATE changed exactly the number of rows counted before it ($NCH_BEFORE)" $([ -n "$NCH" ] && [ "$NCH" = "$NCH_BEFORE" ] && [ "$NCH" -gt 0 ] && echo 0 || echo 1)
+XML_TOUCHED=1
 python3 p6_dbxml.py retarget $FX > /tmp/p10_pc_xml.log 2>&1
 if grep -q "RETARGET-VERIFIED $FX" /tmp/p10_pc_xml.log; then
   env RUN_ID=r6_p10 python3 sampled_real_form_diff_r5.py --db-name $FX --stage B3 --visits-file $PC/r6_two.txt --retry-failed > /tmp/p10_pc_retry.log 2>&1

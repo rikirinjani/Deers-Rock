@@ -155,4 +155,25 @@ be 2 for Accept. The executor's self-score in §7 is stated with the evidence li
 
 ## 7. Result and self-score
 
-*(filled after execution)*
+Executed 2026-10-26 under lock `P16-CLAUDE-20261026` (14:02:16Z to 15:01:16Z). Result: R5 §28.
+Amendments made during execution: (1) E2 also covers `p10_preservation_check.sh` (`R5_NEGCTL_SKIP_IMMEDIATE_RESTORE`
+was tested with `-n`); (2) `p13_sample_compare.py` gets the same B2/B3 changes as `p15_line_identity.py`; (3) the first chain
+ended 32/33 on a patch bug of mine (glued echo line), recorded and re-run as `p16_chain_b.sh` (33/33), manifest b (22 files).
+
+Executor self-score (the reviewer scale; to be re-scored by an independent review, not by me):
+
+| # | Self | Evidence |
+|---|---|---|
+| R1 | 2 | §1 of this doc: 13 rows with locations; N5 marked partly with its reason |
+| R2 | **1** | A1 old-vs-new on the preservation check, A2 3 tests (`chain/p16_a_negctl.txt` 25/25, `a_lib_test.txt` 23/23). A5/A6 are **wiring tests** of the driver's lines, not a full run with an injected failure |
+| R3 | 2 | `chain_b/line_negctl.txt` 33/33 (B5c/B5d at the full timestamp, B3 both comparators), `chain/b6_negctl.txt` exact counts. `p12_perencounter_reconcile.py` still uses COALESCE (out of scope, stated) |
+| R4 | 2 | unchanged source-row provenance; 300/300 under the stricter rule, 0 AMBIGUOUS (`chain/real300_lines_summary.json`) |
+| R5 | 2 | C2 old EQUAL-CTX/MATCH vs new DIFFER/MISMATCH, rerun (`chain_b/line_negctl.txt`) |
+| R6 | 2 | fixture 27/27 and real 300/300 on a fresh clone, pin REPRODUCES (`chain/c4_driver.log`) |
+| R7 | 2 | E1 (N5) and E2 (N6) old-vs-new, E3 and E4 observed (`chain/p16_e_negctl.txt` 20/20); suite 39/39, NC 5/5, unit 44/44 |
+| R8 | 2 | `lsattr` before / after / chain start and end (`evidence/p16/`), 21/21 and 22/22, local = box 11/11 |
+| R9 | 2 | baseline = chain final = chain-b final; grant-line hash reproduced for P15 and P16 files |
+| R10 | 2 | D1, D2 struck through in §27 with reasons; the P14 lock release stated as unevidenced |
+| R11 | 2 | failure records for G, R, D, the review and the chain bug; QMS record; traces; retrace trace-clean (see the commit) |
+| R12 | 2 | the first-chain failure kept and recorded; wiring-level limit and COALESCE in P12 stated |
+| | **23** | R2 at 1 for the stated reason |

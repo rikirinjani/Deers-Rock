@@ -29,11 +29,12 @@ echo "scratch: reg=$(SQL "SELECT COUNT(*) FROM $W.reg_periksa") billing=$(SQL "S
 run() { PYTHONPATH=/opt/Deers-Rock/tools P12_CONSUMER_DB=$W P12_LEDGER_DB=$W python3 "$1" --out /tmp/p15_b6.csv > /tmp/p15_b6_$2.log 2>&1; echo $?; }
 chk "B6 unplanted, new bytes" "$(run p12_perencounter_reconcile.py clean)" 0
 NR=$(head -1 "$VIS")
+CB=$(SQL "SELECT COUNT(*) FROM $W.billing WHERE no_rawat='$NR'"); CL=$(SQL "SELECT COUNT(*) FROM $W.dr_charge_ledger WHERE no_rawat='$NR'")
 RB=$(SQL "DELETE FROM $W.billing WHERE no_rawat='$NR'; SELECT ROW_COUNT();")
 RL=$(SQL "DELETE FROM $W.dr_charge_ledger WHERE no_rawat='$NR'; SELECT ROW_COUNT();")
 echo "plant: $NR billing rows deleted $RB, ledger rows deleted $RL"
-chk "B6 plant removed billing rows" "$([ "$RB" -ge 1 ] && echo yes || echo no)" yes
-chk "B6 plant removed ledger rows" "$([ "$RL" -ge 1 ] && echo yes || echo no)" yes
+chk "B6 plant removed exactly the $CB counted billing rows (P16 B4)" "$([ "$CB" -gt 0 ] && [ "$RB" = "$CB" ] && echo yes || echo no)" yes
+chk "B6 plant removed exactly the $CL counted ledger rows (P16 B4)" "$([ "$CL" -gt 0 ] && [ "$RL" = "$CL" ] && echo yes || echo no)" yes
 chk "B6 OLD bytes pass the uncovered encounter ({} == {}, the defect)" "$(run $BAK/p12_perencounter_reconcile.py old)" 0
 chk "B6 NEW bytes fail it" "$(run p12_perencounter_reconcile.py new)" 1
 chk "B6 NEW bytes list it" "$(grep -c "S1-COVERAGE,$NR" /tmp/p15_b6.csv)" 2

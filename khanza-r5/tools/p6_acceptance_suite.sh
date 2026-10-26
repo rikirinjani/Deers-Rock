@@ -741,7 +741,7 @@ PY
    # differs from staged), so a NON-transactional re-backup would replace the staged rows
    # with the changed live rows; the transactional one rolls back and C1 == C0.
    SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
-    NO_TXN=${R5_NEGCTL_BACKUP_NO_TXN:-}
+    NO_TXN=; [ "${R5_NEGCTL_BACKUP_NO_TXN:-}" = "1" ] && NO_TXN=1   # P16 E2: exactly 1 activates, 0 is inert
     if [ -n "$NO_TXN" ]; then
      # NC mode: re-backup runs as autocommit; the injected failure leaves the
      # earlier staged rows destroyed -> stage checksums DIFFER from C0
@@ -789,7 +789,7 @@ print("restored" if ok else "restore-not-verified")
 PY
 )
    H28POST=$(hash_p11 /tmp/r6_p11_a28.txt)
-   if [ "$H28POST" != "$H28PRE" ]; then
+   if [ -n "$NO_TXN" ] && [ "$H28POST" != "$H28PRE" ]; then   # P16 E1: the compensation is confined to the NC arm
      # only the NC (autocommit) arm reaches here: its staged rows already held the +5, so the
      # restore put the +5 back; undo the plant once and re-check
      SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya-5 WHERE no_rawat IN ('2026/10/01/800085','2026/10/01/800128');"
@@ -803,7 +803,7 @@ PY
    # the property check FAILS), which is exactly the discriminating evidence the handoff
    # requires: the check FAILS when the property is removed.
    res "A28' C0=$C0P C1=$C1P mode=${NO_TXN:+NC-autocommit}"
-   check 28 "A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchanged; with R5_NEGCTL_BACKUP_NO_TXN (autocommit) the live-row change leaks into the stage tables and this check FAILS" $([ -n "$C0P" ] && [ -n "$C1P" ] && [ "$C0P" = "$C1P" ] && [ -n "$H28PRE" ] && [ "$H28POST" = "$H28PRE" ] && echo 0 || echo 1)
+   check 28 "A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchanged; with R5_NEGCTL_BACKUP_NO_TXN (autocommit) the live-row change leaks into the stage tables and this check FAILS" $([ -n "$C0P" ] && [ -n "$C1P" ] && [ "$C0P" = "$C1P" ] && [ -n "$H28PRE" ] && [ "$H28POST" = "$H28PRE" ] && [ "$R28" = "restored" ] && echo 0 || echo 1)   # P16 E1: the restore result is asserted
  fi
  if sel 31; then
   echo "=== A31 P11: snapshot coherence — immediately after a backup, hash(stage) == hash(live) ==="
@@ -814,7 +814,7 @@ PY
     # hash source. The fault hook drifts one live row between the stage copy and the hashing in
     # both arms. Property: the stored pre-reset hash equals an independent recomputation of the
     # staged content, and (after the drift is reverted) stage equals live.
-    LATE=${R5_NEGCTL_HASH_FROM_LIVE_LATE:-}
+    LATE=; [ "${R5_NEGCTL_HASH_FROM_LIVE_LATE:-}" = "1" ] && LATE=1   # P16 E2
     env R5_FAULT_DRIFT_AFTER_STAGE_COPY=1 ${LATE:+R5_NEGCTL_HASH_FROM_LIVE_LATE=1} python3 - "$FX" r6_a31p <<'PY'
 import sys
 sys.path.insert(0, '/opt/Deers-Rock/tools')
@@ -860,7 +860,7 @@ PY
   # drop the stage tables so the retry cannot restore -> RETRY-REFUSED
   python3 -c "import sys;sys.path.insert(0,'/opt/Deers-Rock/tools');import sampled_real_form_diff_r5 as o;print(o.stage_drop('${FX}','r6_a22bp',print,stage='B3'))" > /dev/null 2>&1
   SQL "UPDATE ${FX}.billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='2026/10/01/800085';"
-  STALE=${R5_NEGCTL_KEEP_STALE_FLAG:-}
+  STALE=; [ "${R5_NEGCTL_KEEP_STALE_FLAG:-}" = "1" ] && STALE=1   # P16 E2
   env RUN_ID=r6_a22bp ${STALE:+R5_NEGCTL_KEEP_STALE_FLAG=1} $ORACLE --stage B3 --visits-file /tmp/r6_p11_a22b.txt --retry-failed > /tmp/r6_p11_a22b_retry.log 2>&1
   RC2P=$?
   REF=$(cnt "RETRY-REFUSED" /tmp/r6_p11_a22b_retry.log)

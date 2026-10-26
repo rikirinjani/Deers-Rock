@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-26T15:00:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P16 first chain: the B4 empty-list control fed a non-empty file (my patch glued ': > file' onto an echo line)",
+  "what_went_wrong": [
+    "The patch replaced the anchor 'echo \"## B4 / B2 input errors\"' plus its newline with text that ended without a newline, so the next line ': > /tmp/p15nc_empty.txt' became arguments of echo. The 'empty' list contained the echo text, the comparator exited 1 (a real encounter failed) instead of 2, and p15_line_negctl.sh reported 32/33."
+  ],
+  "root_cause": "A text patch that consumes a newline in its anchor must re-emit it; the patched file was syntax-checked (bash -n) but not read around the patched line.",
+  "detection": "P16 chain step 3d: 'FAIL B4 empty list exit (got 1, want 2)'; /tmp/p15nc_b4a.txt showed 'ENC ## B4 / B2 input errors: verdict=EQUAL'.",
+  "impact": "No false pass: the control reported FAIL and the first chain was kept as recorded (chain.log). Only this check was invalid; the product code was not at fault.",
+  "correction": {
+    "applied": "p15_line_negctl.sh fixed (one line), manifest b (22 files), p16_chain_b.sh re-ran the fixture-only driver and the line controls on the final bytes.",
+    "result": "chain_b: P15-LINE-NC PASS=33 FAIL=0 (evidence/p16/chain_b/line_negctl.txt)"
+  },
+  "rule": "After a patch, read the patched lines in the output file, not only the syntax check; a control that expects an input error must record the input it actually used.",
+  "agent": "claude (P16 executor)",
+  "status": "closed"
+}

@@ -1,0 +1,38 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p16-fixes",
+  "timestamp": "2026-10-26T15:02:19.992450+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p10_preservation_check.sh",
+    "khanza-r5/tools/p15_lib.sh",
+    "khanza-r5/tools/p15_line_identity.py",
+    "khanza-r5/tools/p13_sample_compare.py",
+    "khanza-r5/tools/p6_acceptance_suite.sh",
+    "khanza-r5/tools/p15_line_negctl.sh",
+    "khanza-r5/tools/p15_b6_negctl.sh",
+    "khanza-r5/tools/p16_a_negctl.sh",
+    "khanza-r5/tools/p16_e_negctl.sh",
+    "khanza-r5/tools/p16_chain.sh",
+    "khanza-r5/tools/p16_chain_b.sh"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p16-fixes",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P16: N1-N8 fixes, old-vs-new controls, patch bug in the first chain found and re-run"
+}

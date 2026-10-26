@@ -24,12 +24,20 @@ p15_grant_count() { # schema
 # Run-scoped harness kill (A2): only the process groups this run's oracle recorded in its
 # harness_*.log.pid files under results/<run-id>/; never a global pkill.
 p15_kill_run_harness() { # run-id...
-  local rid f pid
+  local rid f pid pg st fm
   for rid in "$@"; do
     for f in /opt/dr-benchmark/results/"$rid"/*/harness_*.log.pid; do
       [ -f "$f" ] || continue
       pid=$(tr -dc 0-9 < "$f")
-      [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && kill -TERM -- -"$pid" 2>/dev/null
+      [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || continue
+      # P16 A2 (N8): signal the group only if the pid is a group leader (the oracle starts the
+      # harness with start_new_session) and started no later than its pid file was written
+      # (a reused pid starts after the file)
+      pg=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d " ")
+      [ "$pg" = "$pid" ] || { echo "kill-run-harness: pid $pid is not a process-group leader - not signalled" >&2; continue; }
+      st=$(date -d "$(ps -o lstart= -p "$pid" 2>/dev/null)" +%s 2>/dev/null); fm=$(stat -c %Y "$f" 2>/dev/null)
+      { [ -n "$st" ] && [ -n "$fm" ] && [ "$st" -le $((fm + 1)) ]; } || { echo "kill-run-harness: pid $pid started after $f was written (reused pid) - not signalled" >&2; continue; }
+      kill -TERM -- -"$pid" 2>/dev/null
     done
   done
   return 0

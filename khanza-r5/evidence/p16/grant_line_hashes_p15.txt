@@ -1,0 +1,6 @@
+# G3: sha256 of the standing-grant line ('benchmark grants on sik/sik_bench: ...', CR stripped, trailing newline) of each live-state file
+# command: grep -a '^benchmark grants on sik/sik_bench' <file> | tr -d '\r' | sha256sum
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  p15/live_state_baseline.txt
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  p15/chain/live_state_baseline.txt
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  p15/chain/live_state_final.txt
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  p15/chain_e/live_state_final.txt

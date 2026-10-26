@@ -61,8 +61,12 @@ def fetch_all(cl, nrs):
             d[1] += int(tb or 0)
         # B: paid sums per encounter
         for row in q(cl,
-                "SELECT no_rawat, SUM(COALESCE(besar_bayar,0)+COALESCE(besarppn,0)), COUNT(*) "
+                "SELECT no_rawat, SUM(besar_bayar+besarppn), COUNT(*), "
+                "SUM(besar_bayar IS NULL OR besarppn IS NULL) "
                 "FROM detail_nota_jalan WHERE no_rawat IN (%s) GROUP BY no_rawat" % inl):
+            if int(Decimal(str(row[3] or 0))):   # P16 B3 (N4): a NULL payment is an input error, never 0
+                print("INPUT-ERROR: NULL payment column in detail_nota_jalan for %s" % row[0])
+                sys.exit(2)
             p = row[1] if row[1] is not None else 0
             B[row[0]] = [int(Decimal(str(p)).quantize(Decimal(1), rounding=ROUND_HALF_UP)),
                          int(row[2] or 0)]
@@ -86,16 +90,16 @@ def fetch_audit(cl, nrs, since=None):
     and how many were written by benchmark@localhost (P15 B5: only rows at or after
     `since`, the run start, when given)."""
     audit = {}
-    cond = (" AND at >= '%s'" % since) if since else ""
+    win = ("at >= '%s'" % since) if since else "1"   # P16 B2: all INSERTs counted, the window counted apart
     for _, chunk in in_chunks(nrs):
         inl = ",".join("'%s'" % n for n in chunk)
-        for nr, cnt, bcnt in q(cl,
+        for nr, cnt, bcnt, wcnt in q(cl,
                 "SELECT no_rawat, COUNT(*), "
-                "SUM(CASE WHEN acct LIKE CONCAT('benchmark@', CHAR(37)) THEN 1 ELSE 0 END) "
+                "SUM(CASE WHEN acct LIKE CONCAT('benchmark@', CHAR(37)) THEN 1 ELSE 0 END), SUM(%s) "
                 "FROM p7_write_audit "
-                "WHERE tbl='detail_nota_jalan' AND op='INSERT'%s AND no_rawat IN (%s) "
-                "GROUP BY no_rawat" % (cond, inl)):
-            audit[nr] = [int(cnt or 0), int(bcnt or 0)]
+                "WHERE tbl='detail_nota_jalan' AND op='INSERT' AND no_rawat IN (%s) "
+                "GROUP BY no_rawat" % (win, inl)):
+            audit[nr] = [int(cnt or 0), int(bcnt or 0), int(wcnt or 0)]
     return audit
 
 
@@ -164,8 +168,8 @@ def main():
     print("fetching audit (fresh-B) for %d encounters ..." % len(nrs))
     audit = fetch_audit(cl, nrs, since)
     for nr in nrs:
-        cnt, bcnt = audit.get(nr, [0, 0])
-        if bcnt == 1 and cnt == 1:   # P15 B5: exactly one INSERT, by benchmark@ (was cnt >= 1)
+        cnt, bcnt, wcnt = audit.get(nr, [0, 0, 0])
+        if bcnt == 1 and cnt == 1 and wcnt == 1:   # P16 B2: exactly one in total, by benchmark@, at/after the run start
             fresh_ok += 1
         else:
             ok = False

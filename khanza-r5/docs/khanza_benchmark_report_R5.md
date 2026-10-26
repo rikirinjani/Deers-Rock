@@ -1388,14 +1388,18 @@ reported, not fixed: P14 changed no frozen tool and no live row.
 ## 27. P15: driver safety, acceptance predicates, discriminating line identity (2026-10-26, new)
 
 **Source.** Astra v11 (`evidence/astra_v11_5496287_output.md`, **66/100**). Every v11 finding was
-checked against the source before any change. Results: 33 confirmed, 4 partly true, 1 not confirmed
-(P14 never dropped a clone on refusal; P13 did). One new defect was found during the check (S7).
+checked against the source before any change. Results: ~~33 confirmed, 4 partly true, 1 not confirmed~~ *[P16 D1: the §1 table of the task doc
+has 36 rows: 32 confirmed, 3 partly true (G3, G10, R8) and 1 mixed (S1: confirmed for P13, not for P14;
+P14 never dropped a clone on refusal, P13 did). The original count did not match the table.]* One new defect was found during the check (S7).
 The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identity.md`, §1 table.
 
 **Run.**
 - Lock `P15-CLAUDE-20261026`, acquired 09:19:33Z, released 13:11:37Z. The release is captured in
   `evidence/p15/lock_release.txt` (`RUNLOCK-RELEASED` then `RUNLOCK-FREE`). This also closes D8 for
-  P15; the P14 release is shown indirectly by `RUNLOCK-FREE` at P15 start.
+  P15; ~~the P14 release is shown indirectly by `RUNLOCK-FREE` at P15 start~~ *[P16 D2: struck. No file
+  in `evidence/p15/` shows the lock free at P15 start (the 09:19Z baseline already shows the P15 holder),
+  so the P14 release stays unevidenced. P16 captured the free state before acquisition:
+  `evidence/p16/lock_free_and_lsattr_before.txt`.]*
 - Evidence: `evidence/p15/` (`chain.log`, `chain_e.log`, `chain/`, `chain_e/`).
 - Frozen bytes: 18 files, `evidence/p15/r5_p15_frozen_manifest_20261026b.sha256`, 18/18 OK before
   and after, `chattr +i`.
@@ -1408,7 +1412,9 @@ The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identit
 **A. Driver safety** (`p15_lib.sh`, P13 and P14 drivers, preservation check, P13 kill test):
 
 - Every validation (lock, `database.xml`, clone exists, disk) now runs before the EXIT trap. A
-  refusal touches nothing.
+  refusal touches nothing. *[P16 D1: true for the P13 and P14 drivers. Not true for
+  `p10_preservation_check.sh`, which still installed its EXIT trap before its refusals and revoked a grant
+  it had not created (review N1); fixed and shown old-vs-new in P16 §28.]*
 - Cleanup undoes only what the run did: its own clone, its own grant, its own xml retarget, and
   its own harness process groups from the oracle's `.pid` files. There is no global `pkill`.
 - `pipefail` is set; the clone is validated against `sik` (1,100 tables, 6 key tables
@@ -1428,7 +1434,8 @@ The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identit
   "no grant" line, and the handoff's "No benchmark grants on sik/sik_bench", rested on that
   vacuous probe**). The live standing grants of the Khanza app account (`benchmark@localhost`:
   DML on `sik`, broad on `sik_bench`) were identical at baseline, chain start and final (line
-  hash `ae5da20e…` three times).
+  hash `ae5da20e…` three times). *[P16 G3: reproduced from the evidence files:
+  `evidence/p16/grant_line_hashes_p15.txt`, the same sha256 for the four P15 live-state files.]*
 
 **B/C. Acceptance predicates and line identity** (`p15_line_identity.py`, new; the frozen P14 comparator is unchanged):
 
@@ -1440,7 +1447,9 @@ The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identit
   NULL/empty numerics.
 - **Quantity** is compared for every component.
 - **Fresh-B** means exactly one INSERT, by `benchmark@`, at or after the run start that the driver
-  recorded (MySQL `NOW(6)`).
+  recorded (MySQL `NOW(6)`). *[P16 D1: P15 counted only the INSERTs inside the window, so a stale
+  pre-run INSERT was ignored (review N3); the rule is now exactly one INSERT in total, at or after the
+  run start. A NULL payment was also read as 0 (N4); now an input error.]*
 - **P13 comparator and P12 reconcile:** the same B4/B5 changes went into the P13 comparator; P12
   reconcile asserts coverage (B6).
 
@@ -1465,7 +1474,9 @@ The other plants each fail only their own encounter:
 - B1b, quantity and unit changed with the amount unchanged, caught through `form_model`;
 - B3, registration quantity 2;
 - B5a, an extra INSERT by `root@`;
-- B5b, the fresh row moved before the run start.
+- B5b, the fresh row moved before the run start. *[P16 D1: this control ran with `--since` cut at the
+  space, i.e. midnight (`"since": "2026-10-26"` in `chain/line_negctl.txt`, review N2); it moved the row a
+  whole day. The run-start boundary itself was first tested in P16 (B5c, B5d).]*
 
 The planted run had 0 failures among the unplanted encounters.
 
@@ -1484,13 +1495,17 @@ k = 0: 0.99 % one-sided, 1.22 % two-sided, under the P13 sampling assumption.
 - **E2, NC4:** a fault hook drifts one live row between the stage copy and the hashing in **both**
   arms, which differ only by the hash source. The predicate is the same in both arms: the stored
   hash equals the recomputed staged content. The hash file is now written atomically.
-- **E3, A28′:** no unconditional −5; the restore result is asserted; the stage tables are dropped
+- **E3, A28′:** no unconditional −5; ~~the restore result is asserted~~ *[P16 D1: the result was printed but not part of the check-28
+  predicate, and the conditional −5 ran in either arm (review N5); asserted and confined to the NC arm in
+  P16]*; the stage tables are dropped
   only after a verified restore; the fixture must equal its pre-test hash; NULL checksums are never
   comparable.
 - **E4, preservation:** a missing pre-op snapshot aborts and is never re-recorded. The snapshots
   must be newer than this run's suite start. The expected stage inventory comes from the oracle's
   specification (`RESET_TABLES` + `_reg`), and the post-failure observation must equal it.
-- **E5, switches:** active only on exactly `1`, and refused on live inside the helper.
+- **E5, switches:** active only on exactly `1`, and refused on live inside the helper. *[P16 D1: in the
+  oracle. The suite and the preservation check turned any non-empty value, including `0`, into `1` (review
+  N6); fixed in P16.]*
 - **E6, grant recovery:** refused while the marker's holder is alive; the granted privileges must
   be visible afterwards; a readable marker is validated by `recover_writer_exclusion` before it is
   deleted; `{}` is rejected.
@@ -1536,3 +1551,69 @@ k = 0: 0.99 % one-sided, 1.22 % two-sided, under the P13 sampling assumption.
 - inner restore order;
 - the clean-box rebuild;
 - the P14 ledger scope gaps (owner decisions).
+
+## 28. P16: fixes from the independent P15 review (2026-10-26, new)
+
+**Source.** `docs/khanza_r5_p15_review.md`: an independent, read-only reviewer re-scored P15 **17/24,
+Accept with fixes** (self-score 23/24; R2 and R8 at 1). Each finding was checked against the source
+before any change (task doc `docs/khanza_r5_task_p16_review_fixes.md`, §1): N1, N2, N3, N4, N6, N7, N8
+confirmed; N5 partly (the predicate already required the post-restore hash to equal the pre-test hash,
+but the restore result was not asserted and the conditional −5 could mask a failed restore). The task
+doc was committed (`c8a106f`) before any change on the box.
+
+**Run.** Lock `P16-CLAUDE-20261026`, acquired 14:02:16Z, released 15:01:16Z. The free state before
+acquisition (`RUNLOCK-FREE`, 14:02:04Z) and after release are captured:
+`evidence/p16/lock_free_and_lsattr_before.txt`, `evidence/p16/lock_release.txt`. Frozen bytes: 22 files,
+manifest b `evidence/p16/r5_p16_frozen_manifest_20261026b.sha256`, `sha256sum -c` 22/22 and `lsattr`
+`i` on 22/22 at chain-b start and end; chain 1 (manifest a, 21 files) 21/21 at start and end, with
+`lsattr` transcripts before the unfreeze (18/18), after the re-freeze (22 incl. manifest) and at chain
+start and end (`evidence/p16/refreeze_lsattr_after.txt`, `chain/lsattr_chain_*.txt`). Local = box
+(CR stripped), 11/11 (`evidence/p16/local_eq_box.txt`). Originals: `.bak_p16_20261026/`,
+`.bak_p16fix1_20261026/`.
+
+| Fix | Change | Control (old bytes vs new bytes) | Evidence |
+|---|---|---|---|
+| **N1** | `p10_preservation_check.sh`: the EXIT trap restores the xml / revokes the grant only if this run set `XML_TOUCHED` / `GRANTED` | foreign `sik_p6f` with a benchmark grant: OLD exit 3 **and grant 0** (revoked); NEW exit 3, grant 4, fixture and `database.xml` untouched | `chain/p16_a_negctl.txt` |
+| **N8** | `p15_kill_run_harness`: group leader + pid not started after its pid file | leader killed (positive); non-leader and reused pid not signalled | `chain/a_lib_test.txt` 23/23 |
+| **A5/A6 driver** | actual tail and pin lines of `p14_edge_run.sh` run with the oracle / pin check stubbed | (4,10)→1; (4,0)→0; (4,none)→0; (0)→1; (10)→1; (4,4)→1; pin mismatch → abort, `KEEP=1`; match → continues | `chain/p16_a_negctl.txt` 25/25 (**wiring tests of the driver's own lines, not a full clone run with an injected failure**) |
+| **N2** | `--since "$SINCE"` in the line controls (array) | every summary records the full run start | `chain_b/line_negctl.txt` |
+| **N3** | fresh-B = exactly one INSERT **in total**, by `benchmark@`, at or after the run start (both comparators) | B5c: a `benchmark@` INSERT at start−1 µs next to the legitimate row: OLD p15 comparator MATCH (the hole), NEW MISMATCH; B5d: legitimate row exactly at the start accepted | `chain_b/line_negctl.txt` |
+| **N4** | NULL payment = input error (exit 2), both comparators | planted NULL `besar_bayar`: exit 2 and 2 | `chain_b/line_negctl.txt` |
+| **N7** | B6 plants assert deleted = counted | 18 and 5 rows | `chain/b6_negctl.txt` 6/6 |
+| **N5** | A28′ requires `R28 = restored`; the −5 only in the NC arm | restore result mutated to "not verified": OLD A28′ PASS (masked), NEW FAIL | `chain/p16_e_negctl.txt` |
+| **N6** | exact-`1` activation in the suite and the preservation check | `R5_NEGCTL_BACKUP_NO_TXN=0`: OLD activates the NC arm, NEW inert and passes; `=1` still activates | `chain/p16_e_negctl.txt` 20/20 |
+| E1/E4 observed | `nc_status_e` from the NC runner bytes: missing file / no verdict line → ERROR; pre-op snapshot moved aside → `p10_preservation_check.sh` exit 3 `ABORT: pre-operation snapshot missing` | | `p16_e_negctl.txt`, `p16_a_negctl.txt` |
+
+**C4 rerun under the stricter fresh-B rule** (fresh clone `sik_p14e`, ledger pin `REPRODUCES-PIN`):
+fixture 27/27 `sukses=true`, oracle exit 4 (expected); real 300/300 exit 0, driver exit 0.
+Fixture comparator: 27/27 pass (DIFFER 12 / EQUAL 12 / EQUAL-SRC 3), B = A 27, fresh-B 27.
+Real 300 vs the live-pinned ledger: **300/300 pass, 1,240 lines, 0 line differences, EQUAL 181 /
+EQUAL-SRC 119**, B = A 300, fresh-B 300; **0 encounters carry a pre-run INSERT** (so the stricter
+rule changed no verdict). P13 comparator: run window → ALL-EQUAL 300/300, window in the future → exit 1,
+duplicate list → exit 2 (`chain/real300_lines_summary.json`, `chain/fixture_lines_summary.json`,
+`chain/p13cmp_*.txt`).
+
+**Regression on the changed suite and preservation bytes:** full fresh suite **PASS=39 FAIL=0**;
+preservation **PASS** (`SNAPSHOT-BINDING … written by this run`); recovery unit test **44/44**;
+P11 negative controls **DISCRIMINATING=5** (`chain/r5_p6_acceptance_20261026T143607Z.md`,
+`chain/r5_p10_preservation_20261026T144308Z.md`, `chain/r5_p11_negative_controls_20261026T144501Z.md`).
+
+**A defect in P16's own first chain (recorded, fixed, re-run).** My patch to `p15_line_negctl.sh`
+glued `: > /tmp/p15nc_empty.txt` onto an echo line, so the B4 empty-list control fed a non-empty file
+and the line controls ended 32/33 (`chain.log`, kept). Fix 1 (one line), manifest b, and `p16_chain_b.sh`
+re-ran the fixture-only driver and the line controls: **33/33** (`chain_b/`). Failure record
+`20261026T1500Z-test-r5-p16-b4-empty-list-control-glued-echo`.
+
+**Evidence gaps closed** (task doc G1–G6): `lsattr` transcripts; E1 and E4 observed; the grant-line
+hash `ae5da20e…` reproduced for the four P15 and three P16 live-state files
+(`grant_line_hashes_p15.txt`, `grant_line_hashes_p16.txt`); failure records for the G, R and D classes
+and the review; §27 corrections struck through (D1, D2). **Not closed, stated:** the P14 lock release
+(no file; only P16's start and end are evidenced); a full driver run with an injected stop-rule failure
+(wiring tests only); `p12_perencounter_reconcile.py` still sums payments with `COALESCE` (the review's N4
+named the two comparators; P12 reconcile asserts coverage, B6); C3 form-side provenance, X2, A11, the
+clean-box rebuild and the P14 ledger scope gaps (owner decisions).
+
+**Live state.** Baseline 14:02:54Z, chain final 14:56:15Z and chain-b final 15:00:56Z are identical apart
+from time: `sik sik_bench`, `database.xml` → `sik`, 0 writer markers, no clone grants, ledger
+`356355:a66a3a546cc322…` (pin), 0 fixture rows in live, live counts 86676 reg / 1464593 billing /
+86488 nota / 1100 dnota; standing grant line sha256 `ae5da20e…` in all three.

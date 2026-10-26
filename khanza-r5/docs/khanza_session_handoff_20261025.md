@@ -41,6 +41,7 @@ Use `ssh mac-mini-vultr` or `. khanza-r5/.vps-mac-mini.env`.
 | 18 | **HOE Epic V branch** `epic-v-dashboard`: merged into `main` as `0d60971` and pushed 2026-10-26 | done | **done** |
 | 19 | **Astra v11 = 66/100** (run 5496287, $3.53 incl. gemini; `evidence/astra_v11_*`). P15 task doc written from it: `docs/khanza_r5_task_p15_safety_and_line_identity.md` (every v11 finding verified against the source; safety first, then discriminating line identity) | done 2026-10-26 | **done**: P15 run (R5 §27) |
 | 20 | **P15 done** (R5 §27): driver safety, stricter predicates, source-row line identity (300/300, 0 AMBIGUOUS, C2 hole closed), recovery repairs (suite 39/39, NC 5/5, unit 44/44). Frozen set now P15 manifest b (18 files) on top of the P12/P13/P14 sets. Open: C3 form-side provenance, X2, clean-box rebuild, P14 ledger scope decisions | owner | committed locally, not pushed |
+| 21 | **P15 independent review → P16 done** (R5 §28): the reviewer re-scored P15 17/24 (self 23); N1–N8 fixed under lock `P16-CLAUDE-20261026` (released, free captured). Frozen set is now manifest b of 22 files (`evidence/p16/r5_p16_frozen_manifest_20261026b.sha256`; box `p16_frozen_20261026b.sha256`). Open, stated: driver stop-rule is wiring-tested only; `p12_perencounter_reconcile.py` still uses COALESCE on payments; the P14 lock release is unevidenced. Next owner call: second independent re-score of P16, then Astra v12 (costs money, needs your OK). | done | **done** |
 
 ## 2. Standing rules (unchanged from 10-24, repeated for the next session)
 

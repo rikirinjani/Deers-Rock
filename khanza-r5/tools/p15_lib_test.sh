@@ -44,5 +44,28 @@ RC=$(mysql -uroot -N -e "UPDATE p15_pin_t.dr_charge_ledger SET amount=amount+1 W
 t "A6 plant ROW_COUNT" "$RC" 1
 t "A6 altered copy fails the pin check" "$(r p15_ledger_pin_check p15_pin_t "$PIN")" no
 mysql -uroot -e "DROP DATABASE p15_pin_t;"
+# P16 A2 (N8): run-scoped kill. A group leader is killed; a non-leader and a reused pid are not.
+RR=p16_kill_t; RD=/opt/dr-benchmark/results/$RR/B3; rm -rf /opt/dr-benchmark/results/$RR; mkdir -p $RD
+spawn() { # pidfile leader(yes|no)
+  if [ "$2" = yes ]; then setsid bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1 &
+  else bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1 & fi
+  for _ in 1 2 3 4 5 6 7 8 9 10; do [ -s "$1" ] && break; sleep 0.3; done; sleep 1
+}
+alive() { kill -0 "$(cat "$1")" 2>/dev/null && echo alive || echo dead; }
+spawn $RD/harness_lead.log.pid yes
+t "A2 leader alive before" "$(alive $RD/harness_lead.log.pid)" alive
+p15_kill_run_harness $RR 2>/dev/null; sleep 1
+t "A2 leader killed (positive case)" "$(alive $RD/harness_lead.log.pid)" dead
+rm -f $RD/*.pid
+spawn $RD/harness_nonlead.log.pid no
+p15_kill_run_harness $RR 2>/dev/null; sleep 1
+t "A2 non-leader pid not signalled" "$(alive $RD/harness_nonlead.log.pid)" alive
+kill "$(cat $RD/harness_nonlead.log.pid)" 2>/dev/null; rm -f $RD/*.pid
+spawn $RD/harness_reused.log.pid yes
+touch -d "10 minutes ago" $RD/harness_reused.log.pid
+p15_kill_run_harness $RR 2>/dev/null; sleep 1
+t "A2 pid that started after its pid file (reused) not signalled" "$(alive $RD/harness_reused.log.pid)" alive
+kill -- -"$(cat $RD/harness_reused.log.pid)" 2>/dev/null; kill "$(cat $RD/harness_reused.log.pid)" 2>/dev/null
+rm -rf /opt/dr-benchmark/results/$RR
 echo "P15-LIB-TEST: PASS=$P FAIL=$F"
 [ "$F" = "0" ]

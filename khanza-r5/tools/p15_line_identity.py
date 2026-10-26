@@ -126,21 +126,26 @@ def run():
                 raise InputError("duplicate ledger key %s %s" % (nr, key))  # B2
             w = "ledger %s %s" % (nr, key)
             led[nr][key] = (D(qty, w), D(unit, w), D(amt, w))
-        for nr, s, n in q(db, "SELECT no_rawat, SUM(COALESCE(besar_bayar,0)+COALESCE(besarppn,0)), "
-                              "COUNT(*) FROM detail_nota_jalan WHERE no_rawat IN (%s) "
-                              "GROUP BY no_rawat" % inl):
+        for nr, s, n, nn in q(db, "SELECT no_rawat, SUM(besar_bayar+besarppn), COUNT(*), "
+                                  "SUM(besar_bayar IS NULL OR besarppn IS NULL) FROM detail_nota_jalan "
+                                  "WHERE no_rawat IN (%s) GROUP BY no_rawat" % inl):
+            if int(Decimal(str(nn or 0))):
+                raise InputError("NULL payment column in detail_nota_jalan for %s" % nr)   # B3 (P16 N4)
             pay[nr] = (D(s, "payment %s" % nr), int(n))
         for nr, kd in q(db, "SELECT no_rawat, kd_jenis_prw FROM rawat_jl_dr WHERE no_rawat IN (%s)" % inl):
             src.setdefault(nr, {}).setdefault("procedure", set()).add(kd)
         for nr, kd in q(db, "SELECT no_rawat, kode_brng FROM detail_pemberian_obat WHERE no_rawat IN (%s)" % inl):
             src.setdefault(nr, {}).setdefault("drug", set()).add(kd)
         if has_audit:
-            cond = (" AND at >= '%s'" % since) if since else ""
-            for nr, n_all, n_bench in q(db,
-                    "SELECT no_rawat, COUNT(*), SUM(acct LIKE CONCAT('benchmark@', CHAR(37))) "
-                    "FROM p7_write_audit WHERE tbl='detail_nota_jalan' AND op='INSERT'%s "
-                    "AND no_rawat IN (%s) GROUP BY no_rawat" % (cond, inl)):
-                audit[nr] = (int(n_all or 0), int(Decimal(str(n_bench or 0))))
+            # P16 B2 (N3): count ALL INSERTs of the encounter (no time condition) and, separately,
+            # those at or after the run start; fresh-B needs exactly one in total, by benchmark@,
+            # inside the window
+            win = ("at >= '%s'" % since) if since else "1"
+            for nr, n_all, n_bench, n_win in q(db,
+                    "SELECT no_rawat, COUNT(*), SUM(acct LIKE CONCAT('benchmark@', CHAR(37))), SUM(%s) "
+                    "FROM p7_write_audit WHERE tbl='detail_nota_jalan' AND op='INSERT' "
+                    "AND no_rawat IN (%s) GROUP BY no_rawat" % (win, inl)):
+                audit[nr] = (int(n_all or 0), int(Decimal(str(n_bench or 0))), int(Decimal(str(n_win or 0))))
     res, lines_out = [], []
     for nr in nrs:
         L = led.get(nr, {})
@@ -200,12 +205,13 @@ def run():
         a_tot = sum((f["amt"] for f in F.values()), Decimal(0))
         c_tot = sum((l[2] for l in L.values()), Decimal(0))
         b = pay.get(nr, (None, 0))
-        fb = audit.get(nr, (0, 0))
-        fresh = (not fresh_required) or (fb[0] == 1 and fb[1] == 1)   # B5: exactly one, by benchmark@, in this run
+        fb = audit.get(nr, (0, 0, 0))
+        fresh = (not fresh_required) or (fb[0] == 1 and fb[1] == 1 and fb[2] == 1)   # B5 (P16): exactly one in total, by benchmark@, at/after the run start
         b_eq_a = b[0] is not None and b[0] == a_tot
         rec = {"no_rawat": nr, "verdict": verdict, "delta": delta, "A": fmt(a_tot), "C": fmt(c_tot),
                "B": fmt(b[0]) if b[0] is not None else "", "B_rows": b[1], "B_eq_A": b_eq_a,
                "fresh_b": "%d/%d" % (fb[1], fb[0]) if has_audit else "n/a",
+               "fresh_b_ok": fresh, "fresh_b_window": fb[2], "fresh_b_pre_run": fb[0] - fb[2],
                "form_rows": len(rows.get(nr, [])), "ledger_rows": len(L)}
         if exp is not None:
             e = exp.get(nr)
@@ -245,7 +251,7 @@ def run():
     npass = sum(1 for r in res if r["pass"])
     summary = {"encounters": len(res), "pass": npass, "fail": len(res) - npass, "verdicts": counts,
                "lines": len(lines_out), "line_differ": sum(1 for x in lines_out if x[-1] != "EQUAL"),
-               "fresh_b_ok": sum(1 for r in res if r["fresh_b"] == "1/1"),
+               "fresh_b_ok": sum(1 for r in res if r["fresh_b"] != "n/a" and r["fresh_b_ok"]),
                "b_eq_a": sum(1 for r in res if r["B_eq_A"]),
                "mode": "expect" if exp is not None else "equal", "db": db, "ledger": ldb, "since": since}
     base = out.rsplit(".", 1)[0]

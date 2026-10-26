@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-26T14:05:00Z",
+  "category": "tool",
+  "severity": "major",
+  "title": "G class (v11 G1-G10): the P14 line-identity comparator resolved name collisions from the expected ledger and its gates were incomplete",
+  "what_went_wrong": [
+    "EQUAL-CTX picked the actual code from the expected ledger (circular): a wrong code present in the ledger passed.",
+    "--expect MATCH ignored payment equality and the predicted form/ledger models; duplicate ledger keys were overwritten; an empty visit list passed 0/0; NULL numerics became 0; quantity was not compared for every component; fresh-B had no time boundary; P12 reconcile printed coverage without asserting it."
+  ],
+  "root_cause": "The comparator was designed to prove the shapes the fixture exercised; the acceptance predicate was not required to be false for a plant that kept the same name and price.",
+  "detection": "Astra v11 (66/100) finding G1-G10, each verified against the source in the P15 task doc section 1.",
+  "impact": "The 300-visit clean result of P14 rested on a comparator that could not fail the C2 plant (shown on the same scratch copy in P15).",
+  "correction": {
+    "applied": "P15: p15_line_identity.py (source-row identity, EQUAL-SRC, stricter --expect, input errors exit 2, fresh-B INSERT by benchmark@ at/after the run start), p13_sample_compare.py B4/B5, p12 reconcile B6; P16 closed the residual fresh-B window and NULL-payment gaps.",
+    "result": "P15 C4: fixture 27/27, real 300/300, 0 line differences; P16 rerun under the stricter rule: see R5 section 28"
+  },
+  "rule": "An acceptance predicate is not accepted until a plant that differs only in the property it claims to check makes it fail, on the old bytes it passes.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}

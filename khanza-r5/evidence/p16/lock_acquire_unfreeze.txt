@@ -1,0 +1,17 @@
+RUNLOCK-ACQUIRED: session=P16-CLAUDE-20261026 (/opt/dr-benchmark/LOCK)
+session=P16-CLAUDE-20261026
+pid=278590
+start_utc=2026-10-26T14:02:16Z
+host=mac-mini-vultr
+note=P16 review fixes (N1-N8) + evidence
+pid_alive=yes
+75b91bccb14f55f977634894cc72bec81e7da5a38f0a100debd7982f45d401dc  .bak_p16_20261026/p10_preservation_check.sh
+5c11b900b58e583543460804314f8b7247e74f28d049bbfe435e9c9baf705936  .bak_p16_20261026/p13_sample_compare.py
+7b22021692754e0e5fbe371d87511bbdecd1e7709f4a338eb1744827fd8b057a  .bak_p16_20261026/p15_b6_negctl.sh
+53f4682e6939dd5804e3c4053aef7dcba74807058335a263963dda82553c0cf0  .bak_p16_20261026/p15_lib.sh
+a9195de37e75303bbe34b59f7c760a114b3e3f7b85ac0380c4cd407d7d5deff2  .bak_p16_20261026/p15_lib_test.sh
+f4f6a0f523256fd2da63536f6a8a061c587b8d088ed2b41405e7289947df7046  .bak_p16_20261026/p15_line_identity.py
+2420c101ade0f2691630450eba70eda7047e1e725fe08ffbea44f831ba199134  .bak_p16_20261026/p15_line_negctl.sh
+6a071595c45bcf660ead21bd9f98e9bd6d7b9c169894aff16aeceac061d05d95  .bak_p16_20261026/p6_acceptance_suite.sh
+--------------e------- p10_preservation_check.sh
+--------------e------- p6_acceptance_suite.sh

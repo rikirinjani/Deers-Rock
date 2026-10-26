@@ -185,3 +185,18 @@ SHA-256 ~~so the benchmark is re-derivable without the original live box~~ *(P15
   responsibility.
 - The P4-E2 burst found the consumer ceiling is ~1,802 v/min (warm) / ~916 v/min
   (cold scratch), so a 5× burst is not a provided headroom (see P4-E2 evidence).
+
+| `p10_preservation_check.sh` (P16) | `a197308eb89b712d8e46498a3965f27eaa14134a256973bef7e8b33044206820` |
+| `p13_sample_compare.py` (P16) | `8c72b6f6390e0411d180d0e744dbaf5f11e2e8f0bf92e3fa61c6aefa80eeab90` |
+| `p15_lib.sh` (P16) | `49bae7fb5c104de78943a20b5a2989d5b338fb04867ddaae99532fa656000d83` |
+| `p15_lib_test.sh` (P16) | `77122517c4f004ffe65b522db5b8d8d3a0a4800ca77cef76e1445a31e3707bfa` |
+| `p15_line_identity.py` (P16) | `d063cf8b8d6b0a8a237749eae1381a3c58266d9e3e2c9cef32178598f5afee42` |
+| `p15_line_negctl.sh` (P16, fix 1) | `401e4aced487cf45c86e46dc6a4849624c94992c2a7ecfd8ae0fdb22565e5fb2` |
+| `p15_b6_negctl.sh` (P16) | `5e4af38f662718b9c1f3a8353acc56a6316fee873e371e0a1a9ac485149924ff` |
+| `p6_acceptance_suite.sh` (P16) | `35de05bb346bf842fed32d4a876052b0abf0c1dacf8f4112838ffd50b1107d4e` |
+| `p16_a_negctl.sh` (P16) | `b68e2343308df5819a11f1fe669c9dc68a1d213764480a915491866fbe20f8a0` |
+| `p16_e_negctl.sh` (P16) | `5d21f2dab59ac92110161e77a84c7d6cf8bd6f2214f4e832d4a570c28363ad29` |
+| `p16_chain.sh` (P16) | `586eb3757db043b96f613bf7d293d2cdaf380d94cce413080adaf96c39d7bc9b` |
+| `p16_chain_b.sh` (P16) | `fd59399c86f2b61087e2482bfd3bf5ce73bca2a9606595fd3c3513c294f94f08` |
+
+> 2026-10-26 (R5 §28, P16) re-pins the 8 changed files above (supersedes the P15 rows of the same names) and adds 4 new ones; frozen on the box (`chattr +i`, `sha256sum -c` 22/22 OK, `lsattr` `i` on 22/22): `evidence/p16/r5_p16_frozen_manifest_20261026b.sha256` (manifest a, 21 files, kept as history; only `p15_line_negctl.sh` and the new `p16_chain_b.sh` differ). Originals: `.bak_p16_20261026/` and `.bak_p16fix1_20261026/` on the box.

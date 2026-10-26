@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-10-26T14:10:00Z",
+  "category": "test",
+  "severity": "major",
+  "title": "R class (v11 R1-R8): recovery negative controls could pass vacuously",
+  "what_went_wrong": [
+    "The NC runner chose its evidence with ls -t and treated a missing verdict as a pass; NC4 hashed in an order that made the control unfalsifiable; A28' compensated unconditionally; the preservation check re-recorded a missing pre-operation snapshot after a failure; the switches activated on any non-empty value; grant recovery did not refuse a live holder."
+  ],
+  "root_cause": "The controls demonstrated that a switch changes an outcome, not that the check fails when the property is removed and passes when it is present.",
+  "detection": "Astra v11 findings R1-R8, verified in the P15 task doc section 1; P15 first chain showed NC1 NOT-DISCRIMINATING (fixture hash helper out of scope), recorded separately.",
+  "impact": "P11-P14 recovery evidence of 'discriminating' controls was partly unfalsifiable.",
+  "correction": {
+    "applied": "P15 E1-E6 (run-bound evidence, fault hook in both arms, no unconditional compensation, snapshot binding, exact-1 switches, grant-recovery refusal); P16 closed N5/N6 and observed the E1 and E4 controls.",
+    "result": "P15: NC 5/5, suite 39/39, unit 44/44; P16: see R5 section 28"
+  },
+  "rule": "Every negative control must run the same predicate in both arms and be shown to fail the property-removed arm and pass the property-present arm on the same bytes.",
+  "agent": "claude (P15 executor)",
+  "status": "closed"
+}
