@@ -49,7 +49,7 @@ cp p6_acceptance_suite.sh /tmp/p16_suite_new.sh; cp "$BAK/p6_acceptance_suite.sh
 MUT='s/print("restored" if ok else "restore-not-verified")/print("restore-not-verified")/'
 cp /tmp/p16_suite_new.sh /tmp/p16_suite_new_mut.sh; sed -i "$MUT" /tmp/p16_suite_new_mut.sh
 cp /tmp/p16_suite_old.sh /tmp/p16_suite_old_mut.sh; sed -i "$MUT" /tmp/p16_suite_old_mut.sh
-chk "mutation applied to the NEW copy" "$(grep -c 'print("restore-not-verified")' /tmp/p16_suite_new_mut.sh)" 1
+chk "mutation applied to the NEW copy (two sites since P17 A6: R28 and R31)" "$(grep -c 'print("restore-not-verified")' /tmp/p16_suite_new_mut.sh)" 2
 chk "mutation applied to the OLD copy" "$(grep -c 'print("restore-not-verified")' /tmp/p16_suite_old_mut.sh)" 1
 
 echo "## E1 (N5): A28' with the restore reported as not verified"

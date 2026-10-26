@@ -1,0 +1,16 @@
+RUNLOCK-ACQUIRED: session=P17-CLAUDE-20261027 (/opt/dr-benchmark/LOCK)
+session=P17-CLAUDE-20261027
+pid=330450
+start_utc=2026-10-26T21:03:10Z
+host=mac-mini-vultr
+note=P17 Astra v12 findings: safety, predicates, C3 discovery
+pid_alive=yes
+a197308eb89b712d8e46498a3965f27eaa14134a256973bef7e8b33044206820  .bak_p17_20261027/p10_preservation_check.sh
+8c72b6f6390e0411d180d0e744dbaf5f11e2e8f0bf92e3fa61c6aefa80eeab90  .bak_p17_20261027/p13_sample_compare.py
+e72c5be3ecdef1415da4f20ece98d3708360f4c2325ec2ce3d40dbdaae9b5c73  .bak_p17_20261027/p13_wide_sample.sh
+57649869f47eb121f2337442f11ec073623c7e2a217be8309eba026855dfa770  .bak_p17_20261027/p14_edge_run.sh
+081325a3d358816d43fb90f301b878b2e725e66123a3bb8a2e24f4ea077ea070  .bak_p17_20261027/p15_a_negctl.sh
+49bae7fb5c104de78943a20b5a2989d5b338fb04867ddaae99532fa656000d83  .bak_p17_20261027/p15_lib.sh
+d063cf8b8d6b0a8a237749eae1381a3c58266d9e3e2c9cef32178598f5afee42  .bak_p17_20261027/p15_line_identity.py
+35de05bb346bf842fed32d4a876052b0abf0c1dacf8f4112838ffd50b1107d4e  .bak_p17_20261027/p6_acceptance_suite.sh
+1bd83aa8cadfcfc19e89d48c36dea317ea6553cf4ac52f796dce3891d7044b31  .bak_p17_20261027/sampled_real_form_diff_r5.py

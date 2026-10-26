@@ -16,11 +16,14 @@ P=0; F=0
 chk() { if [ "$2" = "$3" ]; then echo "PASS $1 (got $2)"; P=$((P+1)); else echo "FAIL $1 (got $2, want $3)"; F=$((F+1)); fi; }
 DUMMY=""
 setup() { # clone-name: existing clone with a sentinel, a grant, and a dummy BilingHarness process
-  SQL "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1; CREATE TABLE $1.p15_sentinel (x INT); INSERT INTO $1.p15_sentinel VALUES (42);"
+  [ -z "$(SQL "SHOW DATABASES LIKE '$1'")" ] || { echo "ABORT: $1 exists - refusing, nothing touched (P17 A5)"; exit 3; }
+  SQL "CREATE DATABASE $1; CREATE TABLE $1.p15_sentinel (x INT); INSERT INTO $1.p15_sentinel VALUES (42);"
   SQL "GRANT SELECT, INSERT, UPDATE, DELETE ON \`$1\`.* TO 'benchmark'@'localhost';"   # the set the drivers grant/revoke
-  ( setsid bash -c 'exec -a BilingHarness sleep 600' > /dev/null 2>&1 & )
-  sleep 1
-  DUMMY=$(pgrep -f '^BilingHarness' | head -1)
+  # P17 A5: the dummy is the process this helper spawned (its own pid file), never pgrep | head -1
+  rm -f /tmp/p17_dummy.pid
+  setsid bash -c 'echo $$ > "$0"; exec -a BilingHarness sleep 600' /tmp/p17_dummy.pid > /dev/null 2>&1 &
+  for _ in 1 2 3 4 5 6 7 8 9 10; do [ -s /tmp/p17_dummy.pid ] && break; sleep 0.3; done
+  DUMMY=$(cat /tmp/p17_dummy.pid)
 }
 state() { # clone-name -> "sentinel=<0|1> grant=<n> dummy=<alive|dead>"
   local s; s=$(SQL "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$1' AND table_name='p15_sentinel'")

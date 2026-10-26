@@ -1,0 +1,39 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p17-evidence",
+  "timestamp": "2026-10-26T22:15:21.713588+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p17/chain.log",
+    "khanza-r5/evidence/p17/chain_b.log",
+    "khanza-r5/evidence/p17/c3_t0.log",
+    "khanza-r5/evidence/p17/lock_release.txt",
+    "khanza-r5/evidence/p17/bak_equals_git.txt",
+    "khanza-r5/evidence/release_inventory.json",
+    "khanza-r5/evidence/p17/grant_line_hashes_p17.txt",
+    "khanza-r5/evidence/p17/r5_p17_frozen_manifest_20261027b.sha256",
+    "khanza-r5/evidence/p17/c3/form_queries.txt",
+    "khanza-r5/records/qms/VER-2026-10-27-DR-KHANZA-R5-P17-001.json",
+    "khanza-r5/records/failures/20261027T0600Z-test-r5-p17-p16-controls-stale-after-tail-change.json",
+    "khanza-r5/records/failures/20261027T0610Z-process-r5-p16-overclaims-found-by-astra-v12.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p17-evidence",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P17 evidence: safety 37/37, predicates 31/31, C4 rerun 27 + 300, suite 39/39, NC 5/5, C3 T0 stop (form never receives a code), lock free before and after"
+}

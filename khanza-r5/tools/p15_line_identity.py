@@ -98,11 +98,14 @@ def run():
     since = arg("--since")
     out = arg("--out", "/tmp/p15_line_identity.csv")
     exp = json.load(open(arg("--expect")))["visits"] if "--expect" in sys.argv else None
+    if exp is not None and set(nrs) != set(exp):   # P17 B3: the list must be the manifest's visit set, exactly
+        raise InputError("expect mode: the visit list (%d visits) is not the manifest's visit set (%d visits)" % (len(set(nrs)), len(exp)))
     fresh_required = "--no-fresh-b" not in sys.argv
     if fresh_required and not since:
         raise InputError("--since is required for fresh-B (or pass --no-fresh-b)")
     pm, dm = name_maps(db)
     rows, led, pay, audit, src = {}, {}, {}, {}, {}
+    srcu = {}   # P17 B1: unit prices of the encounter's own source rows
     has_audit = q(db, "SELECT COUNT(*) FROM information_schema.tables WHERE "
                       "table_schema='%s' AND table_name='p7_write_audit'" % db)[0][0] != "0"
     if fresh_required and not has_audit:
@@ -132,10 +135,12 @@ def run():
             if int(Decimal(str(nn or 0))):
                 raise InputError("NULL payment column in detail_nota_jalan for %s" % nr)   # B3 (P16 N4)
             pay[nr] = (D(s, "payment %s" % nr), int(n))
-        for nr, kd in q(db, "SELECT no_rawat, kd_jenis_prw FROM rawat_jl_dr WHERE no_rawat IN (%s)" % inl):
+        for nr, kd, bu in q(db, "SELECT no_rawat, kd_jenis_prw, biaya_rawat FROM rawat_jl_dr WHERE no_rawat IN (%s)" % inl):
             src.setdefault(nr, {}).setdefault("procedure", set()).add(kd)
-        for nr, kd in q(db, "SELECT no_rawat, kode_brng FROM detail_pemberian_obat WHERE no_rawat IN (%s)" % inl):
+            srcu.setdefault(nr, {}).setdefault(("procedure", kd), set()).add(D(bu, "source unit %s %s" % (nr, kd)))
+        for nr, kd, bu in q(db, "SELECT no_rawat, kode_brng, biaya_obat FROM detail_pemberian_obat WHERE no_rawat IN (%s)" % inl):
             src.setdefault(nr, {}).setdefault("drug", set()).add(kd)
+            srcu.setdefault(nr, {}).setdefault(("drug", kd), set()).add(D(bu, "source unit %s %s" % (nr, kd)))
         if has_audit:
             # P16 B2 (N3): count ALL INSERTs of the encounter (no time condition) and, separately,
             # those at or after the run start; fresh-B needs exactly one in total, by benchmark@,
@@ -151,8 +156,11 @@ def run():
         L = led.get(nr, {})
         S = src.get(nr, {})
         F, flags = {}, set()
+        reg_shape_bad = False   # P17 B2: the form writes the registration row as jumlah 0, biaya 0, tambahan 0, fee in totalbiaya
         for nm, biaya, jml, tamb, tot, st in rows.get(nr, []):
             c = component(st, nm)
+            if c == "registration" and (jml != 0 or biaya != 0 or tamb != 0):
+                reg_shape_bad = True
             if c == "registration":
                 code, how = "REG", "name"
             elif c == "tax":
@@ -174,14 +182,18 @@ def run():
             flags.add(how)
             f = F.setdefault((c, code), {"qty": Decimal(0), "amt": Decimal(0), "units": set(),
                                          "tamb": Decimal(0), "rows": 0})
-            f["qty"] += Decimal(1) if c == "registration" else jml
+            f["qty"] += Decimal(1) if c == "registration" else jml   # registration: one row = quantity 1 (the form writes jumlah 0 there; see reg_shape)
             f["amt"] += tot
             f["units"].add(biaya)
             f["tamb"] += tamb
             f["rows"] += 1
         differ = False
+        unit_src_bad = False
         for key in sorted(set(F) | set(L)):
             f, l = F.get(key), L.get(key)
+            su = srcu.get(nr, {}).get(key)
+            if exp is not None and su is not None and f is not None and f["units"] != su:
+                unit_src_bad = True   # P17 B1: the billed unit price differs from the source row's own
             if f is None or l is None:
                 ok = False
             else:
@@ -206,7 +218,7 @@ def run():
         c_tot = sum((l[2] for l in L.values()), Decimal(0))
         b = pay.get(nr, (None, 0))
         fb = audit.get(nr, (0, 0, 0))
-        fresh = (not fresh_required) or (fb[0] == 1 and fb[1] == 1 and fb[2] == 1)   # B5 (P16): exactly one in total, by benchmark@, at/after the run start
+        fresh = (not fresh_required) or (fb[0] == 1 and fb[1] == 1 and fb[2] == 1 and b[1] == 1)   # B5 (P16) + P17 B3: exactly one INSERT in total, by benchmark@, at/after the run start, and exactly one payment row
         b_eq_a = b[0] is not None and b[0] == a_tot
         rec = {"no_rawat": nr, "verdict": verdict, "delta": delta, "A": fmt(a_tot), "C": fmt(c_tot),
                "B": fmt(b[0]) if b[0] is not None else "", "B_rows": b[1], "B_eq_A": b_eq_a,
@@ -225,6 +237,8 @@ def run():
                 pf = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_form"].items()}
                 obs_led = {"%s|%s" % k: [fmt(l[0]), fmt(l[2])] for k, l in L.items()}
                 pl = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_ledger"].items()}
+                rec["unit_src"] = "DIFF" if unit_src_bad else "MATCH"
+                rec["reg_shape"] = "DIFF" if reg_shape_bad else "MATCH"
                 rec["form_model"] = "MATCH" if obs_form == pf else "DIFF"
                 rec["ledger_model"] = "MATCH" if obs_led == pl else "DIFF"
                 if rec["form_model"] == "DIFF":
@@ -233,11 +247,12 @@ def run():
                     rec["ledger_obs"], rec["ledger_pred"] = obs_led, pl
                 rec["expected"] = want
                 ok_all = (delta == want and line_ok and fresh and b_eq_a          # B1
-                          and rec["form_model"] == "MATCH" and rec["ledger_model"] == "MATCH")
+                          and rec["form_model"] == "MATCH" and rec["ledger_model"] == "MATCH"
+                          and rec["unit_src"] == "MATCH" and rec["reg_shape"] == "MATCH")   # P17 B1, B2
                 rec["outcome"] = "MATCH" if ok_all else "MISMATCH"
             rec["pass"] = rec["outcome"] == "MATCH"
         else:
-            rec["pass"] = (verdict in ("EQUAL", "EQUAL-SRC") and not delta and fresh
+            rec["pass"] = (verdict in ("EQUAL", "EQUAL-SRC") and not delta and fresh and not reg_shape_bad
                            and b[0] is not None and b[0] == c_tot)
         res.append(rec)
     with open(out, "w", newline="") as fh:

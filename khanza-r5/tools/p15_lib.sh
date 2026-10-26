@@ -23,38 +23,56 @@ p15_grant_count() { # schema
 
 # Run-scoped harness kill (A2): only the process groups this run's oracle recorded in its
 # harness_*.log.pid files under results/<run-id>/; never a global pkill.
+# P17 A4: process start time in ms since the epoch (from /proc/<pid>/stat starttime + btime); empty if unreadable.
+p15_proc_start_ms() { # pid
+  # boot instant = now - uptime (btime in /proc/stat is whole seconds and biases the result by up to 1 s)
+  local st hz up now
+  st=$(awk '{ s=$0; sub(/^.*\) /, "", s); split(s, a, " "); print a[20] }' "/proc/$1/stat" 2>/dev/null)
+  hz=$(getconf CLK_TCK 2>/dev/null)
+  up=$(awk '{ printf "%d", $1 * 1000 }' /proc/uptime 2>/dev/null); now=$(date +%s%3N)
+  { [ -n "$st" ] && [ -n "$hz" ] && [ -n "$up" ] && [ -n "$now" ]; } || return 1
+  echo $(( now - up + st * 1000 / hz ))
+}
+# any live process in process group $1 (a zombie does not count)
+p15_group_alive() { # pgid
+  ps -o stat= -g "$1" 2>/dev/null | grep -qv '^Z'
+}
+# P17 A3/A4: signal a recorded harness group only if (i) the pid is alive, (ii) it leads its group,
+# (iii) it started no later than its pid file was written, compared to the millisecond. After TERM the
+# group gets 10 s to die, then KILL; the function returns non-zero if a member is still alive, and the
+# drivers then leave database.xml, the grant and the clone as they are and exit 3.
 p15_kill_run_harness() { # run-id...
-  local rid f pid pg st fm
+  local rid f pid pg st fm i rc=0
   for rid in "$@"; do
     for f in /opt/dr-benchmark/results/"$rid"/*/harness_*.log.pid; do
       [ -f "$f" ] || continue
       pid=$(tr -dc 0-9 < "$f")
       [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || continue
-      # P16 A2 (N8): signal the group only if the pid is a group leader (the oracle starts the
-      # harness with start_new_session) and started no later than its pid file was written
-      # (a reused pid starts after the file)
       pg=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d " ")
       [ "$pg" = "$pid" ] || { echo "kill-run-harness: pid $pid is not a process-group leader - not signalled" >&2; continue; }
-      st=$(date -d "$(ps -o lstart= -p "$pid" 2>/dev/null)" +%s 2>/dev/null); fm=$(stat -c %Y "$f" 2>/dev/null)
-      { [ -n "$st" ] && [ -n "$fm" ] && [ "$st" -le $((fm + 1)) ]; } || { echo "kill-run-harness: pid $pid started after $f was written (reused pid) - not signalled" >&2; continue; }
+      st=$(p15_proc_start_ms "$pid"); fm=$(stat -c %.3Y "$f" 2>/dev/null | tr -d .)
+      { [ -n "$st" ] && [ -n "$fm" ] && [ "$st" -le $((fm + 50)) ]; } || { echo "kill-run-harness: pid $pid started after $f was written (or its start time is unreadable) - not signalled" >&2; continue; }
       kill -TERM -- -"$pid" 2>/dev/null
+      for i in $(seq 1 20); do p15_group_alive "$pid" || break; sleep 0.5; done
+      if p15_group_alive "$pid"; then kill -KILL -- -"$pid" 2>/dev/null; sleep 1; fi
+      if p15_group_alive "$pid"; then echo "kill-run-harness: group $pid still alive after KILL" >&2; rc=1; fi
     done
   done
-  return 0
+  return $rc
 }
 
 # Clone validation (A3): same table count as sik and the same row counts on key tables.
 p15_clone_matches_sik() { # clone
-  local t a b
-  a=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='sik'")
-  b=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$1'")
-  [ "$a" = "$b" ] || { echo "clone table count $b != sik $a"; return 1; }
+  local t a b ta tb
+  ta=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='sik'")
+  tb=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$1'")
+  [ "$ta" = "$tb" ] || { echo "clone table count $tb != sik $ta"; return 1; }
   for t in reg_periksa billing rawat_jl_dr detail_pemberian_obat nota_jalan detail_nota_jalan; do
     a=$(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.$t")
     b=$(mysql -uroot -N -e "SELECT COUNT(*) FROM $1.$t")
     [ "$a" = "$b" ] || { echo "clone $t rows $b != sik $a"; return 1; }
   done
-  echo "clone matches sik: tables=$a-equal, 6 key tables row-equal"
+  echo "clone matches sik: tables=$ta (= sik), 6 key tables row-equal"   # P17 A12: the table count, not the last row count
 }
 
 # Ledger pin (A6): content hash of the non-fixture rows of <db>.dr_charge_ledger; returns 1 on mismatch.

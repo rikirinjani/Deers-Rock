@@ -1,0 +1,34 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p17-evidence2",
+  "timestamp": "2026-10-26T22:15:46.764765+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p17/c3/consumers_before.txt",
+    "khanza-r5/evidence/p17/c3/shapes.txt",
+    "khanza-r5/evidence/p17/chain/p13cmp_nosince.txt",
+    "khanza-r5/evidence/p17/chain/p17_b_negctl.txt",
+    "khanza-r5/evidence/p17/chain/r5_p10_preservation_20261026T214926Z.md",
+    "khanza-r5/evidence/p17/chain/r5_p11_negative_controls_20261026T215118Z.md",
+    "khanza-r5/evidence/p17/chain/r5_p6_acceptance_20261026T214227Z.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p17-evidence2",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P17 evidence files: C3 T0 consumers and statement shapes, P17 predicate controls, suite/preservation/NC transcripts"
+}

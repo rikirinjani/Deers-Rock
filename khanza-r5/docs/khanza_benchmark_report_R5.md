@@ -1417,7 +1417,7 @@ The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identit
   it had not created (review N1); fixed and shown old-vs-new in P16 §28.]*
 - Cleanup undoes only what the run did: its own clone, its own grant, its own xml retarget, and
   its own harness process groups from the oracle's `.pid` files. There is no global `pkill`.
-- `pipefail` is set; the clone is validated against `sik` (1,100 tables, 6 key tables
+- `pipefail` is set; the clone is validated against `sik` (~~1,100 tables~~ *[P17 D1: wrong. 1,100 is the `detail_nota_jalan` row count that the message printed by mistake; `sik` has 1,179 tables, and the table-count check was real. Fixed in P17 A12]*, 6 key tables
   row-equal); the stop rule is `bad*100 > 2*total`; a ledger pin mismatch fails; P14 has an exit
   table; grant probes are correctly quoted, with a positive case.
 - The P13 driver also kept a half-built clone after an abort before the oracle (`ORACLE_RC=0`);
@@ -1458,7 +1458,7 @@ The task doc was written first: `docs/khanza_r5_task_p15_safety_and_line_identit
 | C4 clone, ledger | `REPRODUCES-PIN` (`356355:a66a3a54…`); clone matches `sik` | `chain/c4_driver.log` |
 | C4 form runs | fixture 27/27 `sukses=true`, oracle exit 4 (expected); real 300/300, oracle exit 0; driver exit 0 | same |
 | Fixture, `--expect`, stricter B1 | **27/27 pass**; B = A 27/27; fresh-B 27/27; verdicts DIFFER 12 / EQUAL 12 / EQUAL-SRC 3 | `chain/fixture_lines_summary.json` |
-| Real 300 vs live-pinned ledger | **300/300 pass, 1,240 lines, 0 line differences**; EQUAL 181 / **EQUAL-SRC 119** / AMBIGUOUS 0; B = A 300/300; fresh-B 300/300 | `chain/real300_lines_summary.json` |
+| Real 300 vs live-pinned ledger | **300/300 pass, 1,240 comparison entries *[P17 D1: aggregated per (component, code), not billing rows]*, 0 differences**; EQUAL 181 / **EQUAL-SRC 119** / AMBIGUOUS 0; B = A 300/300; fresh-B 300/300 | `chain/real300_lines_summary.json` |
 | P13 comparator B4/B5 | run window → 300/300 fresh-B exit 0; window in the future → exit 1; duplicate list → exit 2 | `chain/p13cmp_*.txt` |
 | B1–B5 + C2 controls | **24/24**, each plant `ROW_COUNT()=1` | `chain/line_negctl.txt` |
 | B6 control | **6/6** (after fix 2, see below) | `chain_e/b6_negctl.txt` |
@@ -1575,7 +1575,7 @@ start and end (`evidence/p16/refreeze_lsattr_after.txt`, `chain/lsattr_chain_*.t
 |---|---|---|---|
 | **N1** | `p10_preservation_check.sh`: the EXIT trap restores the xml / revokes the grant only if this run set `XML_TOUCHED` / `GRANTED` | foreign `sik_p6f` with a benchmark grant: OLD exit 3 **and grant 0** (revoked); NEW exit 3, grant 4, fixture and `database.xml` untouched | `chain/p16_a_negctl.txt` |
 | **N8** | `p15_kill_run_harness`: group leader + pid not started after its pid file | leader killed (positive); non-leader and reused pid not signalled | `chain/a_lib_test.txt` 23/23 |
-| **A5/A6 driver** | actual tail and pin lines of `p14_edge_run.sh` run with the oracle / pin check stubbed | (4,10)→1; (4,0)→0; (4,none)→0; (0)→1; (10)→1; (4,4)→1; pin mismatch → abort, `KEEP=1`; match → continues | `chain/p16_a_negctl.txt` 25/25 (**wiring tests of the driver's own lines, not a full clone run with an injected failure**) |
+| **A5/A6 driver** | actual tail and pin lines of `p14_edge_run.sh` run with `FIX_RC`/`REAL_RC` assigned and the pin check stubbed *[P17 D1: not a stubbed `oracle_run`; the full injected run is P17 A9]* | (4,10)→1; (4,0)→0; (4,none)→0; (0)→1; (10)→1; (4,4)→1; pin mismatch → abort, `KEEP=1`; match → continues | `chain/p16_a_negctl.txt` 25/25 (**wiring tests of the driver's own lines, not a full clone run with an injected failure**) |
 | **N2** | `--since "$SINCE"` in the line controls (array) | every summary records the full run start | `chain_b/line_negctl.txt` |
 | **N3** | fresh-B = exactly one INSERT **in total**, by `benchmark@`, at or after the run start (both comparators) | B5c: a `benchmark@` INSERT at start−1 µs next to the legitimate row: OLD p15 comparator MATCH (the hole), NEW MISMATCH; B5d: legitimate row exactly at the start accepted | `chain_b/line_negctl.txt` |
 | **N4** | NULL payment = input error (exit 2), both comparators | planted NULL `besar_bayar`: exit 2 and 2 | `chain_b/line_negctl.txt` |
@@ -1586,7 +1586,7 @@ start and end (`evidence/p16/refreeze_lsattr_after.txt`, `chain/lsattr_chain_*.t
 
 **C4 rerun under the stricter fresh-B rule** (fresh clone `sik_p14e`, ledger pin `REPRODUCES-PIN`):
 fixture 27/27 `sukses=true`, oracle exit 4 (expected); real 300/300 exit 0, driver exit 0.
-Fixture comparator: 27/27 pass (DIFFER 12 / EQUAL 12 / EQUAL-SRC 3), B = A 27, fresh-B 27.
+Fixture comparator: 27/27 pass *[P17 D1: 27 expected outcomes matched, 12 of them expected DIFFER; not 27 financial-equivalence passes]* (DIFFER 12 / EQUAL 12 / EQUAL-SRC 3), B = A 27, fresh-B 27.
 Real 300 vs the live-pinned ledger: **300/300 pass, 1,240 lines, 0 line differences, EQUAL 181 /
 EQUAL-SRC 119**, B = A 300, fresh-B 300; **0 encounters carry a pre-run INSERT** (so the stricter
 rule changed no verdict). P13 comparator: run window → ALL-EQUAL 300/300, window in the future → exit 1,
@@ -1617,3 +1617,88 @@ clean-box rebuild and the P14 ledger scope gaps (owner decisions).
 from time: `sik sik_bench`, `database.xml` → `sik`, 0 writer markers, no clone grants, ledger
 `356355:a66a3a546cc322…` (pin), 0 fixture rows in live, live counts 86676 reg / 1464593 billing /
 86488 nota / 1100 dnota; standing grant line sha256 `ae5da20e…` in all three.
+
+## 29. P17: Astra v12 findings, safety first, C3 discovery gate (2026-10-27, new)
+
+**Source.** Astra v12 (`evidence/astra_v12_5514025_output.md`, run 5514025, **71/100** "Needs targeted
+rework", $1.72 incl. the gemini validation run). Every finding was checked against the source before any
+change (task doc `docs/khanza_r5_task_p17_astra_v12_safety_and_c3.md`, §1; committed `6d1b48d` before the
+run): confirmed V1–V5, V7–V12, V14–V21, V23–V24; partly V6, V13; **V22 refuted for the tool bytes**
+(`evidence/p17/bak_equals_git.txt`: the 27 files in `.bak_p15/p16/p17` on the box equal the pushed git
+history); V25, V26 agreed. A new defect (A13) was found while designing A9.
+
+**Run.** Lock `P17-CLAUDE-20261027`, acquired 21:03:10Z, released 22:10:24Z; the free state before and the
+release are captured (`evidence/p17/lock_free_and_lsattr_before.txt`, `lock_release.txt`). Frozen set: 27
+files, manifest b `evidence/p17/r5_p17_frozen_manifest_20261027b.sha256`, `sha256sum -c` 27/27 and `lsattr`
+`i` on 27/27; manifest a (25 files) is kept as history. Originals `.bak_p17_20261027/` (9 files) and
+`.bak_p17fix1_20261027/` (2 files). Local = box, 12/12 and 4/4 (CR stripped).
+
+| Fix | Paired control (OLD bytes vs NEW bytes) | Evidence |
+|---|---|---|
+| **A1** P14 exit verifies the xml restore | real tail, failing restore: OLD exit 0, NEW exit 3; restore ok: both 0 | `chain/p17_a_negctl.txt` |
+| **A2** P13 `CREATE DATABASE` checked | a `mysql` shim hides an existing `sik_p13w`: OLD's cleanup drops it, NEW exit 3, database survives | same |
+| **A3** confirmed death (TERM, 10 s, KILL, confirm) | a leader that ignores TERM: OLD alive after the kill, NEW dead, rc 0; the real `cleanup()` with the harness not confirmed dead: OLD restores/revokes/drops, NEW exit 3 and none of the three | same |
+| **A4** sub-second pid identity | a leader started 200 ms after its pid file: OLD signals it, NEW does not; a legitimate leader is still killed | same |
+| **A5** the P15 safety helper refuses an existing clone and spawns its own dummy | OLD drops an existing `sik_p13w`, NEW exit 3 and intact | same |
+| **A6/A6b** A31′ restore result in the verdict; a real restore failure (`R5_FAULT_RESTORE_FAIL=1`) | the P15 suite: A28′ PASS (masked by its unconditional compensation); the P17 suite: FAIL | same |
+| **A7** snapshots bound by a sidecar naming the suite evidence | newer-mtime snapshots of another run: OLD accepts, NEW rejects; no sidecar rejected; own sidecar accepted | same |
+| **A8** drift hook asserts the row count, comment corrected | the evidence line `ALL n billing rows … drifted` (the hook runs inside the A31′ block; no separate control) | `chain/r5_p6_acceptance_20261026T214227Z.md` |
+| **A9** full driver run, injected failure (`R5_HARNESS_TIMEOUT_S=3`) | NEW only: oracle exit 4 with **0 of 27 `sukses=true` lines** (the stop rule cannot fire: 0 false), `FORM-INCOMPLETE[fixture]` → driver exit 1, `database.xml` back on `sik`, no grant, clone kept then dropped | same, `A9` block |
+| **A12** clone message | OLD does not print the table count (1,179), NEW prints `tables=1179 (= sik)` | same |
+| **A13** (new) every visit must show `sukses=true` | found by A9: before it, a harness killed before writing any line left ok=0, bad=0, and the fixture oracle exits 4 (the expected value for out-of-envelope strata), so the old decision tail accepted it. New-bytes-only evidence; the OLD driver was not run on the same injection | A9 transcript |
+| **B1** units in expected mode (the source row's unit price) | a unit changed with quantity and total unchanged on an expected-DIFFER key: OLD MATCH, NEW MISMATCH; clean fixture: 27/27 `unit_src` MATCH | `chain/p17_b_negctl.txt` |
+| **B2** registration row shape | **changed in execution.** The form writes the registration row as `jumlah 0, biaya 0, tambahan 0` with the fee in `totalbiaya`, so "registration quantity from `jumlah`" cannot be measured. The rule is the row shape (a `jumlah=2` row: OLD MATCH, NEW MISMATCH); quantity stays one row = 1 | same |
+| **B3** exact visit set in expect mode; exactly one payment row | 26 of 27 visits: OLD exit 0, NEW exit 2; a second payment row of 0: OLD MATCH, NEW MISMATCH | same |
+| **B4** `p13_sample_compare.py` requires `--since` | OLD exit ≠ 2, NEW exit 2 | same |
+| **B5** pairs for N2, N4, N7, N8 | N4: the OLD-P15 comparator exit ≠ 2 on a NULL payment, NEW 2. N7: judge-level (1 of 18 rows deleted): OLD accepts, NEW rejects. N8: a foreign leader with an older pid file: OLD-P15 signals it, NEW does not. N2: mechanism only (an unquoted variable splits into 3 arguments) | same |
+
+**C4 rerun under the P17 rules** (fresh clone, ledger pin `REPRODUCES-PIN`): fixture 27/27 `sukses=true`,
+oracle exit 4; real 300/300, oracle exit 0, driver exit 0. Fixture comparator 27/27 (DIFFER 12 / EQUAL 12 /
+EQUAL-SRC 3; `unit_src` and `reg_shape` MATCH 27/27); real 300/300, 1,240 comparison entries, 0 differences,
+EQUAL 181 / EQUAL-SRC 119, B = A 300, fresh-B 300 (`chain/*_lines_summary.json`). P13 comparator: with the
+run start ALL-EQUAL 300/300, without `--since` exit 2, a future window exit 1, a duplicate list exit 2.
+Regression on the changed bytes: P15 A1–A3 9/9, line controls 33/33, B6 6/6, suite **PASS=39 FAIL=0**,
+preservation PASS (`SNAPSHOT-BINDING … written by this run`, now sidecar-bound), unit 44/44, NC 5/5.
+
+**Defects in P17's own first chain (recorded, fixed, re-run).** The P16 wiring test stubbed `DBXML=true`,
+which cannot answer the new `probe` (6 failures in `p16_a_negctl.sh`); the P16 E1 mutation count expected one
+site, and A6 added a second (1 failure in `p16_e_negctl.sh`). Both are test-script faults, not product
+faults. Fixed (the pin-case exit code is now asserted, V10) and re-run in `p17_chain_b.sh` (`chain_b/`):
+both scripts exit 0. Failure record `20261027T0600Z-test-r5-p17-p16-controls-stale-after-tail-change`.
+
+**C3 discovery gate: STOP, "not observable" (the pre-registered outcome, AC-6).** `p17_c3_t0.sh` switched
+`events_statements_history_long` on at runtime (a non-persistent consumer toggle, restored: `long=NO (was NO)`),
+polled the clone's statements during a fixture-only driver run (2,874 statements captured) and ran the
+comparator with the instrumentation on: still 27/27, DIFFER 12 / EQUAL 12 / EQUAL-SRC 3, so (iv) holds.
+Findings (`evidence/p17/c3/`):
+- **(ii) fails.** The form never selects, sends or receives a charge code. Its procedure query is
+  `select jns_perawatan.nm_perawatan, … from rawat_jl_dr inner join jns_perawatan on
+  rawat_jl_dr.kd_jenis_prw=jns_perawatan.kd_jenis_prw where rawat_jl_dr.no_rawat='…' group by
+  jns_perawatan.nm_perawatan`; its drug query groups by `detail_pemberian_obat.kode_brng` but returns the
+  name. The code exists only inside the database's join and group clauses; the statement text carries
+  `no_rawat` literals and no `kd_jenis_prw=` / `kode_brng=` literal (`c3/form_queries.txt`, `c3/shapes.txt`).
+  `performance_schema` does not record result sets, and capturing them would need a JDBC proxy in the harness
+  or a change to Khanza, which is out of scope.
+- (iii) attribution by the `no_rawat` literal works; (i) the runtime toggle works and was restored.
+- **Consequence.** "Form-side code provenance" as Astra framed it (the form used the wrong code under a shared
+  display name) is not observable, and for procedures the form itself groups by **name**, so two source codes
+  with the same name are billed as one merged line. What the benchmark can and does check is that the billed
+  (name, unit, quantity, amount) lines equal what the database join of the encounter's own source rows
+  produces (the EQUAL / EQUAL-SRC comparison, now with unit and shape gates). The limit is restated, not
+  closed: a wrong mapping from code to name or price inside Khanza's own tables is outside what any form-side
+  observation can see.
+- A same-name/same-price "wrong form-side code" plant would only alter an observation channel that does not
+  exist here, so it was not built. No Khanza edit was made.
+
+**Evidence gaps closed:** the retrace output is committed (`evidence/p17/retrace_trace_clean.txt`);
+`evidence/release_inventory.json` (47 tool files, 47 agree with disk, generated by the read-only
+`tools/p17_release_inventory.py`, which is not box-frozen); the `.bak`-equals-git result (V22); the grant-line
+hash `ae5da20e…` again identical in the three P17 live-state files (`grant_line_hashes_p17.txt`).
+**Not closed, stated:** V6 (no run-end bound; UPDATEs of the payment row are not audited); V13 (grant recovery
+checks inclusion); X2; A11; the clean-box rebuild and a third home for the box (it ends ~2026-11-20); the P14
+ledger scope gaps; the original P13 positive summaries; external validity; the advisory lock; the OLD driver
+was not run on the A9 injection; A8 has no control of its own.
+
+**Live state.** Baseline 21:04:20Z, chain final 22:02:24Z and chain-b final are identical apart from time:
+`sik sik_bench`, `database.xml` → `sik`, 0 writer markers, no clone grants, ledger `356355:a66a3a546cc322…`
+(pin), 0 fixture rows in live, live counts unchanged, `performance_schema` consumers restored.

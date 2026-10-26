@@ -112,6 +112,9 @@ def main():
     cl = argv[argv.index("--db") + 1] if "--db" in argv else "sik_p13w"
     out = argv[argv.index("--out") + 1] if "--out" in argv else "/tmp/p13_compare_diffs.csv"
     since = argv[argv.index("--since") + 1] if "--since" in argv else None
+    if since is None and "--no-fresh-b" not in argv:   # P17 B4: freshness needs a run start
+        print("INPUT-ERROR: --since is required for fresh-B (or pass --no-fresh-b)")
+        return 2
 
     with open(visits_file) as f:
         nrs = [l.strip() for l in f if l.strip()]
@@ -166,8 +169,8 @@ def main():
             with_b += 1
 
     print("fetching audit (fresh-B) for %d encounters ..." % len(nrs))
-    audit = fetch_audit(cl, nrs, since)
-    for nr in nrs:
+    audit = fetch_audit(cl, nrs, since) if "--no-fresh-b" not in argv else {}
+    for nr in (nrs if "--no-fresh-b" not in argv else []):
         cnt, bcnt, wcnt = audit.get(nr, [0, 0, 0])
         if bcnt == 1 and cnt == 1 and wcnt == 1:   # P16 B2: exactly one in total, by benchmark@, at/after the run start
             fresh_ok += 1

@@ -528,10 +528,13 @@ def stage_backup(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     drift_done = False
     if _negctl("R5_FAULT_DRIFT_AFTER_STAGE_COPY", db):
         try:
-            dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya+1 "
-                               "WHERE no_rawat='%s'" % nrs[0], force_root=True)
+            n_b = int(dbutil.execute(db, "SELECT COUNT(*) FROM billing WHERE no_rawat='%s'" % nrs[0], force_root=True).split()[-1])
+            out = dbutil.execute(db, "UPDATE billing SET totalbiaya=totalbiaya+1 WHERE no_rawat='%s'; SELECT ROW_COUNT();" % nrs[0], force_root=True)
+            n_u = int(out.split()[-1])
+            if n_u != n_b:   # P17 A8: the affected-row count is asserted
+                raise RuntimeError("drift hook changed %d rows, %d counted" % (n_u, n_b))
             drift_done = True
-            log("stage-hash FAULT: live row of %s drifted between copy and hash (test-only)" % nrs[0])
+            log("stage-hash FAULT: ALL %d billing rows of %s drifted by +1 between copy and hash (test-only)" % (n_u, nrs[0]))
         except Exception as e:
             log("stage-hash FAULT: drift UPDATE failed (%s)" % str(e)[:120])
     try:
@@ -850,6 +853,9 @@ def stage_restore(nrs, db, rundir, log, run_id="run", stage=None, batch=None):
     (a schema-level revoke only reaches a session at its next USE, so existing sessions
     are KILLed), the restore DML runs as root, and the privileges are granted back in
     `finally` and re-checked. Never on the live databases (logged, plain restore)."""
+    if _negctl("R5_FAULT_RESTORE_FAIL", db):   # P17 A6b: test-only, exact "1", refused on live
+        log("STAGE-RESTORE FAULT: R5_FAULT_RESTORE_FAIL=1 - returning False without restoring (test-only)")
+        return False
     if db in LIVE_DBS:
         log("WRITER-EXCLUSION skipped (P10-B4): %s is live; grants are never changed there"
             % db)

@@ -216,4 +216,37 @@ Re-scored by an independent review before Astra v13; the executor's self-score i
 
 ## 7. Result and self-score
 
-*(filled after execution)*
+Executed 2026-10-27 under lock `P17-CLAUDE-20261027` (21:03:10Z to 22:10:24Z). Result: R5 §29.
+Amendments made during execution:
+1. **B2 changed.** The billing registration row has `jumlah 0, biaya 0, tambahan 0` (the fee is in `totalbiaya`),
+   so a registration quantity from `jumlah` cannot be measured. The rule is the row shape; quantity stays one
+   row = 1. Found by reading a real registration row before running (an earlier draft would have failed all 327
+   encounters).
+2. **A13 added** (found while designing A9): every visit must show `sukses=true`; a harness killed before it wrote
+   any line leaves ok=0, bad=0, and the fixture oracle's exit 4 is the expected value for out-of-envelope strata.
+3. **A3 extended** to the drivers' cleanup (no xml restore, revoke or drop while a harness group is not
+   confirmed dead; exit 3), and the pid guard compares to the millisecond with a 50 ms tolerance (the boot
+   instant is now minus uptime, because `btime` is whole seconds).
+4. **E2 also covers the preservation check** (`R5_NEGCTL_SKIP_IMMEDIATE_RESTORE` was tested with `-n`).
+5. The first chain ended with two test-script faults (the P16 wiring test stub and a P16 mutation count), both
+   from my own changes; fixed and re-run as `p17_chain_b.sh`, manifest b (27 files).
+6. **C3 stopped at T0**, the pre-registered outcome (AC-6): the form never receives a code (it groups
+   procedures by name inside the join), so form-side code provenance is not observable without editing Khanza.
+
+Executor self-score on the P16 scale (to be re-scored by an independent review before Astra v13):
+
+| # | Self | Evidence |
+|---|---|---|
+| R1 | 2 | §1: 26 rows with locations; V6 and V13 marked partly, V22 refuted with the commands |
+| R2 | 2 | A1–A5, A12 paired old vs new (`chain/p17_a_negctl.txt` 37/37); A9 a full injected run. Limits: the OLD driver was not run on the A9 injection (A13 is new-bytes-only) |
+| R3 | 2 | B1–B4 and N2/N4/N7/N8 (`chain/p17_b_negctl.txt` 31/31), each plant `ROW_COUNT` asserted; N7 is judge-level and N2 mechanism-only, both labelled |
+| R4 | n/a | C3 stopped at T0: nothing built |
+| R5 | n/a | same |
+| R6 | n/a | same |
+| R7 | 2 | A6/A6b with a real restore failure, A7 sidecar, A8 row count (A8 has no control of its own) |
+| R8 | 2 | `lsattr` before / after / chain start and end, 25/25 and 27/27, local = box |
+| R9 | 2 | baseline = chain final = chain-b final; grant-line hash reproduced |
+| R10 | 2 | D1 strike-throughs in §27/§28, D2 handoff, D3 retrace output committed, D4 inventory and V22 commands |
+| R11 | 2 | failure records (two), QMS, traces, retrace trace-clean |
+| R12 | 2 | the stale-control faults kept and recorded; the T0 stop reported as a stop; limits stated |
+| | **18 / 18 (R4–R6 n/a)** | independent re-score pending |

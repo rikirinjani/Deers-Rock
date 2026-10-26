@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-27T06:10:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "P15/P16 documents overclaimed in four places that Astra v12 found and the source confirmed (V1, V10, V18, V20)",
+  "what_went_wrong": [
+    "V1: R5 section 27 said the clone check validated '1,100 tables'. The message printed the detail_nota_jalan row count (the loop variable was reused); sik has 1,179 tables. The check itself was real, the number and the claim were wrong.",
+    "V10: R5 section 28 and the p16_a_negctl.sh header said the driver tail was run 'with the oracle stubbed'; the test assigns FIX_RC and REAL_RC and runs the decision tail only, and the pin test did not assert exit 3.",
+    "V18: the v12 task summary and a failure record said 'old-vs-new controls for each N1-N8'; N2, N4, N7 and N8 had no paired arm.",
+    "V20: the P16 self-score said 'retrace trace-clean (see the commit)' with no output committed."
+  ],
+  "root_cause": "Claims were written from the intent of a control, not from its transcript; the same cause as the P15 D class.",
+  "detection": "Astra v12 (71/100), each finding verified against the source in the P17 task doc section 1.",
+  "impact": "Four statements in documents that Astra read; none changed a result. The v12 input itself carried V18 and V1.",
+  "correction": {
+    "applied": "P17 D1 strike-throughs in R5 sections 27 and 28; A12 fixes the message; A10 asserts the exit code; B5 adds the missing pairs (N4, N7 judge-level, N8; N2 mechanism-only); D3 commits the retrace output.",
+    "result": "R5 section 29; evidence/p17/chain/p17_a_negctl.txt, p17_b_negctl.txt, evidence/p17/retrace_trace_clean.txt"
+  },
+  "rule": "A control is described as paired only if both arms ran on the same setup; a number in a claim is copied from the transcript line that printed it, with its name.",
+  "agent": "claude (P15/P16 executor)",
+  "status": "closed"
+}

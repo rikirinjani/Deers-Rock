@@ -32,7 +32,10 @@ TOTAL_VISITS=0
 cleanup() {
   # P15 A1/A2: undo only what this run did. A clone this run did not create is never dropped;
   # only this run's harness process groups are signalled (no global pkill).
-  p15_kill_run_harness "${RUN_ID:-}"
+  if ! p15_kill_run_harness "${RUN_ID:-}"; then
+    res "CLEANUP-INCOMPLETE: a harness process group was not confirmed dead - database.xml, grant and clone left as they are (P17 A3)"
+    exit 3
+  fi
   [ "$RETARGETED" = "1" ] && $DBXML restore >> /tmp/p13w_dbxml.log 2>&1
   [ "$GRANTED" = "1" ] && SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM 'benchmark'@'localhost';" 2>/dev/null
   if [ "$CREATED" = "1" ]; then
@@ -59,7 +62,8 @@ echo "pre-state database.xml targets: $XML_PRE"
 trap cleanup EXIT   # P15 A1: installed only after every refusal check
 { echo "# P13 wide sample - stage $STAGE"; echo "Run $TS UTC - $(wc -l < "$VISITS") visits"; echo; } > "$OUT"
 res "clone: creating $FX"
-SQL "CREATE DATABASE $FX CHARACTER SET $(SQL "SELECT default_character_set_name FROM information_schema.schemata WHERE schema_name='sik'") COLLATE $(SQL "SELECT default_collation_name FROM information_schema.schemata WHERE schema_name='sik'")"
+SQL "CREATE DATABASE $FX CHARACTER SET $(SQL "SELECT default_character_set_name FROM information_schema.schemata WHERE schema_name='sik'") COLLATE $(SQL "SELECT default_collation_name FROM information_schema.schemata WHERE schema_name='sik'")" \
+  || { res "ABORT: CREATE DATABASE $FX failed - refusing, nothing dropped (P17 A2)"; exit 3; }
 CREATED=1
 BUILT=1
 ORACLE_RC=3   # P15: until the oracle has run, any abort drops the half-built clone (was 0: kept)

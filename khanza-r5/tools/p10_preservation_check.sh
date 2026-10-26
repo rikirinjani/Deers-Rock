@@ -128,6 +128,15 @@ ok "fixture kept with populated r6_p10 stage tables" $([ "$(SQL "SHOW DATABASES 
 python3 - "$EV" "$PREOP" "$PRE" <<'PY' | tee -a "$OUT"
 import os, re, sys, calendar, time
 ev, preop, pre = sys.argv[1:4]
+# P17 A7: each snapshot has a sidecar naming the suite evidence file that wrote it; it must equal ours
+for p in (preop, pre):
+    try:
+        who = open(p + ".run").read().strip()
+    except OSError:
+        who = ""
+    if who != os.path.basename(ev):
+        print("SNAPSHOT-BINDING ERROR: %s was written by %r, not by %s" % (os.path.basename(p), who or "(no sidecar)", os.path.basename(ev)))
+        sys.exit(1)
 m = re.search(r"r5_p6_acceptance_(\d{8}T\d{6}Z)\.md$", ev)
 if not m:
     print("SNAPSHOT-BINDING ERROR: cannot read the suite start from %s" % os.path.basename(ev)); sys.exit(1)

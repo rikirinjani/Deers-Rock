@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T06:00:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P17 first chain: the P16 wiring test and the P16 E1 mutation count were stale after P17 changed the code they read",
+  "what_went_wrong": [
+    "p16_a_negctl.sh stubbed DBXML=true for the real tail of p14_edge_run.sh; P17 A1 makes the tail verify the xml restore with `probe`, which `true` cannot answer, so 6 checks failed (exit 3 instead of the expected codes).",
+    "p16_e_negctl.sh expected the restore-result mutation to apply at one site in the suite; P17 A6 added a second `print(\"restored\" if ok else \"restore-not-verified\")` site, so the count check failed (2, want 1).",
+    "Reviewer-style observation (Astra v12, V10): the pin-case wiring test did not assert exit 3."
+  ],
+  "root_cause": "Controls that read or extract the code under test were not re-run against the planned change before the freeze; I knew the tail would change but only grepped for the tail text, not for the tests that stub it.",
+  "detection": "P17 chain step 1c/1d: p16-a-nc exit=1 (FAIL=6) and p16-e-nc exit=1 (FAIL=1) on the new bytes, while the P17 controls passed.",
+  "impact": "No false pass: the controls reported FAIL. Test-script faults, not product faults; the first chain was kept as recorded (chain.log).",
+  "correction": {
+    "applied": "p16_a_negctl.sh: a DBXML stub that answers probe, and an exit-3 assertion on the pin case; p16_e_negctl.sh: the mutation count is 2 (R28 and R31). Manifest b (27 files), p17_chain_b.sh re-ran both on the final bytes.",
+    "result": "chain_b: p16-a-nc exit 0 and p16-e-nc exit 0 (evidence/p17/chain_b/)"
+  },
+  "rule": "Before freezing a change to code that other controls extract or stub, grep the controls for the text being changed and run them once against the unfrozen bytes (a pre-flight run takes seconds).",
+  "agent": "claude (P17 executor)",
+  "status": "closed"
+}

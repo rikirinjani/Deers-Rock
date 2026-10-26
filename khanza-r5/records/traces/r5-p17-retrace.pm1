@@ -1,0 +1,31 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p17-retrace",
+  "timestamp": "2026-10-26T22:15:49.268284+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p17/retrace_trace_clean.txt",
+    "khanza-r5/evidence/release_inventory.json",
+    "khanza-r5/tools/p17_release_inventory.py",
+    "khanza-r5/docs/khanza_r5_task_p17_astra_v12_safety_and_c3.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p17-retrace",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................-.--...-........................................-.--...-",
+  "action": "P17 D3: retrace output committed (the run before this file was added); release inventory generator"
+}

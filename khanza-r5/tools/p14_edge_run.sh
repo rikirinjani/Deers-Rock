@@ -51,7 +51,10 @@ run_builder() {
 
 cleanup() {
   # Undo only what this run did (P15 A2).
-  p15_kill_run_harness $RIDS
+  if ! p15_kill_run_harness $RIDS; then
+    res "CLEANUP-INCOMPLETE: a harness process group was not confirmed dead - database.xml, grant and clone left as they are (P17 A3)"
+    exit 3
+  fi
   [ "$RETARGETED" = "1" ] && $DBXML restore >> /tmp/p14e_dbxml.log 2>&1
   [ "$GRANTED" = "1" ] && SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM 'benchmark'@'localhost';" 2>/dev/null
   if [ "$CREATED" = "1" ]; then
@@ -202,6 +205,12 @@ oracle_run() {   # <label> <visits> <extra-flags>; returns the oracle exit, or 1
   if p15_stop_rule_fires "$bad" "$n"; then
     res "STOP RULE[$label]: $bad/$n sukses=false (>2 %)"; return 10
   fi
+  # P17 A13: every visit must have a sukses=true line. A harness killed before it wrote any line leaves
+  # ok=0, bad=0 (the stop rule cannot fire) and the oracle can still exit 4, the value that is expected
+  # for the out-of-envelope fixture strata.
+  if [ "$ok" != "$n" ]; then
+    res "FORM-INCOMPLETE[$label]: sukses=true for $ok of $n visits"; return 10
+  fi
   return $rc
 }
 
@@ -216,7 +225,14 @@ if [ "$FIX_RC" = "4" ] && [ -n "$REAL" ]; then
 fi
 
 $DBXML restore >> /tmp/p14e_dbxml.log 2>&1 && RETARGETED=0
-res "database.xml restored"
+XML_NOW=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
+if [ "$RETARGETED" = "0" ] && [ "$XML_NOW" = "sik" ]; then
+  res "database.xml restored (targets: $XML_NOW)"
+else
+  res "ABORT: database.xml not restored (targets: ${XML_NOW:-unreadable}) - clone kept; P17 A1"
+  KEEP=1
+  exit 3
+fi
 if p15_decide_exit "$FIX_RC" "$REAL_RC"; then
   res "P15E OK fixture_rc=$FIX_RC real_rc=${REAL_RC:-n/a} clone=$FX kept for comparators"
   exit 0

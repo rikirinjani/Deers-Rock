@@ -698,6 +698,9 @@ check 31 "A31 the harness account's grants on ${FX} are the same at the end as a
    env RUN_ID=r6_p10 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_p10.log 2>&1
    RCI=$?
    python3 /opt/Deers-Rock/tools/p10_hash_state.py ${FX} r6_p10 /tmp/r6_two.txt /tmp/r6_p10_protected.txt > /opt/dr-benchmark/p-chain/p10_preserve_pre.json 2> /tmp/r6_p10_hash.err
+   # P17 A7: bind both snapshots to THIS suite run by name, not by mtime alone
+   basename "$OUT" > /opt/dr-benchmark/p-chain/p11_preserve_preop.json.run
+   basename "$OUT" > /opt/dr-benchmark/p-chain/p10_preserve_pre.json.run
    RCH=$?
    cp /tmp/r6_two.txt /tmp/r6_p10_protected.txt /opt/dr-benchmark/p-chain/
    NST=$(stage_count r6_p10); ST=$(batch_status r6_p10)
@@ -837,18 +840,23 @@ print(o._stage_content_hash(nrs, fx, pfx, lambda *a: None), stored or "NONE", o.
 PY
 )
     read HSTAGE STORED HLIVE <<< "$A31VALS"
-    res "A31' mode=${LATE:+NC-live-late}${LATE:-stage} stage=${HSTAGE:0:16} stored=${STORED:0:16} live=${HLIVE:0:16} (drift injected between copy and hash in both arms)"
-    check 31 "A31' with a live drift injected between the stage copy and the hashing (both arms), the stored pre-reset hash equals the independently recomputed staged content, and stage equals live afterwards; with R5_NEGCTL_HASH_FROM_LIVE_LATE the stored hash captures the drifted live row and this check FAILS" $([ -n "$HSTAGE" ] && [ "$STORED" = "$HSTAGE" ] && [ "$HSTAGE" = "$HLIVE" ] && echo 0 || echo 1)
-    python3 - "$FX" r6_a31p <<'PY'
+    # P17 A6: the restore of the A31' fixture state is part of the verdict (it was fire-and-forget)
+    R31=$(python3 - "$FX" r6_a31p <<'PY'
 import sys
 sys.path.insert(0, '/opt/Deers-Rock/tools')
 import sampled_real_form_diff_r5 as o
 fx, rid = sys.argv[1], sys.argv[2]
 rd = '/opt/dr-benchmark/results/%s/B3_oracle_run_r5' % rid
 nrs = open('/tmp/r6_p11_a31.txt').read().split()
-if o.stage_restore(nrs, fx, rd, print, rid, stage='B3', batch='2026-10-01'):
-    o.stage_drop(fx, rid, print, stage='B3')
+ok = o.stage_restore(nrs, fx, rd, lambda *a: None, rid, stage='B3', batch='2026-10-01')
+if ok:
+    o.stage_drop(fx, rid, lambda *a: None, stage='B3')
+print("restored" if ok else "restore-not-verified")
 PY
+)
+    res "A31' restore=$R31"
+    res "A31' mode=${LATE:+NC-live-late}${LATE:-stage} stage=${HSTAGE:0:16} stored=${STORED:0:16} live=${HLIVE:0:16} (drift injected between copy and hash in both arms)"
+    check 31 "A31' with a live drift injected between the stage copy and the hashing (both arms), the stored pre-reset hash equals the independently recomputed staged content, and stage equals live afterwards; with R5_NEGCTL_HASH_FROM_LIVE_LATE the stored hash captures the drifted live row and this check FAILS" $([ -n "$HSTAGE" ] && [ "$STORED" = "$HSTAGE" ] && [ "$HSTAGE" = "$HLIVE" ] && [ "$R31" = "restored" ] && echo 0 || echo 1)
  fi
  if sel 22b; then
   echo "=== A22b P11: RETRY-REFUSED clears the stale restored flag (restored=False, restore_state=refused) ==="

@@ -1,0 +1,51 @@
+## (i) performance_schema
+performance_schema=1  history_long_size=10000  max_sql_text_length=1024
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	NO
+global_instrumentation	YES
+statements_digest	YES
+statement instruments enabled: 198
+consumers now: long=YES current=YES
+## fixture-only driver with the poller (22:06:44Z)
+driver exit=0
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261026T220644Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-26 22:07:58.476664
+oracle[fixture]: real run exit=4 elapsed=91s
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+P15E OK fixture_rc=4 real_rc=n/a clone=sik_p14e kept for comparators
+captured statements: 2874
+## (iv) the fixture comparator with the instrumentation on (must equal the chain: 27 pass, DIFFER 12 / EQUAL 12 / EQUAL-SRC 3)
+comparator exit=0
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14e", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14e", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-26 22:07:58.476664", "verdicts": {"DIFFER": 12, "EQUAL": 12, "EQUAL-SRC": 3}}
+## (ii)/(iii) first captured statements (shape) and the code literals
+    450 insert into billing values(N,'?','?','?','?','?',N.N,N.N,N.N,N.N,'?')
+    450 INSERT INTO billing (noindex, no_rawat, tgl_byr, no, nm_perawatan, pemisah, biaya, jumlah, tambahan, totalbiaya, status) VALUES (N, '?', '?', '?', '?'
+    185 select pengurangan_biaya.nama_pengurangan,pengurangan_biaya.besar_pengurangan from pengurangan_biaya where pengurangan_biaya.no_rawat='?'
+    111 SELECT tgl_registrasi FROM reg_periksa WHERE no_rawat='?'
+     71 delete from temporary_tambahan_potongan where no_rawat='?'
+     66 select temporary_tambahan_potongan.biaya from temporary_tambahan_potongan where temporary_tambahan_potongan.no_rawat='?' and temporary_tambahan_potong
+     59 SELECT status,nm_perawatan,biaya,jumlah,totalbiaya FROM billing WHERE no_rawat='?' ORDER BY noindex
+     55 SELECT (SELECT COUNT(*) FROM detail_pemberian_obat d WHERE d.no_rawat='?') n_dpo, (SELECT COUNT(*) FROM rawat_jl_dr rw WHERE rw.no_rawat='?') n_proc, 
+     54 select tambahan_biaya.nama_biaya,tambahan_biaya.besar_biaya from tambahan_biaya where tambahan_biaya.no_rawat='?'
+     54 select tagihan_obat_langsung.besar_tagihan from tagihan_obat_langsung where tagihan_obat_langsung.no_rawat='?'
+     54 select reg_periksa.tgl_registrasi,reg_periksa.no_rkm_medis,reg_periksa.kd_poli,reg_periksa.no_rawat,reg_periksa.biaya_reg,current_time() as jam,reg_pe
+     54 select poliklinik.nm_poli from rujukan_internal_poli inner join poliklinik on rujukan_internal_poli.kd_poli=poliklinik.kd_poli where rujukan_internal_
+     54 select obatbhp_ok.nm_obat,beri_obat_operasi.hargasatuan,beri_obat_operasi.jumlah, (beri_obat_operasi.hargasatuan*beri_obat_operasi.jumlah) as total fr
+     54 select jns_perawatan_radiologi.nm_perawatan, count(periksa_radiologi.kd_jenis_prw) as jml,periksa_radiologi.biaya as biaya, sum(periksa_radiologi.biay
+     54 select jns_perawatan.nm_perawatan,rawat_jl_pr.biaya_rawat as total_byrpr,count(rawat_jl_pr.kd_jenis_prw) as jml, sum(rawat_jl_pr.biaya_rawat) as biaya
+     54 select jns_perawatan.nm_perawatan,rawat_jl_drpr.biaya_rawat as total_byrdrpr,count(rawat_jl_drpr.kd_jenis_prw) as jml, sum(rawat_jl_drpr.biaya_rawat) 
+     54 select jns_perawatan.nm_perawatan,rawat_jl_dr.biaya_rawat as total_byrdr,count(rawat_jl_dr.kd_jenis_prw) as jml, sum(rawat_jl_dr.biaya_rawat) as biaya
+     54 select jns_perawatan_lab.nm_perawatan, count(periksa_lab.kd_jenis_prw) as jml,periksa_lab.biaya as biaya, sum(periksa_lab.biaya) as total,jns_perawata
+     54 select dokter.nm_dokter from rujukan_internal_poli inner join dokter on rujukan_internal_poli.kd_dokter=dokter.kd_dokter where rujukan_internal_poli.n
+     54 select dokter.nm_dokter from reg_periksa inner join dokter on reg_periksa.kd_dokter=dokter.kd_dokter where reg_periksa.no_rawat='?'
+     54 select databarang.nama_brng,jenis.nama,detail_pemberian_obat.biaya_obat,sum(detail_pemberian_obat.jml) as jml,sum(detail_pemberian_obat.embalase+detai
+     54 select count(billing.no_rawat) from billing where billing.no_rawat='?'
+     34 INSERT INTO rawat_jl_dr (no_rawat,kd_jenis_prw,kd_dokter,tgl_perawatan,jam_rawat,material,bhp,tarif_tindakandr,kso,menejemen,biaya_rawat,stts_bayar) V
+     28 insert into jurnal values('?','?','?','?','?','?')
+     27 update reg_periksa set status_bayar='?' where no_rawat='?'
+rows with a kd_jenis_prw literal: 0   with a kode_brng literal: 0   with the placeholder form (kd_jenis_prw=? or kode_brng=?): 0
+distinct threads: 258
+T0 capture file: /opt/dr-benchmark/p17/c3/capture.tsv ; clone sik_p14e KEPT for the analysis (drop with p14_drop_clone.sh)
+consumers restored: long=NO (was NO) current=YES (was YES)

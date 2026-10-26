@@ -1,0 +1,32 @@
+# V22: the box .bak_* tool bytes equal the pushed git history (sha256, CR stripped), checked 2026-10-26T22:12:03Z
+# box: sha256sum of each file in the .bak dir; git: git show <commit>:khanza-r5/tools/<file> | tr -d CR | sha256sum
+## .bak_p15_20261026 vs git 60b19c7
+MATCH p10_preservation_check.sh
+MATCH p11_negative_controls.sh
+MATCH p12_perencounter_reconcile.py
+MATCH p13_kill_test.sh
+MATCH p13_sample_compare.py
+MATCH p13_wide_sample.sh
+MATCH p14_edge_run.sh
+MATCH p6_acceptance_suite.sh
+MATCH p8_recovery_unit_test.py
+MATCH sampled_real_form_diff_r5.py
+## .bak_p16_20261026 vs git 3d96c96
+MATCH p10_preservation_check.sh
+MATCH p13_sample_compare.py
+MATCH p15_b6_negctl.sh
+MATCH p15_lib.sh
+MATCH p15_lib_test.sh
+MATCH p15_line_identity.py
+MATCH p15_line_negctl.sh
+MATCH p6_acceptance_suite.sh
+## .bak_p17_20261027 vs git bb3a6d8
+MATCH p10_preservation_check.sh
+MATCH p13_sample_compare.py
+MATCH p13_wide_sample.sh
+MATCH p14_edge_run.sh
+MATCH p15_a_negctl.sh
+MATCH p15_lib.sh
+MATCH p15_line_identity.py
+MATCH p6_acceptance_suite.sh
+MATCH sampled_real_form_diff_r5.py

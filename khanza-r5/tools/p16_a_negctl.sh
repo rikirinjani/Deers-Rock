@@ -53,7 +53,7 @@ echo "## A3 driver wiring: tail of p14_edge_run.sh (exit decision)"
 TAIL=$(sed -n '/^\$DBXML restore >> \/tmp\/p14e_dbxml.log/,$p' p14_edge_run.sh)
 chk "A3 tail extracted (non-empty, ends with exit 1)" "$( [ -n "$TAIL" ] && echo "$TAIL" | tail -1 | grep -q '^exit 1' && echo yes || echo no)" yes
 tailrc() { # fixture-rc real-rc
-  bash -c ". ./p15_lib.sh; res() { :; }; DBXML=true; RETARGETED=1; FX=none; OUT=/dev/null; FIX_RC=$1; REAL_RC=$2
+  bash -c ". ./p15_lib.sh; res() { :; }; p16_dbxml() { [ \"\$1\" = probe ] && echo '[dbxml] harness sik'; return 0; }; DBXML=p16_dbxml; RETARGETED=1; FX=none; OUT=/dev/null; FIX_RC=$1; REAL_RC=$2
 $TAIL" > /dev/null 2>&1; echo $?
 }
 chk "A3 fixture 4, real 10 (stop rule) -> driver exit 1" "$(tailrc 4 10)" 1
@@ -71,10 +71,12 @@ segrc() { # stub-rc
 trap 'echo KEEP=\$KEEP' EXIT
 $SEG
 echo CONTINUED" 2>&1
+  echo "RC=${PIPESTATUS[0]}"
 }
 OUTF=$(segrc 1); echo "$OUTF" | tr '\n' ' '; echo
 chk "A3 pin mismatch: driver aborts (no CONTINUED)" "$(echo "$OUTF" | grep -c CONTINUED)" 0
 chk "A3 pin mismatch: clone kept (KEEP=1)" "$(echo "$OUTF" | grep -c 'KEEP=1')" 1
+chk "A3 pin mismatch: exit 3 (P17 A10)" "$(echo "$OUTF" | grep -c 'RC=3')" 1
 chk "A3 pin mismatch: names the ABORT" "$(echo "$OUTF" | grep -c 'ABORT.*DIFFERS-FROM-PIN')" 1
 OUTP=$(segrc 0)
 chk "A3 pin match: driver continues" "$(echo "$OUTP" | grep -c CONTINUED)" 1

@@ -1,0 +1,4 @@
+# G3 (P17): standing-grant line sha256 over the P17 live-state files
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  chain/live_state_baseline.txt
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  chain/live_state_final.txt
+ae5da20e16fc15a600e83d36d0804ac23aed8d0a3f399f2decd86ce1d434e157  chain_b/live_state_final.txt

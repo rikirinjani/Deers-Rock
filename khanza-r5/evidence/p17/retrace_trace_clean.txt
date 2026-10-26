@@ -1,0 +1,24 @@
+============================================================
+  retrace -- untraced work scanner
+  2026-10-26T22:15:47.144043+00:00
+============================================================
+
+  Traces loaded:       3866
+  Unique key_files:    6581
+  Unique filenames:    5125
+
+  Project text files:  1070
+
+  UNTRACED: 1 file(s)
+
+  [evidence/] (1 files)
+    [2026-10-26 22:15]  evidence/p17/retrace_trace_clean.txt
+
+  To retroactively trace:
+    pm1-trace trace --agent <role> --outcome pass \
+      --slug retrace-<name> --action "..." --key-files <files>
+
+  Total untraced: 1
+
+
+# Note (P17): this is the output of the run made while this file was being created; the single untraced entry is this file itself. It was traced immediately afterwards (records/traces/r5-p17-retrace.pm1) and the run after that reported: "Directory is trace-clean."

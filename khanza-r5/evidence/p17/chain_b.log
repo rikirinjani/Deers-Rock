@@ -1,0 +1,42 @@
+
+=== 0 FROZEN (22:03:57Z) ===
+frozen P17 (b): 27/27 OK; lsattr i-flag: 27
+
+=== 1 P16 A/E4 CONTROLS (wiring tests with the probe stub, exit 3 asserted on the pin case) (22:03:57Z) ===
+PASS A3 tail extracted (non-empty, ends with exit 1) (got yes)
+PASS A3 fixture 4, real 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 0 -> driver exit 0 (got 0)
+PASS A3 fixture 4, no real run -> driver exit 0 (got 0)
+PASS A3 fixture 0 (strata not out of envelope) -> driver exit 1 (got 1)
+PASS A3 fixture 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 4 -> driver exit 1 (got 1)
+PASS A3 pin segment extracted (2 lines) (got 2)
+PASS A3 pin mismatch: driver aborts (no CONTINUED) (got 0)
+PASS A3 pin mismatch: clone kept (KEEP=1) (got 1)
+PASS A3 pin mismatch: exit 3 (P17 A10) (got 1)
+PASS A3 pin mismatch: names the ABORT (got 1)
+PASS A3 pin match: driver continues (got 1)
+P16-A-NC: PASS=26 FAIL=0
+p16-a-nc exit=0
+
+=== 2 P16 E1-E3 CONTROLS (22:04:00Z) ===
+P16-E-NC: PASS=20 FAIL=0
+p16-e-nc exit=0
+
+=== 3 FINAL (22:06:14Z) ===
+frozen P17 (b): 27/27 OK; lsattr i-flag: 27
+# P14 live state: p17-chain-b-final 2026-10-26T22:06:14Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P17-CLAUDE-20261027
+disk: /dev/vda2        94G   20G   71G  22% /
+
+=== P17 CHAIN-B DONE: p16-a=0 p16-e=0 ===
