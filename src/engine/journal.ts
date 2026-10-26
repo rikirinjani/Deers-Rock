@@ -258,16 +258,21 @@ function arrToMap<K extends string, V>(arr: [string, V][]): Map<K, V> {
   return new Map(arr) as Map<K, V>;
 }
 
-function serializeLearning(l: LearningMemory): { byDiagnosis: [string, unknown][] } {
+function serializeLearning(l: LearningMemory): { byDiagnosis: [string, unknown][]; learnedOutcomes?: number } {
   return {
     byDiagnosis: Array.from(l.byDiagnosis.entries()).map(([code, dx]) => [code, { ...dx, actions: Array.from(dx.actions.entries()) }]),
+    learnedOutcomes: l.learnedOutcomes,
   };
 }
 
-function deserializeLearning(d: { byDiagnosis?: [string, unknown][] } | null): LearningMemory {
+/** `outcomeCount` is the fallback cursor for snapshots written before the
+ *  learnedOutcomes cursor existed: their memory already includes every
+ *  outcome, so nothing is re-learned on resume. */
+function deserializeLearning(d: { byDiagnosis?: [string, unknown][]; learnedOutcomes?: number } | null, outcomeCount: number): LearningMemory {
   if (!d) return { byDiagnosis: new Map() };
   return {
     byDiagnosis: new Map((d.byDiagnosis ?? []).map(([code, dx]: [string, any]) => [code, { ...dx, actions: new Map(dx.actions ?? []) }])),
+    learnedOutcomes: d.learnedOutcomes ?? outcomeCount,
   };
 }
 
@@ -486,7 +491,7 @@ function deserializeState(json: string): HospitalState {
     _nurseCaseMemory: arrToMap(d.nurseMem ?? []),
     _outcomeRecords: d.outcomes ?? [],
     _pharmacyCaseMemory: arrToMap(d.pharmMem ?? []),
-    _learningMemory: deserializeLearning(d.learning),
+    _learningMemory: deserializeLearning(d.learning, (d.outcomes ?? []).length),
     _outpatientVisits: arrToMap(d.opVisits ?? []),
     _calendarTicks: d.calTicks ?? 0,
     morgue: d.morgue ?? [],

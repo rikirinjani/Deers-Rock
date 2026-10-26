@@ -181,6 +181,8 @@ export interface DiagnosisLearning {
 
 export interface LearningMemory {
   byDiagnosis: Map<string, DiagnosisLearning>;
+  /** Count of `_outcomeRecords` already learned (append-only cursor). */
+  learnedOutcomes?: number;
 }
 
 export interface BuildingConfig {

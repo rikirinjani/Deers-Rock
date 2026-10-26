@@ -36,6 +36,7 @@ import { getConsumptionByDept, getConsumptionByItem, getDeptConsumption, checkRe
 import { getDischargePlans, getFollowUpStats } from "../engine/discharge-planning.js";
 import { getKamarJenazahRecords } from "../engine/kamar-jenazah.js";
 import { summarizeAgentHealth } from "../agent/system.js";
+import { getActionRankingDistribution } from "../engine/agent-learning.js";
 import { getUpcomingAppointments } from "../engine/appointment-scheduling.js";
 import { getAllCoderProfiles } from "../engine/ai-coder.js";
 import type { SimControl, SimEvent } from "../engine/sim-control.js";
@@ -536,6 +537,14 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
       actionsLearned: dx.actions.size,
     }));
     json(res, { diagnoses: summary });
+    return true;
+  }
+  // Epic VII M7.3: learned action-ranking distribution (?icd=I10 to filter, ?top=N actions per dx)
+  if (p === "/api/learning/action-ranking") {
+    const dist = getActionRankingDistribution(w.state._learningMemory ?? { byDiagnosis: new Map() }, url.searchParams.get("icd") ?? undefined);
+    const top = Number(url.searchParams.get("top") ?? 0);
+    if (top > 0) for (const d of dist.diagnoses) d.actions = d.actions.slice(0, top);
+    json(res, dist);
     return true;
   }
   if (p === "/api/top-icd") {
