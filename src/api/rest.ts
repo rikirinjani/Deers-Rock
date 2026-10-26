@@ -37,6 +37,7 @@ import { getDischargePlans, getFollowUpStats } from "../engine/discharge-plannin
 import { getKamarJenazahRecords } from "../engine/kamar-jenazah.js";
 import { getUpcomingAppointments } from "../engine/appointment-scheduling.js";
 import { getAllCoderProfiles } from "../engine/ai-coder.js";
+import type { SimControl, SimEvent } from "../engine/sim-control.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "..", "..", "public");
@@ -153,12 +154,16 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     if (limit === "INVALID") { badRequest(res, "invalid limit param — expected integer >= 1"); return true; }
     const since = parseIntParam(url, "since", 0);
     if (since === "INVALID") { badRequest(res, "invalid since param — expected integer tick >= 0"); return true; }
+    // Epic V M5.1: q = case-insensitive substring of the patient ID or the patient's name.
+    const q = url.searchParams.get("q")?.trim().toLowerCase() || undefined;
     // Oracle F9: one morgue-id set per request instead of a morgue scan per encounter.
     const morgueIds = morgueEncounterIds(w.state);
     let list = toArr(w.state.encounters).map(e => buildEncounterView(w.state, e, morgueIds));
     if (status !== undefined) list = list.filter(e => e.status === status);
     if (type !== undefined) list = list.filter(e => e.type === type);
     if (since !== undefined) list = list.filter(e => tickFromMs(e.startTime) >= since);
+    if (q !== undefined) list = list.filter(e => e.patientId.toLowerCase().includes(q)
+      || (w.state.patients.get(e.patientId)?.name.toLowerCase().includes(q) ?? false));
     if (limit !== undefined) list = list.slice(0, limit);
     json(res, list); return true;
   }
@@ -642,7 +647,36 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   return false;
 }
 
-export function createRestServer(world: () => World): RestServer {
+/** Epic V M5.2: run-control routes and the tick stream. Returns true when handled. */
+function simRoutes(req: http.IncomingMessage, res: http.ServerResponse, url: URL, control: SimControl | undefined): boolean {
+  const p = url.pathname;
+  if (p !== "/api/sim" && !p.startsWith("/api/sim/") && p !== "/api/stream") return false;
+  if (!control) { res.statusCode = 503; json(res, { error: "simulation control not available in this server" }); return true; }
+  if (p === "/api/stream" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive",
+      "Access-Control-Allow-Origin": corsApplied.get(res) || "*" });
+    const send = (ev: SimEvent) => { res.write(`event: ${ev.kind}
+data: ${JSON.stringify(ev.status)}
+
+`); };
+    send({ kind: "state", status: control.status() });
+    const unsubscribe = control.subscribe(send);
+    req.on("close", unsubscribe);
+    return true;
+  }
+  if (p === "/api/sim" && req.method === "GET") { json(res, control.status()); return true; }
+  if (req.method !== "POST") { res.statusCode = 405; json(res, { error: "use POST for " + p }); return true; }
+  if (p === "/api/sim/pause") { control.pause(); json(res, control.status()); return true; }
+  if (p === "/api/sim/resume") { control.resume(); json(res, control.status()); return true; }
+  if (p === "/api/sim/speed") {
+    const x = Number(url.searchParams.get("x"));
+    if (!control.setSpeed(x)) { badRequest(res, "invalid x param — expected one of 1|2|5"); return true; }
+    json(res, control.status()); return true;
+  }
+  res.statusCode = 404; json(res, { error: `no route for ${req.method ?? "GET"} ${p}` }); return true;
+}
+
+export function createRestServer(world: () => World, control?: SimControl): RestServer {
   const apiKey = process.env.DR_API_KEY || "";
   const allowedOrigins = (process.env.DR_CORS_ALLOW_ORIGINS ?? "").split(",").map(s => s.trim()).filter(Boolean);
   const corsRestricted = allowedOrigins.length > 0;
@@ -670,7 +704,10 @@ export function createRestServer(world: () => World): RestServer {
       }
       // Opt-in auth (DR_API_KEY) — checked before any body parsing or route work.
       if (apiKey) {
-        const exempt = req.method === "GET" && (url.pathname === "/" || url.pathname === "/api/status" || url.pathname.endsWith(".html"));
+        // /api/stream carries only the tick number and run state (EventSource cannot send auth
+        // headers); every data request the dashboard makes on a tick event is still authenticated.
+        const exempt = req.method === "GET" && (url.pathname === "/" || url.pathname === "/api/status"
+          || url.pathname === "/api/stream" || url.pathname.endsWith(".html"));
         if (!exempt) {
           const authHeader = req.headers.authorization;
           const bearer = typeof authHeader === "string" && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
@@ -685,6 +722,7 @@ export function createRestServer(world: () => World): RestServer {
           }
         }
       }
+      if (simRoutes(req, res, url, control)) return;
       const w = world();
       if (apiRoutes(req, res, w, url)) return;
       if (url.pathname.startsWith("/api/")) {

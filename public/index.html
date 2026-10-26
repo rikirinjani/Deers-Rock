@@ -6,6 +6,15 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root { --bg:#0b0e14;--surface:#141a24;--surface2:#1c2432;--border:#2a3444;--text:#e2e8f0;--muted:#8896a6;--accent:#38bdf8;--green:#4ade80;--yellow:#facc15;--red:#ef4444;--orange:#fb923c;--purple:#a78bfa;--pink:#f472b6;--teal:#2dd4bf;--rose:#fb7185; }
+  /* Epic V M5.1: light theme (toggled from the header, remembered per browser) */
+  :root[data-theme="light"] { --bg:#f5f7fa;--surface:#ffffff;--surface2:#edf1f6;--border:#d3dae3;--text:#1a2230;--muted:#5a6676;--accent:#0369a1;--green:#15803d;--yellow:#a16207;--red:#b91c1c;--orange:#c2410c;--purple:#6d28d9;--pink:#be185d;--teal:#0f766e;--rose:#be123c; }
+  .sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--border);margin-left:2px;vertical-align:middle;transition:background .2s}
+  .sync-dot.busy{background:var(--accent);animation:pulse 1s ease-in-out infinite}
+  .sync-dot.live{background:var(--green)}
+  .export-menu{display:none;position:absolute;right:12px;top:44px;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:6px;flex-direction:column;gap:4px;min-width:190px}
+  .export-menu.show{display:flex}
+  .export-menu button{text-align:left}
+  .day-input{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:2px;width:44px;font-size:8px;font-family:inherit}
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'SF Mono','Cascadia Code','Consolas',monospace;background:var(--bg);color:var(--text);padding:8px;font-size:11px;line-height:1.5}
   .container{max-width:1700px;margin:0 auto}
@@ -78,7 +87,16 @@
 <div class=container>
   <div class=header>
     <h1>🦌 <span>Deer's Rock</span> Hospital</h1>
-    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><span id=playStatus style=color:var(--green);font-size:9px>▶ RUNNING</span> <button id=playBtn onclick=togglePlay()>⏸</button> <select id=speedSelect onchange=setSpeed(this.value)" style=background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:2px;font-size:9px;font-family:inherit><option value="1000">1x</option><option value="500">2x</option><option value="200">5x</option></select><button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button><a href=/bi.html style=text-decoration:none><button>📈 BI Dashboard</button></a></div>
+    <div class=meta><span>Time: <span class=val id=hTime>--:--</span></span><span>Tick: <span class=val id=hTick>0</span></span><span id=playStatus style=color:var(--green);font-size:9px>▶ RUNNING</span><span id=syncDot class=sync-dot title="data refresh"></span> <button id=playBtn onclick=togglePlay() title="Pause or resume the simulation">⏸</button> <select id=speedSelect onchange="setSpeed(this.value)" title="Simulation speed" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:2px;font-size:9px;font-family:inherit"><option value="1">1x</option><option value="2">2x</option><option value="5">5x</option></select><button onclick=toggleTheme() id=themeBtn title="Light/dark theme">🌓</button><button onclick=toggleExports() title="CSV exports">⬇ Export</button><button onclick=showReport()>📊 Report</button><button onclick=showSirs()>🇮🇩 SIRS RL</button><button onclick=showJournal()>📋 Journal</button><button onclick=showSnapshots()>📸 Snapshot</button><a href=/bi.html style=text-decoration:none><button>📈 BI Dashboard</button></a></div>
+  </div>
+
+  <div class=export-menu id=exportMenu>
+    <button onclick="downloadExport('ward-census.csv')">🛏️ Ward census (CSV)</button>
+    <button onclick="downloadExport('identity.csv')">🪪 Patient identity (CSV)</button>
+    <button onclick="downloadExport('supply-consumption.csv')">📦 Supply consumption (CSV)</button>
+    <button onclick="downloadExport('patients.csv')">👥 Patients (CSV)</button>
+    <button onclick="downloadExport('encounters.csv')">🚑 Encounters (CSV)</button>
+    <button onclick="downloadExport('charges.csv')">💰 Charges (CSV)</button>
   </div>
 
   <div class="loading-overlay" id=loadingOverlay><span class="loading-pulse">⏳ Loading<span class=loading-dots></span></span></div>
@@ -126,7 +144,7 @@
     <div class=panel><div class=panel-header>🌋 Scenario <span id=scenarioCount style=color:var(--orange)>0</span></div><div class=panel-body><div id=scenarioList></div></div></div>
   </div>
 
-  <div class="panel full"><div class=panel-header>🚑 Encounters <span id=encCount style=color:var(--green)>0</span><input id=encSearch class=panel-search style=width:120px placeholder="Search patient ID..." oninput="onEncSearch(this.value)"></div><div class=panel-body id=encBody style=max-height:420px></div></div>
+  <div class="panel full"><div class=panel-header>🚑 Encounters <span id=encCount style=color:var(--green)>0</span><span style="margin-left:auto;display:flex;gap:3px;align-items:center;text-transform:none;letter-spacing:0">Day <input id=encDayFrom class=day-input type=number min=0 placeholder=from oninput="onEncDays()"> – <input id=encDayTo class=day-input type=number min=0 placeholder=to oninput="onEncDays()"><input id=encSearch class=panel-search style="width:150px;margin-left:4px" placeholder="Search patient ID or name..." oninput="onEncSearch(this.value)"></span></div><div class=panel-body id=encBody style=max-height:420px></div></div>
 
   <div class="panel full"><div class=panel-header>📊 Activity Feed</div><div class=panel-body style=max-height:140px><div class=feed id=feed></div></div></div>
 
@@ -198,12 +216,31 @@ function renderSimple(id, cid, items, fn, mx=5){
 const ENC_PAGE_SIZE = 50;
 let encRows = [];      // latest /api/encounters payload, newest first
 let encPage = 0;       // zero-based current page
-let encQuery = '';     // patient-ID filter (lowercased substring)
+let encQuery = '';     // patient ID or name (server-side ?q=, lowercased substring)
+let encDays = [null, null]; // hospital-day range on startTime (client-side, inclusive)
+let encSearchTimer = null;
+const DAY_MS = 1440 * 60000;
 
-function onEncSearch(v){ encQuery=(v||'').trim().toLowerCase(); encPage=0; renderEncTable(); }
+function encUrl(){ return '/api/encounters'+(encQuery?'?q='+encodeURIComponent(encQuery):''); }
+function setEncRows(enc){ encRows=enc.slice().sort((a,b)=>(b.startTime-a.startTime)||(a.id<b.id?-1:1)); }
+function onEncSearch(v){
+  encQuery=(v||'').trim().toLowerCase(); encPage=0;
+  clearTimeout(encSearchTimer);
+  encSearchTimer=setTimeout(async()=>{
+    try{ setEncRows(await drFetch(encUrl()).then(r=>r.json())); renderEncTable(); }catch(e){}
+  },250);
+}
+function onEncDays(){
+  const v=id=>{const x=document.getElementById(id).value;return x===''?null:Math.max(0,parseInt(x,10));};
+  encDays=[v('encDayFrom'),v('encDayTo')]; encPage=0; renderEncTable();
+}
 function encPrevPage(){ if(encPage>0){encPage--;renderEncTable();} }
 function encNextPage(){ if(encPage<encTotalPages()-1){encPage++;renderEncTable();} }
-function encFiltered(){ return encQuery?encRows.filter(e=>String(e.patientId||'').toLowerCase().includes(encQuery)):encRows; }
+function encFiltered(){
+  const [lo,hi]=encDays;
+  if(lo===null&&hi===null)return encRows;
+  return encRows.filter(e=>{const d=Math.floor(e.startTime/DAY_MS);return (lo===null||d>=lo)&&(hi===null||d<=hi);});
+}
 function encTotalPages(){ return Math.max(1,Math.ceil(encFiltered().length/ENC_PAGE_SIZE)); }
 
 function renderEncTable(){
@@ -215,10 +252,11 @@ function renderEncTable(){
   const start=encPage*ENC_PAGE_SIZE;
   const slice=list.slice(start,start+ENC_PAGE_SIZE);
   const cnt=document.getElementById('encCount');
-  if(cnt)cnt.textContent=encQuery?list.length+'/'+encRows.length:String(encRows.length);
+  const filtering=encQuery||encDays[0]!==null||encDays[1]!==null;
+  if(cnt)cnt.textContent=filtering?list.length+' match':String(encRows.length);
   let html;
   if(encRows.length===0){html='<div style=color:var(--muted);padding:4px>—</div>';}
-  else if(list.length===0){html='<div style=color:var(--muted);padding:4px>No encounters match that patient ID</div>';}
+  else if(list.length===0){html='<div style=color:var(--muted);padding:4px>No encounters match the search or day range</div>';}
   else{
     html='<table><thead><tr><th>Encounter</th><th>Patient</th><th>Type</th><th>Status</th><th>Payer</th><th>Start</th><th>End</th></tr></thead><tbody>'
     +slice.map(e=>{
@@ -236,7 +274,22 @@ function renderEncTable(){
 }
 
 let refreshTick=0;
+// Loading indicator (Epic V M5.1): overlay on the first load, header dot while a refresh runs.
+let refreshBusy=false, firstLoad=true;
 async function refresh(){
+  if(refreshBusy)return;
+  refreshBusy=true;
+  const dot=document.getElementById('syncDot');
+  if(dot)dot.classList.add('busy');
+  if(firstLoad)document.getElementById('loadingOverlay').classList.add('show');
+  try{ await refreshInner(); }
+  finally{
+    refreshBusy=false;
+    if(dot)dot.classList.remove('busy');
+    if(firstLoad){firstLoad=false;document.getElementById('loadingOverlay').classList.remove('show');}
+  }
+}
+async function refreshInner(){
 refreshTick++;
 const fullRebuild = refreshTick % 5 === 1;
 try{
@@ -533,7 +586,8 @@ poliEl.innerHTML=poliVisits.length===0?'<div style=color:var(--muted);padding:4p
   +`<div style=font-size:7px;color:var(--muted);padding:2px 4px;border-top:1px solid var(--border)>${poliData.waiting}⏳ ${poliData.consulting}💬 ${poliData.completed}✅</div>`;
 
 // Encounters table (Epic V M5.1) — newest first; renderEncTable applies search/pagination
-encRows=enc.slice().sort((a,b)=>(b.startTime-a.startTime)||(a.id<b.id?-1:1));
+// (the feed below keeps using the unfiltered `enc`; the table re-fetches with ?q= while searching)
+setEncRows(encQuery?await drFetch(encUrl()).then(r=>r.json()):enc);
 renderEncTable();
 
 // Feed
@@ -975,35 +1029,79 @@ function exportSirsCSV(){
   const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download='deers-rock-sirs-report.csv';a.click();
 }
-let pollInterval = 2000;
-let pollTimer = null;
-let isPlaying = true;
+// ── Run control + live updates (Epic V M5.2) ──────────────────────────────
+// Pause/speed act on the SIMULATION via /api/sim/*. Updates are pushed over
+// /api/stream (Server-Sent Events, one event per tick); the dashboard refreshes
+// on events, at most once per MIN_REFRESH_MS, and never while a refresh is in
+// flight. If the stream is unavailable it falls back to polling.
+const MIN_REFRESH_MS = 2000; // same load ceiling as the old 2 s poll
+const POLL_FALLBACK_MS = 2000;
+let simStatus = { paused: false, speed: 1 };
+let lastRefreshAt = 0, pendingRefresh = null, pollTimer = null;
 
-function togglePlay() {
-  isPlaying = !isPlaying;
-  const btn = document.getElementById('playBtn');
-  const status = document.getElementById('playStatus');
-  if (isPlaying) {
-    btn.textContent = '⏸';
-    status.innerHTML = '<span style=color:var(--green)>▶ RUNNING</span>';
-    pollTimer = setInterval(refresh, pollInterval);
-  } else {
-    btn.textContent = '▶';
-    status.innerHTML = '<span style=color:var(--red)>⏸ PAUSED</span>';
-    clearInterval(pollTimer);
-  }
+function renderSimStatus(st) {
+  simStatus = st;
+  document.getElementById('playBtn').textContent = st.paused ? '▶' : '⏸';
+  document.getElementById('playStatus').innerHTML = st.paused
+    ? '<span style=color:var(--red)>⏸ PAUSED</span>'
+    : '<span style=color:var(--green)>▶ RUNNING</span>';
+  document.getElementById('speedSelect').value = String(st.speed);
+}
+async function simPost(path) {
+  try {
+    const r = await drFetch(path, { method: 'POST' });
+    const st = await r.json();
+    if (r.ok) renderSimStatus(st); else alert(st.error || ('Request failed: ' + r.status));
+  } catch (e) { alert('Simulation control unavailable'); }
+}
+function togglePlay() { simPost(simStatus.paused ? '/api/sim/resume' : '/api/sim/pause'); }
+function setSpeed(x) { simPost('/api/sim/speed?x=' + encodeURIComponent(x)); }
+
+function scheduleRefresh() {
+  if (pendingRefresh) return;
+  const wait = Math.max(0, MIN_REFRESH_MS - (Date.now() - lastRefreshAt));
+  pendingRefresh = setTimeout(() => { pendingRefresh = null; lastRefreshAt = Date.now(); refresh(); }, wait);
+}
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(() => { if (!simStatus.paused) scheduleRefresh(); }, POLL_FALLBACK_MS);
+}
+function startStream() {
+  if (typeof EventSource === 'undefined') { startPolling(); return; }
+  const es = new EventSource('/api/stream');
+  const dot = document.getElementById('syncDot');
+  es.addEventListener('state', ev => { try { renderSimStatus(JSON.parse(ev.data)); } catch (e) {} });
+  es.addEventListener('tick', () => scheduleRefresh());
+  es.onopen = () => { if (dot) dot.classList.add('live'); if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } };
+  es.onerror = () => { if (dot) dot.classList.remove('live'); startPolling(); }; // EventSource retries on its own
 }
 
-function setSpeed(ms) {
-  pollInterval = parseInt(ms);
-  if (isPlaying) {
-    clearInterval(pollTimer);
-    pollTimer = setInterval(refresh, pollInterval);
-  }
+// ── Theme (Epic V M5.1) ───────────────────────────────────────────────────
+function applyTheme(t) { if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); else document.documentElement.removeAttribute('data-theme'); }
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  applyTheme(next);
+  try { localStorage.setItem('dr-theme', next); } catch (e) {}
+}
+try { applyTheme(localStorage.getItem('dr-theme')); } catch (e) {}
+
+// ── CSV exports (Epic V M5.3) — fetched with auth, saved as a file ─────────
+function toggleExports() { document.getElementById('exportMenu').classList.toggle('show'); }
+async function downloadExport(name) {
+  try {
+    const r = await drFetch('/api/export/' + name);
+    if (!r.ok) { alert('Export failed: ' + r.status); return; }
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement('a'); a.href = url; a.download = 'deers-rock-' + name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) { alert('Export failed'); }
+  document.getElementById('exportMenu').classList.remove('show');
 }
 
+lastRefreshAt = Date.now();
 refresh();
-pollTimer = setInterval(refresh, pollInterval);
+drFetch('/api/sim').then(r => r.ok ? r.json() : null).then(st => { if (st) renderSimStatus(st); }).catch(() => {});
+startStream();
 
 // ── Charts (Epic IV M4.2) ─────────────────────────────────────────────────
 var chartInstances = {};
@@ -1046,7 +1144,7 @@ async function loadCharts() {
           },
           options: { responsive: true, plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
-                      x: { ticks: { font: { size: 7 }, maxRotation: 45 }, grid: { display: false } } }
+                      x: { ticks: { font: { size: 7 }, maxRotation: 45 }, grid: { display: false } } } }
         });
       }
       // Encounter status pie
@@ -1081,7 +1179,7 @@ async function loadCharts() {
           },
           options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 8 } } } },
             scales: { y: { beginAtZero: true, ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
-                      x: { ticks: { font: { size: 7 } }, grid: { display: false } } }
+                      x: { ticks: { font: { size: 7 } }, grid: { display: false } } } }
         });
       }
       // Top diagnoses bar
@@ -1098,7 +1196,7 @@ async function loadCharts() {
           },
           options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } },
             scales: { x: { ticks: { font: { size: 8 } }, grid: { color: '#2a3444' } },
-                      y: { ticks: { font: { size: 7 } }, grid: { display: false } } }
+                      y: { ticks: { font: { size: 7 } }, grid: { display: false } } } }
         });
       }
     }

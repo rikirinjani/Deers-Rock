@@ -135,24 +135,32 @@ Make HOE data useful for analytics, reporting, and external system integration.
 
 The single-page dashboard is the primary user interface. It must be usable at scale.
 
-### Milestone 5.1: Dashboard Overhaul 🟡
+> **Audit 2026-10-26 (branch `epic-v-dashboard`):** the dashboard's main script had **not parsed since
+> `fd96038` (2026-10-07, Epic IV charts)**: three Chart.js `options` objects were missing a closing brace,
+> so no panel ever refreshed. The M5.2 pause/speed controls were also mis-scored ✅: they only changed the
+> browser's poll interval, the simulation kept stepping, and the speed `<select>` had a stray quote in
+> its `onchange`. Both are fixed below; the earlier ✅ marks are corrected.
+
+### Milestone 5.1: Dashboard Overhaul ✅
 - [x] Pagination for encounter table (50 rows/page) ✅
 - [x] Search by patient ID ✅
-- [ ] Full search/filtering, date-range pickers — deferred
-- [ ] Loading indicator between 1s refresh cycles — deferred
-- [ ] Dark/light theme toggle — deferred
-- [ ] Patient search by name/ID — deferred
+- [x] Full search/filtering, date-range pickers ✅ (hospital-day from/to filter on the encounters table, 2026-10-26)
+- [x] Loading indicator between refresh cycles ✅ (first-load overlay + header sync dot; the overlay existed but was never shown)
+- [x] Dark/light theme toggle ✅ (header 🌓, remembered per browser)
+- [x] Patient search by name/ID ✅ (`/api/encounters?q=` matches patient ID or name; dashboard search is server-side, debounced)
 
 ### Milestone 5.2: Admin & Controls ✅
-- [x] Pause/resume simulation from dashboard ✅ (toggle button + status indicator)
-- [x] Adjust tick speed (1x, 2x, 5x) ✅
-- [ ] Real-time WebSocket updates (instead of 1s polling) — deferred
-- [ ] `.env` config for port, tick interval, patient pool size — deferred
+- [x] Pause/resume simulation from dashboard ✅ — ~~toggle button + status indicator~~ *was dashboard-polling only;* now `POST /api/sim/pause|resume` on a real run controller (`src/engine/sim-control.ts`)
+- [x] Adjust tick speed (1x, 2x, 5x) ✅ — ~~poll interval~~ *now* `POST /api/sim/speed?x=1|2|5` (wall-clock period only; hospital time per tick unchanged, replay unaffected)
+- [x] Real-time updates instead of polling ✅ — Server-Sent Events `/api/stream` (one event per tick, no dependency); dashboard refreshes on events, ≤ 1 per 2 s, polling fallback
+- [x] `.env` config for port, tick interval, patient pool size ✅ — `DR_TICK_MS`, `DR_PATIENT_POOL` (+ existing `PORT`, `DATA_DIR`, …) in `.env.example`; `npm run start:env`
 
-### Milestone 5.3: Export 🔴
-- [ ] Export patient census as CSV per ward — deferred
-- [ ] CSV/PDF export of identity data for reporting — deferred
-- [ ] Medical supply consumption tracking — deferred
+### Milestone 5.3: Export ✅
+- [x] Export patient census as CSV per ward ✅ (`/api/export/ward-census.csv` existed but was unreachable from the UI; now in the ⬇ Export menu)
+- [x] CSV export of identity data for reporting ✅ (`/api/export/identity.csv`; PDF stays the browser print dialog from M4.2)
+- [x] Medical supply consumption tracking ✅ (`/api/export/supply-consumption.csv`, from Epic VI M6.3; now in the Export menu)
+
+Tests: `tests/sim-control.test.ts` (6). Verified in the running app 2026-10-26: pause holds the tick, 5× gives 5 ticks/s, SSE connected, name search, day filter, theme, all 6 CSV exports 200.
 
 ---
 
@@ -311,7 +319,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **II** Clinical Fidelity | ✅ Complete | — | 205 drugs, 147 ICD, 165 protocols |
 | **III** Timeline Engine | ✅ Complete | — | Branch engine + ADR-019 isolation + 5 scenarios + 14 tests |
 | **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
-| **V** Dashboard & UX | 🟡 2/3 MS | — | Pagination + pause/resume + charts done |
+| **V** Dashboard & UX | ✅ Complete | 6 | 2026-10-26: dashboard script fixed (dead since 10-07), real sim pause/speed, SSE live updates, name+day search, theme, exports menu, env config |
 | **VI** Department Completeness | 🟡 M6.1+M6.2+M6.3 ✅ | — | 12 depts + agent assignment + discharge planning + dept consumption |
 | **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |

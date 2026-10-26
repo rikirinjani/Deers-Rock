@@ -10,6 +10,7 @@
     "build": "tsc",
     "dev": "tsx src/cli/index.ts up 3000",
     "start": "node dist/cli/index.js up",
+    "start:env": "node --env-file=.env dist/cli/index.js up",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run --pool=threads --poolOptions.threads.singleThread --sequence.shuffle=false",
