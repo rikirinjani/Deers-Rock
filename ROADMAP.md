@@ -168,23 +168,23 @@ Tests: `tests/sim-control.test.ts` (6). Verified in the running app 2026-10-26: 
 
 Add remaining clinical workflows to match a full Tier C hospital.
 
-### Status: 🟡 ~70% Complete — Most departments implemented, gaps in linkage
+### Status: 🟡 Audited 2026-10-26 (`docs/epic-audit-2026-10-26.md`). Mechanisms work; agent shift/fatigue model broken; appointments unwired
 
 ### Milestone 6.1: Agent-Patient Assignment 🟡
 - [x] Agent pool with 30+ roles generated (`src/agent/generator.ts`)
-- [x] Fatigue/health/shift tracking (`src/agent/system.ts`)
+- [ ] ~~Fatigue/health/shift tracking (`src/agent/system.ts`)~~ — **2026-10-26: model broken.** `inShift` is hard-coded `true` and fatigue never resets, so 100% of staff are sick by tick 50 (seed 42) and `available` falls to 0. Needs a real roster plus Research OC calibration (M).
 - [x] `assignments` Map exists but not linked to encounters
-- [x] Link specific doctors/nurses to encounters — done (M6.1)
-- [ ] Auto-replace sick agents with backups (sick leave system) — deferred
-- [ ] Dashboard for agent health status, fatigue alerts — deferred
+- [x] Link specific doctors/nurses to encounters — done (M6.1). Mostly fails after tick ~50 because of the fatigue bug above.
+- [x] Auto-replace sick agents with backups (sick leave system) — 2026-10-26: the detector never fired (0 records in 600 ticks). Now state-based, picks a same-role backup and hands over encounter assignments (`tests/sick-leave.test.ts`)
+- [x] Dashboard for agent health status, fatigue alerts — 2026-10-26: `GET /api/agents/health` plus a 👷 Staff Health panel
 
 ### Milestone 6.2: Patient Flow 🟡
 - [x] Outpatient clinic system (Rawat Jalan) with 9 poliklinik — `src/engine/outpatient.ts`
-- [x] Appointment scheduling — deferred (walk-in sufficient for current scope)
+- [ ] ~~Appointment scheduling — deferred (walk-in sufficient for current scope)~~ — **2026-10-26:** `appointment-scheduling.ts` exists but `createAppointment` has no caller (always 0 appointments) and `getUpcomingAppointments` hard-codes tick 0. Unwired (S–M).
 - [x] Patient discharge planning with referral to Puskesmas (rujuk balik) — done (M6.2)
 - [x] Puskesmas → RS Tier C/D → Deer's Rock referral chain — `src/referral/system.ts`
 - [x] Morgue records with diagnosis — inline in `markov.ts`
-- [ ] Kamar Jenazah & forensik workflow — deferred
+- [x] Kamar Jenazah & forensik workflow — 2026-10-26: natural deaths go stored → certified → released; unnatural deaths (S/T/V–Y) go legal hold → autopsy → certified → released (`kamar-jenazah.ts`, `tests/kamar-jenazah.test.ts`)
 
 ### Milestone 6.3: Equipment & Supply 🟡
 - [x] Medical equipment tracking (biomedical engineering) — `src/engine/biomedical-engineering.ts`
@@ -215,17 +215,18 @@ Quality-of-life improvements for developers and operators.
 
 ### Milestone 7.1: Developer Experience ✅
 - [x] Dockerfile for local containerized dev (node:20-slim, multi-stage, healthcheck) ✅
-- [ ] Add more Indonesian names to patient generator pool — deferred
+- [x] Add more Indonesian names to patient generator pool — 2026-10-26: 158/130/130 (was 107/86/79), South Sulawesi weighted, defects fixed
 
 ### Milestone 7.2: Code Quality 🟡
 - [x] Fix `as any` casts in `rest.ts` and `fhir.ts` with typed intersections ✅
 - [x] `getDeteriorationRate` already counts deceased as deteriorated (verified)
-- [ ] Split `HospitalState` into sub-states for maintainability (long-term) — deferred
+- [ ] Split `HospitalState` into sub-states for maintainability (long-term) — deferred. Audited 2026-10-26: ~60 flat fields, ~25 `_` sub-states reached via casts, hand-written serializers (L, needs an ADR)
 
 ### Milestone 7.3: Experimental Instrumentation ✅
 - [x] Per-tick outcome snapshot module (`src/engine/outcome-snapshot.ts`)
 - [x] API endpoint `/api/outcomes/snapshots` for time-series analysis
-- [ ] Expose action ranking distribution via API — deferred
+- [x] Expose action ranking distribution via API — 2026-10-26: `GET /api/learning/action-ranking` (`?icd=`, `?top=`)
+- [x] 2026-10-26 fix: `learningHandler` re-learned every outcome on each pass (431 outcomes counted as 53,856 cases). Now uses a `learnedOutcomes` cursor and copy-on-write memory.
 
 ---
 
@@ -233,23 +234,35 @@ Quality-of-life improvements for developers and operators.
 
 Architectural decisions must be recorded for future agents and humans.
 
-### Milestone 8.1: ADR Backlog ✅
-- [x] ADR-001: Handler Pipeline Architecture
-- [x] ADR-002: Snapshot and Journal Retention Strategy
+### Milestone 8.1: ADR Backlog 🟡 (audited 2026-10-26)
+- [x] ADR-001: Handler Pipeline Architecture (status still **Proposed**)
+- [x] ADR-002: Snapshot and Journal Retention Strategy (status still **Proposed**)
 - [x] ADR-003: Agent State Persistence Contract
-- [x] ADR-004: Mortality Risk Engine
+- [x] ADR-004: Mortality Risk Engine (`adr/`). **Number collision** with `docs/adr/ADR-004-bounded-state-durable-scheduling.md`
 - [x] ADR-005: Department Addition Pattern (docs/adr, 2026-10-07)
 - [x] ADR-006: Agent Learning Architecture (docs/adr, 2026-10-07)
 - [x] ADR-007: Referral System (Rujukan Berjenjang) (docs/adr, 2026-10-07)
 - [x] ADR-008: Seeded Random Number Generation
-- [x] ADR-009: Timeline Engine (Vision ADR — accepted, implementation deferred)
-- [x] ADR-010: Clinical Fidelity Expansion
-- [x] ADR-011: Runner Tuning
-- [x] ADR-012: Formulary Expansion
-- [x] ADR-013: Chapter IX/X Expansion
+- [x] ADR-009: Timeline Engine (Vision ADR — accepted, implementation deferred). Two diverging copies, in `adr/` and `docs/adr/`
+- [x] ADR-010: Clinical Fidelity Expansion (Draft)
+- [x] ADR-011: Runner Tuning (Draft)
+- [ ] ~~ADR-012: Formulary Expansion~~ — **2026-10-26: no such file** in `adr/` or `docs/adr/` (only cited as "Related" by ADR-013/014)
+- [x] ADR-013: Chapter IX/X Expansion (Draft)
 - [x] ADR-014: Hospital Testbed (FHIR)
 - [x] ADR-015: Finance & Claims Architecture
 - [x] ADR-016: Referral & Ambulance Architecture
+- [x] ADR-017: Department Completeness. **Two files share the number** (`-department-completeness`, `-patient-flow-supply`)
+- [x] ADR-018: AI Medical Coder Agent
+- [x] ADR-019: Timeline Engine — Branch Journal Isolation
+- [x] ADR-020: State Invariant Validation
+- [x] ADR-021: Primary Diagnosis Selection by Priority
+- [x] ADR-022: Intervention Param Validation
+- [ ] ADR-023 — no file
+- [x] ADR-024: Handler Orchestration Phases
+- [x] ADR-025: Assessment-Driven Quality Fixes
+- [ ] ADR-026 — no file (cited in `docs/CODEX-E2E-REPORT.md` and `docs/benchmarks/100k-tick-report.md`)
+- [x] ADR-027: International Adapter Architecture — US Healthcare
+- [ ] Open (Coordinator OC): write or retire ADR-012; resolve the ADR-004/009/017 collisions; consolidate `adr/` and `docs/adr/`; accept or reject ADR-001/002
 
 ### Milestone 8.3: Constitution Amendments ✅
 - [x] Amendment 1: Article VI — Agent Interoperability
@@ -257,6 +270,7 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] Amendment 3: §3.2 protocol gap logging + §3.3 mortality provenance
 - [x] Amendment 4: Article VII — Model Assumptions & Calibration
 - [x] Amendment 5: §1.4 — Counterfactual Experimentation (branch mandate, outcome diff)
+- [x] Amendment 6: Article IV §4.2 — remove pruning caps, rely on journal retention (was unlisted)
 
 ### Milestone 8.2: Terminology Standardization ✅
 - [x] English-context docs normalized to "Tier A/B/C/D"
@@ -287,11 +301,11 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 ### Milestone 9.3: Referral System Redesign 🟡
 - [x] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A (tier function, catchment band, distanceKm) — ADR-016 wave 1
 - [x] ED walk-in / self-referral with ESI-based routing (ESI-lite table, level 5 reintroduced, fast-track ESI 4-5 → POLI) — ADR-016 wave 1
-- [x] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — wave 2 code written (\src/referral/jr-provenance.ts\), **unbenchmarked**
+- [ ] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — wave 2 code (`src/referral/jr-provenance.ts`). **Benchmarked 2026-10-26** (`tests/epic9-wave2-benchmark.test.ts`): deterministic, one incident per trigger encounter. But `finance.ts` bills 199 S/T/V codes to JR while provenance triggers on 6 (S06 head injury gets no incidentRef); incidents are per encounter, not per accident (one patient = 4 incidents at seed 42); and incidents are not linked to claims. Partial; needs an owner decision on the trigger set.
 - [x] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia (catchmentBand function, sender province filter) — ADR-016 wave 1
 - [x] Referral capacity: limited specialist slots per day (REFERRAL_DAILY_SLOT_BUDGET=5, FIFO drain, age-out→returned) — ADR-016 wave 1
-- [x] Ambulance system: BLS/ALS dispatch, tracking, costing — wave 2 code written (\src/referral/ambulance.ts\), **unbenchmarked**
-- [x] Real-patient linkage: phantom REF-PAT-* eliminated, real Patient materialized at letter→arrival — ADR-016 wave 1
+- [ ] Ambulance system: BLS/ALS dispatch, tracking, costing — wave 2 code (`src/referral/ambulance.ts`). **Benchmarked 2026-10-26:** cost/ETA formulas and fleet cap are correct and deterministic, but `dispatchAmbulance` **has no caller**, so the engine never dispatches. Driven from received letters (seed 42, 600 ticks): 4 dispatches, 4 refused (3-vehicle fleet on 900–1800 km legs), 12.8M IDR, never charged. Unwired.
+- [x] Real-patient linkage: phantom REF-PAT-* eliminated, real Patient materialized at letter→arrival — ADR-016 wave 1 (in `outpatient.ts`; 8 of 8 letters became referral visits, seed 42 / 600 ticks). 2026-10-26 caveat: the letter is never linked back (`patientId` stays `PAT-REF-*`, letters never `completed`, visited letters still age out to `returned`)
 - [x] Fixed draw count discipline (6 draws per fire, counter-based IDs) — ADR-016 wave 1
 
 ### Milestone 9.4: Expanded Formulary ✅
@@ -307,7 +321,7 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 **Status:** Design phase — strategy approved by owner 2026-10-05. Implementation deferred until all other Epics green.
 
 ### Milestone 10.1-10.6: All Pending 🔴
-See ADR-013 for design. Will implement only after Epic I-IX complete.
+See ADR-027 (international adapter) for design. ~~See ADR-013~~: ADR-013 is ICD chapters IX/X (corrected 2026-10-26). Will implement only after Epic I-IX complete.
 
 ---
 
@@ -320,10 +334,10 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 | **III** Timeline Engine | ✅ Complete | — | Branch engine + ADR-019 isolation + 5 scenarios + 14 tests |
 | **IV** Data & Interop | ✅ Complete | — | FHIR, charts, PDF export, CI all done |
 | **V** Dashboard & UX | ✅ Complete | 6 | 2026-10-26: dashboard script fixed (dead since 10-07), real sim pause/speed, SSE live updates, name+day search, theme, exports menu, env config |
-| **VI** Department Completeness | 🟡 M6.1+M6.2+M6.3 ✅ | — | 12 depts + agent assignment + discharge planning + dept consumption |
-| **VII** Polish & Infra | 🟡 2/3 MS | — | Dockerfile, as-any, outcome snapshots done |
-| **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
-| **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
+| **VI** Department Completeness | 🟡 M6.3 ✅, M6.1/M6.2 🟡 | 15 | 2026-10-26 audit: sick-leave replacement + staff health API/panel + kamar jenazah workflow fixed; **agent shift/fatigue model broken** (all staff sick by tick 50); appointments unwired |
+| **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
+| **VIII** ADRs & Governance | 🟡 M8.2 ✅ M8.3 ✅, M8.1 🟡 | — | ADR-012 missing; ADR-004/009/017 collisions; 001/002 Proposed; 018–027 now listed |
+| **IX** Financial & Referral | 🟡 3/4 MS (M9.3 🟡) | 8 | Wave 2 benchmarked: JR provenance partial (6 of 199 JR codes trigger), ambulance unwired, letter↔visit back-link missing |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
-**Overall:** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
+**Overall (2026-10-26, branch `epic-audit-vi-ix`):** 467 tests pass / 3 skipped / 0 failed (60 files), tsc clean. Determinism failure fixed (module-global AI-coder profiles). Declared seed break: outpatient RNG sub-stream. Epic VI–IX audit: `docs/epic-audit-2026-10-26.md`.
