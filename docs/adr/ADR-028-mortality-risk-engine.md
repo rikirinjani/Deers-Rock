@@ -1,4 +1,8 @@
-# ADR-004: Mortality Risk Engine
+# ADR-028: Mortality Risk Engine
+
+> **Formerly ADR-004** (`adr/ADR-004-mortality-risk-engine.md`). Renumbered 2026-10-27 because ADR-004 was also
+> used by *Bounded state and durable scheduling* (`docs/adr/ADR-004-…`), which is cited throughout `src/` and keeps
+> the number. Earlier documents that cite "ADR-004" for mortality risk mean this ADR. Content unchanged.
 
 **Status:** Accepted
 **Date:** 2026-07-01

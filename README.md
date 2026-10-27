@@ -204,7 +204,7 @@ Agents follow rule-based decision trees (not reinforcement learning). The `DR_FR
 
 ## Governance
 
-- **21 ADRs** documenting architectural decisions
+- **26 ADRs** documenting architectural decisions — index in [`docs/adr/README.md`](docs/adr/README.md)
 - **Constitution** with amendment process
 - **Determinism gate** — SHA-256 equality check on journal/snapshots
 - **Invariant validator** — 5 environment-gated state invariants

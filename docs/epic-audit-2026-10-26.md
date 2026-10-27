@@ -1,4 +1,4 @@
-# Epic Audit VI–IX — 2026-10-26
+# Epic Audit VI–IX — 2026-10-26 (follow-ups 2026-10-27: §7)
 
 **Branch:** `epic-audit-vi-ix` (cut from `main` @ `0d60971`)
 **Role:** Platform OC audit, run unattended. Calls I made without the owner are marked **Decision**.
@@ -136,16 +136,29 @@ New test files: `world-isolation` (2), `sick-leave` (10), `kamar-jenazah` (5), `
 
 ---
 
-## 7. Open items, by priority
+## 7. Follow-ups done 2026-10-27
 
-1. **Agent shift/fatigue model** (Epic VI M6.1): staff collapse to 100% sick by tick 50. **M**. Research OC calibration first, because it moves every trajectory.
-2. **Ambulance wiring + ambulance charge + JR claim link + letter↔visit back-link** (Epic IX M9.3). **M**.
-3. **JR trigger alignment** (S06 billed to JR without provenance). **S**. Owner decision.
-4. **Appointments unwired** (Epic VI M6.2). **S–M**.
-5. **ADR hygiene**: ADR-012 missing; ADR-004, 009 and 017 collisions; two ADR directories; ADR-001/002 still Proposed. **S**. Coordinator OC.
-5b. **Per-handler RNG sub-streams** across the board (see §4b). **M**, seed break.
+The owner asked for open items 1, 2, 4, 5 and 5b. All five are done on this branch, each with tests.
+
+| Item | What changed | Evidence |
+|---|---|---|
+| 5b. Per-handler RNG sub-streams | `subStreamRng(seed, tick, streamId(name))` in `clock.ts`. Every handler, event handler, med-admin and M&M gets its own stream per tick, keyed by function name (checked unique). **Declared seed break** (ADR-008 Amendment 1, Proposed). | A staff shortage leaves non-poli admissions identical on **12/12** seeds (7/12 on `main`). An extra handler burning state-dependent draws changes nothing else; that test fails with isolation off. `tests/rng-substreams.test.ts` (5) |
+| 1. Staff roster + fatigue | `src/agent/roster.ts`: 3×8-h shifts on the calendar clock; 24-h roles rotate in 4 teams (~42 h/week); 3-person roles rotate backwards (no malam → pagi); < 3 staff on call; day roles Mon–Sat. Fatigue recovers off duty. Sickness ~4 mild episodes per person-year, 10% severe, fixed 2 draws/agent/tick; `sakit_ringan` now recovers. DPJP assigned on call, on-duty GP fallback. Also fixed: pregnancy advanced ×60 too fast; menstrual cycle advanced per tick. (ADR-029 Amendment 1, Proposed) | 90 sim-days, 122 staff: absence **2.69%** (target ~2.7%), 3.92 onsets per person-year, max fatigue 478 ticks, 35 on duty on average (min 22). Doctor assignment over the first 600 ticks 1/131 → **131/131**. `tests/roster.test.ts` (12) |
+| 2. Ambulance + charge + JR + letter link | Transport chosen on receipt (ALS I21/I50, BLS S72/K35/J15/J44, else own). Road ambulance only within Sulawesi, otherwise `sea_air`. The visit is created at arrival; the letter is completed with the real patient + encounter; the patient carries the referral diagnosis. Referral-only diagnoses no longer collapse to I10. The dispatch is charged once. Letters in transit no longer age out (a 600 km transfer was being returned en route). One JR incident per accident (30-day window, from the accident time), linked to letter + dispatch; JR claims carry `incidentRef`. `/api/ambulance`, `/api/jr-incidents`. (ADR-016 Amendment 1, Proposed) | Seed 42, 900 ticks: 14/14 letters completed (self 6, sea/air 4, ambulance 4); 4 dispatches, all charged (0.2–1.4M IDR); 4 JR incidents over 11 encounters; 4 of 7 JR claims carry `incidentRef`. `tests/referral-transport.test.ts` (10), benchmark rewritten (11) |
+| 4. Appointments | Kontrol booked 7 days after every inpatient discharge (alive), at the diagnosis' poli (children to Poli Anak), Mon–Sat 08:00–14:00 slot. 80% attendance; attendees are checked in as outpatient visits and the appointment follows the visit to completion. `getUpcomingAppointments` uses the current tick. `recordDischargePlan` used `Math.random()` (ADR-008 violation); fixed. | `tests/appointments.test.ts` (10). Not yet seen end to end in a full run: the first kontrol falls ~10 sim-days in |
+| 5. ADR numbering | `adr/` merged into `docs/adr/` (pointer README left in `adr/`). Collisions: mortality risk engine ADR-004 → **ADR-028**; workforce ADR-017 → **ADR-029** (the ADR the code cites keeps each number); the ADR-009 vision copy is archived. `docs/adr/README.md` index with an old→new citation map; 012, 023 and 026 listed as gaps (026 is cited by tests but was never written). Living docs updated; dated audit records and the paper draft keep their citations, which the map resolves. | 26 ADR files, 0 number collisions |
+
+Also fixed along the way: sick leave, kamar jenazah and appointments were not persisted in snapshots (a resumed world reset them), and the referral letter/patient counters weren't either (resumed letters became `RJL-undefined`).
+
+## 8. Open items, by priority (after 2026-10-27)
+
+1. **JR trigger alignment** (S06 and 192 other accident codes billed to JR without an incident). **S**. Owner decision (M9.3-BLOCKER-DECISIONS §5). On the live server, the unlinked JR claims were S62 (wrist fracture), an M54 poli visit by an accident patient, and **T81 (complication of surgical care)**. `ACCIDENT_ICD_CODES` treats every T code as a road accident, which is not plausible for Jasa Raharja.
+2. **Coordinator OC review**: accept or reject ADR-001/002 (Proposed) and the three Proposed amendments (ADR-008, ADR-016, ADR-029); write ADR-026. **S**.
+3. **Re-freeze baselines** after the per-handler seed break (any frozen evidence/benchmark fingerprints). **S**.
+4. **Research OC calibration** of the workforce rates (absence 2.7%, episode lengths) and the 80% kontrol attendance against Indonesian data. **M**.
+5. **Emergency referrals** (I21, S72…) still arrive as outpatient poli visits, not ED/inpatient admissions. In-city transfers have distance 0 (instant, base cost only). A patient can hold an active inpatient encounter and repeated ED encounters at the same time (seen live: one patient with 5 overlapping encounters). **S–M**.
 6. **`HospitalState` split** (Epic VII M7.2). **L**. Needs an ADR.
 7. Re-check results that depended on learned rankings or rates (pre-fix learning was inflated ~125×). Research OC.
 8. Lockfile / package-manager decision (`npm ci` impossible today). **S**.
-9. Small items: `sakit_ringan` never recovers; non-clinical staff get "Ns." names; outcome-snapshot buffer not reset per world; tautological test assertions. **S** each.
+9. Small items: non-clinical staff get "Ns." names; outcome-snapshot buffer not reset per world; tautological test assertions; `registerBody`/`recordDischargePlan` still mutate state in place. **S** each.
 10. Epic X: not started, as before (deferred by design).

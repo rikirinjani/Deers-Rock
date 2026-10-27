@@ -1,4 +1,8 @@
-# ADR-009: Timeline Engine — Counterfactual Experimentation
+# ADR-009 (vision, archived): Timeline Engine — Counterfactual Experimentation
+
+> **Archived 2026-10-27.** This is the original 2026-06-28 vision version of ADR-009 (previously `adr/ADR-009-timeline-engine.md`).
+> It is superseded by the accepted implementation ADR, [`docs/adr/ADR-009-timeline-engine.md`](../ADR-009-timeline-engine.md) (2026-10-07).
+> Kept for history; not a separate decision.
 
 **Status:** Accepted (Vision ADR)
 **Implementation:** Deferred

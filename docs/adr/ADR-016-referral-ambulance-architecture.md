@@ -81,3 +81,18 @@ Wave 3: helicopter tier + eastern-Indonesia catchment events, JR ICD-set tighten
 - ESI-lite with level 5 reintroduced — enables self-referral routing to POLI instead of ED bays.
 - One declared seed break (wave 1) — frozen baselines re-versioned once, not incrementally.
 - Slot budget + FIFO drain models real referral capacity constraints without facility simulation overhead.
+
+## Amendment 1 — Wave 2 wiring (2026-10-27)
+
+**Status:** Proposed (Platform OC, implemented in `epic-audit-vi-ix`) — awaiting Coordinator OC acceptance.
+
+D8 ambulance dispatch and D6 Jasa Raharja provenance were coded but had no caller. Now:
+- When a letter is received, `ambulanceHandler` picks ALS (I21, I50), BLS (S72, K35, J15, J44) or own transport. Only
+  road-connected Sulawesi senders get a road ambulance; others are marked `sea_air` (not modelled). The needed tier is
+  preferred; if the fleet is all out the letter waits.
+- The patient's visit is created at `arrivalTick`; the letter is completed with the real patient and encounter; the
+  dispatch cost is charged once (`ambulance` category). Letters in transit no longer age out.
+- One JR incident per accident (re-presentations within the 30-day window join it), linked to letter and dispatch;
+  Jasa Raharja claims carry `incidentRef`.
+- Still open (owner decision, M9.3-BLOCKER-DECISIONS §5): finance bills 199 S/T/V codes to Jasa Raharja while
+  provenance triggers on 6, so e.g. S06 claims carry no incident.

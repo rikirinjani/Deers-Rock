@@ -17,7 +17,7 @@
 
 **Acceptance:** Low-risk mortality should not exceed 1% (target 0.5-1%).
 
-**Dependency:** ADR-004 (Mortality Risk Engine) to document source ranges.
+**Dependency:** ADR-028 (Mortality Risk Engine; formerly ADR-004) to document source ranges.
 
 ---
 

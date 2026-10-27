@@ -1,5 +1,5 @@
 /**
- * Agent-Encounter Assignment System — Epic VI M6.1 (ADR-017)
+ * Agent-Encounter Assignment System — Epic VI M6.1 (ADR-029, formerly ADR-017)
  *
  * Links agents to encounters based on specialty → ward mapping.
  * When a patient is admitted, an appropriate doctor and nurse are assigned.

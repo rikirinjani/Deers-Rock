@@ -10,7 +10,7 @@ I propose the following additions to ROADMAP.md for Coordinator review:
 ## Add to Epic II — Clinical Depth
 
 ### Milestone 2.5: Model Calibration
-- [ ] Document mortality risk factor weights with plausible clinical ranges (see ADR-004)
+- [ ] Document mortality risk factor weights with plausible clinical ranges (see ADR-028, formerly ADR-004)
 - [ ] Validate LOS distribution against real Indonesian hospital data (current: 4-12 ticks = 4-12 simulated min, unrealistic)
 - [ ] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data
 

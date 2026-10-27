@@ -13,7 +13,7 @@
 - English-context docs normalized to "Tier A/B/C/D": ROADMAP.md, docs/MODULE-CONTRACTS.md, docs/integration-depth-ledger.md (descriptive rows), docs/adr/ADR-010, docs/adr/M9.3-BLOCKER-DECISIONS.md.
 - Kept "Tipe A" in Indonesian regulatory citation (integration-depth-ledger.md row 1: "PMK 28/2020 RS Tipe A") and all paper drafts (submission artifacts) per policy.
 - README.md / CONSTITUTION.md already used "Tier A" — no change needed.
-- Remaining known occurrence: root `adr/ADR-003-agent-state-persistence.md:41` ("RS Tipe D/C", historical ADR, outside this pass's authorized scope — left untouched).
+- Remaining known occurrence: `docs/adr/ADR-003-agent-state-persistence.md:41` (moved from root `adr/` 2026-10-27) ("RS Tipe D/C", historical ADR, outside this pass's authorized scope — left untouched).
 - ROADMAP.md 8.1: ADR-005/006/007 marked done.
 
 ## Run: 2026-10-06 — Epic IX M9.1–M9.4 complete + 100k benchmark fix

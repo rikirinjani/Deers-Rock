@@ -128,7 +128,7 @@ _referralState: {
 
 ## → Coordinator
 - **Submit SoftwareX** — 🟡 **Almost there.** All gates green. Paper OC: commit uncommitted files → regenerate PDF → submit.
-- **ADR-004**: Mortality Risk Engine — accepted ✅
+- **ADR-028** (formerly ADR-004): Mortality Risk Engine — accepted ✅
 - **Epic IX**: Design review session — needs scheduling
 - **dischargeHandler**: ✅ Removed. Research OC verified — bed occupancy 131/133, active LOS 583 min at 1000 ticks. Realistic Tier A behavior confirmed.
 

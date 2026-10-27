@@ -44,3 +44,19 @@ High — blocks Milestone 2.6 (Scientific Validation Infrastructure) and all Res
 - Constitution §1.4 (Auditability — snapshots)
 - ROADMAP.md Milestone 2.6 (Scientific Validation Infrastructure)
 - Research OC experiments E1-E5
+
+## Amendment 1 — Per-handler sub-streams (2026-10-27)
+
+**Status:** Proposed (Platform OC, implemented in `epic-audit-vi-ix`) — awaiting Coordinator OC acceptance.
+
+**Problem.** All handlers drew from one shared stream, so any handler whose draw count depends on state (queue length,
+poli capacity, health mix) re-rolled every handler after it. A `staff_shortage` intervention changed ED and inpatient
+admissions through the RNG alone, and same-process worlds leaked through module-global state.
+
+**Decision.** `subStreamRng(seed, tick, streamId(name))` in `src/engine/clock.ts`: each handler (and each event
+handler, med-admin, order-complete and M&M) gets a fresh stream per tick, keyed by its function name (checked unique at
+load). A stream depends only on (seed, tick, name), so a resumed world replays the same draws.
+
+**Consequences.** Declared seed break: every trajectory differs from pre-2026-10-27 runs; frozen baselines must be
+re-frozen. Counterfactual branches (Constitution §1.4) now isolate the intervened subsystem: a staff shortage leaves
+non-poli admissions identical on 12/12 seeds (7/12 before). `tests/rng-substreams.test.ts`.

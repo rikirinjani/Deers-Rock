@@ -1,4 +1,8 @@
-# ADR-017: Department Completeness — Agent Assignment & Workforce Management
+# ADR-029: Department Completeness — Agent Assignment & Workforce Management
+
+> **Formerly ADR-017** (`docs/adr/ADR-017-department-completeness.md`). Renumbered 2026-10-27: two files shared
+> ADR-017. *Patient Flow & Supply Consumption* keeps ADR-017 (cited by kamar jenazah, discharge planning,
+> appointments and supply consumption); this workforce ADR moves to ADR-029.
 
 **Status:** Accepted
 **Date:** 2026-10-07
@@ -78,3 +82,27 @@ consumption report (each department handler)
 - Backward compatible: existing snapshots without assignments work (assignments default to empty)
 - New field `_agentAssignments` in HospitalState (additive)
 - Tests verify: assignment on admission, replacement on sickness, consumption tracking
+
+## Amendment 1 — Staff roster and workforce health model (2026-10-27)
+
+**Status:** Proposed (Platform OC, implemented in `epic-audit-vi-ix`) — awaiting Coordinator OC acceptance.
+
+**Problem.** `agentHandler` hard-coded `inShift = true` and never reset fatigue, so every agent was sick by tick 50
+(seed 42) and none were available; `sickLeaveHandler` never detected a sick agent.
+
+**Decision.**
+- Roster (`src/agent/roster.ts`): 8-h shifts on the calendar clock (pagi 07–15, siang 15–23, malam 23–07). 24-h roles
+  rotate in 4 teams (pagi → siang → malam → libur, ~42 h/week); 3-person roles rotate backwards (no malam → pagi);
+  roles with < 3 staff are on call; office and specialist roles work pagi Mon–Sat.
+- Fatigue = consecutive ticks on duty, recovering at 2/tick off duty. "lelah" from 7 h; illness from overtime past 10 h.
+- Sickness: ~4 mild episodes per person-year (2 days), 10 % progressing to severe (5 days), giving ~2.7 % absence.
+  Fixed draw count (2 per agent per tick). `sakit_berat` agents are off duty; `agentHandler` owns recovery;
+  `sickLeaveHandler` opens/closes leave state-based and hands encounter assignments to a same-role backup.
+- The attending specialist (DPJP) is assigned by department regardless of roster (on call for their patients), with an
+  on-duty GP (dokter jaga) fallback.
+
+**Evidence.** 90 sim-days, 122 staff: absence 2.69 %, 3.92 mild onsets per person-year, max fatigue 478 ticks,
+35 staff on duty on average (min 22). `tests/roster.test.ts`, `tests/sick-leave.test.ts`.
+
+**Calibration target (Research OC).** The 2.7 % absence and the episode rates are literature-range assumptions,
+not fitted to Indonesian hospital HR data.
