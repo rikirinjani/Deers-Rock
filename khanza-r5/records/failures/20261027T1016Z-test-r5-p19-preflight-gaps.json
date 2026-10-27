@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T10:16:04Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P19 pre-flight: one script fault, two final scripts first run in the chain, and tool-side command refusals",
+  "what_went_wrong": [
+    "The second pre-flight script (pre2.sh) ran the fixture comparator directly without exporting DBUTIL_FORCE_ROOT=1: 'fixture compare exit=1', Access denied for user benchmark to sik_p14e. A script fault, not a product defect; the chain exports it and the fixture compare there is 27/27. The comparator's expect mode was exercised on the unfrozen bytes through p19_b_negctl.sh (27 MATCH on the scratch) instead.",
+    "The P19 rule 'every final script is pre-flighted once on the unfrozen bytes' was not met for p19_chain.sh (never run before the chain) and for the success path of p19_release_inventory.py (only its fail-closed path, 'no manifest matches ...p19_frozen_*', was run). Both ran clean in the chain (all 'DONE' fields 0; inventory 58/58), so no fix-up cycle was needed.",
+    "The tool-side auto-mode classifier returned no verdict for several compound commands (a here-document inside an ssh call, a long loop); each was split into smaller commands or re-run once. Nothing was bypassed."
+  ],
+  "root_cause": "The pre-flight list was written for the control scripts and the code; the wrapper and the inventory were left to the chain because they only call things that were pre-flighted.",
+  "detection": "The executor's own reading of pre-flight summaries before the freeze.",
+  "impact": "None on results. Stated in R5 section 31 as a limit.",
+  "correction": {
+    "applied": "Recorded here and in R5 section 31; the wrapper scripts and the inventory's success path go on the pre-flight list from P20 on.",
+    "result": "evidence/p19/preflight/, evidence/p19/chain.log.txt"
+  },
+  "rule": "The pre-flight list names every file in the new manifest, wrappers and inventory generators included; a script that calls a database tool exports the same environment the chain does.",
+  "agent": "claude (P19 executor)",
+  "status": "closed"
+}

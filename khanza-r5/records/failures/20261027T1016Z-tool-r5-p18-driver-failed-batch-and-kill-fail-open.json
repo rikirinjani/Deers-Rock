@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T10:16:04Z",
+  "category": "tool",
+  "severity": "minor",
+  "title": "P18 left a driver gap and two fail-open paths: a FAILED oracle batch with all visits logged true ended 'P15E OK'; the kill function read a vanished leader or a failing ps as 'nothing to do'",
+  "what_went_wrong": [
+    "N3: tools/p14_edge_run.sh treats oracle exit 4 as the expected value for the fixture strata and greps FAILED into the log without gating on it. The oracle also exits 4 when any batch FAILED (sampled_real_form_diff_r5.py docstring). P18's B4 run was in fact a compound failure (the trigger made both the form save and the stage restore fail), but only the sukses count stopped it; a FAILED batch with every visit sukses=true would have passed.",
+    "N5a: tools/p15_lib.sh: a leader that passed kill -0 and then vanished before ps -o pgid= -p gave an empty pgid, which was reported as 'not a process-group leader - not signalled' with rc 0 while its JVM could still be in the group.",
+    "N5b: p15_group_alive read a failing ps as 'no live member'; the dead-leader branch skipped with rc 0 and the TERM loop declared the group dead."
+  ],
+  "root_cause": "P18 closed the cases the P17 review named (a dead leader with a live child, an unreadable start time) and tested those shapes; the neighbouring failure modes of the same function (a vanishing leader, a failing ps) and the other exit-4 meaning were not searched.",
+  "detection": "Independent local review of P18 (N3, N5), confirmed by reading p15_lib.sh:39-40, 65-67 and chain/b4_stop_rule_driver.log.",
+  "impact": "No false pass is known: none of the shapes occurred in a run. The risk was a later run restoring state under a live writer, or comparing a clone the oracle marked FAILED.",
+  "correction": {
+    "applied": "P19 B2/B3: p15_oracle_batch_failed and the ORACLE-BATCH-FAILED gate in oracle_run (return 10); a vanished leader falls to the dead-leader branch; p15_group_alive returns 2 (unknown) when ps fails and every caller treats that as not confirmed. Each has a paired control (canned log pair; shadowing ps).",
+    "result": "evidence/p19/chain/p19_a_negctl.txt"
+  },
+  "rule": "When a function is fixed for the failure modes a review names, list the other ways each of its sub-commands (kill -0, ps, awk pipelines) can fail and give each a return code and a control; an exit code with two meanings gets a second signal in the log that the driver checks.",
+  "agent": "claude (P18 executor)",
+  "status": "closed"
+}

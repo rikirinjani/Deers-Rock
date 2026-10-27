@@ -1,0 +1,6 @@
+driver exit=0
+fixture compare exit=1
+p19_b exit=0
+p18_b exit=0
+p17_b exit=0
+line_nc exit=0

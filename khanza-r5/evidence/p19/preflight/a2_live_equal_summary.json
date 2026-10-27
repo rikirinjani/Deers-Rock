@@ -1,0 +1,19 @@
+{
+ "b_eq_a": 0,
+ "db": "sik",
+ "encounters": 300,
+ "fail": 300,
+ "fresh_b_ok": 0,
+ "ledger": "sik_bench",
+ "line_differ": 0,
+ "lines": 1240,
+ "mode": "equal",
+ "pass": 0,
+ "since": null,
+ "unit_keys_checked": 698,
+ "unit_keys_unchecked": 0,
+ "verdicts": {
+  "EQUAL": 181,
+  "EQUAL-SRC": 119
+ }
+}

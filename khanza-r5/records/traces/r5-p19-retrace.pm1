@@ -1,0 +1,28 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p19-retrace",
+  "timestamp": "2026-10-27T10:17:00.291375+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p19/retrace_trace_clean.txt"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p19-retrace",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................-.--...-........................................-.--...-",
+  "action": "P19 retrace output committed after tracing its own placeholder"
+}

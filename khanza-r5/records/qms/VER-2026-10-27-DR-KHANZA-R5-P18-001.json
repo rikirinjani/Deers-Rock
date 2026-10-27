@@ -91,5 +91,11 @@
     "20261027T0110Z-tool-r5-p17-a7-patch-glued-rch",
     "20261027T0115Z-tool-r5-p17-kill-function-and-p13-driver-gaps",
     "20261027T0120Z-test-r5-p18-first-control-runs-faulty"
+  ],
+  "amendments": [
+    "P19: the independent review of P18 scored 20/24 (self 23/24, withdrawn); R3 and R9 = 1",
+    "P19 N1/N2: two sentences in R5 s30 (UNCHECKED fails any unsourced key; B4 OLD arm asserts the summary) were contradicted by the code and are struck there",
+    "P19 N8: the ssh alias is not a secret (owner decision); the redaction of the host= line described in the P18 record is dropped as a claim",
+    "P19: results below are unchanged; the equal-mode unit gate, AC-5, is built and evidenced in VER-2026-10-27-DR-KHANZA-R5-P19-001"
   ]
 }

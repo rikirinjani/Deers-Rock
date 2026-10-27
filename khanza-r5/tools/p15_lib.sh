@@ -36,8 +36,11 @@ p15_proc_start_ms() { # pid
 # any live process in process group $1 (a zombie does not count). P18 B2 (M3c): selected by process-group id
 # from `ps -e -o pgid=,stat=`; `ps -g N` selects by SESSION id in procps-ng 4.0.4 (a setpgid group inside a
 # larger session reports no members; evidence/p18/a2_ps_semantics.txt), so it is not used.
+# P19 N5b: returns 0 alive, 1 dead, 2 UNKNOWN (ps itself failed); callers treat 2 as "not confirmed dead".
 p15_group_alive() { # pgid
-  ps -e -o pgid=,stat= 2>/dev/null | awk -v g="$1" '$1 == g && $2 !~ /^Z/ { f = 1 } END { exit f ? 0 : 1 }'
+  local out
+  out=$(ps -e -o pgid=,stat= 2>/dev/null) || return 2
+  printf '%s\n' "$out" | awk -v g="$1" '$1 == g && $2 !~ /^Z/ { f = 1 } END { exit f ? 0 : 1 }'
 }
 # P18 B2: does a live member of process group $1 look like this run's harness (its command line names
 # BilingHarness or the harness log whose .pid file recorded the group)?
@@ -48,39 +51,56 @@ p15_group_is_harness() { # pgid log-path
   done
   return 1
 }
-# P17 A3/A4 + P18 B2: signal a recorded harness group only if it is provably this run's. Live leader: it leads
-# its group and started no later than its pid file was written (to the millisecond); an unreadable start time
-# is NOT a reason to skip quietly (returns 1). Dead leader with a live group (a child keeps the pgid, and a
-# pid in use as a pgid is never reused): the group is signalled when a member's command line names the
-# harness. After TERM the group gets 10 s to die, then KILL; the function returns non-zero if a member is
-# still alive, and the drivers then leave database.xml, the grant and the clone as they are and exit 3.
+# P19 N3: does an oracle log show a failed batch? The oracle exits 4 for FAILED batches and for out-of-envelope
+# visits alike, and the driver treats 4 as the expected value for the fixture strata.
+p15_oracle_batch_failed() { # log
+  grep -aEq ': FAILED \(|STAGE-RESTORE-ERROR|NOT restored' "$1"
+}
+# P17 A3/A4 + P18 B2 + P19 N5: signal a recorded harness group only if it is provably this run's. Live leader: it
+# leads its group and started no later than its pid file was written (to the millisecond); an unreadable start
+# time is NOT a reason to skip quietly (returns 1). A leader that passed kill -0 but whose pgid cannot be read any
+# more has vanished: it is treated as gone (P19 N5a). Dead leader with a live group (a child keeps the pgid, and a
+# pid in use as a pgid is never reused): the group is signalled when a member's command line names the harness;
+# if ps itself fails the answer is "not confirmed" (return 1, P19 N5b). After TERM the group gets 10 s to die,
+# then KILL; the function returns non-zero if a member is still alive or unknown, and the drivers then leave
+# database.xml, the grant and the clone as they are and exit 3.
 p15_kill_run_harness() { # run-id...
-  local rid f pid pg st fm i rc=0
+  local rid f pid pg st fm i rc=0 lead ga
   for rid in "$@"; do
     for f in /opt/dr-benchmark/results/"$rid"/*/harness_*.log.pid; do
       [ -f "$f" ] || continue
       pid=$(tr -dc 0-9 < "$f")
       [ -n "$pid" ] || continue
       fm=$(stat -c %.3Y "$f" 2>/dev/null | tr -d .)
+      lead=gone
       if kill -0 "$pid" 2>/dev/null; then
         pg=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d " ")
-        [ "$pg" = "$pid" ] || { echo "kill-run-harness: pid $pid is not a process-group leader - not signalled" >&2; continue; }
+        if [ -n "$pg" ]; then
+          lead=live
+          [ "$pg" = "$pid" ] || { echo "kill-run-harness: pid $pid is not a process-group leader - not signalled" >&2; continue; }
+        fi
+      fi
+      if [ "$lead" = live ]; then
         st=$(p15_proc_start_ms "$pid")
         if [ -z "$st" ] || [ -z "$fm" ]; then
           echo "kill-run-harness: pid $pid leads a live group but its start time is unreadable - not signalled, NOT CONFIRMED" >&2; rc=1; continue
         fi
         [ "$st" -le $((fm + 50)) ] || { echo "kill-run-harness: pid $pid started after $f was written - a reused pid, not signalled" >&2; continue; }
       else
-        p15_group_alive "$pid" || continue
+        p15_group_alive "$pid"; ga=$?
+        [ "$ga" = 1 ] && continue
+        if [ "$ga" = 2 ]; then
+          echo "kill-run-harness: ps failed while looking for group $pid - NOT CONFIRMED" >&2; rc=1; continue
+        fi
         if ! p15_group_is_harness "$pid" "${f%.pid}"; then
           echo "kill-run-harness: group $pid is alive but no member looks like this run's harness - not signalled, NOT CONFIRMED" >&2; rc=1; continue
         fi
         echo "kill-run-harness: leader $pid is gone but its harness group is alive - signalling the group" >&2
       fi
       kill -TERM -- -"$pid" 2>/dev/null
-      for i in $(seq 1 20); do p15_group_alive "$pid" || break; sleep 0.5; done
-      if p15_group_alive "$pid"; then kill -KILL -- -"$pid" 2>/dev/null; sleep 1; fi
-      if p15_group_alive "$pid"; then echo "kill-run-harness: group $pid still alive after KILL" >&2; rc=1; fi
+      for i in $(seq 1 20); do p15_group_alive "$pid"; [ $? -eq 1 ] && break; sleep 0.5; done
+      p15_group_alive "$pid"; if [ $? -ne 1 ]; then kill -KILL -- -"$pid" 2>/dev/null; sleep 1; fi
+      p15_group_alive "$pid"; if [ $? -ne 1 ]; then echo "kill-run-harness: group $pid still alive (or unknown) after KILL" >&2; rc=1; fi
     done
   done
   return $rc

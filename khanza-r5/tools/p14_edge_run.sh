@@ -211,6 +211,10 @@ oracle_run() {   # <label> <visits> <extra-flags>; returns the oracle exit, or 1
   if [ "$ok" != "$n" ]; then
     res "FORM-INCOMPLETE[$label]: sukses=true for $ok of $n visits"; return 10
   fi
+  # P19 N3: a batch the oracle marked FAILED (or a stage restore it could not verify) is not "the expected 4"
+  if p15_oracle_batch_failed /tmp/p15e_${label}.log; then
+    res "ORACLE-BATCH-FAILED[$label]: the oracle log shows a FAILED batch or a stage restore that was not verified"; return 10
+  fi
   return $rc
 }
 

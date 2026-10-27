@@ -1,0 +1,40 @@
+P14-VERIFY: 27 visits, 0 violations, strata {'E1': 3, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+clone: creating sik_p14e
+clone matches sik: tables=1179 (= sik), 6 key tables row-equal
+clone sik_p14e ready in 63s (1464593 billing rows)
+fixture loaded: reg=25 proc=32 dpo=23
+live untouched by the load: 0 fixture rows in sik.reg_periksa
+audit triggers: 8 (need 8)
+dr_tariff copied into sik_p14e: 685 rows (sik_bench read only)
+builder: exit=0 (16 log lines)
+[09:00:37] window=ALL cohort=dr fallback=False require-tariff=True
+[09:00:37] dr_tariff authority rows: 685
+[09:00:38] registration rows: 86480
+[09:00:39] procedure rows: 86486
+[09:00:41] drug rows: 113411
+[09:00:42] tax rows: 70075 (cohort-scoped to window=ALL)
+[09:00:42] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+clone ledger fixture rows: 97
+late fixture loaded after the ledger build: reg=27 (ledger rows for them: 0)
+grant: benchmark@localhost on sik_p14e (probe sees 4 privileges; positive case for P15 A7)
+harness+consumer database.xml -> sik_p14e (RETARGET-VERIFIED)
+consumer (ENC-only fixture baseline): rc=0
+consumer baseline billing rows for fixture: 450
+fixture detail_pemberian_obat before/after consumer: [25 1350 1350 757536 29] / [25 1350 1350 757536 29]
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261027T085934Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 09:00:48.927281
+oracle[fixture]: real run exit=4 elapsed=91s
+[09:00:47] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[09:00:49] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[09:00:50] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[09:00:51] reset 27 visits (output cleared, status_bayar=Belum Bayar)
+[09:02:18] date 2027-12-31: rc=0 visits=27 sukses_true=27 -> BILLED
+[09:02:19] ORACLE_PARTIAL-NOT-COVERED: exit 4 (fail-closed, P5-1/P6-2e)
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+fixture oracle rc=4 (4 = PARTIAL-NOT-COVERED is the only expected value for out-of-envelope strata)
+database.xml restored (targets: sik)
+P15E OK fixture_rc=4 real_rc=n/a clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0

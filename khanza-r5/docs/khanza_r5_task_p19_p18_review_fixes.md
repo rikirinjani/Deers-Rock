@@ -224,4 +224,67 @@ independent review before Astra v13.
 
 ## 7. Result and self-score
 
-*(filled after execution)*
+Executed 2026-10-27 under lock `P19-CLAUDE-20261027` (08:37:52Z to 10:13:12Z). Result: R5 §31. §1–§6 above are unchanged
+since commit `129b72c` (written before the run).
+
+**Amendments (what differed from the plan, and why).**
+1. **Frozen set = 35, not 36.** The plan counted a separate new lib-test file; the `p15_group_alive` return-value cases
+   went into `p19_a_negctl.sh` (N5c) instead, so the frozen lib test is still unedited (23/23) and the new set is the 31
+   P18 files plus `p19_a_negctl.sh`, `p19_b_negctl.sh`, `p19_chain.sh`, `p19_release_inventory.py` = 35.
+2. **N3 control.** The plan's "extract `oracle_run` and run it with `env` as a shell function" was done as planned; the
+   plan's "feed the real B4 log to the helper" was done on the P18 box copies
+   (`/opt/dr-benchmark/p18/chain/b4_stop_rule_driver.log` matches, `c4_driver.log` does not). **No second full driver
+   run with a restore-only failure was made**; N3's gate is evidenced by the canned-log pair, not by a live run.
+3. **N5 control.** Both fail-open paths are exercised with a shell function that shadows `ps` inside `bash -c`; the
+   P18 B2 cases are re-run unchanged by `p18_a_negctl.sh` (history, 50/50 on the P19 bytes).
+4. **A2.** Done as written; the discovery agreed with the plan, so no stop was needed (698 keys, 0 unchecked, 300/300
+   MATCH on live). The patched comparator was run from a scratch path outside the frozen tools directory.
+5. **N6.** `p19_release_inventory.py` ran on the box (chain step 4e, read-only, before the final capture): 58 files,
+   58 ok, 8 manifests. The committed `evidence/release_inventory.json` is that box output; the `--local` result is kept
+   beside it. The 44 manifest names differ between box and repo copies; pins and on-disk hashes are identical.
+6. **N8.** Owner decision at the go-ahead: the ssh alias is not a secret; the redaction claim is dropped and nothing else
+   is done. (My own P19 lock transcript replaced the alias by `<alias>` out of habit; that line is harmless and not a claim.)
+7. **N9 / C1.** Marked, not replaced: `evidence/p17/NOTE_refreeze_lsattr_after_garbled.md` points to the P18 captures of the
+   same 27 files.
+8. **Pre-flight gaps (stated).** `p19_chain.sh` and the success path of `p19_release_inventory.py` were first run in the
+   chain; a pre-flight script of mine lacked `DBUTIL_FORCE_ROOT` (a script fault). See
+   `records/failures/20261027T1016Z-test-r5-p19-preflight-gaps.json`. This breaks §0's pre-flight rule for two files.
+
+**Claim vs transcript (AC-8).**
+
+| Claim | Transcript line | Status |
+|---|---|---|
+| lib 23/23; P15 A 9/9; P16 A 26/26, E 20/20 | `chain/a_lib_test.txt`, `p15_a_negctl.txt`, `p16_a_negctl.txt`, `p16_e_negctl.txt` last lines | matched |
+| P17 A 37/37, B 31/31; P18 A 50/50, B 33/33 | `chain/p17_a_negctl.txt`, `p17_b_negctl.txt`, `p18_a_negctl.txt`, `p18_b_negctl.txt` | matched |
+| P19 A 19/19; P19 B 28/28 | `chain/p19_a_negctl.txt` `P19-A-NC: PASS=19 FAIL=0`; `chain/p19_b_negctl.txt` `P19-B-NC: PASS=28 FAIL=0` | matched |
+| fixture 27/27, DIFFER 12 / EQUAL 12 / EQUAL-SRC 3, `unit_keys_checked` 57, unchecked 0 | `chain/fixture_compare.txt` last line | matched |
+| real 300/300, 1,240 entries, EQUAL 181 / EQUAL-SRC 119, `unit_keys_checked` 698, unchecked 0 | `chain/real300_compare.txt` last line | matched |
+| P13 comparator 300/300; unit-gate asserts and exit-code checks; 0 failed | `chain/p13cmp_pos.txt`; `chain.log.txt` `asserts-failed=0` | matched |
+| line 33/33; B6 6/6; suite PASS=39; preservation PASS; unit 44/44; NC 5 | `chain/line_negctl.txt`, `b6_negctl.txt`, `e_suite.log`, `e_preservation.log`, `e_unit.txt`, `e_nc.log` | matched |
+| 35/35 frozen, `lsattr` 35/35, local = box 35/35 | `chain.log.txt` step 0 and 5; `refreeze_cycle1.txt`; `local_eq_box_manifest.txt` | matched |
+| inventory on the box 58 files, 58 ok, 8 manifests; P14-only 11/11 | `chain/release_inventory_box.json`; `chain.log.txt` step 4e | matched |
+| N1 mixed plant: OLD MATCH/MATCH, NEW UNCHECKED/MISMATCH, checked 2 unchecked 1 | `chain/p19_b_negctl.txt` N1 block | matched |
+| AC-5 b DIFF, c UNCHECKED, three planted fail in NEW, none in OLD | `chain/p19_b_negctl.txt` AC-5 block | matched |
+| N3 OLD 4 / NEW 10; helper on the real logs | `chain/p19_a_negctl.txt` N3 block | matched |
+| N5a/b/c OLD defect and NEW fix | `chain/p19_a_negctl.txt` N5 block | matched |
+| A2 live: 300/300 MATCH, 698 checked, 0 unchecked | `a2_live_equal.txt` | matched |
+| final capture 10:12:48Z last; release 10:13:12Z | `chain/live_state_final.txt`; `lock_release.txt` | matched |
+| retrace says no untraced files | `evidence/p19/retrace_trace_clean.txt` | see the file (written last) |
+
+**Rubric (self-score, not the verdict).**
+
+| # | Self | Reason |
+|---|---|---|
+| R1 | 2 | §1: all findings opened; N4's cause identified as my own mislabelled `SELECT NOW()`; the review's 23 vs my 21 file count noted |
+| R2 | 2 | N3 gate (paired on `oracle_run`), N5a/N5b (paired with a shadowing `ps`); the live driver was not re-run with a restore-only failure (stated) |
+| R3 | 2 | N1 mixed plant and the equal-mode gate paired in both modes; fixture and real 300 asserted (698 / 0) |
+| R4 | 2 | N2 summary line asserted; reasons asserted in the new arms; OLD arms are the right predecessors |
+| R5 | 1 | 35 files, hashed one-cycle transcript, local = box 35/35, but two final files (`p19_chain.sh`, the inventory's success path) were not pre-flighted on the unfrozen bytes (the rule I wrote in §0) |
+| R6 | 2 | the final capture is the last box capture; the P14-only tools verified on the box (11/11, 58/58) |
+| R7 | 2 | the full chain on the final bytes incl. all history controls and C4 27 + 300 |
+| R8 | 2 | R5 §30 struck not edited, handoff, erratum, NOTE for the garbled file |
+| R9 | 2 | the retrace says clean (traced as a placeholder first); the claim table above re-run; no claim without its file |
+| R10 | 2 | 58 pins verified against the box bytes; the `--local` result kept beside it |
+| R11 | 2 | three failure records with `date -u` stamps; every pre-flight iteration listed; QMS P19 and the P18 amendment |
+| R12 | 2 | limits carried forward and new ones stated (N3 not live-tested; pre-flight gaps; command-line identity) |
+| **Total** | **23/24** | R5 = 1 (not a critical item); the critical items R2, R3, R6, R9 are 2 by my scoring. **Not the verdict:** the scores were 6, 7 and 3 over the independent reviews. Re-score independently before Astra v13. |

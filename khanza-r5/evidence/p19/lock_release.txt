@@ -1,0 +1,6 @@
+== lock release 2026-10-27T10:13:12Z
+RUNLOCK-RELEASED
+release rc=0
+== status after release
+RUNLOCK-FREE
+status rc=1 (1 = free)

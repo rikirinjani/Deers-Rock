@@ -1,0 +1,53 @@
+== lock status before acquisition (2026-10-27T08:37:52Z)
+RUNLOCK-FREE
+rc=1
+== lsattr of the P18 frozen set before unfreeze
+----i---------e------- p10_preservation_check.sh
+----i---------e------- p11_negative_controls.sh
+----i---------e------- p12_perencounter_reconcile.py
+----i---------e------- p13_kill_test.sh
+----i---------e------- p13_sample_compare.py
+----i---------e------- p13_wide_sample.sh
+----i---------e------- p14_edge_run.sh
+----i---------e------- p15_a_negctl.sh
+----i---------e------- p15_b6_negctl.sh
+----i---------e------- p15_chain_e.sh
+----i---------e------- p15_chain.sh
+----i---------e------- p15_lib.sh
+----i---------e------- p15_lib_test.sh
+----i---------e------- p15_line_identity.py
+----i---------e------- p15_line_negctl.sh
+----i---------e------- p16_a_negctl.sh
+----i---------e------- p16_chain_b.sh
+----i---------e------- p16_chain.sh
+----i---------e------- p16_e_negctl.sh
+----i---------e------- p17_a_negctl.sh
+----i---------e------- p17_b_negctl.sh
+----i---------e------- p17_c3_t0.sh
+----i---------e------- p17_chain_b.sh
+----i---------e------- p17_chain.sh
+----i---------e------- p18_a_negctl.sh
+----i---------e------- p18_b_negctl.sh
+----i---------e------- p18_chain.sh
+----i---------e------- p6_acceptance_suite.sh
+----i---------e------- p6_dbxml.py
+----i---------e------- p8_recovery_unit_test.py
+----i---------e------- sampled_real_form_diff_r5.py
+== frozen check
+31
+== databases
+sik sik_bench 
+== consumers
+events_statements_cpu	NO
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	NO
+== processes (filter that cannot match this command)
+0
+== acquire
+RUNLOCK-ACQUIRED: session=P19-CLAUDE-20261027 (/opt/dr-benchmark/LOCK)
+session=P19-CLAUDE-20261027
+pid=470687
+start_utc=2026-10-27T08:37:52Z
+host=<alias>
+note=P19 independent P18 review fixes N1-N9 + equal-mode unit gate

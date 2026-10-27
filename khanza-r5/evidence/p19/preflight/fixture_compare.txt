@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/opt/Deers-Rock/tools/p15_line_identity.py", line 301, in <module>
+    sys.exit(run())
+             ^^^^^
+  File "/opt/Deers-Rock/tools/p15_line_identity.py", line 106, in run
+    pm, dm = name_maps(db)
+             ^^^^^^^^^^^^^
+  File "/opt/Deers-Rock/tools/p15_line_identity.py", line 80, in name_maps
+    for kd, nm in q(db, "SELECT kd_jenis_prw, nm_perawatan FROM jns_perawatan"):
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/Deers-Rock/tools/p15_line_identity.py", line 43, in q
+    return dbutil.query(db, sql, timeout=600)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/Deers-Rock/tools/dbutil.py", line 65, in query
+    p = _mysql(db, sql, timeout=timeout, force_root=force_root)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/Deers-Rock/tools/dbutil.py", line 57, in _mysql
+    raise RuntimeError("mysql rc=%d: %s" % (p.returncode, p.stderr.strip()[:400]))
+RuntimeError: mysql rc=1: ERROR 1044 (42000): Access denied for user 'benchmark'@'localhost' to database 'sik_p14e'

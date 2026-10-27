@@ -1,0 +1,34 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p19-fixes",
+  "timestamp": "2026-10-27T10:16:59.958897+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p15_lib.sh",
+    "khanza-r5/tools/p14_edge_run.sh",
+    "khanza-r5/tools/p15_line_identity.py",
+    "khanza-r5/tools/p19_a_negctl.sh",
+    "khanza-r5/tools/p19_b_negctl.sh",
+    "khanza-r5/tools/p19_chain.sh",
+    "khanza-r5/tools/p19_release_inventory.py"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p19-fixes",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P19 fixes: UNCHECKED on any unsourced key, equal-mode source-unit gate, ORACLE-BATCH-FAILED gate, kill-function residuals, box inventory; 35 files frozen"
+}

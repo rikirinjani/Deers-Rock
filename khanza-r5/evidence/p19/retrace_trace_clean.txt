@@ -1,0 +1,39 @@
+# P19: pm1-retrace output, run after every other P19 file was traced (pm1-retrace --project-root khanza-r5 --traces-dir self-harness/traces). This file was traced as a placeholder first (trace r5-p19-retrace) and then overwritten with this output.
+============================================================
+  retrace -- untraced work scanner
+  2026-10-27T10:17:35.248176+00:00
+============================================================
+
+  Traces loaded:       3876
+  Unique key_files:    6706
+  Unique filenames:    5204
+
+  Project text files:  1215
+
+  RESULT: All project files appear in at least one trace.
+          Directory is trace-clean.
+
+
+# Second run against the traces committed in this repository (records/traces/), so that it can be repeated from the repo:
+# Result of the second run: 44 files are not covered by the committed copies alone (the copies in records/traces/ cover the R5 waves from P16 on, not older work,
+# and two of the names are gitignored env files). The claim of this file is the FIRST run (the self-harness traces). Output below is cut to 20 lines.
+============================================================
+  retrace -- untraced work scanner
+  2026-10-27T10:17:37.431714+00:00
+============================================================
+
+  Traces loaded:       55
+  Unique key_files:    1243
+  Unique filenames:    1023
+
+  Project text files:  1215
+
+  UNTRACED: 44 file(s)
+
+  [(root)/] (2 files)
+    [2026-10-24 10:08]  .vps-mac-mini.env
+    [2026-10-24 11:19]  .vps.env
+
+  [docs/] (3 files)
+    [2026-10-24 10:09]  docs/asset_export_20261023.md
+    [2026-10-20 08:16]  docs/khanza_r5_task_p11_negative_controls.md

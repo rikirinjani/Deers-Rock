@@ -193,9 +193,9 @@ def run():
         for key in sorted(set(F) | set(L)):
             f, l = F.get(key), L.get(key)
             su = srcu.get(nr, {}).get(key)
-            if exp is not None and f is not None and key[0] in ("procedure", "drug"):
+            if f is not None and key[0] in ("procedure", "drug") and not str(key[1]).startswith(("AMBIGUOUS:", "UNMAPPED:")):   # P19 N1/AC-5: both modes
                 if su is None:
-                    unit_unchecked += 1   # P18 B7: a billed key with no source row cannot be compared
+                    unit_unchecked += 1   # P18 B7: a billed key with no source row cannot be compared (P19: ANY such key fails the encounter)
                 else:
                     unit_checked += 1
                     if f["units"] != su:
@@ -231,6 +231,8 @@ def run():
                "fresh_b": "%d/%d" % (fb[1], fb[0]) if has_audit else "n/a",
                "fresh_b_ok": fresh, "fresh_b_window": fb[2], "fresh_b_pre_run": fb[0] - fb[2],
                "form_rows": len(rows.get(nr, [])), "ledger_rows": len(L)}
+        rec["unit_src"] = "DIFF" if unit_src_bad else "UNCHECKED" if unit_unchecked else "MATCH"   # P19 N1: any unchecked key; AC-5: in equal mode too
+        rec["unit_keys_checked"], rec["unit_keys_unchecked"] = unit_checked, unit_unchecked
         if exp is not None:
             e = exp.get(nr)
             if e is None:
@@ -243,8 +245,6 @@ def run():
                 pf = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_form"].items()}
                 obs_led = {"%s|%s" % k: [fmt(l[0]), fmt(l[2])] for k, l in L.items()}
                 pl = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_ledger"].items()}
-                rec["unit_src"] = "DIFF" if unit_src_bad else "UNCHECKED" if (unit_unchecked and not unit_checked) else "MATCH"
-                rec["unit_keys_checked"], rec["unit_keys_unchecked"] = unit_checked, unit_unchecked   # P18 B7
                 rec["reg_shape"] = "DIFF" if reg_shape_bad else "MATCH"
                 rec["form_model"] = "MATCH" if obs_form == pf else "DIFF"
                 rec["ledger_model"] = "MATCH" if obs_led == pl else "DIFF"
@@ -260,7 +260,8 @@ def run():
             rec["pass"] = rec["outcome"] == "MATCH"
         else:
             rec["pass"] = (verdict in ("EQUAL", "EQUAL-SRC") and not delta and fresh and not reg_shape_bad
-                           and b[0] is not None and b[0] == c_tot and b[1] == 1)   # P18 B7: one payment row
+                           and b[0] is not None and b[0] == c_tot and b[1] == 1   # P18 B7: one payment row
+                           and rec["unit_src"] == "MATCH")   # P19 AC-5: the billed unit equals the source row's unit in equal mode too
         res.append(rec)
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)

@@ -1,0 +1,28 @@
+ENC 2027/12/31/900001 E1 verdict=DIFFER delta={"drug": "100", "tax": "11"} A=55001 B=55001 C=54890 freshB=1/1 expected={"drug": "100", "tax": "11"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900002 E1 verdict=DIFFER delta={"drug": "250", "tax": "28"} A=89666 B=89666 C=89388 freshB=1/1 expected={"drug": "250", "tax": "28"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900003 E1 verdict=DIFFER delta={"drug": "1000", "tax": "110"} A=100231 B=100231 C=99121 freshB=1/1 expected={"drug": "1000", "tax": "110"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900004 E2 verdict=DIFFER delta={"drug": "100", "tax": "11"} A=55001 B=55001 C=54890 freshB=1/1 expected={"drug": "100", "tax": "11"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900005 E2 verdict=DIFFER delta={"drug": "250", "tax": "28"} A=89666 B=89666 C=89388 freshB=1/1 expected={"drug": "250", "tax": "28"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900006 E2 verdict=DIFFER delta={"drug": "1000", "tax": "110"} A=100231 B=100231 C=99121 freshB=1/1 expected={"drug": "1000", "tax": "110"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900007 E3 verdict=EQUAL delta={} A=30000 B=30000 C=30000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900008 E3 verdict=EQUAL delta={} A=59890 B=59890 C=59890 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900009 E3 verdict=EQUAL delta={} A=95000 B=95000 C=95000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900010 E4 verdict=EQUAL delta={} A=36484 B=36484 C=36484 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900011 E4 verdict=EQUAL delta={} A=32821 B=32821 C=32821 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900012 E4 verdict=EQUAL delta={} A=41590 B=41590 C=41590 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900013 E4 verdict=EQUAL delta={} A=67340 B=67340 C=67340 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900014 E4 verdict=EQUAL delta={} A=20723 B=20723 C=20723 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900015 E5a verdict=DIFFER delta={"registration": "-10000"} A=34890 B=34890 C=44890 freshB=1/1 expected={"registration": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900016 E5a verdict=DIFFER delta={"registration": "-10000"} A=10000 B=10000 C=20000 freshB=1/1 expected={"registration": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900017 E5b verdict=DIFFER delta={"procedure": "-10000"} A=44890 B=44890 C=54890 freshB=1/1 expected={"procedure": "-10000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900018 E5b verdict=DIFFER delta={"procedure": "-5000"} A=10000 B=10000 C=15000 freshB=1/1 expected={"procedure": "-5000"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900019 E6 verdict=DIFFER delta={"drug": "9813.5", "procedure": "10000", "registration": "10000", "tax": "1079"} A=30892.5 B=30892.5 C=0 freshB=1/1 expected={"drug": "9813.5", "procedure": "10000", "registration": "10000", "tax": "1079"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900020 E6 verdict=DIFFER delta={"drug": "29440.5", "procedure": "10000", "registration": "10000", "tax": "3238"} A=52678.5 B=52678.5 C=0 freshB=1/1 expected={"drug": "29440.5", "procedure": "10000", "registration": "10000", "tax": "3238"} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900021 E6 verdict=EQUAL delta={} A=89779 B=89779 C=89779 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900022 E7 verdict=EQUAL delta={} A=79388 B=79388 C=79388 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900023 E7 verdict=EQUAL delta={} A=20000 B=20000 C=20000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900024 E7 verdict=EQUAL delta={} A=85000 B=85000 C=85000 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900025 E8 verdict=EQUAL-SRC delta={} A=44908 B=44908 C=44908 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900026 E8 verdict=EQUAL-SRC delta={} A=144890 B=144890 C=144890 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900027 E8 verdict=EQUAL-SRC delta={} A=134908 B=134908 C=134908 freshB=1/1 expected={} outcome=MATCH form_model=MATCH ledger_model=MATCH
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14e", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14e", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-27 09:23:02.298256", "unit_keys_checked": 57, "unit_keys_unchecked": 0, "verdicts": {"DIFFER": 12, "EQUAL": 12, "EQUAL-SRC": 3}}

@@ -1736,16 +1736,16 @@ repaired.
 | M2 / B1 | `p6_acceptance_suite.sh`: `RCH=$?` straight after the hash step; each sidecar written only if its step exited 0 | A30 step extracted from OLD and NEW suite, hash step forced to exit 1: OLD `RCH=0` and sidecar written, NEW `RCH=1` and none | **yes** | `chain/p18_a_negctl.txt` |
 | M3 / B2 | `p15_lib.sh`: group liveness by pgid; dead leader + live harness group is signalled; unverifiable live leader or non-harness group returns 1 | (a) leader gone, child alive: OLD 0 and child alive, NEW kills; (b) unreadable start time: OLD 0, NEW 1; (c) non-harness group: OLD 0, NEW 1 and unsignalled; (d) `ps -g` on a setpgid group: OLD wrong, NEW right | **yes** | same |
 | M4 / B3 | `p13_wide_sample.sh`: verified restore (exit 3) and the FORM-INCOMPLETE gate | the tail extracted from OLD and NEW: restore fails, 0 of 3 confirmed, stop rule, clean | **yes** (stop-rule row: both exit 1) | same |
-| M7 / B4 | none (driver bytes unchanged since P17) | a full driver run in which one fixture visit's save really fails (a `BEFORE INSERT` trigger on `nota_jalan`, created after the consumer baseline): `sukses=true 26, sukses=false 1`, `STOP RULE[fixture]: 1/27`, exit 1, `database.xml` on `sik`, no grant, clone kept then dropped | **no OLD arm** (new bytes only) | `chain/b4_stop_rule_driver.log` |
+| M7 / B4 | none (driver bytes unchanged since P17) | a full driver run in which *[P19 N3: a compound failure, the trigger also made the stage restore fail]* one fixture visit's save really fails (a `BEFORE INSERT` trigger on `nota_jalan`, created after the consumer baseline): `sukses=true 26, sukses=false 1`, `STOP RULE[fixture]: 1/27`, exit 1, `database.xml` on `sik`, no grant, clone kept then dropped | **no OLD arm** (new bytes only) | `chain/b4_stop_rule_driver.log` |
 | M8 / B5 | none | the restore clause of A28′ and A31′ evaluated alone with hashes and checksums equal: the P15 / P16 suites pass `restore-not-verified`, the current suite fails it and passes `restored`; then through the real suites (`P11_ONLY=31 R5_FAULT_RESTORE_FAIL=1`): OLD-P16 `A31′` PASS, NEW FAIL | **yes**; the through-suite OLD arm also fails to look at the restore result (it ignores it) | same |
 | M5 / B6 | none | `stage-hash FAULT: ALL 17 billing rows of 2026/10/01/800085 drifted by +1 between copy and hash` captured from a real `P11_ONLY=31` suite run | the A8 assertion's **failing** branch (`n_u != n_b`) still has no control | `chain/a8_drift_hook_line.txt` |
-| M9, M16 / B7 | `p15_line_identity.py`: `unit_keys_checked` / `unit_keys_unchecked`; a billed procedure/drug key with no source row is `UNCHECKED` -> MISMATCH; the one-payment-row rule applies under `--no-fresh-b` | B7a (all source rows of one no-delta encounter deleted, ROW_COUNT 3): OLD `unit_src=MATCH`/MATCH, NEW `UNCHECKED`/MISMATCH; B7b (a second payment row of 0, `--no-fresh-b`): OLD MATCH, NEW MISMATCH | **yes** | `chain/p18_b_negctl.txt` |
-| M10 / B8 | new files `p18_a_negctl.sh`, `p18_b_negctl.sh`, `p18_chain.sh` | NEW arms assert the reason text (`INPUT-ERROR: …`); OLD arms assert exit 0 and the summary line (B3a, N4 vs the correct predecessor: B3a vs the P16 comparator, B4 vs the P16 `p13_sample_compare.py`); A12 OLD-P16 prints a `tables=` figure that is not the real count; N7 relabelled judge-level; N2 left out of the P18 pass count; the P13 comparator results of the chain are asserted and counted | **yes** | same |
+| M9, M16 / B7 | `p15_line_identity.py`: `unit_keys_checked` / `unit_keys_unchecked`; ~~a billed procedure/drug key with no source row is `UNCHECKED` -> MISMATCH~~ *[P19 N1: the code made an encounter UNCHECKED only when no key of it was checked; fixed in P19, section 31]*; the one-payment-row rule applies under `--no-fresh-b` | B7a (all source rows of one no-delta encounter deleted, ROW_COUNT 3): OLD `unit_src=MATCH`/MATCH, NEW `UNCHECKED`/MISMATCH; B7b (a second payment row of 0, `--no-fresh-b`): OLD MATCH, NEW MISMATCH | **yes** | `chain/p18_b_negctl.txt` |
+| M10 / B8 | new files `p18_a_negctl.sh`, `p18_b_negctl.sh`, `p18_chain.sh` | NEW arms assert the reason text (`INPUT-ERROR: …`); ~~OLD arms assert exit 0 and the summary line~~ *[P19 N2: the B4 arm accepted exit 0 or 1 without a summary check; asserted in P19, section 31]* (B3a, N4 vs the correct predecessor: B3a vs the P16 comparator, B4 vs the P16 `p13_sample_compare.py`); A12 OLD-P16 prints a `tables=` figure that is not the real count; N7 relabelled judge-level; N2 left out of the P18 pass count; the P13 comparator results of the chain are asserted and counted | **yes** | same |
 | M11 / A10 | `p16_a_negctl.sh` header | none (text) | n/a | `tools/p16_a_negctl.sh:7` |
 
 The OLD bytes for each paired arm are the pre-P18 files `.bak_p18_20261027/` (byte-equal to git `a60b100`,
 `evidence/p18/bak_equals_git.txt`), or `.bak_p17_20261027/` and `.bak_p16_20261026/` where the fix being tested is
-older. The first runs of the new controls were faulty in four places (an empty command in the helper, a trigger
+older. ~~The first runs of the new controls were faulty in four places~~ *[P19 N7: there were more iterations; all are listed in `evidence/p19/erratum_p18.md`]* (an empty command in the helper, a trigger
 created before the consumer baseline, a log line assumed in the wrong run, an OLD arm that already had the fix); they
 are kept under `evidence/p18/preflight/` and recorded in `records/failures/20261027T0120Z-test-r5-p18-…`.
 
@@ -1773,7 +1773,7 @@ with the pins, and the box was not read for it); the three lock transcripts' `ho
 no IP) replaced by `host=REDACTED` (`evidence/p18/redaction_note.txt` has the hashes of the originals).
 
 **Stated limits, carried forward.**
-- *New in this wave (found while doing it):* the equal-mode comparison (the real 300) has **no source-unit gate**:
+- *New in this wave (found while doing it):* the equal-mode comparison (the real 300) has **no source-unit gate** *[P19: built, 698 keys checked, 0 unchecked on the real 300; section 31]*:
   `unit_keys_checked` is 0 there by design, and the plan's AC-5 asked for it to be > 0 on the real 300 as well. The
   unit price is still compared to the ledger line's unit in equal mode, and that unit is derived from the source
   rows. The B1 comparison is against the source row's own unit price, not the manifest's `predicted_unit` (the P17
@@ -1793,3 +1793,89 @@ no IP) replaced by `host=REDACTED` (`evidence/p18/redaction_note.txt` has the ha
 
 **Self-score** is in the task doc §7 and is **not** the verdict: P15's was 6 points too high, P17's 7. An independent
 re-score of P18 comes before Astra v13.
+
+
+## 31. P19: independent P18 review (20/24 vs 23/24), fixes N1-N9, the equal-mode unit gate, final state proven last (2026-10-27, new)
+
+**Source.** The independent local review of P18 (`docs/khanza_r5_p18_review.md`): **20/24** against the executor's
+**23/24**; R3 and R9 at 1, so P18's Accept rule failed. Its main finding (N1) was a sentence in R5 §30 that the code
+contradicted. All nine findings and the self-identified equal-mode gap were opened in the source before any change
+(task doc `docs/khanza_r5_task_p19_p18_review_fixes.md` §1, committed `129b72c` before the run); all held. Executed under
+lock `P19-CLAUDE-20261027` (**2026-10-27T08:37:52Z to 10:13:12Z**, free before and after:
+`evidence/p19/lock_free_and_lsattr_before.txt`, `lock_release.txt`). Owner decisions given at the go-ahead: build the
+equal-mode unit gate (stop and ask if the live discovery disagrees); the ssh alias is not a secret.
+
+**Discovery (A2, read-only, before any freeze).** `evidence/p19/a2_live_equal.txt`: the patched but unfrozen comparator in
+equal mode on the real 300 against live `sik` (`--no-fresh-b`): `unit_src` **MATCH 300/300**, `unit_keys_checked` **698**,
+`unit_keys_unchecked` **0**, verdicts EQUAL 181 / EQUAL-SRC 119. The decision rule (fixed in the task doc before the run)
+was met, so the gate became a hard condition. (`pass` was False for all 300 on live because the payment sum differs
+there; not investigated, not the unit gate.)
+
+**Fixes (three frozen files changed, four tools added; one freeze cycle, no fix-up; 35 files frozen).**
+
+| ID | Change | Control | Paired? | Evidence |
+|---|---|---|---|---|
+| N1 | `p15_line_identity.py`: `unit_src` = `UNCHECKED` if **any** billed procedure/drug key lacks source rows (ambiguous/unmapped keys excluded, they already fail by verdict) | mixed plant, expect mode: drug source rows deleted (ROW_COUNT 1), procedure rows kept: OLD `unit_src=MATCH`/MATCH (`checked=2 unchecked=1` printed by the P18 code too), NEW `UNCHECKED`/MISMATCH | **yes** | `chain/p19_b_negctl.txt` |
+| AC-5 | the source-unit compare and `unit_keys_*` run in **equal mode** too; `pass` requires `unit_src == MATCH` | equal mode on the no-delta visits: (b) a source unit price +1 (ROW_COUNT 1): OLD pass, NEW `DIFF`; (c) all source rows of an encounter deleted (ROW_COUNT 4): OLD pass, NEW `UNCHECKED`; (d) clean scratch: both exit 0, NEW `unit_keys_checked > 0` and `unchecked 0`, OLD counts 0; exactly the three planted encounters fail in NEW, none in OLD | **yes** | same |
+| N3 | `p14_edge_run.sh` + `p15_lib.sh` (`p15_oracle_batch_failed`): `oracle_run` returns 10 with `ORACLE-BATCH-FAILED[...]` when the oracle log shows `: FAILED (`, `STAGE-RESTORE-ERROR` or `NOT restored` | `oracle_run` extracted from OLD and NEW and run with the oracle replaced by a function (every visit `sukses=true`, canned log with a FAILED batch): OLD returns 4 (then `P15E OK`), NEW returns 10; a clean canned log returns 4 in both; the helper matches the real B4 log of P18 and does not match the real clean C4 log | **yes** | `chain/p19_a_negctl.txt` |
+| N5a | `p15_kill_run_harness`: a leader that passed `kill -0` but whose pgid cannot be read is treated as gone (falls to the dead-leader branch) | a shadowing `ps` returns nothing for `ps -o pgid= -p`; a live harness leader: OLD "not a leader", rc 0, process alive; NEW signalled and dead, rc 0 | **yes** | same |
+| N5b | `p15_group_alive` returns **2 (unknown)** when `ps` fails; callers treat 2 as "not confirmed" (rc 1) | a dead leader with a live harness child and a failing `ps`: OLD rc 0, child alive; NEW rc 1, child alive; `p15_group_alive` with a failing `ps`: OLD 1, NEW 2; live group 0 and absent group 1 unchanged | **yes** | same |
+| N2 | `p19_b_negctl.sh` | the B4-comparator OLD arm (P16 `p13_sample_compare.py`, no `--since`) asserts exit 0 or 1, the `P13 compare:` summary line and no `INPUT-ERROR` | **yes** | same |
+| N6 | `p19_release_inventory.py` run **on the box** (chain step 4e, read-only) before the final capture | every pin of 8 manifests against the on-disk bytes: **58 files, 58 ok, 0 not_ok**, including the 11 P14-only tools (11/11) | n/a | `chain/release_inventory_box.json` |
+
+OLD bytes for the paired arms: `.bak_p19_20261027/` (the P18 bytes of the three changed files, byte-equal to git
+`63ef8ca`, `evidence/p19/bak_equals_git.txt`), `.bak_p17_20261027/` (the P16 comparator for N2), `.bak_p18_20261027/` and
+`.bak_p16_20261026/` for the history controls. Every final **control** script was pre-flighted once on the unfrozen
+bytes (`evidence/p19/preflight/`: the seven control scripts of the first pre-flight (the history controls and `p19_a`) all exit 0, `p19_a` 19/19, `p19_b` 28/28, `p18_b` 33/33, `p17_b`
+31/31, line controls 33/33). Pre-flight faults of mine, kept: the pre-flight script's direct comparator call lacked
+`DBUTIL_FORCE_ROOT` (exit 1, a script fault, the chain exports it); **`p19_chain.sh` and the success path of
+`p19_release_inventory.py` were first run in the chain** (only the inventory's fail-closed path, "no manifest matches", was
+pre-flighted); the auto-mode classifier refused several compound commands, which I split and re-ran.
+
+**Chain on the 35 frozen files** (`evidence/p19/chain.log.txt`, `chain/`; `sha256sum -c` 35/35, `lsattr` `i` 35/35, local =
+box 35/35 by hash: `evidence/p19/local_eq_box_manifest.txt`): lib tests 23/23; P15 A 9/9; P16 A 26/26, E 20/20; P17 A
+37/37, B 31/31; P18 A 50/50, B 33/33 (history, on the P19 bytes); **P19 A 19/19; P19 B 28/28**; fresh clone and C4 rerun:
+fixture **27/27** (DIFFER 12 / EQUAL 12 / EQUAL-SRC 3, `unit_keys_checked` 57, `unchecked` 0), real **300/300** (EQUAL
+181 / EQUAL-SRC 119, **1,240 comparison entries**, 0 differences, fresh-B 300, **`unit_keys_checked` 698, `unchecked` 0,
+every `unit_src` MATCH**: the AC-5 gap of P18 is closed); P13 comparator 300/300 with its exit-code checks and the unit-gate
+asserts counted (0 failed); line controls 33/33; B6 6/6; suite **PASS=39 FAIL=0**; preservation PASS (sidecar-bound);
+unit **44/44** (no case added); NC **DISCRIMINATING=5**.
+
+**Final live-state proof (the last box capture, 10:12:48Z, `chain/live_state_final.txt`).** `sik sik_bench`, `database.xml`
+-> `sik`, 0 writer markers, no clone grants, ledger `356355:a66a3a546cc322…` (pin), 0 fixture rows in live, live counts
+unchanged (86,676 reg / 1,464,593 billing / 86,488 nota / 1,100 dnota), `performance_schema` consumers restored
+(`events_statements_history_long=NO`), 0 harness processes, 35/35 frozen. The only box operations after it were the
+read-only copy of evidence files and the lock release (`RUNLOCK-FREE`, 10:13:12Z).
+
+**Corrections to the earlier sections (struck, not edited).** §30: the `UNCHECKED` sentence (N1) and the "OLD arms
+assert exit 0 and the summary line … B4" sentence (N2); "faulty in four places" (N7); the B4 description (N3: the trigger
+also broke the stage restore, so B4 was a compound failure; the stop rule fired first). The T0-clone drop time and the
+`pgrep` count in `a1_clone_state.txt`: `evidence/p19/erratum_p18.md`. The garbled P17 `lsattr` capture:
+`evidence/p17/NOTE_refreeze_lsattr_after_garbled.md`. Handoff item 24 ("fails closed").
+
+**Records.** QMS `VER-2026-10-27-DR-KHANZA-R5-P19-001` and an amendment note on the P18 record (independent score 20/24;
+the redaction claim dropped, N8); three failure records stamped with `date -u` at write time; traces `r5-p19-*`; the
+retrace output (`evidence/p19/retrace_trace_clean.txt`, traced as a placeholder first and run against the committed
+`records/traces/` as well (44 older files are not covered by those copies alone; the claim is the run against the self-harness traces)); `evidence/release_inventory.json` is now the **box** output (58 files), with the `--local`
+result beside it (`evidence/p19/release_inventory_local.json`; same files, same pinned and on-disk hashes; the
+manifest names differ because the box copies are named `p11_frozen_…` etc.).
+
+**Stated limits, carried forward.**
+- B4 (the stop-rule run) is new-bytes-only and was a compound failure (the save and the stage restore both failed); the
+  new N3 gate is evidenced by the canned-log pair and the helper on the two real logs, **not** by a second full driver run
+  with a restore-only failure.
+- A8: the hook's success line is captured; its failing branch (`n_u != n_b` raises) has no control.
+- The P13 driver's EXIT-trap restore is still unverified (only its tail is).
+- Who dropped the P17 T0 clone is not evidenced. `.bak_p17fix1` was never hashed. The P16 retrace output is lost.
+- The B1 comparison is against the source row's own unit price, not the manifest `predicted_unit` (a recorded deviation).
+- The success path of `p19_chain.sh` and `p19_release_inventory.py` had no pre-flight (they ran clean in the chain).
+- `p15_group_is_harness` identifies a dead leader's group by a member's command line (`BilingHarness` or the harness log):
+  sound for this harness, not a general identity proof.
+- Unchanged: V6 (no run-end bound; UPDATEs of the payment row not audited), V13 (grant recovery checks inclusion), X2,
+  A11, the clean-box rebuild and the third home (the box ends ~2026-11-20), the P14 ledger scope gaps, the P13 original
+  summaries, the P14 lock release unevidenced, the advisory lock, external validity.
+- The commit message of `a60b100`, the P17 traces and the P18 failure records' nominal stamps cannot be changed
+  (pushed or immutable); the corrections are in this section and in `evidence/p19/erratum_p18.md`.
+
+**Self-score** is in the task doc §7 and is **not** the verdict: the scores were 6 (P15), 7 (P17) and 3 (P18) points above
+the independent reviews. An independent re-score of P19 comes before Astra v13.

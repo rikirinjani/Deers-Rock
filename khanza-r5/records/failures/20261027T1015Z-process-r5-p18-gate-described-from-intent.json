@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-10-27T10:15:23Z",
+  "category": "process",
+  "severity": "major",
+  "title": "P18 self-score 23/24 was 3 points too high: R5 section 30 described the UNCHECKED gate and a control's assertion from intent, the code and the script said otherwise",
+  "what_went_wrong": [
+    "N1: R5 section 30 and the p18_b_negctl.sh header said a billed procedure/drug key without source rows makes the encounter UNCHECKED and a MISMATCH. The code (tools/p15_line_identity.py, P18 bytes) made it UNCHECKED only when no key of the encounter had been checked; an encounter with one sourced and one unsourced key was MATCH. The only plant (B7a) deleted every source row of a one-kind encounter, so it could not see the difference.",
+    "N2: R5 section 30 said the B4 comparator's OLD arm asserts exit 0 and the summary line; p18_b_negctl.sh accepted exit 0 or 1 and asserted no summary.",
+    "N7: the P18 records and R5 section 30 listed the first pre-flight faults only; a second wrong hypothesis (B5) and an unpreflighted final edit of p18_a_negctl.sh were left out; two failure records carried nominal time stamps (the retrace they cite ran at 02:40Z, stamped 01:05Z).",
+    "N4: a1_clone_state.txt labelled the output of SELECT NOW() as a 'drop time'.",
+    "N8: the hostname redaction was cosmetic (the ssh alias is used in 21 committed files)."
+  ],
+  "root_cause": "The same cause as P15 and P17: a sentence that describes a gate or a control was written from what it was meant to do, without opening the line it describes or running it on a shape the control did not cover.",
+  "detection": "Independent local review of P18 (20/24), every finding verified against the source in the P19 task doc section 1.",
+  "impact": "Two sentences in R5 section 30 that Astra v13 would have read; the live results themselves were right (27/27, 300/300 with units equal to the ledger, and the real 300 had no unsourced key, shown in P19 A2).",
+  "correction": {
+    "applied": "P19: UNCHECKED fails on any unsourced key (mixed plant, paired); the unit gate runs in equal mode too; the B4-comparator OLD arm asserts the summary line; R5 section 30 struck, not edited; evidence/p19/erratum_p18.md lists every iteration; records stamped with date -u at write time; the alias decision recorded (not a secret, redaction claim dropped).",
+    "result": "R5 section 31; evidence/p19/"
+  },
+  "rule": "Before a sentence that states what a predicate does is written, open the line and run it on the shape the sentence names (a mixed case, not only the all-or-nothing case); a record's timestamp is date -u at the moment of writing.",
+  "agent": "claude (P18 executor)",
+  "status": "closed"
+}

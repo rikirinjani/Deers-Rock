@@ -1,0 +1,46 @@
+scratch sik_p14n verified: billing=450 ledger=97 src_proc=34 src_drug=25
+## clean scratch, expect mode: the P19 rules accept the unplanted fixture
+PASS NEW unplanted exit (got 0)
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14n", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14n", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-27 09:00:48.927281", "unit_keys_checked": 57, "unit_keys_unchecked": 0, "verdicts": {"DIFFER": 12,
+PASS NEW unplanted: 27 MATCH (got 27)
+PASS NEW unplanted: unit_keys_checked > 0 (got yes)
+PASS NEW unplanted: unit_keys_unchecked = 0 (got 0)
+## equal mode on the no-delta visits of the clean scratch
+PASS equal-mode visit list has the no-delta visits (got yes)
+P15-LINE-IDENTITY: {"b_eq_a": 15, "db": "sik_p14n", "encounters": 15, "fail": 0, "fresh_b_ok": 15, "ledger": "sik_p14n", "line_differ": 0, "lines": 59, "mode": "equal", "pass": 15, "since": null, "unit_keys_checked": 33, "unit_keys_unchecked": 0, "verdicts": {"EQUAL": 12, "EQUAL-SRC": 3}}
+PASS AC-5 d: clean scratch, equal mode: exit NEW/OLD (got 0/0)
+PASS AC-5 d: NEW clean equal mode: unit_keys_checked > 0, unit_keys_unchecked 0 (got yes/0)
+PASS AC-5 d: OLD clean equal mode counted nothing (no gate) (got 0)
+## N1 the mixed plant (expect mode): one key's source rows deleted, another key's kept
+N1 encounter: 2027/12/31/900008 (delete 1 drug source rows, keep the procedure rows)
+PASS N1 a mixed encounter (procedure and drug) selected (got yes)
+PASS plant N1 ROW_COUNT (got 1)
+N1 NEW: unit_src=UNCHECKED outcome=MISMATCH checked=2 unchecked=1
+N1 OLD: unit_src=MATCH outcome=MATCH checked=2 unchecked=1
+PASS N1 NEW: unit_src UNCHECKED, outcome MISMATCH (got UNCHECKED/MISMATCH)
+PASS N1 NEW: at least one key checked and at least one not (the mixed shape) (got yes)
+PASS N1 OLD: unit_src MATCH and outcome MATCH (the false pass of a mixed encounter) (got MATCH/MATCH)
+PASS N1 NEW: no other encounter fails (got 1)
+PASS N1 exit codes NEW/OLD (got 1/0)
+## AC-5 equal mode plants: b) a source unit price changed, c) all source rows of an encounter deleted
+AC-5 b encounter: 2027/12/31/900007; c encounter: 2027/12/31/900009 (procedure rows 4, drug rows 0)
+PASS AC-5 two distinct encounters selected (got yes)
+PASS plant AC5b ROW_COUNT (got 1)
+PASS plant AC5c-proc ROW_COUNT (got 4)
+b NEW: unit_src=DIFF pass=False   OLD: pass=True
+c NEW: unit_src=UNCHECKED pass=False   OLD: pass=True
+PASS AC-5 b NEW: the changed source unit price -> unit_src DIFF, pass False (got DIFF/False)
+PASS AC-5 b OLD: pass True (the equal mode did not look at the source unit: the defect) (got True)
+PASS AC-5 c NEW: all source rows gone -> UNCHECKED, pass False (got UNCHECKED/False)
+PASS AC-5 c OLD: pass True (got True)
+PASS AC-5 N1 encounter in equal mode: NEW fails, OLD passes (got False/True)
+PASS AC-5 NEW: exactly the three planted encounters fail (got 3)
+PASS AC-5 OLD: no encounter fails (got 0)
+PASS AC-5 exit codes NEW/OLD (got 1/0)
+## N2 B4 comparator: the OLD arm asserts its summary line, not just 'exit <= 1'
+P13 compare: 27 encounters | with B: 27 | A_form==C: 0/27 | B==C: 0/27 | fresh-B(benchmark,1): 27/27 | differences: 117 -> /tmp/p19b_p13old.csv
+RESULT: DIFFERENCES
+PASS N2 B4 OLD-P16 (no --since): exit 0 or 1, the 'P13 compare:' summary line is there, no input error (got ok/1/0)
+PASS N2 B4 NEW: exit 2 and the reason (--since) is named (got 2/1)
+P19-B-NC: PASS=28 FAIL=0
+teardown: sik_p14n dropped
