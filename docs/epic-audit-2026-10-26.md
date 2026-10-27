@@ -155,6 +155,8 @@ Also fixed along the way: sick leave, kamar jenazah and appointments were not pe
 1. **JR trigger alignment** (S06 and 192 other accident codes billed to JR without an incident). **S**. Owner decision (M9.3-BLOCKER-DECISIONS §5). On the live server, the unlinked JR claims were S62 (wrist fracture), an M54 poli visit by an accident patient, and **T81 (complication of surgical care)**. `ACCIDENT_ICD_CODES` treats every T code as a road accident, which is not plausible for Jasa Raharja.
 2. **Coordinator OC review**: accept or reject ADR-001/002 (Proposed) and ADR-016 Amendment 1 (Proposed); write ADR-026. **S**. (ADR-008 and ADR-029 amendments: accepted by the owner 2026-10-27.)
 3. ~~Re-freeze baselines~~ — done 2026-10-27 as `substream-v1` (§9); the 2026-09-10 JAMIA freeze stays read-only.
+3b. **E1 no longer measures outcomes**: since `e458f6f` (2026-10-08) inpatient stays last 3–7 days, so a 1,000-tick E1 run records 0 deaths (same on `main`). An outcome baseline needs ≥ 10 sim-days. **S** to run (~1–1.5 h), owner's call.
+3c. **Per-tick cost grows with state**: about 64 s for sim-day 1 and 116–300 s for day 2 (with/without `DR_BOUNDED_STATE`). Charges are never bounded (~2,000 per half-day). Identical on `main`. **M**.
 4. ~~Workforce calibration on Indonesian data~~ — done 2026-10-27 (§9). Still open: the 80% kontrol attendance is not yet calibrated, and annual leave and national holidays are not deducted from the roster. **S** each.
 5. **Emergency referrals** (I21, S72…) still arrive as outpatient poli visits, not ED/inpatient admissions. In-city transfers have distance 0 (instant, base cost only). A patient can hold an active inpatient encounter and repeated ED encounters at the same time (seen live: one patient with 5 overlapping encounters). **S–M**.
 6. **`HospitalState` split** (Epic VII M7.2). **L**. Needs an ADR.
@@ -185,4 +187,6 @@ fatigue 598 ticks, 33 staff on duty on average (min 22); 131/131 inpatient encou
 No national Indonesian sick-leave statistic was found. The 12-day figure is the only measured one, comes from a COVID
 year, and is from Papua. Experiments should therefore vary sick days across the 3–12 band rather than treat 6 as fact.
 
-**Baseline re-freeze:** see `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md` (`substream-v1`).
+**Baseline re-freeze:** `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md` (`substream-v1`), E1 configuration
+on commit `ae7b776`, byte-identical across two runs. It is a deterministic regression reference, not an outcome
+baseline: the 1,000-tick horizon sees no inpatient discharge or death (open item 3b).
