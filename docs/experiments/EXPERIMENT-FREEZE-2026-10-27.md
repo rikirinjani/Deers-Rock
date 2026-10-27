@@ -119,7 +119,7 @@ Seed 8 was re-run alone from tick 0 after the batch; its per-seed result is comp
 time excluded). Determinism of the parallel runner is also covered by the E1 study above (byte-identical through
 `parallel.ts`) and `tests/experiment-runner.test.ts`.
 
-**Seed 8 re-run: pending** (started 12:33 UTC; this line is updated when it completes).
+**Seed 8 re-run: identical.** Re-run alone from tick 0 (12:33–13:23 UTC, 3,019 s), its full per-seed result (`RunResult` + `OutcomeMetrics`) matches the batch result byte for byte, excluding the wall-clock field.
 
 ## What this baseline shows (model findings, not engine bugs)
 
