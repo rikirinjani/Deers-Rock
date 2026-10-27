@@ -78,7 +78,8 @@ export function requiresFollowUp(encounter: Encounter): boolean {
 export function recordDischargePlan(
   state: HospitalState,
   encounter: Encounter,
-  clockTick: number
+  clockTick: number,
+  rng: () => number
 ): string | null {
   if (!requiresFollowUp(encounter)) return null;
 
@@ -90,8 +91,9 @@ export function recordDischargePlan(
     if (plan.encounterId === encounter.id) return null;
   }
 
-  // Select nearest Puskesmas (simplified: random from available)
-  const facility = PUSKESMAS_FACILITIES[Math.floor(Math.random() * PUSKESMAS_FACILITIES.length)];
+  // Select nearest Puskesmas (simplified: random from available). Seeded rng
+  // from the caller (2026-10-27: was Math.random(), breaking ADR-008).
+  const facility = PUSKESMAS_FACILITIES[Math.floor(rng() * PUSKESMAS_FACILITIES.length)]!;
 
   // Schedule follow-up in 7-14 days (10080-20160 ticks)
   const followUpTicks = 10080 + Math.floor(clockTick % 10080);

@@ -629,7 +629,10 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
   // Epic VI: Appointments
   if (p === "/api/appointments" && req.method === "GET") {
     const appts = Array.from((w.state as unknown as { _appointmentState?: { appointments: Map<string, any> } })._appointmentState?.appointments?.values() ?? []);
-    json(res, { total: appts.length, byStatus: { scheduled: appts.filter(a=>a.status==="scheduled").length, checked_in: appts.filter(a=>a.status==="checked_in").length, completed: appts.filter(a=>a.status==="completed").length, no_show: appts.filter(a=>a.status==="no_show").length }, upcoming: appts.filter(a => a.status === "scheduled").slice(0, 20) });
+    const byStatus: Record<string, number> = { scheduled: 0, checked_in: 0, in_consultation: 0, completed: 0, no_show: 0, cancelled: 0 };
+    for (const a of appts) byStatus[a.status] = (byStatus[a.status] ?? 0) + 1;
+    const due = byStatus.completed! + byStatus.no_show! + byStatus.checked_in! + byStatus.in_consultation!;
+    json(res, { total: appts.length, byStatus, attendanceRate: due > 0 ? Math.round(((due - byStatus.no_show!) / due) * 100) / 100 : null, upcoming: getUpcomingAppointments(w.state, w.clock.tick).slice(0, 20) });
     return true;
   }
   // ADR-018: AI Medical Coder — coder profiles + accuracy stats

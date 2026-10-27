@@ -3,6 +3,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { createWorld, runWorld } from "../src/engine/world.js";
+import { createRng } from "../src/engine/clock.js";
 import { requiresFollowUp, recordDischargePlan, getFollowUpStats } from "../src/engine/discharge-planning.js";
 import { recordConsumption, getConsumptionByDept, resetConsumption, checkReorderAlerts } from "../src/engine/dept-consumption.js";
 
@@ -19,7 +20,7 @@ describe("Epic VI M6.2 — Discharge Planning (Rujuk Balik)", () => {
   it("creates discharge plan for chronic discharge", () => {
     const state = { _dischargePlans: new Map() } as any;
     const encounter = { id: "ENC-1-PAT-001", patientId: "PAT-001", primaryDiagnosis: "I10" };
-    const planId = recordDischargePlan(state, encounter as any, 100);
+    const planId = recordDischargePlan(state, encounter as any, 100, createRng(1).next);
     expect(planId).toBeDefined();
     expect(planId).toContain("DP-");
     expect(state._dischargePlans.size).toBe(1);
@@ -31,14 +32,14 @@ describe("Epic VI M6.2 — Discharge Planning (Rujuk Balik)", () => {
   it("returns null for non-chronic conditions", () => {
     const state = { _dischargePlans: new Map() } as any;
     const encounter = { id: "ENC-1-PAT-001", patientId: "PAT-001", primaryDiagnosis: "J06" };
-    const planId = recordDischargePlan(state, encounter as any, 100);
+    const planId = recordDischargePlan(state, encounter as any, 100, createRng(1).next);
     expect(planId).toBeNull();
   });
 
   it("produces follow-up stats", () => {
     const state = { _dischargePlans: new Map() } as any;
-    recordDischargePlan(state, { id: "ENC-1", patientId: "P1", primaryDiagnosis: "I10" } as any, 100);
-    recordDischargePlan(state, { id: "ENC-2", patientId: "P2", primaryDiagnosis: "E11" } as any, 100);
+    recordDischargePlan(state, { id: "ENC-1", patientId: "P1", primaryDiagnosis: "I10" } as any, 100, createRng(1).next);
+    recordDischargePlan(state, { id: "ENC-2", patientId: "P2", primaryDiagnosis: "E11" } as any, 100, createRng(1).next);
     const stats = getFollowUpStats(state);
     expect(stats.scheduled).toBe(2);
     expect(stats.attended).toBe(0);

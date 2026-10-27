@@ -322,6 +322,8 @@ export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQu
       facilities: mapToArr(state._referralState.facilities),
       letters: mapToArr(state._referralState.letters),
       incomingQueue: state._referralState.incomingQueue,
+      letterCounter: state._referralState.letterCounter,
+      patientCounter: state._referralState.patientCounter,
     },
     // Epic IX M9.3 wave 2: ambulance fleet + dispatches
     ambulanceState: {
@@ -334,6 +336,10 @@ export function saveSnapshot(tick: number, state: HospitalState, queue?: EventQu
       counter: (state as unknown as { _jrState?: { counter: number } })._jrState?.counter ?? 0,
     },
     dischargePlans: mapToArr((state as unknown as { _dischargePlans?: Map<string, unknown> })._dischargePlans ?? new Map()),
+    // Epic VI (2026-10-27): these three were not persisted, so a resumed world reset them.
+    sickLeave: { records: mapToArr(state._sickLeaveState?.records ?? new Map()), counter: state._sickLeaveState?.counter ?? 0 },
+    kamarJenazah: { records: mapToArr(state._kamarJenazahState?.records ?? new Map()), counter: state._kamarJenazahState?.counter ?? 0 },
+    appointments: { appointments: mapToArr(state._appointmentState?.appointments ?? new Map()), counter: state._appointmentState?.counter ?? 0 },
     deptConsumption: mapToArr((state as unknown as { _deptConsumption?: Map<string, unknown> })._deptConsumption ?? new Map()),
   };
   if (durable) {
@@ -473,6 +479,9 @@ function deserializeState(json: string): HospitalState {
       facilities: arrToMap(d.referralState?.facilities ?? []),
       letters: arrToMap(d.referralState?.letters ?? []),
       incomingQueue: d.referralState?.incomingQueue ?? [],
+      // Older snapshots lack the counters; resume past every stored letter.
+      letterCounter: d.referralState?.letterCounter ?? (d.referralState?.letters ?? []).length,
+      patientCounter: d.referralState?.patientCounter ?? (d.referralState?.letters ?? []).length,
     },
     // Epic IX M9.3 wave 2: additive fields — safe for pre-wave snapshots
     _ambulanceState: {
@@ -485,6 +494,9 @@ function deserializeState(json: string): HospitalState {
       counter: d.jrState?.counter ?? 0,
     },
     _dischargePlans: arrToMap(d.dischargePlans ?? []),
+    _sickLeaveState: { records: arrToMap(d.sickLeave?.records ?? []), counter: d.sickLeave?.counter ?? 0 },
+    _kamarJenazahState: { records: arrToMap(d.kamarJenazah?.records ?? []), counter: d.kamarJenazah?.counter ?? 0 },
+    _appointmentState: { appointments: arrToMap(d.appointments?.appointments ?? []), counter: d.appointments?.counter ?? 0 },
     _deptConsumption: arrToMap(d.deptConsumption ?? []),
     _icdTop10: d.icdTop ?? null,
     _doctorCaseMemory: arrToMap(d.docMem ?? []),

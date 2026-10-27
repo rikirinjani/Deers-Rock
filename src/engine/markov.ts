@@ -234,7 +234,7 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
 
     // Epic VI M6.2: Rujuk balik — ONLY for living patients with chronic conditions
     if (!dies) {
-      recordDischargePlan(state, toDischarge, clock.tick);
+      recordDischargePlan(state, toDischarge, clock.tick, clock.rng);
     }
 
     // Epic VI M6.3: Record department consumption for charged items
