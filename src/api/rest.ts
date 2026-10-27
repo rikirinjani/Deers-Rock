@@ -586,6 +586,32 @@ export function apiRoutes(req: http.IncomingMessage, res: http.ServerResponse, w
     });
     return true;
   }
+  // Epic IX M9.3: ambulance fleet + dispatches (BLS/ALS, cost, charged encounter)
+  if (p === "/api/ambulance" && req.method === "GET") {
+    const amb = w.state._ambulanceState;
+    const ds = Array.from(amb?.dispatches.values() ?? []);
+    json(res, {
+      fleet: Array.from(amb?.fleet.values() ?? []),
+      total: ds.length,
+      byStatus: { "en-route": ds.filter(d => d.status === "en-route").length, arrived: ds.filter(d => d.status === "arrived").length },
+      totalCostIdr: ds.reduce((n, d) => n + d.costIdr, 0),
+      charged: ds.filter(d => d.chargeId).length,
+      recent: ds.slice(-20).reverse(),
+    });
+    return true;
+  }
+  // Epic IX M9.3: Jasa Raharja incidents (one per accident) and their claims
+  if (p === "/api/jr-incidents" && req.method === "GET") {
+    const incidents = Array.from(w.state._jrState?.incidents.values() ?? []);
+    const claims = Array.from(w.state.insuranceClaims.values()).filter(c => c.payer === "Jasa Raharja");
+    json(res, {
+      total: incidents.length,
+      jrClaims: claims.length,
+      jrClaimsWithIncident: claims.filter(c => c.incidentRef).length,
+      incidents: incidents.slice(-20).reverse().map(i => ({ ...i, claims: claims.filter(c => c.incidentRef === i.id).map(c => c.id) })),
+    });
+    return true;
+  }
   // Epic VI: Kamar jenazah / forensik
   if (p === "/api/kamar-jenazah" && req.method === "GET") {
     const records = Array.from(getKamarJenazahRecords(w.state).values());

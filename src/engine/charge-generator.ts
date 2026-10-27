@@ -12,6 +12,8 @@ const CHARGE_RATES: Record<ChargeCategory, number> = {
   // ADR-015 D1/D7 fallbacks for the new priced categories (real prices live in
   // price-tables.ts; these fire only when a table lookup misses).
   dialysis: 900000, radiotherapy: 800000,
+  // Epic IX M9.3: real amounts come from the dispatch (BLS/ALS base + per km).
+  ambulance: 200000,
 };
 
 /** ADR-015 D1: optional item-level pricing fields on a charge. */

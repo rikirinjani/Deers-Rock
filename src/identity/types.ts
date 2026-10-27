@@ -84,4 +84,13 @@ export interface ReferralLetter {
   referralDate: number;
   status: "active" | "received" | "completed" | "returned";
   notes: string;
+  /** Epic IX M9.3 (2026-10-27): how the patient travels, set when the letter is received. */
+  transport?: "ambulance" | "self" | "sea_air";
+  dispatchId?: string;
+  /** Tick the patient reaches Deer's Rock; the visit is created at/after this. */
+  arrivalTick?: number;
+  /** Set on arrival: the referral visit's encounter (letter → completed). */
+  encounterId?: string;
+  /** The PAT-REF-* placeholder the letter carried before the real Patient existed. */
+  placeholderPatientId?: string;
 }

@@ -253,7 +253,7 @@ export interface MedicalChart {
 // ADR-015 D1/D7: "dialysis" and "radiotherapy" added (additive union growth —
 // previously fully-simulated departments that billed zero; no consumer switches
 // exhaustively on this union, grouping is by string).
-export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply" | "administration" | "dialysis" | "radiotherapy";
+export type ChargeCategory = "lab" | "radiology" | "pharmacy" | "surgery" | "room" | "consult" | "emergency" | "respiratory" | "supply" | "administration" | "dialysis" | "radiotherapy" | "ambulance";
 
 export interface Charge {
   id: string;
@@ -313,6 +313,8 @@ export interface InsuranceClaim {
    */
   status: "submitted" | "verifying" | "adjudicated" | "paid" | "denied" | "returned";
   denialReason: ClaimDenialReason;
+  /** Epic IX M9.3: Jasa Raharja incident (JRINC-*) this claim is filed under. */
+  incidentRef?: string;
   submittedAt: number;
   resolvedAt: number | null;
   /**

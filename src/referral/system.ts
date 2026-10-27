@@ -119,9 +119,12 @@ export function referralHandler(state: HospitalState, clock: Clock, queue: Event
   const now = clock.tick;
   for (const [id, letter] of letters) {
     if (letter.status !== "received") continue;
-    const arrived = incoming.find(i => i.letterId === id)?.tickArrived ?? letter.referralDate;
+    // Patients still in transit (ambulance.ts arrivalTick in the future) never
+    // age out; once they arrive, age counts from arrival (2026-10-27: a 600 km
+    // road transfer used to be returned while the patient was en route).
+    if (letter.arrivalTick !== undefined && letter.arrivalTick > now) continue;
     // Approximate arrival tick from referralDate (1 tick = 1 sim-min)
-    const arrivalTick = Math.floor(letter.referralDate / 60000);
+    const arrivalTick = letter.arrivalTick ?? Math.floor(letter.referralDate / 60000);
     if (now - arrivalTick > REFERRAL_AGE_OUT_TICKS) {
       letters.set(id, { ...letter, status: "returned" });
     }

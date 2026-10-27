@@ -15,7 +15,11 @@ import type { AmbulanceDispatch } from "./ambulance.js";
 export interface JRIIncident {
   id: string;
   type: "road_accident" | "mass_casualty";
+  /** First encounter of the incident. */
   encounterId?: string;
+  /** Every encounter treated under this incident (re-presentations within the JR window). */
+  encounterIds?: string[];
+  patientId?: string;
   letterId?: string;
   dispatchId?: string;
   damageLevel: "mild" | "moderate" | "severe";
@@ -101,37 +105,67 @@ export function getJrIncidents(state: JrState): JRIIncident[] {
   return Array.from(state.incidents.values());
 }
 
+/** Jasa Raharja's 30-day treatment window (finance.ts JR_TICK_CAP), in ticks. */
+const JR_WINDOW_TICKS = 30 * 24 * 60;
+
+/** The incident an encounter is filed under, if any. */
+export function getIncidentForEncounter(state: JrState, encounterId: string): JRIIncident | undefined {
+  for (const inc of state.incidents.values()) {
+    if (inc.encounterId === encounterId || inc.encounterIds?.includes(encounterId)) return inc;
+  }
+  return undefined;
+}
+
 /**
  * Epic IX M9.3 wave 2: Jasa Raharja provenance tick handler.
- * Scans active encounters for JR trigger ICDs and creates incidents.
+ * Scans encounters for JR trigger ICDs. One accident is one incident: a
+ * patient's later encounters within the JR window are added to the same
+ * incident instead of opening new ones (2026-10-27; before, one patient with
+ * four encounters produced four incidents). Referral arrivals carry their
+ * letter and ambulance dispatch.
  */
-export function jrProvenanceHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
+export function jrProvenanceHandler(state: HospitalState, _clock: Clock, _queue: EventQueue): HospitalState {
   const jrState = (state as unknown as { _jrState?: JrState })._jrState;
   if (!jrState) return state;
 
-  const encounters = Array.from((state as unknown as { encounters: Map<string, { primaryDiagnosis: string; id: string }> }).encounters.values());
-  let newIncidents = new Map(jrState.incidents);
+  const encounters = Array.from(state.encounters.values()).sort((a, b) => a.startTime - b.startTime || (a.id < b.id ? -1 : 1));
+  const letters = Array.from(state._referralState?.letters?.values() ?? []);
+  const newIncidents = new Map(jrState.incidents);
   let counter = jrState.counter;
+  const logged = new Set<string>();
+  for (const inc of newIncidents.values()) {
+    if (inc.encounterId) logged.add(inc.encounterId);
+    for (const e of inc.encounterIds ?? []) logged.add(e);
+  }
 
   for (const enc of encounters) {
-    const trigger = checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis, patientId: enc.id });
+    if (logged.has(enc.id)) continue;
+    const trigger = checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis ?? "", patientId: enc.patientId });
     if (!trigger) continue;
-    // Check if already logged
-    let alreadyLogged = false;
-    for (const inc of newIncidents.values()) {
-      if (inc.encounterId === enc.id) { alreadyLogged = true; break; }
-    }
-    if (alreadyLogged) continue;
+    const tick = Math.floor(enc.startTime / 60_000);
 
-    counter++;
-    newIncidents.set(`JRINC-${String(counter).padStart(4, "0")}`, {
-      id: `JRINC-${String(counter).padStart(4, "0")}`,
-      type: "road_accident",
-      encounterId: enc.id,
-      damageLevel: determineDamageLevel(trigger),
-      triggerIcd: trigger,
-      tick: clock.tick,
-    });
+    const open = Array.from(newIncidents.values()).find(i => i.patientId === enc.patientId && tick - i.tick <= JR_WINDOW_TICKS);
+    if (open) {
+      newIncidents.set(open.id, { ...open, encounterIds: [...(open.encounterIds ?? [open.encounterId!]), enc.id] });
+    } else {
+      counter++;
+      const id = `JRINC-${String(counter).padStart(4, "0")}`;
+      const letter = letters.find(l => l.encounterId === enc.id);
+      newIncidents.set(id, {
+        id,
+        type: "road_accident",
+        encounterId: enc.id,
+        encounterIds: [enc.id],
+        patientId: enc.patientId,
+        ...(letter ? { letterId: letter.id } : {}),
+        ...(letter?.dispatchId ? { dispatchId: letter.dispatchId } : {}),
+        damageLevel: determineDamageLevel(trigger),
+        triggerIcd: trigger,
+        // Accident time = the first encounter's start (the window is measured from it).
+        tick,
+      });
+    }
+    logged.add(enc.id);
   }
 
   return Object.assign({}, state, { _jrState: { ...jrState, incidents: newIncidents, counter } }) as HospitalState;

@@ -7,6 +7,7 @@ import { lookupCbgTariff, inferSeverity } from "./ina-cbg.js";
 import { isBoundedStateEnabled } from "./config.js";
 import { PRIVATE_TIERS } from "../patient/schema.js";
 import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
+import { getIncidentForEncounter } from "../referral/jr-provenance.js";
 
 /**
  * ADR-025: Expanded accident ICD code detection for Jasa Raharja eligibility.
@@ -287,6 +288,11 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       resolvedAt: payer === "Jasa Raharja" ? clock.hospitalTimeMs : null,
       privateTier,
     };
+    // Epic IX M9.3: a Jasa Raharja claim is filed under its accident incident.
+    if (payer === "Jasa Raharja" && state._jrState) {
+      const incident = getIncidentForEncounter(state._jrState, enc.id);
+      if (incident) claim.incidentRef = incident.id;
+    }
     newClaims.set(claim.id, claim);
   }
 

@@ -2,6 +2,7 @@ import type { HospitalState, OutpatientVisit } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js";
+import type { ReferralLetter } from "../identity/types.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { assignPayer } from "./finance.js";
@@ -51,6 +52,18 @@ const DIAGNOSIS_POOL = [
   { icd: "P59", name: "Neonatal jaundice", poli: "POLI-AK" },
 ];
 
+/** Diagnoses that only arrive by referral letter (referral/system.ts); kept out of the walk-in draw. */
+const REFERRAL_ONLY_DX = [
+  { icd: "J44", name: "Chronic obstructive pulmonary disease", poli: "POLI-PARU" },
+  { icd: "S72", name: "Fracture of femur", poli: "POLI-BEDAH" },
+  { icd: "I21", name: "Acute myocardial infarction", poli: "POLI-JANTUNG" },
+];
+
+function referralDx(icd: string): typeof DIAGNOSIS_POOL[0] {
+  return DIAGNOSIS_POOL.find(d => d.icd === icd) ?? REFERRAL_ONLY_DX.find(d => d.icd === icd)
+    ?? { icd, name: icd, poli: "POLI-U" };
+}
+
 export function outpatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   // clock.rng is this handler's own sub-stream (world.ts buildHandlers), so
   // the capacity-dependent draw count below cannot shift other handlers.
@@ -59,19 +72,23 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
   let newEncounters = new Map(state.encounters);
   let newLabOrders = new Map(state.labOrders);
   let newMedOrders = new Map(state.medicationOrders);
+  let newPatients = state.patients;
+  let newLetters: Map<string, ReferralLetter> | null = null;
 
   const agentPool = state._agentState?.pool;
 
   if (clock.tick % 4 === 0) {
+    // Epic IX M9.3: a referral becomes a visit once its patient has arrived
+    // (ambulance.ts sets transport + arrivalTick when the letter is received).
     const referrals = Array.from(state._referralState?.letters?.values() ?? [])
-      .filter(l => l.status === "received" && !Array.from(visits.values()).some(v => v.referralId === l.id));
+      .filter(l => l.status === "received" && l.arrivalTick !== undefined && l.arrivalTick <= clock.tick
+        && !Array.from(visits.values()).some(v => v.referralId === l.id));
 
     const walkInsNeeded = Math.max(0, Math.floor(rng() * 3));
     const arrivals: { patientId: string; referralId: string | null; diagnosis: typeof DIAGNOSIS_POOL[0] }[] = [];
 
     for (const ref of referrals) {
-      const dx = DIAGNOSIS_POOL.find(d => d.icd === ref.diagnosis) ?? DIAGNOSIS_POOL[0]!;
-      arrivals.push({ patientId: ref.patientId, referralId: ref.id, diagnosis: dx });
+      arrivals.push({ patientId: ref.patientId, referralId: ref.id, diagnosis: referralDx(ref.diagnosis) });
     }
 
     for (let i = 0; i < walkInsNeeded; i++) {
@@ -93,7 +110,13 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       // from the Patient record (ADR-015 D5) instead of re-rolling.
       if (!pat) {
         pat = generatePatient(rng);
-        state.patients.set(pat.id, pat);
+        // The referred patient carries the letter's diagnosis as primary, so
+        // payer (e.g. Jasa Raharja for S72) derives from why they were sent.
+        if (arrival.referralId) {
+          pat = { ...pat, diagnoses: [{ code: dx.icd, name: dx.name, active: true, priority: 0 }, ...pat.diagnoses] };
+        }
+        if (newPatients === state.patients) newPatients = new Map(state.patients);
+        newPatients.set(pat.id, pat);
       }
 
       const enc: Encounter = {
@@ -113,7 +136,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
       const visit: OutpatientVisit = {
         id: `VISIT-${enc.id}`,
         encounterId: enc.id,
-        patientId: arrival.patientId,
+        patientId: pat.id,
         referralId: arrival.referralId,
         poli: dx.poli,
         diagnosis: dx.name,
@@ -125,6 +148,16 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
         ordersGenerated: 0,
       };
       visits.set(visit.id, visit);
+
+      // Close the loop on the letter: real patient, arrival encounter, completed.
+      const letter = arrival.referralId ? state._referralState?.letters.get(arrival.referralId) : undefined;
+      if (letter) {
+        if (newLetters === null) newLetters = new Map(state._referralState!.letters);
+        newLetters.set(letter.id, {
+          ...letter, status: "completed", patientId: pat.id, encounterId: enc.id,
+          placeholderPatientId: letter.placeholderPatientId ?? letter.patientId,
+        });
+      }
     }
   }
 
@@ -195,6 +228,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
 
   return {
     ...state, encounters: newEncounters, labOrders: newLabOrders,
-    medicationOrders: newMedOrders, _outpatientVisits: visits,
+    medicationOrders: newMedOrders, _outpatientVisits: visits, patients: newPatients,
+    ...(newLetters !== null ? { _referralState: { ...state._referralState!, letters: newLetters } } : {}),
   };
 }
