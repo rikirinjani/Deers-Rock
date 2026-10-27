@@ -241,4 +241,67 @@ review before Astra v13.
 
 ## 7. Result and self-score
 
-*(filled after execution)*
+Executed 2026-10-27 under lock `P18-CLAUDE-20261027` (00:50:54Z to 02:32:25Z). Result: R5 §30. The task doc §1–§6 above are
+unchanged since commit `180972b` (written before the run).
+
+**Amendments (what differed from the plan, and why).**
+1. **A1.** The T0 clone `sik_p14e` was already absent when P18 started (databases `sik`, `sik_bench`; consumers
+   restored). Nothing was dropped by P18. Who dropped it and when has no transcript; stated as a limit, not repaired.
+2. **B4 mechanism.** No hook was added to `sampled_real_form_diff_r5.py`: the control creates a `BEFORE INSERT`
+   trigger on `nota_jalan` for one fixture visit in the clone after `oracle[fixture]: run start` appears (the consumer
+   baseline, which saves every fixture visit once, must not be blocked; the first attempt was, see the failure
+   record). The form failure is real (`sukses=false` for one visit). The driver bytes are unchanged since P17, so B4
+   has **no OLD arm**.
+3. **B3 (port).** Done in full (verified restore with exit 3, FORM-INCOMPLETE with exit 1); the trap path of the P13
+   driver is unchanged and still unverified.
+4. **B5.** The through-suite OLD arm (P16 suite) logs the restore fault and ignores its result; the predicate-level
+   controls (A28′ and A31′ evaluated with equal hashes) are the clean pairs.
+5. **B7 / AC-5.** `unit_keys_checked` is 57 on the fixture and **0 on the real 300**: the equal mode has no
+   source-unit gate (the unit is compared to the ledger line's unit, itself derived from the source rows). AC-5 asked
+   for > 0 on both; this is **not met** for the real 300 and is a stated limit. The B1 comparison (the source row's own
+   unit price, not the manifest `predicted_unit`) is the P17 deviation, recorded here as an amendment.
+6. **C2.** The inventory was regenerated with `--local` (repository copies, CR removed, against the manifests'
+   pins) so that the box was not read after the final capture: 54 files, 54/54 agree, 7 manifests. The P17
+   inventory read the box's on-disk bytes; local = box is shown for the 31 files of the P18 manifest only.
+7. **C5.** `.bak_p17fix1_20261027` was not hashed in P17 and was not read in P18; the fix-1 transcript cannot be
+   recovered without touching the box after the final capture. Replaced by: manifest b = git (27/27) and local = box
+   31/31 against the P18 manifest (`evidence/p18/local_eq_box_manifest.txt`).
+8. **M3 design.** A dead leader with a live group whose members do not name `BilingHarness` or the harness log now
+   returns 1 (not confirmed); the plan said "signalled when provably the harness's own".
+
+**Claim vs transcript (AC-8).** Every number in R5 §30 against the line that printed it:
+
+| Claim | Transcript line | Status |
+|---|---|---|
+| lib 23/23 | `chain/a_lib_test.txt` `P15-LIB-TEST: PASS=23 FAIL=0` | matched |
+| P15 A 9/9; P16 A 26/26; P16 E 20/20 | `chain/p15_a_negctl.txt`, `p16_a_negctl.txt`, `p16_e_negctl.txt` last lines | matched |
+| P17 A 37/37; P17 B 31/31 | `chain/p17_a_negctl.txt`, `p17_b_negctl.txt` | matched |
+| P18 A 50/50; P18 B 33/33 | `chain/p18_a_negctl.txt` `P18-A-NC: PASS=50 FAIL=0`; `chain/p18_b_negctl.txt` `P18-B-NC: PASS=33 FAIL=0` | matched |
+| fixture 27/27, DIFFER 12 / EQUAL 12 / EQUAL-SRC 3, unit_keys_checked 57 | `chain/fixture_compare.txt` last line | matched |
+| real 300/300, 1,240 entries, EQUAL 181 / EQUAL-SRC 119, unit_keys_checked 0 | `chain/real300_compare.txt` last line (`"lines": 1240`) | matched |
+| P13 comparator 300/300, 4 asserted exits | `chain/p13cmp_pos.txt`; `chain.log.txt` `p13-asserts-failed=0` | matched |
+| line 33/33; B6 6/6 | `chain/line_negctl.txt`, `chain/b6_negctl.txt` | matched |
+| suite PASS=39; preservation PASS; unit 44/44; NC 5 | `chain/e_suite.log`, `e_preservation.log`, `e_unit.txt`, `e_nc.log` | matched |
+| 31/31 frozen, `lsattr` 31/31, local = box 31/31 | `chain.log.txt` step 0 and 5; `refreeze_cycle1.txt`; `local_eq_box_manifest.txt` | matched |
+| B4: `sukses=true 26, sukses=false 1`, `STOP RULE[fixture]: 1/27`, exit 1 | `chain/b4_stop_rule_driver.log`; `chain/p18_a_negctl.txt` B4 block | matched |
+| A8 line `ALL 17 billing rows … drifted` | `chain/a8_drift_hook_line.txt` | matched |
+| final capture 02:31:39Z; lock released 02:32:25Z | `chain/live_state_final.txt`; `lock_release.txt` | matched |
+| retrace `UNTRACED: 0` | `evidence/p18/retrace_trace_clean.txt` | see the file (written last) |
+
+**Rubric (self-score, not the verdict).**
+
+| # | Self | Reason |
+|---|---|---|
+| R1 | 2 | §1: all 16 opened; M3c settled on the box (`a2_ps_semantics.txt`); two parts of M14/M15 were the reviewer's reading and are labelled as such |
+| R2 | 2 | B2 (four paired cases), B3 (paired tail), B4 (a real stop-rule run, new-bytes-only and labelled); the P13 trap path is a stated limit |
+| R3 | 1 | B7a/B7b/B3a/N4/A12 paired and reason-asserting; **AC-5 is not met for the real 300** (no source-unit gate in equal mode); B4's OLD arm only asserts "no input error, exit ≤ 1" |
+| R4 | 2 | B1 and A6 paired; A8's line captured; A8's failing branch has no control (stated) |
+| R5 | 2 | hashed unfreeze, re-freeze and local = box 31/31 transcripts; one cycle; `.bak_p18` = git `a60b100` |
+| R6 | 2 | the final capture is the last box operation; the T0 clone is reported absent (who dropped it is not evidenced) |
+| R7 | 2 | the full chain on the final bytes, including the earlier controls (history) |
+| R8 | 2 | R5 §27–§29, handoff, ROADMAP, the P17 dates and AC-7 struck, not edited |
+| R9 | 2 | the retrace says `UNTRACED: 0` (traced first, then overwritten); the A8 line, the B2 discovery and the poller counts are committed |
+| R10 | 2 | 54 files, 7 manifests, 54/54; the P13 manifest and `p6_dbxml.py` included; an empty manifest match fails; local-mode caveat stated |
+| R11 | 2 | four failure records, QMS P18, an amendment on the P17 QMS record, traces, hostname redaction with hashes |
+| R12 | 2 | the faulty first runs kept; limits carried forward, including the three new ones (AC-5, B4 unpaired, A8 branch) |
+| **Total** | **23/24** | **R3 = 1, and R3 is a critical item, so by the plan's own rule this does not Accept until the equal-mode unit gate is either built or accepted by the owner as out of scope.** Re-score independently before Astra v13. |

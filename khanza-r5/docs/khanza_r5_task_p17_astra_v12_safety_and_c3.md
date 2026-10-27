@@ -196,7 +196,7 @@ is committed.
   subset plants; the NEW one fails each.
 - **AC-5.** D1–D4 done; V22 recorded with its commands.
 - **AC-6.** C3: T0 passes and C1–C4 run, or T0 fails and the stop is recorded. No third outcome.
-- **AC-7.** Suite 39/39, preservation PASS, unit 44/44 (plus new cases), NC 5/5 on the final bytes.
+- **AC-7.** Suite 39/39, preservation PASS, unit 44/44 (~~plus new cases~~ *[P18 M15: no unit case was added]*), NC 5/5 on the final bytes.
 - **AC-8.** The retrace is trace-clean and its output committed.
 
 Stated limits kept: V6 (an UPDATE of the payment row is not audited; no run-end bound), V13 (recovery
@@ -216,7 +216,7 @@ Re-scored by an independent review before Astra v13; the executor's self-score i
 
 ## 7. Result and self-score
 
-Executed 2026-10-27 under lock `P17-CLAUDE-20261027` (21:03:10Z to 22:10:24Z). Result: R5 §29.
+Executed ~~2026-10-27~~ *[P18 M15: 2026-10-26; the lock transcripts say 2026-10-26T21:03:10Z to 22:10:24Z; the failure records of that wave carry local-time stamps labelled Z]* under lock `P17-CLAUDE-20261027` (21:03:10Z to 22:10:24Z). Result: R5 §29.
 Amendments made during execution:
 1. **B2 changed.** The billing registration row has `jumlah 0, biaya 0, tambahan 0` (the fee is in `totalbiaya`),
    so a registration quantity from `jumlah` cannot be measured. The rule is the row shape; quantity stays one

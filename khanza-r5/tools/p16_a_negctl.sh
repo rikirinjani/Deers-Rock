@@ -4,7 +4,7 @@
 #      a benchmark grant. OLD bytes (.bak_p16) exit 3 AND revoke the grant (the defect: the EXIT trap acts
 #      on state this run did not create); NEW bytes exit 3 and leave the grant.
 #   A3 (R3b) driver wiring: the ACTUAL tail lines of p14_edge_run.sh (extracted by marker) and its pin
-#      segment, run with oracle_run / the pin check stubbed. These are wiring tests of the driver's own
+#      segment, run with FIX_RC / REAL_RC assigned and the xml probe stubbed (oracle_run itself is not run; P18 A10). These are wiring tests of the driver's own
 #      lines, not a full clone run (the full run is the C4 rerun of the chain).
 #   E4 (observed) the pre-operation snapshot missing -> exit 3, "ABORT: pre-operation snapshot missing".
 # Usage: DR_LOCK_SESSION=<id> bash p16_a_negctl.sh <bak-p16-dir>

@@ -2,7 +2,7 @@
 session=P15-CLAUDE-20261026
 pid=212835
 start_utc=2026-10-26T09:19:33Z
-host=mac-mini-vultr
+host=REDACTED
 note=P15 safety + line identity
 pid_alive=no (informational: a one-shot ssh acquire always shows no)
 RUNLOCK-RELEASED

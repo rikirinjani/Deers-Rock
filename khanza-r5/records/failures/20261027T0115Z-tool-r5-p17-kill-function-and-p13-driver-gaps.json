@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-10-27T01:15:00Z",
+  "category": "tool",
+  "severity": "major",
+  "title": "P17 safety fixes were incomplete: the kill function could report success with a harness alive, the P13 driver kept the old restore behaviour, A9 never reached the stop rule",
+  "what_went_wrong": [
+    "M3a: p15_kill_run_harness skipped any group whose recorded leader had exited (kill -0 on the leader), so a surviving child (the JVM) was never signalled and the function returned 0.",
+    "M3b: a live leader whose start time was unreadable was skipped with rc 0 (success without confirmation).",
+    "M3c: p15_group_alive used ps -o stat= -g N, which procps-ng 4.0.4 on the box selects by session id, not process group (evidence/p18/a2_ps_semantics.txt: a setpgid group inside a larger session reports no members). It was correct only because the harness leader is also its session leader.",
+    "M4: p13_wide_sample.sh still logged a WARN and exited 0 when database.xml was not back on sik, and had no sukses-count gate; A1 and A13 were applied to p14_edge_run.sh only.",
+    "M7: A9's injected run produced 0 sukses=true and 0 sukses=false lines, so the driver exited 1 on the new FORM-INCOMPLETE gate; the STOP RULE path stayed shown only by the wiring test, and the 'Not closed' item from R5 section 28 was dropped from section 29."
+  ],
+  "root_cause": "Each fix was made at the call site that the review named, and the controls were built around that call site; the neighbouring sites with the same shape (a second driver, the other branch of the same function) were not searched.",
+  "detection": "Independent review of P17 (M3, M4, M7), confirmed by reading lines p15_lib.sh:37-61, p13_wide_sample.sh:144-149 and chain/a9_driver.log.",
+  "impact": "No false pass is known: the P13 driver and the kill function were not exercised in the failing shapes during P17. The risk was a later run restoring state under a live writer.",
+  "correction": {
+    "applied": "P18 B2: group liveness by pgid from ps -e -o pgid=,stat=; a dead leader with a live harness group (a member's command line names BilingHarness or the harness log) is signalled; an unverifiable live leader or a live group that is not the harness returns 1. P18 B3: p13_wide_sample.sh gets the verified restore (exit 3) and the FORM-INCOMPLETE gate. P18 B4: a real form failure (a BEFORE INSERT trigger on nota_jalan for one fixture visit, created after the consumer baseline) makes the driver print the STOP RULE line and exit 1.",
+    "result": "evidence/p18/chain/p18_a_negctl.txt, b4_stop_rule_driver.log"
+  },
+  "rule": "When a safety fix is made at one call site, grep the tree for the same statement shape and either fix every site or list the ones left; a fix to a function with a skip branch gets a control for every skip branch's return code.",
+  "agent": "claude (P17 executor)",
+  "status": "closed"
+}

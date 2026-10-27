@@ -698,10 +698,11 @@ check 31 "A31 the harness account's grants on ${FX} are the same at the end as a
    env RUN_ID=r6_p10 R5_HARNESS_TIMEOUT_S=3 $ORACLE --stage B3 --visits-file /tmp/r6_two.txt > /tmp/r6_p10.log 2>&1
    RCI=$?
    python3 /opt/Deers-Rock/tools/p10_hash_state.py ${FX} r6_p10 /tmp/r6_two.txt /tmp/r6_p10_protected.txt > /opt/dr-benchmark/p-chain/p10_preserve_pre.json 2> /tmp/r6_p10_hash.err
-   # P17 A7: bind both snapshots to THIS suite run by name, not by mtime alone
-   basename "$OUT" > /opt/dr-benchmark/p-chain/p11_preserve_preop.json.run
-   basename "$OUT" > /opt/dr-benchmark/p-chain/p10_preserve_pre.json.run
-   RCH=$?
+   RCH=$?   # P18 B1 (M2): taken straight after the hash step; P17 had two basename lines in between
+   # P17 A7: bind both snapshots to THIS suite run by name, not by mtime alone (P18: only a step that exited 0)
+   rm -f /opt/dr-benchmark/p-chain/p11_preserve_preop.json.run /opt/dr-benchmark/p-chain/p10_preserve_pre.json.run
+   [ "$PREOP_RC" = "0" ] && basename "$OUT" > /opt/dr-benchmark/p-chain/p11_preserve_preop.json.run
+   [ "$RCH" = "0" ] && basename "$OUT" > /opt/dr-benchmark/p-chain/p10_preserve_pre.json.run
    cp /tmp/r6_two.txt /tmp/r6_p10_protected.txt /opt/dr-benchmark/p-chain/
    NST=$(stage_count r6_p10); ST=$(batch_status r6_p10)
    res "P10 injection: oracle exit=$RCI batches=$ST stage tables=$NST protected visits=$(wc -l < /tmp/r6_p10_protected.txt) pre-hash exit=$RCH pre-op-snapshot exit=$PREOP_RC"

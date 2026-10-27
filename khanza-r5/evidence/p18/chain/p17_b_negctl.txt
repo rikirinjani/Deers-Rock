@@ -1,0 +1,49 @@
+scratch sik_p14n verified: billing=450 ledger=97 src_proc=34 src_drug=25
+## clean scratch: the stricter NEW rules must accept the unplanted fixture (27 visits)
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14n", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14n", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-1
+PASS NEW unplanted exit (got 0)
+PASS NEW unplanted: all 27 outcomes MATCH (got 27)
+PASS OLD unplanted exit (got 0)
+## B3a a subset of the manifest's visits (clean scratch)
+PASS B3a NEW rejects the subset (exit 2) (got 2)
+PASS B3a OLD accepts the subset (exit 0, the defect) (got 0)
+## B4 p13_sample_compare.py without --since (clean scratch)
+PASS B4 NEW exit 2 (got 2)
+PASS B4 OLD does not reject the missing --since (exit != 2, the defect) (got yes)
+## plants B1, B2, B3b
+B1 encounter with an expected delta: 2027/12/31/900001 noindex 10
+PASS B1 encounter selected (got yes)
+PASS plant B1 ROW_COUNT (got 1)
+PASS plant B2 ROW_COUNT (got 1)
+PASS plant B3b ROW_COUNT (got 1)
+PASS planted NEW exit (got 1)
+PASS planted OLD exit (it misses all three) (got 0)
+PASS B1 NEW: unit price changed, quantity and total unchanged -> MISMATCH (got MISMATCH)
+PASS B1 OLD: MATCH (the false pass) (got MATCH)
+PASS B2 NEW: registration row jumlah 2 -> MISMATCH (got MISMATCH)
+PASS B2 OLD: MATCH (the false pass) (got MATCH)
+PASS B3b NEW: a second payment row -> MISMATCH (got MISMATCH)
+PASS B3b OLD: MATCH (the false pass) (got MATCH)
+PASS NEW: no other encounter fails (got 3)
+## N4 a NULL payment: OLD-P15 comparator vs NEW
+PASS plant N4 ROW_COUNT (got 1)
+PASS N4 NEW exit 2 (got 2)
+PASS N4 OLD-P15 comparator does not reject it (exit != 2, the defect) (got yes)
+## N7 the B6 judge, OLD-P15 vs NEW, with a plant that removed 1 of 18 billing rows and 1 of 5 ledger rows
+OLD billing judge on (deleted 1 of 18): yes
+OLD ledger judge on (deleted 1 of 5): yes
+NEW billing judge on (deleted 1 of 18): no
+NEW ledger judge on (deleted 1 of 5): no
+PASS N7 OLD-P15 judge accepts the under-executed plant (billing) (got yes)
+PASS N7 NEW judge rejects it (billing) (got no)
+PASS N7 OLD-P15 judge accepts the under-executed plant (ledger) (got yes)
+PASS N7 NEW judge rejects it (ledger) (got no)
+## N8 a reused pid: OLD-P15 kill function vs NEW
+PASS N8 OLD-P15 signals a foreign leader whose pid file is older than it (the defect) (got dead)
+PASS N8 NEW does not signal it (got alive)
+p17_b_negctl.sh: line 113: 449382 Killed                  setsid bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1
+## N2 the mechanism: an unquoted variable holding a timestamp splits at the space
+PASS N2 unquoted: 3 arguments (the comparator got the date only) (got 3)
+PASS N2 quoted or array: 2 arguments (got 2)
+P17-B-NC: PASS=31 FAIL=0
+teardown: sik_p14n dropped

@@ -1,0 +1,36 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p18-fixes",
+  "timestamp": "2026-10-27T02:37:40.967776+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p15_lib.sh",
+    "khanza-r5/tools/p6_acceptance_suite.sh",
+    "khanza-r5/tools/p13_wide_sample.sh",
+    "khanza-r5/tools/p15_line_identity.py",
+    "khanza-r5/tools/p16_a_negctl.sh",
+    "khanza-r5/tools/p18_a_negctl.sh",
+    "khanza-r5/tools/p18_b_negctl.sh",
+    "khanza-r5/tools/p18_chain.sh",
+    "khanza-r5/tools/p18_release_inventory.py"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p18-fixes",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P18 fixes B1-B8: RCH, kill function by pgid, P13 driver gates, stop-rule run, restore-clause controls, unit/payment gates, stronger controls; 31 files frozen"
+}

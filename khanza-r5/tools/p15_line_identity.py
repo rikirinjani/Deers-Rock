@@ -189,11 +189,17 @@ def run():
             f["rows"] += 1
         differ = False
         unit_src_bad = False
+        unit_checked = unit_unchecked = 0   # P18 B7 (M9)
         for key in sorted(set(F) | set(L)):
             f, l = F.get(key), L.get(key)
             su = srcu.get(nr, {}).get(key)
-            if exp is not None and su is not None and f is not None and f["units"] != su:
-                unit_src_bad = True   # P17 B1: the billed unit price differs from the source row's own
+            if exp is not None and f is not None and key[0] in ("procedure", "drug"):
+                if su is None:
+                    unit_unchecked += 1   # P18 B7: a billed key with no source row cannot be compared
+                else:
+                    unit_checked += 1
+                    if f["units"] != su:
+                        unit_src_bad = True   # P17 B1: the billed unit price differs from the source row's own
             if f is None or l is None:
                 ok = False
             else:
@@ -237,7 +243,8 @@ def run():
                 pf = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_form"].items()}
                 obs_led = {"%s|%s" % k: [fmt(l[0]), fmt(l[2])] for k, l in L.items()}
                 pl = {k: [fmt(D(a, "manifest")), fmt(D(b2, "manifest"))] for k, (a, b2) in e["predicted_ledger"].items()}
-                rec["unit_src"] = "DIFF" if unit_src_bad else "MATCH"
+                rec["unit_src"] = "DIFF" if unit_src_bad else "UNCHECKED" if (unit_unchecked and not unit_checked) else "MATCH"
+                rec["unit_keys_checked"], rec["unit_keys_unchecked"] = unit_checked, unit_unchecked   # P18 B7
                 rec["reg_shape"] = "DIFF" if reg_shape_bad else "MATCH"
                 rec["form_model"] = "MATCH" if obs_form == pf else "DIFF"
                 rec["ledger_model"] = "MATCH" if obs_led == pl else "DIFF"
@@ -246,14 +253,14 @@ def run():
                 if rec["ledger_model"] == "DIFF":
                     rec["ledger_obs"], rec["ledger_pred"] = obs_led, pl
                 rec["expected"] = want
-                ok_all = (delta == want and line_ok and fresh and b_eq_a          # B1
+                ok_all = (delta == want and line_ok and fresh and b_eq_a and b[1] == 1   # B1; P18 B7: one payment row, also under --no-fresh-b
                           and rec["form_model"] == "MATCH" and rec["ledger_model"] == "MATCH"
                           and rec["unit_src"] == "MATCH" and rec["reg_shape"] == "MATCH")   # P17 B1, B2
                 rec["outcome"] = "MATCH" if ok_all else "MISMATCH"
             rec["pass"] = rec["outcome"] == "MATCH"
         else:
             rec["pass"] = (verdict in ("EQUAL", "EQUAL-SRC") and not delta and fresh and not reg_shape_bad
-                           and b[0] is not None and b[0] == c_tot)
+                           and b[0] is not None and b[0] == c_tot and b[1] == 1)   # P18 B7: one payment row
         res.append(rec)
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)
@@ -268,6 +275,8 @@ def run():
                "lines": len(lines_out), "line_differ": sum(1 for x in lines_out if x[-1] != "EQUAL"),
                "fresh_b_ok": sum(1 for r in res if r["fresh_b"] != "n/a" and r["fresh_b_ok"]),
                "b_eq_a": sum(1 for r in res if r["B_eq_A"]),
+               "unit_keys_checked": sum(r.get("unit_keys_checked", 0) for r in res),
+               "unit_keys_unchecked": sum(r.get("unit_keys_unchecked", 0) for r in res),
                "mode": "expect" if exp is not None else "equal", "db": db, "ledger": ldb, "since": since}
     base = out.rsplit(".", 1)[0]
     with open(base + "_encounters.json", "w") as fh:

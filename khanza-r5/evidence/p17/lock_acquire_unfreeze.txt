@@ -2,7 +2,7 @@ RUNLOCK-ACQUIRED: session=P17-CLAUDE-20261027 (/opt/dr-benchmark/LOCK)
 session=P17-CLAUDE-20261027
 pid=330450
 start_utc=2026-10-26T21:03:10Z
-host=mac-mini-vultr
+host=REDACTED
 note=P17 Astra v12 findings: safety, predicates, C3 discovery
 pid_alive=yes
 a197308eb89b712d8e46498a3965f27eaa14134a256973bef7e8b33044206820  .bak_p17_20261027/p10_preservation_check.sh

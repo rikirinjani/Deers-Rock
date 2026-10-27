@@ -1,0 +1,34 @@
+== A1 (M1) clone check at P18 start
+sik
+sik_bench
+clones sik_p*: 0
+harness/java procs: 1
+capture.tsv
+consumers_before.txt
+driver.log
+fixture_compare.txt
+fixture_lines.csv
+fixture_lines_encounters.json
+fixture_lines_summary.json
+shapes.txt
+stop
+mysql history_long: events_statements_history_long	NO
+fixture oracle rc=4 (4 = PARTIAL-NOT-COVERED is the only expected value for out-of-envelope strata)
+database.xml restored (targets: sik)
+P15E OK fixture_rc=4 real_rc=n/a clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+-rw-r--r-- 1 root root 4922 2026-10-26 22:09:31.807341979 +0000 /opt/dr-benchmark/p17/c3_t0.log
+
+/opt/dr-benchmark/p17/c3:
+total 828
+drwxr-xr-x 2 root root   4096 2026-10-26 22:09:30.750346090 +0000 .
+drwxr-xr-x 5 root root   4096 2026-10-26 22:06:44.277067407 +0000 ..
+-rw-r--r-- 1 root root 787588 2026-10-26 22:09:30.330347725 +0000 capture.tsv
+-rw-r--r-- 1 root root    143 2026-10-26 22:06:44.305067272 +0000 consumers_before.txt
+-rw-r--r-- 1 root root   2924 2026-10-26 22:09:30.442347289 +0000 driver.log
+-rw-r--r-- 1 root root   5045 2026-10-26 22:09:30.738346137 +0000 fixture_compare.txt
+-rw-r--r-- 1 root root   7347 2026-10-26 22:09:30.737346141 +0000 fixture_lines.csv
+-rw-r--r-- 1 root root  13512 2026-10-26 22:09:30.738346137 +0000 fixture_lines_encounters.json
+mysql binlog/ddl drop time:
+2026-10-27 00:51:28

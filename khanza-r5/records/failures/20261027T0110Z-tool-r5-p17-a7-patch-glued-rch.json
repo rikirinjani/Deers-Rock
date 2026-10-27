@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T01:10:00Z",
+  "category": "tool",
+  "severity": "major",
+  "title": "P17 A7 patch put two basename lines between the post-failure hash step and RCH=$?: check 30's exit clause was vacuous (the P16 glue class, second time)",
+  "what_went_wrong": [
+    "p6_acceptance_suite.sh lines 700-704 (P17 bytes): python3 p10_hash_state.py ... > p10_preserve_pre.json, then two 'basename \"$OUT\" > ....run' lines, then RCH=$?. RCH became the exit code of the second basename (always 0). Check 30's clause [ \"$RCH\" = \"0\" ] could not fail, and both sidecars were written whatever the hash step did.",
+    "The A7 control extracts only the binding reader block and the full suite (39/39) cannot see the writer side, so neither the P17 controls nor the regression caught it. The P16 rule 'read back around the patched lines' was written down and not applied to this edit.",
+    "Mitigation that existed: in the P10_INJECT flow check 30 is forced to FAIL anyway, and p10_preservation_check.sh would probably fail on json.load of an empty file; the damage was a false evidence line and a dead predicate, not a known false PASS."
+  ],
+  "root_cause": "A text patch inserted lines before a statement that reads $?, and the checklist item was a rule in a document rather than a mechanical step.",
+  "detection": "Independent review of P17 (finding M2), confirmed by reading the lines.",
+  "impact": "A dead predicate in a frozen suite for the P17 wave; no wrong verdict is known.",
+  "correction": {
+    "applied": "P18 B1: RCH=$? directly after the hash step; each sidecar written only when its own step exited 0; paired control in p18_a_negctl.sh extracts the A30 step from the OLD and NEW suite and runs it with the hash step failing (OLD: RCH=0 and the sidecar written; NEW: RCH=1 and none).",
+    "result": "evidence/p18/chain/p18_a_negctl.txt"
+  },
+  "rule": "Every text patch is followed by a read-back of the lines around each anchor AND, for any line that reads $? or a variable set on the previous line, a control that makes that previous command fail.",
+  "agent": "claude (P17 executor)",
+  "status": "closed"
+}

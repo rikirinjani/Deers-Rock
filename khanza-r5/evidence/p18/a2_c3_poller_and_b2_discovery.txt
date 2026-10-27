@@ -1,0 +1,11 @@
+== A2(iii) C3 poller filter (tools/p17_c3_t0.sh poller(): rows copied only if SQL_TEXT matches the fixture no_rawat or jns_perawatan or databarang patterns on CURRENT_SCHEMA=sik_p14e); the unfiltered history was not retained
+captured rows: 2874
+rows with kd_jenis_prw = literal (quoted code): 0
+rows with kode_brng = literal: 0
+rows with kd_jenis_prw=? or kode_brng=? placeholder: 0
+rows of the two form queries (group by nm_perawatan / kode_brng): 216
+== A2(ii) B2 discovery: registration row shape in live billing (read-only), first 300 visits of the real list
+Registrasi	0	0	0	300
+-- DISTINCT jumlah, biaya, tambahan for status like Registrasi
+0	0
+-- registration rows seen: 300

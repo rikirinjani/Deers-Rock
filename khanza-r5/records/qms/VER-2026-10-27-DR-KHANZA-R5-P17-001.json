@@ -3,7 +3,7 @@
   "id": "VER-2026-10-27-DR-KHANZA-R5-P17-001",
   "date": "2026-10-27",
   "project": "DR-Khanza E2E benchmark",
-  "title": "R5 s29 (P17): Astra v12 findings, safety A1-A13 and predicate gates B1-B4 with paired controls; C3 stopped at its discovery gate (form-side codes not observable)",
+  "title": "R5 s29 (P17): Astra v12 findings, safety A1-A13 and predicate gates B1-B4 (controls paired per control, see R5 section 29 table); C3 stopped at its discovery gate (form-side codes not observable)",
   "trigger": "Astra v12 run 5514025 (71/100); every finding verified against the source first (task doc s1)",
   "tool_sha256": {
     "sampled_real_form_diff_r5.py": "6620d8d06d8ed4f43cd6deda47b77413b3d0dd362c327095a12304a1ac80deec",
@@ -76,5 +76,11 @@
   "records": [
     "20261027T0600Z-test-r5-p17-p16-controls-stale-after-tail-change",
     "20261027T0610Z-process-r5-p16-overclaims-found-by-astra-v12"
+  ],
+  "amendments": [
+    "P18 M13: title no longer says \"with paired controls\" for the whole A1-A13 range",
+    "P18 M1: live_state below describes the chain-b final (22:06:14Z), which preceded the C3 T0 run; see VER-2026-10-27-DR-KHANZA-R5-P18-001 for the state at the start of P18",
+    "P18 M6: the retrace output of P17 reported UNTRACED: 1; the P18 retrace is the trace-clean output",
+    "self_score 18/18 was withdrawn by the independent review (11/18)"
   ]
 }

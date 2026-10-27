@@ -1,0 +1,1 @@
+stage-hash FAULT: ALL 17 billing rows of 2026/10/01/800085 drifted by +1 between copy and hash (test-only)

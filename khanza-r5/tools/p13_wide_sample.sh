@@ -139,14 +139,23 @@ if p15_stop_rule_fires "$SUKESES_FALSE" "$TOTAL_VISITS"; then
   res "STOP RULE: $SUKESES_FALSE/$TOTAL_VISITS sukses=false (>2 %) - keeping clone, stopping here"
   exit 1
 fi
+# P18 B3 (P17 A13): every visit must have a sukses=true line; a harness killed early leaves true=0, false=0
+# and the stop rule cannot fire
+if [ "$SUKESES_TRUE" != "$TOTAL_VISITS" ]; then
+  res "FORM-INCOMPLETE: sukses=true for $SUKESES_TRUE of $TOTAL_VISITS visits - keeping clone, stopping here"
+  exit 1
+fi
 
 # Restore database.xml (clone stays for the comparator)
-$DBXML restore >> /tmp/p13w_dbxml.log 2>&1
-RES=$?
-[ "$RES" = "0" ] && RETARGETED=0
-res "database.xml restored (exit=$RES)"
+$DBXML restore >> /tmp/p13w_dbxml.log 2>&1 && RETARGETED=0
 XML_POST=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
-[ "$XML_POST" = "sik" ] || res "WARN: database.xml not on sik after restore ($XML_POST)"
+if [ "$RETARGETED" = "0" ] && [ "$XML_POST" = "sik" ]; then
+  res "database.xml restored (targets: $XML_POST)"
+else
+  # P18 B3 (P17 A1): a restore that is not verified is not success; the clone and the xml are left for inspection
+  res "ABORT: database.xml not restored (targets: ${XML_POST:-unreadable}) - clone kept; P18 B3"
+  exit 3
+fi
 
 # Copy the oracle result files to the stage directory
 mkdir -p /opt/dr-benchmark/p-chain/p13_${STAGE}/

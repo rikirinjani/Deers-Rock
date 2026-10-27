@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-27T01:05:00Z",
+  "category": "process",
+  "severity": "major",
+  "title": "P17 self-score 18/18 was 7 points too high: the 'final' live-state proof preceded the C3 T0 run, and several claims had no evidence file",
+  "what_went_wrong": [
+    "M1: the P17 chain-b final live-state capture (22:06:14Z) came before the C3 T0 driver run (22:06:44Z). The T0 transcript ends with clone sik_p14e KEPT and nothing committed shows the drop. R5 section 29 and the QMS record still said the live state ended identical to the baseline. (P18 A1 found the clone absent at 00:51Z; who dropped it and when has no transcript.)",
+    "M5: R5 cited 'ALL n billing rows ... drifted' in the suite evidence for A8; no such line exists in evidence/p17 (the hook's log line appears only inside a P11_ONLY=31 oracle run whose log was not copied).",
+    "M6: the committed retrace output says UNTRACED: 1 file(s) (itself) while the self-score claimed trace-clean; the P16 retrace output required by D3 was never committed.",
+    "M14: the re-freeze after fix 1 (.bak_p17fix1) has no hashed transcript; 'local = box 4/4' has no file.",
+    "M13: 'A1-A13 with paired controls' was repeated in the commit message, ROADMAP, handoff item 23 and the QMS title although A6, A8, A9 and A13 are unpaired or new-bytes-only.",
+    "M15: the failure records and the task doc carry dates later than the commit they describe (local time written with a Z)."
+  ],
+  "root_cause": "The same cause as the P15 and P16 overclaims: claims were written from the intent of a step, not from its transcript, and the 'final' proof was scheduled by name instead of by position (after the last operation).",
+  "detection": "Independent review of P17 (11/18), every finding verified against the source in the P18 task doc section 1.",
+  "impact": "Documents that Astra v13 would have read overstate P17. No result changed: the box state at the start of P18 was clean (no clone, consumers restored, database.xml on sik, ledger pin held).",
+  "correction": {
+    "applied": "P18: the final capture is the last box operation (p18_chain.sh step 5); A1 records the clone state; C1 commits a retrace output that says UNTRACED: 0; C4 replaces the 'paired' wording; C5 adds hashed re-freeze transcripts; C6 strikes the wrong dates.",
+    "result": "R5 section 30; evidence/p18/"
+  },
+  "rule": "The final live-state proof is the last box capture of a wave, after every clone drop and consumer restore; a claim that names an evidence file is written only after that file exists; 'paired' is claimed per control, never for a range.",
+  "agent": "claude (P17 executor)",
+  "status": "closed"
+}

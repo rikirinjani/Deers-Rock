@@ -2,7 +2,7 @@ RUNLOCK-ACQUIRED: session=P16-CLAUDE-20261026 (/opt/dr-benchmark/LOCK)
 session=P16-CLAUDE-20261026
 pid=278590
 start_utc=2026-10-26T14:02:16Z
-host=mac-mini-vultr
+host=REDACTED
 note=P16 review fixes (N1-N8) + evidence
 pid_alive=yes
 75b91bccb14f55f977634894cc72bec81e7da5a38f0a100debd7982f45d401dc  .bak_p16_20261026/p10_preservation_check.sh

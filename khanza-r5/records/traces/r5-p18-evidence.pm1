@@ -1,0 +1,42 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p18-evidence",
+  "timestamp": "2026-10-27T02:37:41.202858+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/evidence/p18/chain.log.txt",
+    "khanza-r5/evidence/p18/r5_p18_frozen_manifest_20261027.sha256",
+    "khanza-r5/evidence/p18/a2_ps_semantics.txt",
+    "khanza-r5/evidence/p18/a1_clone_state.txt",
+    "khanza-r5/evidence/p18/lock_release.txt",
+    "khanza-r5/evidence/release_inventory.json",
+    "khanza-r5/docs/khanza_benchmark_report_R5.md",
+    "khanza-r5/records/failures/20261027T0105Z-process-r5-p17-final-proof-before-last-operation.json",
+    "khanza-r5/records/failures/20261027T0110Z-tool-r5-p17-a7-patch-glued-rch.json",
+    "khanza-r5/records/failures/20261027T0115Z-tool-r5-p17-kill-function-and-p13-driver-gaps.json",
+    "khanza-r5/records/failures/20261027T0120Z-test-r5-p18-first-control-runs-faulty.json",
+    "khanza-r5/records/qms/VER-2026-10-27-DR-KHANZA-R5-P18-001.json",
+    "khanza-r5/docs/khanza_r5_release_manifest.md",
+    "khanza-r5/docs/khanza_session_handoff_20261025.md",
+    "ROADMAP.md"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p18-evidence",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------.........................................................--...--........................................-.--...-",
+  "action": "P18 evidence: lock, A1/A2 discovery, pre-flight, refreeze, chain on 31 frozen files, final live-state proof last, lock released"
+}

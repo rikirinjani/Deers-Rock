@@ -1,0 +1,5 @@
+# P18 redaction note (review finding: a box hostname on the host= line of lock transcripts)
+# The value was the ssh alias of the box (14 characters, no IP and no domain), which also appears in public docs; the line is replaced by host=REDACTED in the committed copies. sha256 of the originals before redaction (LF bytes):
+77bc8ba236b92d44142284e276370c64baf1df611211904293ce8e800cd72897  evidence/p15/lock_release.txt
+bca8764b0f0c99576e91b85a8d81fb6a08c69a7e670d6cc6e48e5b2f89f8ebc2  evidence/p16/lock_acquire_unfreeze.txt
+573705af4bb8ebc0bb131eb3d2e38bcc10610ba992c808e1dc6d26273b897968  evidence/p17/lock_acquire_unfreeze.txt

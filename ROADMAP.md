@@ -326,7 +326,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 ### Milestone 11.4: Recovery contract & negative controls (P8–P11) ✅
 - [x] P8 claim wording, gate defects, recovery fault injection
 - [x] P9 recovery acceptance contract; P10 integrated recovery-preservation experiment (suite 39/39)
-- [x] P11 discriminating checks, negative controls 5/5, unit 33/33
+- [x] P11 discriminating checks, negative controls 5/5, unit 33/33 [P18 M11: 44/44 since P15]
 
 ### Milestone 11.5: Run lock, reproducibility & wide sample (P12–P13) 🟡
 - [x] VPS run lock + negative control; migration to mac-mini-vultr
@@ -335,8 +335,8 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] P14 (2026-10-26): B3 edge strata, 27 visits / 8 strata through the real form, 27/27 match pre-registration; per-encounter charge-line identity on 300 real visits, 0 line differences (181 EQUAL, 119 EQUAL-CTX); same-price code-swap blind spot closed (NC discriminating)
 - [x] Astra v11 = 66/100 (2026-10-26). P15: driver safety, stricter acceptance predicates, source-row line identity (300/300, same-name wrong-code hole closed), recovery-check repairs (suite 39/39, NC 5/5)
 - [x] P15 independent review (2026-10-26): 17/24 Accept with fixes vs self 23/24. P16 fixed N1-N8 (preservation-check trap, fresh-B total-count rule, NULL payments, A28 restore assertion, exact-1 switches, kill-group guard), evidence gaps closed, C4 rerun 27/27 + 300/300, suite 39/39, NC 5/5 (R5 §28)
-- [ ] P18 (task doc written 2026-10-27, not executed): independent P17 review scored 11/18 vs self 18/18; fixes M1-M16 (khanza-r5/docs/khanza_r5_task_p18_p17_review_fixes.md); waits for the owner OK
-- [x] P17 (2026-10-27): safety A1-A13 with paired controls, predicate gates B1-B4, C4 rerun 27/27 + 300/300, suite 39/39, NC 5/5; C3 stopped at its discovery gate (the form never receives a charge code; R5 §29)
+- [x] P18 (2026-10-27): independent P17 review scored 11/18 vs self 18/18; fixes M1-M16 executed under lock P18-CLAUDE-20261027, final live-state proof last; chain all green (R5 section 30; khanza-r5/docs/khanza_r5_task_p18_p17_review_fixes.md); independent re-score pending
+- [x] P17 (2026-10-27): safety A1-A13 (A1-A5, A7, A12 paired; A6b P15-vs-P17; A8, A9, A13 new-bytes-only) [P18 M13], predicate gates B1-B4, C4 rerun 27/27 + 300/300, suite 39/39, NC 5/5; C3 stopped at its discovery gate (the form never receives a charge code; R5 §29)
 - [x] Astra v12 = 71/100 (run 5514025, $1.72 incl. gemini validation; 2026-10-26): Needs targeted rework; next step C3 form-side charge-code provenance, after making writer death and XML restore mandatory and archiving the .bak bytes
 - [ ] Ledger scope decisions from P14 (fractional quantity, embalase/tuslah, DR-own fees); C3 form-side code provenance
 - [ ] Clean-box rebuild from repo + export on a third home — **blocked** (owner: third home waits; mac-mini-vultr ends ~2026-11-20)
@@ -365,7 +365,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
 | **X** International Billing | 🔴 Deferred | — | Design only; commercialization brainstorm (ID/US/EU) exists as a Claude Doc |
-| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 33/33 | P1–P17 done (P15: safety + source-row line identity; P16: independent-review fixes; P17: Astra v12 findings, C3 not observable), Astra 71/100 (v12); rebuild rehearsal + v11 blocked; P15 candidates open |
+| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 44/44 | P1–P18 done (P15: safety + source-row line identity; P16: independent-review fixes; P17: Astra v12 findings, C3 not observable), Astra 71/100 (v12); rebuild rehearsal + v11 blocked; P15 candidates open |
 
 **Overall (HOE platform, as of 2026-10-07):** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
 **Epic XI (as of 2026-10-25):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.

@@ -1,0 +1,9 @@
+== A2(i) ps -g semantics on the box: ps from procps-ng 4.0.4
+setsid case: child pid=396825 pgid=396823 sid=396823 (leader is also session leader)
+  ps -o stat= -g <pgid>: Ss S S 
+  ps -e -o pgid=,stat= filtered by pgid: Ss S S 
+setpgid case (job control, same session as the shell): leader pid=396845 pgid=396845 sid=396819
+  ps -o stat= -g <pgid>: rc=1 lines=0
+  ps -o stat= -g <sid>: lines=7 (the whole session, not the group)
+  ps -e -o pgid=,stat= filtered by pgid: S S S 
+done

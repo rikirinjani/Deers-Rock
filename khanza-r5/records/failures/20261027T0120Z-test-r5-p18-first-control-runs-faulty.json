@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-27T01:20:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P18 first pre-flight runs of its own new controls were faulty in four places (kept, then fixed before freezing)",
+  "what_went_wrong": [
+    "p18_a_negctl.sh B2: the helper built 'bash -c \". lib; $2; p15_kill_run_harness\"' with an empty $2, a syntax error that returned 2, so five B2 checks failed for the wrong reason.",
+    "p18_a_negctl.sh B4: the blocking trigger was created as soon as the driver finished building the clone, i.e. before the consumer baseline, which saves every fixture visit once; the baseline failed ('ABORT: consumer baseline failed', driver exit 3) instead of the oracle run losing one visit.",
+    "p18_a_negctl.sh B5: the 'fault injected in both runs' check assumed the P17 R31 snippet logs the FAULT line; it passes lambda *a: None as the log, so the line shows only in the P16 run (1/0 instead of 1/1).",
+    "p18_b_negctl.sh B3a/B4: the OLD arm was the P17 comparator, which already has the P17 fixes; the OLD arm for a P17 fix is the P16 bytes (.bak_p17)."
+  ],
+  "root_cause": "New controls were written against my reading of the code, not against one run of the OLD arm first.",
+  "detection": "The pre-flight on the unfrozen bytes (preflight/p18_a_negctl_run1.txt, run2, p18_b_negctl_run1); all four are test-script faults, none touched a frozen product byte.",
+  "impact": "None on results; the first runs are kept under evidence/p18/preflight/.",
+  "correction": {
+    "applied": "${2:-:} in the helper; the trigger is created after 'oracle[fixture]: run start' appears in the driver log; the NEW arm is judged from the evidence line restore=restore-not-verified; B3a/B4 take the P16 bytes as OLD.",
+    "result": "evidence/p18/preflight/, evidence/p18/chain/"
+  },
+  "rule": "Run the OLD arm of a new control once, alone, and read its output before writing the assertion for the NEW arm.",
+  "agent": "claude (P18 executor)",
+  "status": "closed"
+}
