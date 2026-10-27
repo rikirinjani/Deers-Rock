@@ -12,7 +12,7 @@ Single home for HOE ADRs (consolidated 2026-10-27 from `adr/` and `docs/adr/`). 
 | [005](ADR-005-department-addition-pattern.md) | Department Addition Pattern | Accepted |
 | [006](ADR-006-agent-learning-architecture.md) | Agent Learning Architecture | Accepted |
 | [007](ADR-007-referral-system-architecture.md) | Referral System — Rujukan Berjenjang | Accepted |
-| [008](ADR-008-seeded-random-number-generation.md) | Seeded Random Number Generation | Accepted; Amendment 1 (per-handler sub-streams) **Proposed** |
+| [008](ADR-008-seeded-random-number-generation.md) | Seeded Random Number Generation | Accepted; Amendment 1 (per-handler sub-streams) accepted by owner 2026-10-27 |
 | [009](ADR-009-timeline-engine.md) | Timeline Engine — Counterfactual Experimentation | Accepted (2026-10-07); [vision version archived](archive/ADR-009-timeline-engine-vision-2026-06-28.md) |
 | [010](ADR-010-clinical-fidelity-expansion.md) | Clinical Fidelity Expansion — Formulary, ICD-10, INA-CBG | Draft |
 | [011](ADR-011-runner-tuning.md) | Runner Tuning — Drug Formulary Coverage | Draft |
@@ -33,7 +33,7 @@ Single home for HOE ADRs (consolidated 2026-10-27 from `adr/` and `docs/adr/`). 
 | 026 | *Never written*, but cited: `tests/boundary-contract.test.ts` ("ADR-026: Boundary & Contract Tests") and two benchmark reports | Gap — needs writing |
 | [027](ADR-027-international-adapter.md) | International Adapter Architecture — US Healthcare (Epic X design) | Accepted |
 | [028](ADR-028-mortality-risk-engine.md) | Mortality Risk Engine (**formerly ADR-004**) | Accepted |
-| [029](ADR-029-workforce-management.md) | Agent Assignment & Workforce Management (**formerly ADR-017**); Amendment 1 (roster) **Proposed** | Accepted |
+| [029](ADR-029-workforce-management.md) | Agent Assignment & Workforce Management (**formerly ADR-017**); Amendment 1 (roster, Indonesian calibration) accepted by owner 2026-10-27 | Accepted |
 
 Also here: [M9.3-BLOCKER-DECISIONS.md](M9.3-BLOCKER-DECISIONS.md) (owner decisions on Epic IX M9.3) and
 [`evidence/`](evidence/) (benchmark runs cited by ADR-004).

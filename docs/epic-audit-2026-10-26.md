@@ -153,12 +153,36 @@ Also fixed along the way: sick leave, kamar jenazah and appointments were not pe
 ## 8. Open items, by priority (after 2026-10-27)
 
 1. **JR trigger alignment** (S06 and 192 other accident codes billed to JR without an incident). **S**. Owner decision (M9.3-BLOCKER-DECISIONS §5). On the live server, the unlinked JR claims were S62 (wrist fracture), an M54 poli visit by an accident patient, and **T81 (complication of surgical care)**. `ACCIDENT_ICD_CODES` treats every T code as a road accident, which is not plausible for Jasa Raharja.
-2. **Coordinator OC review**: accept or reject ADR-001/002 (Proposed) and the three Proposed amendments (ADR-008, ADR-016, ADR-029); write ADR-026. **S**.
-3. **Re-freeze baselines** after the per-handler seed break (any frozen evidence/benchmark fingerprints). **S**.
-4. **Research OC calibration** of the workforce rates (absence 2.7%, episode lengths) and the 80% kontrol attendance against Indonesian data. **M**.
+2. **Coordinator OC review**: accept or reject ADR-001/002 (Proposed) and ADR-016 Amendment 1 (Proposed); write ADR-026. **S**. (ADR-008 and ADR-029 amendments: accepted by the owner 2026-10-27.)
+3. ~~Re-freeze baselines~~ — done 2026-10-27 as `substream-v1` (§9); the 2026-09-10 JAMIA freeze stays read-only.
+4. ~~Workforce calibration on Indonesian data~~ — done 2026-10-27 (§9). Still open: the 80% kontrol attendance is not yet calibrated, and annual leave and national holidays are not deducted from the roster. **S** each.
 5. **Emergency referrals** (I21, S72…) still arrive as outpatient poli visits, not ED/inpatient admissions. In-city transfers have distance 0 (instant, base cost only). A patient can hold an active inpatient encounter and repeated ED encounters at the same time (seen live: one patient with 5 overlapping encounters). **S–M**.
 6. **`HospitalState` split** (Epic VII M7.2). **L**. Needs an ADR.
 7. Re-check results that depended on learned rankings or rates (pre-fix learning was inflated ~125×). Research OC.
 8. Lockfile / package-manager decision (`npm ci` impossible today). **S**.
 9. Small items: non-clinical staff get "Ns." names; outcome-snapshot buffer not reset per world; tautological test assertions; `registerBody`/`recordDischargePlan` still mutate state in place. **S** each.
 10. Epic X: not started, as before (deferred by design).
+
+## 9. Owner decisions and calibration, 2026-10-27
+
+**Accepted by the owner:** ADR-008 Amendment 1 (per-handler RNG sub-streams) together with re-freezing the baselines,
+and ADR-029 Amendment 1 (roster and workforce health) with calibration on Indonesian data.
+
+**Workforce calibration (Indonesian sources).**
+
+| Parameter | Before | Calibrated | Source |
+|---|---|---|---|
+| Shifts | 07–15 / 15–23 / 23–07 (8/8/8 h) | **07–14 / 14–21 / 21–07 (7/7/10 h)** | RSUD Dr. Soetomo ER and RSUD Sunan Kalijaga rosters; described as the general hospital rule in an Indonesian nursing thesis |
+| Weekly hours (rotating staff) | 42 h | 42 h | UU 6/2023: 40 h/week |
+| Mild illness | worked through it | **off duty (izin sakit)** | Indonesian practice: izin sakit means staying home |
+| Sick days per person-year | ~2 off duty | **6 target (measured 6.3)**, band 3–12 | WISN staffing studies: 3 (RSU Aulia), 4 (RS Paru Surabaya), 12 (RSUD Wamena ER, measured 2020) |
+| Mild episodes per person-year | 4 | **2.5** | derived: 6 days ÷ ~2.4 days per episode |
+| Overtime illness threshold | 10 h | **12 h** | above the 10-h malam, so normal night shifts don't cause illness |
+
+Measured over 90 sim-days (seed 42, 122 staff): 6.3 sick days per person-year, 2.69 onsets per person-year, max
+fatigue 598 ticks, 33 staff on duty on average (min 22); 131/131 inpatient encounters with doctor and nurse.
+
+No national Indonesian sick-leave statistic was found. The 12-day figure is the only measured one, comes from a COVID
+year, and is from Papua. Experiments should therefore vary sick days across the 3–12 band rather than treat 6 as fact.
+
+**Baseline re-freeze:** see `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md` (`substream-v1`).

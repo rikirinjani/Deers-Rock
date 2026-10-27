@@ -85,24 +85,39 @@ consumption report (each department handler)
 
 ## Amendment 1 — Staff roster and workforce health model (2026-10-27)
 
-**Status:** Proposed (Platform OC, implemented in `epic-audit-vi-ix`) — awaiting Coordinator OC acceptance.
+**Status:** Accepted by the owner, 2026-10-27, with calibration on Indonesian data (done the same day, below).
 
 **Problem.** `agentHandler` hard-coded `inShift = true` and never reset fatigue, so every agent was sick by tick 50
 (seed 42) and none were available; `sickLeaveHandler` never detected a sick agent.
 
 **Decision.**
-- Roster (`src/agent/roster.ts`): 8-h shifts on the calendar clock (pagi 07–15, siang 15–23, malam 23–07). 24-h roles
-  rotate in 4 teams (pagi → siang → malam → libur, ~42 h/week); 3-person roles rotate backwards (no malam → pagi);
-  roles with < 3 staff are on call; office and specialist roles work pagi Mon–Sat.
-- Fatigue = consecutive ticks on duty, recovering at 2/tick off duty. "lelah" from 7 h; illness from overtime past 10 h.
-- Sickness: ~4 mild episodes per person-year (2 days), 10 % progressing to severe (5 days), giving ~2.7 % absence.
-  Fixed draw count (2 per agent per tick). `sakit_berat` agents are off duty; `agentHandler` owns recovery;
-  `sickLeaveHandler` opens/closes leave state-based and hands encounter assignments to a same-role backup.
+- Roster (`src/agent/roster.ts`) on the calendar clock, using the Indonesian hospital shift pattern: pagi 07–14 (7 h),
+  siang 14–21 (7 h), malam 21–07 (10 h). 24-h roles rotate in 4 teams (pagi → siang → malam → libur, 42 h/week;
+  UU 6/2023 sets 40 h/week); 3-person roles rotate backwards (no malam → pagi); roles with < 3 staff are on call;
+  office and specialist roles work pagi Mon–Sat.
+- Fatigue = consecutive ticks on duty, recovering at 2/tick off duty. "lelah" from 7 h on duty; illness from
+  overwork only past 12 h, beyond the longest scheduled shift.
+- Sickness: 2.5 mild episodes per person-year (2 days of izin sakit, off duty), 10 % progressing to a 5-day severe
+  episode (sick leave, off duty), ≈ 6 sick days per person-year. Fixed draw count (2 per agent per tick);
+  `agentHandler` owns recovery; `sickLeaveHandler` opens/closes leave state-based for severe episodes and hands
+  encounter assignments to a same-role backup.
 - The attending specialist (DPJP) is assigned by department regardless of roster (on call for their patients), with an
   on-duty GP (dokter jaga) fallback.
 
-**Evidence.** 90 sim-days, 122 staff: absence 2.69 %, 3.92 mild onsets per person-year, max fatigue 478 ticks,
-35 staff on duty on average (min 22). `tests/roster.test.ts`, `tests/sick-leave.test.ts`.
+**Calibration sources (Indonesia).**
+- Shift times: RSUD Dr. Soetomo ER (pagi 07–14, sore 14–21, malam 21–07) and RSUD Sunan Kalijaga (same hours);
+  a nursing thesis describes this as the general hospital rule. Variants exist (e.g. RS Herna Medan 08–16 / 16–23 /
+  23–08); the common pattern is used.
+- Sick days: no national figure exists. Indonesian hospital WISN staffing studies (Kemenkes method, "ketidakhadiran
+  kerja: sakit/izin") report 3 days/year (RSU Aulia policy; RSU Mitra Guray assumption), 4 days/year (RS Paru
+  Surabaya) and 12 days/year (RSUD Wamena ER, measured from the 2020 attendance register; the only measured and the
+  only Eastern-Indonesian figure, in a COVID year). Target 6 days = geometric middle of 3–12; **3–12 is the
+  sensitivity band** for experiments.
 
-**Calibration target (Research OC).** The 2.7 % absence and the episode rates are literature-range assumptions,
-not fitted to Indonesian hospital HR data.
+**Evidence.** 90 sim-days, 122 staff (seed 42): 6.3 sick days per person-year (1.73 %), 2.69 mild onsets per
+person-year, max fatigue 598 ticks (the 10-h malam), 33 staff on duty on average (min 22). Doctor and nurse
+assigned to 131/131 inpatient encounters over the first 600 ticks. `tests/roster.test.ts` asserts sick days in
+3–12 and within 3 of the target.
+
+**Not modelled (open calibration items).** Annual leave (cuti tahunan, 12 days for ASN) and national holidays are not
+deducted from the roster; the 4-team rotation absorbs them only implicitly.

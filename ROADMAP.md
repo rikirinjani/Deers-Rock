@@ -168,11 +168,11 @@ Tests: `tests/sim-control.test.ts` (6). Verified in the running app 2026-10-26: 
 
 Add remaining clinical workflows to match a full Tier C hospital.
 
-### Status: ✅ Audited 2026-10-26, follow-ups 2026-10-27 (`docs/epic-audit-2026-10-26.md`). Calibration of the workforce rates is a Research OC target
+### Status: ✅ Audited 2026-10-26, follow-ups and Indonesian workforce calibration 2026-10-27 (`docs/epic-audit-2026-10-26.md`)
 
 ### Milestone 6.1: Agent-Patient Assignment ✅
 - [x] Agent pool with 30+ roles generated (`src/agent/generator.ts`)
-- [x] Fatigue/health/shift tracking — 2026-10-27: real roster (`src/agent/roster.ts`, 3×8-h shifts, 4-team rotation, day roles Mon–Sat), fatigue that recovers off duty, sickness ~4 mild episodes/person-year → 2.69% absence over 90 days (was: `inShift` hard-coded, 100% of staff sick by tick 50). ADR-029 Amendment 1 (Proposed). `tests/roster.test.ts`
+- [x] Fatigue/health/shift tracking — 2026-10-27: real roster (`src/agent/roster.ts`) on the Indonesian pattern pagi 07–14 / siang 14–21 / malam 21–07, 4-team rotation (42 h/week), day roles Mon–Sat; fatigue recovers off duty; sickness calibrated on Indonesian WISN data to 6 sick days per person-year (measured 6.3; band 3–12) (was: `inShift` hard-coded, 100% of staff sick by tick 50). ADR-029 Amendment 1, accepted by owner 2026-10-27. `tests/roster.test.ts`
   - ~~2026-10-26: model broken (`inShift` hard-coded `true`, fatigue never reset)~~ — fixed above
 - [x] `assignments` Map exists but not linked to encounters
 - [x] Link specific doctors/nurses to encounters — done (M6.1). 2026-10-27: DPJP assigned on call by department, on-duty GP fallback; 131/131 inpatient encounters have a doctor and a nurse over the first 600 ticks (was 1/131)
@@ -269,7 +269,8 @@ Architectural decisions must be recorded for future agents and humans.
 - [x] ADR-028: Mortality Risk Engine (formerly ADR-004)
 - [x] ADR-029: Agent Assignment & Workforce Management (formerly ADR-017)
 - [x] 2026-10-27: collisions resolved, `adr/` merged into `docs/adr/`, index with old→new citation map
-- [ ] Open (Coordinator OC): accept or reject ADR-001/002 (Proposed) and the three Proposed amendments (ADR-008, ADR-016, ADR-029); write ADR-026 (cited by `tests/boundary-contract.test.ts`)
+- [x] 2026-10-27: owner accepted ADR-008 Amendment 1 (per-handler streams, with baseline re-freeze `substream-v1`) and ADR-029 Amendment 1 (roster, Indonesian calibration)
+- [ ] Open (Coordinator OC): accept or reject ADR-001/002 (Proposed) and ADR-016 Amendment 1 (Proposed); write ADR-026 (cited by `tests/boundary-contract.test.ts`)
 
 ### Milestone 8.3: Constitution Amendments ✅
 - [x] Amendment 1: Article VI — Agent Interoperability
@@ -344,7 +345,7 @@ See ADR-027 (international adapter) for design. ~~See ADR-013~~: ADR-013 is ICD 
 | **V** Dashboard & UX | ✅ Complete | 6 | 2026-10-26: dashboard script fixed (dead since 10-07), real sim pause/speed, SSE live updates, name+day search, theme, exports menu, env config |
 | **VI** Department Completeness | ✅ 3/3 MS | 45 | Roster + calibrated workforce health, sick-leave cover, staff health API/panel, kamar jenazah workflow, kontrol appointments; rates are Research OC calibration targets |
 | **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
-| **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); open for Coordinator: ADR-001/002 + 3 amendments Proposed, ADR-026 unwritten |
+| **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
 | **IX** Financial & Referral | 🟡 3/4 MS (M9.3 🟡) | 21 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; open: JR trigger set (owner decision) |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 

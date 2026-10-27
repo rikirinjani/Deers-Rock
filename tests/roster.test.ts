@@ -8,8 +8,8 @@ import { createWorld } from "../src/engine/world.js";
 import { createClock, createRng, withSubStream } from "../src/engine/clock.js";
 import { EventQueue } from "../src/engine/event-queue.js";
 import { generateAgentPool } from "../src/agent/generator.js";
-import { shiftAt, rosterStatus, rosteredShift, rosterPatternFor, SHIFT_TICKS } from "../src/agent/roster.js";
-import { agentHandler, FATIGUE_WARN, MILD_ONSET_PER_TICK, MILD_RECOVERY_TICKS } from "../src/agent/system.js";
+import { shiftAt, rosterStatus, rosteredShift, rosterPatternFor, SHIFT_TICKS, LONGEST_SHIFT_TICKS } from "../src/agent/roster.js";
+import { agentHandler, FATIGUE_WARN, MILD_ONSET_PER_TICK, MILD_RECOVERY_TICKS, SICK_DAYS_PER_YEAR_TARGET } from "../src/agent/system.js";
 import type { HospitalAgent, AgentRole } from "../src/agent/types.js";
 import type { HospitalState } from "../src/engine/state-store.js";
 
@@ -28,12 +28,15 @@ function runAgents(state: HospitalState, from: number, n: number, seed = 42, eac
 }
 
 describe("roster — shift clock", () => {
-  it("maps ticks to shifts from the 18:00 Monday start", () => {
+  it("maps ticks to the Indonesian 07–14 / 14–21 / 21–07 shifts from the 18:00 Monday start", () => {
     expect(shiftAt(0)).toMatchObject({ shift: "siang", rosterDay: 0, dayOfWeek: 0 });      // Mon 18:00
-    expect(shiftAt(5 * H)).toMatchObject({ shift: "malam", rosterDay: 0 });                // Mon 23:00
+    expect(shiftAt(3 * H - 1)).toMatchObject({ shift: "siang", rosterDay: 0 });            // Mon 20:59
+    expect(shiftAt(3 * H)).toMatchObject({ shift: "malam", rosterDay: 0 });                // Mon 21:00
     expect(shiftAt(13 * H - 1)).toMatchObject({ shift: "malam", rosterDay: 0 });           // Tue 06:59 still Monday's night
     expect(shiftAt(13 * H)).toMatchObject({ shift: "pagi", rosterDay: 1, dayOfWeek: 1 });  // Tue 07:00
-    expect(shiftAt(21 * H)).toMatchObject({ shift: "siang", rosterDay: 1 });               // Tue 15:00
+    expect(shiftAt(20 * H - 1)).toMatchObject({ shift: "pagi", rosterDay: 1 });            // Tue 13:59
+    expect(shiftAt(20 * H)).toMatchObject({ shift: "siang", rosterDay: 1 });               // Tue 14:00
+    expect(SHIFT_TICKS.pagi + SHIFT_TICKS.siang + SHIFT_TICKS.malam).toBe(DAY);
     expect(shiftAt(13 * H + 5 * DAY)).toMatchObject({ dayOfWeek: 6 });                     // Sunday
   });
 
@@ -70,7 +73,7 @@ describe("roster — coverage of a generated pool", () => {
 
   it("every 24-hour role has someone on duty in every shift for two weeks", () => {
     for (let d = 0; d < 14; d++) {
-      for (const offset of [0, 8 * H, 16 * H]) { // pagi 07:00, siang 15:00, malam 23:00 of roster day d
+      for (const offset of [0, 7 * H, 14 * H]) { // pagi 07:00, siang 14:00, malam 21:00 of roster day d
         const t = 13 * H + d * DAY + offset;     // 07:00 of roster day d is tick 13 h + d days
         for (const role of roundTheClock) {
           const onDuty = agents.filter(a => a.role === role && rosterStatus(a, t).onDuty).length;
@@ -103,7 +106,7 @@ describe("workforce health model", () => {
     const s = runAgents(w.state, 0, 2 * DAY, 42, st => {
       for (const a of agentsOf(st).values()) maxFatigue = Math.max(maxFatigue, a.status.kelelahan);
     });
-    expect(maxFatigue).toBeLessThanOrEqual(SHIFT_TICKS + 30);
+    expect(maxFatigue).toBeLessThanOrEqual(LONGEST_SHIFT_TICKS + 30);
     expect(maxFatigue).toBeGreaterThanOrEqual(FATIGUE_WARN);
     const all = Array.from(agentsOf(s).values());
     expect(all.filter(a => a.status.kesehatan === "sakit_ringan" || a.status.kesehatan === "sakit_berat").length).toBeLessThan(all.length * 0.1);
@@ -111,7 +114,7 @@ describe("workforce health model", () => {
     expect(all.some(a => !a.status.inShift)).toBe(true);
   });
 
-  it("sickness absence over 30 days lands near the ~2.7% calibration target", () => {
+  it("sick days per person-year land in the Indonesian WISN range (3–12), near the 6-day target", () => {
     const w = createWorld(20, undefined, 11);
     let sickAgentTicks = 0, agentTicks = 0, onsets = 0;
     const prev = new Map<string, string>();
@@ -124,9 +127,10 @@ describe("workforce health model", () => {
         prev.set(a.id, a.status.kesehatan);
       }
     });
-    const absence = sickAgentTicks / agentTicks;
-    expect(absence).toBeGreaterThan(0.01);
-    expect(absence).toBeLessThan(0.05);
+    const sickDaysPerYear = (sickAgentTicks / agentTicks) * 365;
+    expect(sickDaysPerYear).toBeGreaterThan(3);
+    expect(sickDaysPerYear).toBeLessThan(12);
+    expect(Math.abs(sickDaysPerYear - SICK_DAYS_PER_YEAR_TARGET)).toBeLessThan(3);
     const n = agentsOf(w.state).size;
     const expectedOnsets = n * 30 * DAY * MILD_ONSET_PER_TICK;
     expect(onsets).toBeGreaterThan(expectedOnsets * 0.4);

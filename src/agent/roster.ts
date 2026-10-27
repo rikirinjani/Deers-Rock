@@ -2,17 +2,19 @@
  * Staff roster — Epic VI M6.1 (2026-10-27).
  *
  * 1 tick = 1 sim-minute; the calendar starts Monday 15 June 2026 18:00 WITA
- * (calendar.ts). Three 8-hour shifts: pagi 07–15, siang 15–23, malam 23–07.
+ * (calendar.ts). Indonesian hospital pattern (calibrated 2026-10-27): pagi
+ * 07–14 (7 h), siang 14–21 (7 h), malam 21–07 (10 h), as documented at RSUD
+ * Dr. Soetomo and RSUD Sunan Kalijaga and described as the general rule.
  * A roster day starts at 07:00, so a malam shift belongs to the day it began.
  *
  * Patterns (deterministic, no rng):
  *  - rotating4: 24-hour roles in 4 teams. Team t on roster day d works shift
- *    (d + t) % 4, where 3 = libur: three 8-h shifts in every four days
- *    (~42 h/week against jamKerjaPerMinggu 40).
+ *    (d + t) % 4, where 3 = libur: pagi, siang, malam in every four days
+ *    (24 h per 4 days = 42 h/week; UU 6/2023 sets 40 h/week).
  *  - rotating3: 24-hour roles with 3 staff, so every shift stays covered (no
  *    libur day — an intentional simplification). Rotates backwards
- *    (pagi → malam → siang) so there are ≥ 8 h of rest between shifts; a
- *    forward 3-cycle would run malam straight into the next pagi (16 h).
+ *    (pagi → malam → siang) so there are ≥ 7 h of rest between shifts; a
+ *    forward 3-cycle would run malam straight into the next pagi (17 h).
  *  - oncall: 24-hour roles with < 3 staff (e.g. sopir_ambulans): always
  *    reachable, resting between calls, so no fatigue accrues.
  *  - day: office/specialist roles, pagi Monday–Saturday.
@@ -21,12 +23,14 @@ import type { AgentRole, HospitalAgent, Shift } from "./types.js";
 
 export type RosterPattern = "rotating4" | "rotating3" | "oncall" | "day";
 
-export const SHIFT_TICKS = 480;
+/** Shift lengths in ticks; the longest (malam, 10 h) bounds normal fatigue. */
+export const SHIFT_TICKS = { pagi: 420, siang: 420, malam: 600 } as const;
+export const LONGEST_SHIFT_TICKS = 600;
 const TICKS_PER_DAY = 1440;
 const START_MINUTE_OF_DAY = 18 * 60; // calendar.ts START_HOUR 18:00
 const PAGI_START = 7 * 60;
-const SIANG_START = 15 * 60;
-const MALAM_START = 23 * 60;
+const SIANG_START = 14 * 60;
+const MALAM_START = 21 * 60;
 const WORK_SHIFTS: Exclude<Shift, "libur">[] = ["pagi", "siang", "malam"];
 
 /** Roles staffed around the clock. Everything else works day shifts. */

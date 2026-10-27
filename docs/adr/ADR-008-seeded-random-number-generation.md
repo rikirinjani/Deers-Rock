@@ -47,7 +47,8 @@ High — blocks Milestone 2.6 (Scientific Validation Infrastructure) and all Res
 
 ## Amendment 1 — Per-handler sub-streams (2026-10-27)
 
-**Status:** Proposed (Platform OC, implemented in `epic-audit-vi-ix`) — awaiting Coordinator OC acceptance.
+**Status:** Accepted by the owner, 2026-10-27, together with the baseline re-freeze
+(`docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md`, label `substream-v1`).
 
 **Problem.** All handlers drew from one shared stream, so any handler whose draw count depends on state (queue length,
 poli capacity, health mix) re-rolled every handler after it. A `staff_shortage` intervention changed ED and inpatient
@@ -60,3 +61,5 @@ load). A stream depends only on (seed, tick, name), so a resumed world replays t
 **Consequences.** Declared seed break: every trajectory differs from pre-2026-10-27 runs; frozen baselines must be
 re-frozen. Counterfactual branches (Constitution §1.4) now isolate the intervened subsystem: a staff shortage leaves
 non-poli admissions identical on 12/12 seeds (7/12 before). `tests/rng-substreams.test.ts`.
+The 2026-09-10 E1 freeze (JAMIA manuscript, Zenodo) stays read-only as the pre-break reference; new runs are
+compared against `substream-v1`.

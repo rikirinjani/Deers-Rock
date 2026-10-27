@@ -12,16 +12,22 @@ export function initAgentState(): AgentState {
   return { pool: { agents: new Map(), assignments: new Map() } };
 }
 
-// Epic VI M6.1 (2026-10-27): workforce health model.
-// Calibration targets (Research OC): ~4 mild episodes per person-year lasting
-// ~2 days, 10% progressing to a ~5-day severe episode, i.e. ~2.7% sickness
-// absence, inside the 2–5% typically reported for health workers.
+// Epic VI M6.1: workforce health model, calibrated on Indonesian data 2026-10-27
+// (ADR-029 Amendment 1). Target: 6 sick days per worker per year. Indonesian
+// hospital WISN staffing studies record unplanned absence (sakit/izin) of
+// 3 days (RSU Aulia policy; RSU Mitra Guray), 4 days (RS Paru Surabaya) and
+// 12 days (RSUD Wamena ER, measured from the 2020 attendance register); 6 is
+// the geometric middle of 3–12, the sensitivity band. Episodes: mild 2 days
+// (izin sakit, off duty), 10% progressing to a 5-day severe episode, so
+// ~2.4 days per episode and 2.5 episodes per person-year.
 const TICKS_PER_YEAR = 365 * 1440;
-export const MILD_ONSET_PER_TICK = 4 / TICKS_PER_YEAR;
+export const SICK_DAYS_PER_YEAR_TARGET = 6;
+export const MILD_EPISODES_PER_YEAR = 2.5;
+export const MILD_ONSET_PER_TICK = MILD_EPISODES_PER_YEAR / TICKS_PER_YEAR;
 export const MILD_RECOVERY_TICKS = 2 * 1440;
 export const SEVERE_RECOVERY_TICKS = 5 * 1440;
 export const SEVERE_PROGRESSION_PER_TICK = 1 - Math.pow(0.9, 1 / MILD_RECOVERY_TICKS);
-/** Off-duty fatigue recovery per tick: a full 8-h shift is shed in 4 h of rest. */
+/** Off-duty fatigue recovery per tick: a 10-h malam is shed in 5 h of rest. */
 const FATIGUE_RECOVERY_PER_TICK = 2;
 
 export function agentHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
@@ -53,8 +59,8 @@ export function agentHandler(state: HospitalState, clock: Clock, _queue: EventQu
       kesehatan = "sakit_ringan"; sakitTerhitung = 0;
     }
 
-    // On leave while sakit_berat; mild illness still works its shifts.
-    const inShift = roster.onDuty && kesehatan !== "sakit_berat";
+    // Sick staff stay home: izin sakit (mild) or sick leave (severe).
+    const inShift = roster.onDuty && kesehatan !== "sakit_berat" && kesehatan !== "sakit_ringan";
     const working = inShift && !roster.onCall;
     const consecutiveTicks = working ? st.consecutiveTicks + 1 : Math.max(0, st.consecutiveTicks - FATIGUE_RECOVERY_PER_TICK);
     const fatigue = consecutiveTicks;
@@ -132,9 +138,11 @@ export function initSickLeaveState(): SickLeaveState {
   return { records: new Map(), counter: 0 };
 }
 
-/** Fatigue = consecutive ticks on duty: "lelah" after 7 h, illness risk past a 10-h overtime stretch. */
+/** Fatigue = consecutive ticks on duty: "lelah" after 7 h (the end of a pagi or
+ *  siang shift, and late in every 10-h malam); illness risk only past 12 h,
+ *  i.e. beyond the longest scheduled shift. */
 export const FATIGUE_WARN = 420;
-export const FATIGUE_CRITICAL = 600;
+export const FATIGUE_CRITICAL = 720;
 
 function isFitForCover(a: HospitalAgent): boolean {
   return a.status.inShift && (a.status.kesehatan === "sehat" || a.status.kesehatan === "lelah");
