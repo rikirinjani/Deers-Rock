@@ -52,6 +52,41 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
 
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
 
+  // Oracle-issue #4: per-patient order-key index, built ONCE per handler call
+  // (O(Σorders + encounters)). Until 2026-10-27 it was rebuilt inside the
+  // encounter loop, i.e. O(encounters × Σorders): ~80% of run time by sim-day 2.
+  // Patients whose orders change during this pass are re-indexed on demand,
+  // so every encounter sees exactly what the per-encounter rebuild produced.
+  type OrderLike = { patientId: string; description?: string; testName?: string; medication?: { name: string }; studyType?: string };
+  const indexOrders = (into: Map<string, Set<string>>, orders: Iterable<OrderLike>, prefix: string, only?: string) => {
+    for (const o of orders) {
+      if (only !== undefined && o.patientId !== only) continue;
+      let keys = into.get(o.patientId);
+      if (!keys) { keys = new Set(); into.set(o.patientId, keys); }
+      if (o.description) keys.add(`${prefix}:${o.description}`);
+      else if (o.testName) keys.add(`${prefix}:${o.testName}`);
+      else if (o.medication) keys.add(`${prefix}:${o.medication.name}`);
+      else if (o.studyType) keys.add(`${prefix}:${o.studyType}`);
+    }
+  };
+  const buildIndex = (only?: string): Map<string, Set<string>> => {
+    const idx = new Map<string, Set<string>>();
+    indexOrders(idx, newPhysOrders.values(), "physician", only);
+    indexOrders(idx, newLabOrders.values(), "lab", only);
+    indexOrders(idx, newMedOrders.values(), "med", only);
+    indexOrders(idx, newRadOrders.values(), "rad", only);
+    return idx;
+  };
+  const patientOrderKeys = buildIndex();
+  const dirtyPatients = new Set<string>();
+  const orderKeysFor = (patientId: string): Set<string> => {
+    if (dirtyPatients.has(patientId)) {
+      patientOrderKeys.set(patientId, buildIndex(patientId).get(patientId) ?? new Set());
+      dirtyPatients.delete(patientId);
+    }
+    return patientOrderKeys.get(patientId) ?? new Set<string>();
+  };
+
   for (const enc of activeEncounters) {
     const patient = state.patients.get(enc.patientId);
     if (!patient) continue;
@@ -132,26 +167,13 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     const topActions = deduped.slice(0, 4);
 
     const keyPrefix = `AI-${clock.tick}-${enc.patientId}`;
-    // Oracle-issue #4 fix: build per-patient order-index ONCE per handler call
-    // instead of scanning all maps per encounter (O(encounters × Σorders) → O(Σorders + encounters)).
-    // Maps are copied above (newPhysOrders etc.) so we index the copies, not the originals.
-    const patientOrderKeys = new Map<string, Set<string>>();
-    const addPatientOrders = (orders: Iterable<{ patientId: string; description?: string; testName?: string; medication?: { name: string }; studyType?: string }>, prefix: string) => {
-      for (const o of orders) {
-        let keys = patientOrderKeys.get(o.patientId);
-        if (!keys) { keys = new Set(); patientOrderKeys.set(o.patientId, keys); }
-        if (o.description) keys.add(`${prefix}:${o.description}`);
-        else if (o.testName) keys.add(`${prefix}:${o.testName}`);
-        else if (o.medication) keys.add(`${prefix}:${o.medication.name}`);
-        else if (o.studyType) keys.add(`${prefix}:${o.studyType}`);
-      }
-    };
-    addPatientOrders(newPhysOrders.values(), "physician");
-    addPatientOrders(newLabOrders.values(), "lab");
-    addPatientOrders(newMedOrders.values(), "med");
-    addPatientOrders(newRadOrders.values(), "rad");
-
-    const existingOrderKeys = patientOrderKeys.get(enc.patientId) ?? new Set<string>();
+    // Snapshot of this patient's existing order keys (built once per handler
+    // call, see orderKeysFor above).
+    const existingOrderKeys = orderKeysFor(enc.patientId);
+    // Orders created below belong to this patient; a later encounter of the
+    // same patient in this pass must see them, as the old per-encounter
+    // rebuild did.
+    dirtyPatients.add(enc.patientId);
 
     const taken: string[] = [];
     const caseKey = `CASE-${enc.id}`;

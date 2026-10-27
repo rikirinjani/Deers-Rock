@@ -23,7 +23,7 @@ export interface RunResult {
   activeMaxLosTicks: number;
 }
 
-function collectResult(world: import("../engine/world.js").World): RunResult {
+export function collectResult(world: import("../engine/world.js").World): RunResult {
   const state = world.state;
   const clock = world.clock;
   const discharges = Array.from(state.encounters.values()).filter(e => e.status === "discharged");
@@ -87,6 +87,41 @@ function ci95(sd: number, n: number): number {
   return 1.96 * (sd / Math.sqrt(n));
 }
 
+/** Final world of one seeded run (also used by parallel.ts, one process per seed). */
+export function runSeedWorld(
+  seed: number, ticks: number, patients: number,
+  forceScenario?: import("../engine/scenario.js").ScenarioType,
+): import("../engine/world.js").World {
+  const world = createWorld(patients, undefined, seed);
+  if (forceScenario) {
+    world.state._scenario = {
+      active: {
+        id: `forced-${forceScenario}-${seed}`,
+        type: forceScenario,
+        name: forceScenario,
+        severity: 0.8,
+        startTick: 100,
+        durationTicks: 200,
+        phase: "sustained",
+        currentSurge: 4,
+        currentMortalityBoost: 0.15,
+      },
+      history: [],
+      cooldownTicks: 0,
+    };
+  }
+  return runWorld(world, ticks);
+}
+
+export function runSeed(
+  seed: number, ticks: number, patients: number,
+  forceScenario?: import("../engine/scenario.js").ScenarioType,
+): RunResult {
+  const result = collectResult(runSeedWorld(seed, ticks, patients, forceScenario));
+  result.seed = seed;
+  return result;
+}
+
 export function runExperiment(options: {
   seedCount: number;
   ticks: number;
@@ -101,34 +136,34 @@ export function runExperiment(options: {
   const outDir = options.outDir ?? "experiment-results";
   const prefix = options.prefix ?? "experiment";
 
-  if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
-
   const results: RunResult[] = [];
 
   for (let seed = 0; seed < count; seed++) {
-    const world = createWorld(patients, undefined, seed);
-    if (options.forceScenario) {
-      world.state._scenario = {
-        active: {
-          id: `forced-${options.forceScenario}-${seed}`,
-          type: options.forceScenario,
-          name: options.forceScenario,
-          severity: 0.8,
-          startTick: 100,
-          durationTicks: 200,
-          phase: "sustained",
-          currentSurge: 4,
-          currentMortalityBoost: 0.15,
-        },
-        history: [],
-        cooldownTicks: 0,
-      };
-    }
-    const finalWorld = runWorld(world, ticks);
-    const result = collectResult(finalWorld);
-    result.seed = seed;
-    results.push(result);
+    results.push(runSeed(seed, ticks, patients, options.forceScenario));
   }
+
+  const { filepath, summaryPath, summary } = writeExperimentOutputs(results, { ticks, patientCount: patients, outDir, prefix });
+
+  console.log(`Experiment complete: ${count} runs x ${ticks} ticks`);
+  console.log(`  CSV: ${filepath}`);
+  console.log(`  Summary: ${summaryPath}`);
+  console.log(`  Deaths: ${summary.statistics.deaths.mean} ± ${summary.statistics.deaths.ci95} (SD=${summary.statistics.deaths.sd}, range ${summary.statistics.deaths.min}-${summary.statistics.deaths.max})`);
+  console.log(`  LOS (discharged): ${summary.statistics.los.mean} ± ${summary.statistics.los.ci95} ticks (SD=${summary.statistics.los.sd})`);
+  console.log(`  LOS (active): ${summary.statistics.activeLos.mean} ticks (range ${summary.statistics.activeLos.min}-${summary.statistics.activeLos.max})`);
+  console.log(`  Bed occupancy: ${summary.statistics.bedOccupancy.mean} ± ${summary.statistics.bedOccupancy.ci95}`);
+
+  return results;
+}
+
+/** Write the CSV + summary JSON in the runExperiment format (the E1 freeze format). */
+export function writeExperimentOutputs(
+  results: RunResult[],
+  opts: { ticks: number; patientCount: number; outDir: string; prefix: string },
+) {
+  const count = results.length;
+  const { ticks, outDir, prefix } = opts;
+  const patients = opts.patientCount;
+  if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
   const csv = runToCSV(results);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -158,15 +193,7 @@ export function runExperiment(options: {
   };
   writeFileSync(summaryPath, JSON.stringify(summary, null, 2), "utf-8");
 
-  console.log(`Experiment complete: ${count} runs x ${ticks} ticks`);
-  console.log(`  CSV: ${filepath}`);
-  console.log(`  Summary: ${summaryPath}`);
-  console.log(`  Deaths: ${summary.statistics.deaths.mean} ± ${summary.statistics.deaths.ci95} (SD=${summary.statistics.deaths.sd}, range ${summary.statistics.deaths.min}-${summary.statistics.deaths.max})`);
-  console.log(`  LOS (discharged): ${summary.statistics.los.mean} ± ${summary.statistics.los.ci95} ticks (SD=${summary.statistics.los.sd})`);
-  console.log(`  LOS (active): ${summary.statistics.activeLos.mean} ticks (range ${summary.statistics.activeLos.min}-${summary.statistics.activeLos.max})`);
-  console.log(`  Bed occupancy: ${summary.statistics.bedOccupancy.mean} ± ${summary.statistics.bedOccupancy.ci95}`);
-
-  return results;
+  return { filepath, summaryPath, summary };
 }
 
 if (process.argv[1]?.endsWith("runner.ts") || process.argv[1]?.endsWith("runner.js")) {

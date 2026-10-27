@@ -23,6 +23,19 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
 
   const activeEncounters = Array.from(state.encounters.values()).filter(e => e.status === "active");
 
+  // Indexes built once per call (2026-10-27: both were scans of every note /
+  // medication order per encounter, O(encounters × n); same results).
+  const noteCount = new Map<string, number>();
+  for (const n of newNotes.values()) noteCount.set(n.encounterId, (noteCount.get(n.encounterId) ?? 0) + 1);
+  // state.medicationOrders is not modified below, so grouping it once (in
+  // insertion order) yields exactly the per-encounter filter.
+  const orderedMedsByEnc = new Map<string, MedicationOrder[]>();
+  for (const m of state.medicationOrders.values()) {
+    if (m.status !== "ordered") continue;
+    const list = orderedMedsByEnc.get(m.encounterId);
+    if (list) list.push(m); else orderedMedsByEnc.set(m.encounterId, [m]);
+  }
+
   for (const enc of activeEncounters) {
     const patient = state.patients.get(enc.patientId);
     if (!patient) continue;
@@ -38,7 +51,7 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
     const monitoringInterval = highRisk ? 2 : 3;
     if (clock.tick % monitoringInterval !== 0) continue;
 
-    const currentNoteCount = Array.from(newNotes.values()).filter(n => n.encounterId === enc.id).length;
+    const currentNoteCount = noteCount.get(enc.id) ?? 0;
     if (currentNoteCount >= MAX_NOTES_PER_ENCOUNTER) continue;
 
     const diagnoses = patient.diagnoses.filter(d => d.active);
@@ -92,12 +105,14 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
       timestamp: clock.hospitalTimeMs,
     };
 
+    // Note ids are per patient, so an id can repeat across a patient's encounters: keep counts exact.
+    const replaced = newNotes.get(note.id);
+    if (replaced) noteCount.set(replaced.encounterId, (noteCount.get(replaced.encounterId) ?? 1) - 1);
     newNotes.set(note.id, note);
+    noteCount.set(enc.id, (noteCount.get(enc.id) ?? 0) + 1);
     mem.lastNoteTick = clock.tick;
 
-    const pendingMeds = Array.from(state.medicationOrders.values()).filter(
-      m => m.encounterId === enc.id && m.status === "ordered"
-    );
+    const pendingMeds = orderedMedsByEnc.get(enc.id) ?? [];
 
     for (const med of pendingMeds.slice(0, 2)) {
       if (clock.rng() > 0.6) continue;

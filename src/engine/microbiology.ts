@@ -61,12 +61,18 @@ export function microbiologyHandler(state: HospitalState, clock: Clock, _queue: 
     if (microStaff.length > 0) microId = microStaff[Math.floor(clock.rng() * microStaff.length)]!.id;
   }
 
+  // Patients with an open (not completed) order, built once per call and kept
+  // current as orders are added below (2026-10-27: was a scan of every order
+  // per active encounter, O(encounters × orders); same result).
+  const openOrderPatients = new Set<string>();
+  for (const o of newOrders.values()) if (o.status !== "completed") openOrderPatients.add(o.patientId);
+
   for (const enc of state.encounters.values()) {
     if (enc.status !== "active") continue;
     const patient = state.patients.get(enc.patientId);
     if (!patient) continue;
     const hasMicroDx = patient.diagnoses.some(d => ["J15", "J12", "A09", "N39", "A91", "K35"].includes(d.code));
-    const alreadyOrdered = Array.from(newOrders.values()).some(o => o.patientId === enc.patientId && o.status !== "completed");
+    const alreadyOrdered = openOrderPatients.has(enc.patientId);
 
     if (hasMicroDx && !alreadyOrdered && clock.rng() > 0.7 && clock.tick > 10) {
       orderCounter++;
@@ -80,6 +86,7 @@ export function microbiologyHandler(state: HospitalState, clock: Clock, _queue: 
         organism: null, gramStain: null, sensitivity: [],
         microbeType: null, microbiologistId: null,
       });
+      openOrderPatients.add(enc.patientId);
     }
   }
 
