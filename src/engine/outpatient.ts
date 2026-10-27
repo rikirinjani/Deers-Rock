@@ -1,5 +1,5 @@
 import type { HospitalState, OutpatientVisit } from "./state-store.js";
-import { createRng, type Clock } from "./clock.js";
+import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js";
 import { LAB_TESTS } from "./lab.js";
@@ -51,15 +51,10 @@ const DIAGNOSIS_POOL = [
   { icd: "P59", name: "Neonatal jaundice", poli: "POLI-AK" },
 ];
 
-const OUTPATIENT_RNG_SALT = 0x4f50_4f4c; // "OPOL"
-
 export function outpatientHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  // Outpatient-local sub-stream, seeded from (world seed, tick). This
-  // handler's draw count depends on poli capacity (staff_shortage) and the
-  // waiting queue; on the shared rng that shifted every later handler's
-  // draws, so a capacity change rippled into ED and inpatient admissions.
-  // Declared seed break (cf. ADR-016 D7): trajectories differ from pre-2026-10-26 runs.
-  const rng = createRng((clock.rngSeed ^ Math.imul(clock.tick + 1, 0x9E3779B1) ^ OUTPATIENT_RNG_SALT) | 0).next;
+  // clock.rng is this handler's own sub-stream (world.ts buildHandlers), so
+  // the capacity-dependent draw count below cannot shift other handlers.
+  const rng = clock.rng;
   let visits = new Map(state._outpatientVisits ?? []);
   let newEncounters = new Map(state.encounters);
   let newLabOrders = new Map(state.labOrders);

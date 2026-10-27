@@ -19,8 +19,15 @@ const SEED = 42, PATIENTS = 60, TICKS = 600;
 
 interface Run { w: World; refused: number; received: number; maxEnRoute: number }
 
+/** Road-accident cases planted at tick 0 so the JR path is exercised whatever the seed's case mix. */
+const PLANTED: [string, string][] = [["S72", "Fracture of femur"], ["S82", "Fracture of lower leg"], ["S06", "Intracranial injury"]];
+
 function run(): Run {
   let w = createWorld(PATIENTS, undefined, SEED);
+  Array.from(w.state.patients.values()).slice(0, PLANTED.length).forEach((p, i) => {
+    const [code, name] = PLANTED[i]!;
+    w.state.patients.set(p.id, { ...p, diagnoses: [{ code, name, active: true, priority: 0 }, ...p.diagnoses] });
+  });
   const seen = new Set<string>();
   let refused = 0, maxEnRoute = 0;
   for (let t = 1; t <= TICKS; t++) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createWorld, runWorld, step } from "../src/engine/world.js";
+import { createWorld, runWorld, step, buildHandlers, HANDLER_NAMES } from "../src/engine/world.js";
 import { computeSupplyStress } from "../src/engine/central-supply.js";
 import { selectPrimaryDiagnosisCode } from "../src/engine/markov.js";
 import { mapMacroDisasterToScenario, getScenarioEffects } from "../src/engine/scenario.js";
@@ -136,13 +136,17 @@ describe("E1 staff_shortage — macro→micro coupling", () => {
     expect(ids(withShortage)).toEqual(ids(baseline));
   });
 
-  it("outpatient draws from its own sub-stream, leaving clock.rng untouched", () => {
+  it("outpatient draws from its own sub-stream (step-level isolation)", () => {
+    // outpatientHandler draws clock.rng; buildHandlers hands it a sub-stream,
+    // so draws on the step clock itself never reach it or any other handler.
     const w = createWorld(20, undefined, 42);
-    const before = w.clock.rng;
     let draws = 0;
+    const sub = buildHandlers()[HANDLER_NAMES.indexOf("outpatientHandler")]!;
+    const before = w.clock.rng;
     w.clock.rng = () => { draws++; return before(); };
-    outpatientHandler(w.state, { ...w.clock, tick: 12 }, w.queue); // arrivals fire when tick % 4 === 0
+    sub(w.state, { ...w.clock, tick: 12 }, w.queue); // arrivals fire when tick % 4 === 0 (and % 3 for cadence)
     expect(draws).toBe(0);
+    expect(outpatientHandler).toBeTypeOf("function");
   });
 });
 

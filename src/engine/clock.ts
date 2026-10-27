@@ -55,6 +55,35 @@ export function cloneClockWithRng(clock: Clock, rngSeed: number): Clock {
   return { ...clock, rng: rng.next, rngSeed: rng.seed };
 }
 
+/**
+ * ADR-008 sub-streams: a deterministic rng for one (world seed, tick, stream)
+ * triple. Each handler draws from its own stream, so a handler whose draw
+ * count depends on state (queue length, capacity, health mix) can no longer
+ * shift the draws of handlers that run after it. Because the stream depends
+ * only on (seed, tick, stream) and not on prior draws, a world resumed at
+ * tick N replays the same draws as an uninterrupted run.
+ */
+export function subStreamRng(seed: number, tickN: number, stream: number): () => number {
+  let h = (seed ^ Math.imul(tickN + 1, 0x9E3779B1) ^ Math.imul(stream + 1, 0x85EBCA77)) | 0;
+  // murmur3 fmix32 so neighbouring (tick, stream) pairs give unrelated seeds
+  h ^= h >>> 16; h = Math.imul(h, 0x85EBCA6B);
+  h ^= h >>> 13; h = Math.imul(h, 0xC2B2AE35);
+  h ^= h >>> 16;
+  return createRng(h).next;
+}
+
+/** Stable stream id from a name (djb2), so reordering handlers keeps streams. */
+export function streamId(name: string): number {
+  let h = 5381;
+  for (let i = 0; i < name.length; i++) h = (Math.imul(h, 33) ^ name.charCodeAt(i)) | 0;
+  return h >>> 0;
+}
+
+/** The clock a handler sees: same time fields, rng replaced by its sub-stream. */
+export function withSubStream(clock: Clock, name: string): Clock {
+  return { ...clock, rng: subStreamRng(clock.rngSeed, clock.tick, streamId(name)) };
+}
+
 export function formatHospitalTime(clock: Clock): string {
   const totalMinutes = Math.floor(clock.hospitalTimeMs / 60000);
   const hours = Math.floor(totalMinutes / 60) % 24;

@@ -1,4 +1,4 @@
-import { createClock, tick, cloneClockWithRng, createRng, type Clock } from "./clock.js";
+import { createClock, tick, cloneClockWithRng, createRng, withSubStream, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { createState, type HospitalState } from "./state-store.js";
 import { admissionHandler, dischargeScheduledPatients, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
@@ -297,14 +297,15 @@ export function step(world: World): World {
   const snap = journaling ? snapshotState(state) : null;
 
   const scheduledDischarges = dueEvents.filter(e => e.type === "discharge").map(e => e.data as { patientId?: string; encounterId?: string });
-  state = dischargeScheduledPatients(state, newClock, scheduledDischarges);
+  // ADR-008 sub-streams: every handler below draws from its own rng stream.
+  state = dischargeScheduledPatients(state, withSubStream(newClock, "evt:discharge"), scheduledDischarges);
 
   for (const evt of dueEvents) {
     switch (evt.type) {
-      case "lab_result": state = labResultHandler(state, newClock, world.queue); break;
-      case "rad_result": state = radResultHandler(state, newClock, world.queue); break;
-      case "ed_discharge": state = edDischargeHandler(state, newClock, world.queue); break;
-      case "surgery_done": state = surgeryResultHandler(state, newClock, world.queue); break;
+      case "lab_result": state = labResultHandler(state, withSubStream(newClock, "evt:lab_result"), world.queue); break;
+      case "rad_result": state = radResultHandler(state, withSubStream(newClock, "evt:rad_result"), world.queue); break;
+      case "ed_discharge": state = edDischargeHandler(state, withSubStream(newClock, "evt:ed_discharge"), world.queue); break;
+      case "surgery_done": state = surgeryResultHandler(state, withSubStream(newClock, "evt:surgery_done"), world.queue); break;
       // Phase E: macro→micro coupling — consume events from Kronos adapter
       case "admission_surge": {
         const multiplier = (evt.data as { multiplier?: number }).multiplier ?? 1.0;
@@ -333,10 +334,10 @@ export function step(world: World): World {
     state = handler(state, newClock, world.queue);
   }
 
-  state = medAdminHandler(state, newClock, world.queue);
-  state = orderCompleteHandler(state, newClock, world.queue);
+  state = medAdminHandler(state, withSubStream(newClock, "medAdmin"), world.queue);
+  state = orderCompleteHandler(state, withSubStream(newClock, "orderComplete"), world.queue);
 
-  const mmResult = runMmConference(state, newClock, world.queue);
+  const mmResult = runMmConference(state, withSubStream(newClock, "mmConference"), world.queue);
   state = mmResult.state;
 
   state = { ...state, _calendarTicks: newClock.tick, _rngSeed: newClock.rngSeed };
@@ -450,8 +451,20 @@ const HANDLER_SKIP: [HandlerFn, number][] = [
   [cleanupHandler, 10],         // Prune old data
 ];
 
+/** Each handler's rng stream is keyed by its function name (stable across reordering). */
+const HANDLER_STREAMS: string[] = HANDLER_SKIP.map(([fn]) => fn.name);
+/** Handler names in execution order (index matches buildHandlers()). */
+export const HANDLER_NAMES: readonly string[] = HANDLER_STREAMS;
+if (HANDLER_STREAMS.some(n => !n) || new Set(HANDLER_STREAMS).size !== HANDLER_STREAMS.length) {
+  throw new Error("HANDLER_SKIP: every handler needs a unique function name (it keys its rng sub-stream)");
+}
+
 export function buildHandlers(): HandlerFn[] {
-  return HANDLER_SKIP.map(([fn, n]) => n > 1 ? everyN(fn, n) : fn);
+  return HANDLER_SKIP.map(([fn, n], i) => {
+    const name = HANDLER_STREAMS[i]!;
+    const isolated: HandlerFn = (state, clock, queue) => fn(state, withSubStream(clock, name), queue);
+    return n > 1 ? everyN(isolated, n) : isolated;
+  });
 }
 
 export function resumeWorld(state: HospitalState, startTick: number, journalPath: string): World {
