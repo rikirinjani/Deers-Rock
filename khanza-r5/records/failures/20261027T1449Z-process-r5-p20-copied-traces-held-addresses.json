@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T14:49:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "P20 near miss: 4 of the 15 older khanza-r5 traces I copied into records/traces/ for a repeatable retrace hold network addresses; the pre-commit scan caught them and none was committed",
+  "what_went_wrong": [
+    "To make the retrace repeatable from the repository (P20 C4, owner-approved: copy the older khanza-r5 traces if there are at most 300) I copied the 15 traces in ~/self-harness/traces whose key_files name khanza-r5 paths and that were not in records/traces/.",
+    "The staged diff scan (IPv4/IPv6/credential patterns) showed that four of them (r5-handoff-newbox-creds, r5-p11-report-and-commits, r5-tailnet-join-and-sshd-hardening, r5-vps-migration-executed) carry the text of VPS-migration sessions: Tailscale device numbers, a partial IPv6 prefix of the box and a mention of a generated credential file. The standing rule is that the VPS address and hostname are never committed.",
+    "I had read only the key_files of the candidates when I decided to copy them, not their text."
+  ],
+  "root_cause": "A bulk copy chosen by file name and key_files without reading the content, in a public repository.",
+  "detection": "The pre-commit scan of the staged diff (the same scan used before every push), before any commit.",
+  "impact": "None committed or pushed. All 15 copies were removed from records/traces/ (not only the four), the index was reset, and the diff re-scanned.",
+  "correction": {
+    "applied": "No older traces are copied. The retrace against the committed traces still lists the uncovered older files (AC-7 stays partly met, stated in R5 section 32); the owner's instruction (copy if at most 300) is reported as followed and then reversed for this reason.",
+    "result": "R5 section 32; evidence/p20/retrace_trace_clean.txt"
+  },
+  "rule": "Anything copied into the public repository in bulk is read (grep for addresses, hostnames, credentials) before it is staged, not after.",
+  "agent": "claude (P20 executor)",
+  "status": "closed"
+}

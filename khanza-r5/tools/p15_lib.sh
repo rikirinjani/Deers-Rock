@@ -53,8 +53,11 @@ p15_group_is_harness() { # pgid log-path
 }
 # P19 N3: does an oracle log show a failed batch? The oracle exits 4 for FAILED batches and for out-of-envelope
 # visits alike, and the driver treats 4 as the expected value for the fixture strata.
+# P20 O1: also the oracle's own words for a stage drop it could not verify (STAGE-DROP-FAILED, which makes it exit 4
+# with failed_batches = ["stage-drop"]) and for stage tables it keeps because a batch is not restored or is FAILED
+# (STAGE-KEEP). A clean run logs neither (the oracle drops its stage tables and says "verified").
 p15_oracle_batch_failed() { # log
-  grep -aEq ': FAILED \(|STAGE-RESTORE-ERROR|NOT restored' "$1"
+  grep -aEq ': FAILED \(|STAGE-RESTORE-ERROR|NOT restored|STAGE-DROP-FAILED|STAGE-KEEP' "$1"
 }
 # P17 A3/A4 + P18 B2 + P19 N5: signal a recorded harness group only if it is provably this run's. Live leader: it
 # leads its group and started no later than its pid file was written (to the millisecond); an unreadable start
@@ -70,7 +73,9 @@ p15_kill_run_harness() { # run-id...
     for f in /opt/dr-benchmark/results/"$rid"/*/harness_*.log.pid; do
       [ -f "$f" ] || continue
       pid=$(tr -dc 0-9 < "$f")
-      [ -n "$pid" ] || continue
+      if [ -z "$pid" ]; then   # P20 O6d: a pid file that exists but names no pid is not "nothing to do"
+        echo "kill-run-harness: $f is empty or holds no pid - NOT CONFIRMED" >&2; rc=1; continue
+      fi
       fm=$(stat -c %.3Y "$f" 2>/dev/null | tr -d .)
       lead=gone
       if kill -0 "$pid" 2>/dev/null; then

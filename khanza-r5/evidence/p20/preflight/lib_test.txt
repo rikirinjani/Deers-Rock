@@ -1,0 +1,33 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+PASS A4 2/100 does not stop (got no)
+PASS A4 3/100 stops (got yes)
+PASS A4 7/300 stops (2.33 %, old integer rule: 2 -> no stop) (got yes)
+PASS A4 6/300 does not stop (2.00 %) (got no)
+PASS A4 old rule on 7/300 (shows the defect) (got no)
+PASS A5 count true (2 lines per visit counted once) (got 1)
+PASS A5 count false (got 1)
+PASS A5 decide fixture 4, no real -> ok (got yes)
+PASS A5 decide fixture 1 -> fail (got no)
+PASS A5 decide fixture 10 (stop rule) -> fail (got no)
+PASS A5 decide fixture 4, real 0 -> ok (got yes)
+PASS A5 decide fixture 4, real 4 -> fail (got no)
+PASS A7 probe before grant (got 0)
+PASS A7 probe sees the grant (positive case) (got 1)
+PASS A7 old P13 probe on the same grant (shows the defect) (got 0)
+PASS A7 probe after revoke (got 0)
+PASS A6 untouched copy reproduces the pin (got yes)
+PASS A6 plant ROW_COUNT (got 1)
+PASS A6 altered copy fails the pin check (got no)
+PASS A2 leader alive before (got alive)
+PASS A2 leader killed (positive case) (got dead)
+PASS A2 non-leader pid not signalled (got alive)
+PASS A2 pid that started after its pid file (reused) not signalled (got alive)
+P15-LIB-TEST: PASS=23 FAIL=0

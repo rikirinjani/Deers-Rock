@@ -1,0 +1,3 @@
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 

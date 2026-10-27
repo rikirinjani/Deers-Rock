@@ -1,0 +1,33 @@
+PASS extracted nc_status_e, ev_of, teardown_fx, ensure_fx (got function function function function )
+## E3 nc_status_e (NC runner bytes)
+PASS E3 missing file -> ERROR (got ERROR)
+PASS E3 empty path -> ERROR (got ERROR)
+PASS E3 file without the verdict line -> ERROR (got ERROR)
+PASS E3 FAIL line -> FAIL (got FAIL)
+PASS E3 PASS line -> PASS (got PASS)
+PASS E3 PASS line of another check -> ERROR (got ERROR)
+## static: no raw switch capture left
+PASS no =${R5_NEGCTL_*:-} capture in the suite or the preservation check (got 0)
+PASS no -n test of an R5_NEGCTL switch in the preservation check (got 0)
+PASS mutation applied to the NEW copy (two sites since P17 A6: R28 and R31) (got 2)
+PASS mutation applied to the OLD copy (got 1)
+## E1 (N5): A28' with the restore reported as not verified
+A28' restore=restore-not-verified fixture hash before/after the test: 61ba0f72fb03b6a7 / 61ba0f72fb03b6a7
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: m
+A28: PASS — A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchange
+PASS E1 OLD: A28' still PASSES (the failed restore is masked: the defect) (got PASS)
+A28' restore=restore-not-verified fixture hash before/after the test: 61ba0f72fb03b6a7 / 61ba0f72fb03b6a7
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: m
+A28: FAIL — A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content is unchange
+PASS E1 NEW: A28' FAILS (got FAIL)
+PASS E1 NEW: the reported restore result is in the evidence (got 1)
+## E2 (N6): switch value 0
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2483295945:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: m
+PASS E2 OLD: 0 activates the NC arm (the defect) (got 1)
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: m
+PASS E2 NEW: 0 is inert (no NC arm) (got 0)
+PASS E2 NEW: A28' PASSES with the switch at 0 (got PASS)
+PASS baseline NEW, no switch: A28' PASSES (got PASS)
+PASS NEW: switch =1 still activates the NC arm and A28' FAILS (got FAIL)
+PASS NEW: switch =1 names the NC arm (got 1)
+P16-E-NC: PASS=20 FAIL=0

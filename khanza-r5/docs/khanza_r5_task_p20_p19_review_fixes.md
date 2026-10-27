@@ -201,4 +201,59 @@ Critical items: **R2, R3, R6, R9 must be 2** for Accept. Re-scored independently
 
 ## 7. Result and self-score
 
-*(filled after execution)*
+Executed 2026-10-27 under lock `P20-CLAUDE-20261027` (12:20:30Z to 14:39:40Z, and 14:40:42Z to 14:43:21Z for the fix-up cycle).
+Result: R5 §32. §1–§6 above are unchanged since commit `8703c18` (written before the run).
+
+**Amendments (what differed from the plan, and why).**
+1. **Frozen set = 39, as planned, but in two manifests.** `p20_chain.sh` needed a fix-up cycle (manifest b, one differing line):
+   its two helper assertions were vacuous (the chain never sourced `p15_lib.sh`). The fix sources the lib and adds the
+   always-run step `3z` with a positive control. The first full chain ran on wrapper bytes a; chain b is a `P20_SHORT` run.
+2. **C4 re-run.** The first chain's real-300 run lost a batch to a harness hang (`harness rc=-1` after the 1800 s timeout, 115 of
+   300, `FORM-INCOMPLETE`). C4 was re-run alone with the same commands (`c4_rerun.sh`, ad hoc, not frozen) on the same
+   frozen product bytes: 27/27 and 300/300. Both runs are kept.
+3. **Pre-flight.** Every file was run once on the unfrozen bytes with `sha256sum` headers, **but `P20_SHORT` skips the block that
+   held the new helper assertions**, so those lines were not pre-flighted (that is how they were vacuous). `p20_b_negctl.sh`
+   first ran with 3 FAIL (temporary tables without a database name) and was re-run (10/10) before the freeze.
+4. **Retrace.** The 15 older khanza-r5 traces (of the 300 allowed) were copied and then **removed again before any commit**: 4 of them hold network addresses of the box (caught by the pre-commit scan; record `20261027T1449Z-process-r5-p20-copied-traces-held-addresses.json`). The second run therefore still lists 44 uncovered files (P11-era evidence and records, two env-file names), so AC-7 is only partly met.
+5. **Local inventory.** The `--local` comparison used a temporary copy of the frozen script with manifest b added to its
+   list (the frozen script names only manifest a); same files, same hashes as the box inventory.
+6. **O6a.** The logging wrapper for the copies is a local shell function, not part of the frozen chain; every box command after
+   the final capture is in `copy_log.txt`.
+7. **O6c.** The stale labels are corrected in `p20_chain.sh`; `p19_chain.sh` stays frozen as history.
+
+**Claim vs transcript (AC-9).**
+
+| Claim | Transcript line | Status |
+|---|---|---|
+| lib 23/23; P15 A 9/9; P16 A 26/26, E 20/20; P17 A 37/37, B 31/31; P18 A 50/50, B 33/33; P19 A 19/19, B 28/28 | `chain/*_negctl.txt` and `a_lib_test.txt` last lines | matched |
+| P20 A 25/25; P20 B 10/10 | `chain/p20_a_negctl.txt`, `chain/p20_b_negctl.txt` | matched |
+| O1: three new patterns OLD 4 / NEW 10; three old patterns 10/10; clean 4/4; real logs none/none/match | `chain/p20_a_negctl.txt` O1 blocks | matched |
+| O2: reason text, mutant gives the other text, after-TERM `still alive (or unknown)` | `chain/p20_a_negctl.txt` O2 block | matched |
+| O6d: empty and letters-only OLD 0 / NEW 1 + message; two unchanged cases | `chain/p20_a_negctl.txt` O6d block | matched |
+| O4: AMBIGUOUS fails in both modes, exactly one each | `chain/p20_b_negctl.txt` | matched |
+| suite PASS=39; preservation PASS; unit 44/44; NC 5; line 33/33; B6 6/6 | `chain/e_suite.log`, `e_preservation.log`, `e_unit.txt`, `e_nc.log`, `line_negctl.txt`, `b6_negctl.txt` | matched (first chain, wrapper bytes a) |
+| first chain C4: harness hang at batch 2027-02-19, 115/300, FORM-INCOMPLETE | `chain/c4_driver.log`; `chain.log.txt` `c4=1 real=1 asserts-failed=2` | matched (a recorded failure) |
+| C4 re-run: fixture 27/27 (57/0), real 300/300 (698/0), P13 300/300, asserts-failed 0 | `rerun.log.txt` (`P15-LINE-IDENTITY` lines, `P13 compare`, DONE line) | matched |
+| vacuous assertions: `command not found` ×2 per run | `chain.log.txt`, `rerun.log.txt` | matched |
+| fix-up: 3z function / none / none / match; inventory 62/62, 10 manifests; asserts-failed 0 | `chain_b/chain_b.log` | matched |
+| 39/39 frozen, `lsattr` 39/39, local = box 39/39 (manifest a and b) | `chain.log.txt` step 0; `refreeze_cycle1.txt`, `refreeze_fixup1.txt`; `local_eq_box_manifest.txt`, `local_eq_box_manifest_b.txt` | matched |
+| final capture 14:43:02Z last; releases 14:39:40Z and 14:43:21Z | `chain_b/chain/live_state_final.txt`; `lock_release.txt` | matched |
+| retrace says no untraced files | `evidence/p20/retrace_trace_clean.txt` | see the file (written last) |
+
+**Rubric (self-score, not the verdict).**
+
+| # | Self | Reason |
+|---|---|---|
+| R1 | 2 | §1: every finding opened; O2's "passes without the fix" rests on the reviewer's mutant run and was then reproduced by my own mutant control |
+| R2 | 2 | O1 patterns paired one at a time with the oracle's real words and real logs; O6d paired; no path found that signals an unrelated process |
+| R3 | 2 | O2 reason text distinguished by a mutant; O4 plants in both modes; but see R5 for a vacuous assertion of my own that I then fixed with a positive control |
+| R4 | 2 | R5 §31/handoff 25 struck, erratum, P19 addenda; every sentence about a gate checked against its line; O3 corrected from the data |
+| R5 | 1 | 39 files, hashed transcripts, local = box, one fix-up cycle; **but the pre-flight did not exercise the block with the new helper assertions, which were vacuous in the frozen chain**, and there is no single full chain on the final wrapper bytes |
+| R6 | 2 | the final capture is the last box capture (chain b, 14:43:02Z); copies after it logged; the first chain's and the re-run's earlier captures kept |
+| R7 | 2 | full chain on manifest a (all green except the C4 hang), C4 re-run 27 + 300 on the same product bytes, chain b on the final wrapper |
+| R8 | 2 | 62 pins verified against the box bytes; local result equal |
+| R9 | 1 | the vacuous assertions are disclosed, not hidden, and the claim table is re-run; **but AC-7 is only partly met**: the retrace against the committed traces lists 44 uncovered files (P11-era evidence and records, two gitignored env-file names), because the 15 older traces that would cover part of them hold network addresses and were not committed; scored 1 because R9 is the item the plan makes critical for exactly this |
+| R10 | 2 | three failure records with `date -u` stamps, every iteration listed, QMS P20 and the P19 amendment |
+| R11 | 2 | limits carried forward and new ones stated (wrapper bytes a vs b; pre-flight skip; hang cause unknown) |
+| R12 | 2 | the owner's decisions followed (O6d kept; the traces copied as instructed, then withdrawn for a reason that is reported, not hidden) |
+| **Total** | **22/24** | R5 = 1 and R9 = 1; R9 is a critical item, so **by the plan's own rule P20 does not Accept** on my own scoring. **Not the verdict:** my scores were 6, 7, 3 and 3 over the independent reviews. Re-score independently before Astra v13. |

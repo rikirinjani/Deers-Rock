@@ -1,0 +1,57 @@
+scratch sik_p14n verified: billing=450 ledger=97 src_proc=34 src_drug=25
+## unplanted (new comparator, expect mode, 27 visits)
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14n", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14n", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-27 13:05:24.082241", "unit_keys_checked": 57, "unit_keys_unchecked": 0, "verdicts": {"DIFFER": 12, "EQUAL": 12, "EQUAL-SRC": 3}}
+PASS unplanted exit (got 0)
+PASS unplanted summary records the full run start (P16 B1) (got 2026-10-27 13:05:24.082241)
+## plants
+PASS plant C2 ROW_COUNT (got 1)
+PASS plant B1a ROW_COUNT (got 1)
+PASS plant B1b ROW_COUNT (got 1)
+PASS plant B3 ROW_COUNT (got 1)
+PASS plant B5a ROW_COUNT (got 1)
+PASS plant B5b ROW_COUNT (got 1)
+PASS plant B5c ROW_COUNT (got 1)
+PASS plant B5d ROW_COUNT (got 1)
+## planted: new comparator
+ENC 2027/12/31/900001 E1 verdict=DIFFER delta={"drug": "100", "tax": "11"} A=55001 B=55001 C=54890 freshB=1/1 expected={"drug": "100", "tax": "11"} outcome=MISMATCH form_model=DIFF ledger_model=MATCH
+ENC 2027/12/31/900007 E3 verdict=EQUAL delta={} A=30000 B=29999 C=30000 freshB=1/1 expected={} outcome=MISMATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900009 E3 verdict=DIFFER delta={} A=95000 B=95000 C=95000 freshB=1/1 expected={} outcome=MISMATCH form_model=MATCH ledger_model=DIFF
+ENC 2027/12/31/900011 E4 verdict=EQUAL delta={} A=32821 B=32821 C=32821 freshB=1/2 expected={} outcome=MISMATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900012 E4 verdict=EQUAL delta={} A=41590 B=41590 C=41590 freshB=1/1 expected={} outcome=MISMATCH form_model=MATCH ledger_model=MATCH
+ENC 2027/12/31/900026 E8 verdict=DIFFER delta={} A=144890 B=144890 C=144890 freshB=1/1 expected={} outcome=MISMATCH form_model=MATCH ledger_model=DIFF
+P15-LINE-IDENTITY: {"b_eq_a": 26, "db": "sik_p14n", "encounters": 27, "fail": 7, "fresh_b_ok": 24, "ledger": "sik_p14n", "line_differ": 27, "lines": 106, "mode": "expect", "pass": 20, "since": "2026-10-27 13:05:24.082241", "unit_keys_checked": 57, "unit_keys_unchecked": 0, "verdicts": {"DIFFER": 14, "EQUAL": 11, "EQUAL-SRC": 2}}
+PASS planted new exit (got 1)
+PASS C2 new verdict (same-name same-price wrong code) (got DIFFER)
+PASS C2 new outcome (got MISMATCH)
+PASS B1a payment -1 (got MISMATCH)
+PASS B1b qty/unit, same amount (form_model) (got MISMATCH)
+PASS B3 registration qty (got MISMATCH)
+PASS B5a extra INSERT by another account (got MISMATCH)
+PASS B5b fresh row before run start (got MISMATCH)
+PASS B5c pre-run INSERT by benchmark@ (exactly one in total) (got MISMATCH)
+PASS B5d fresh row exactly at the run start is accepted (got MATCH)
+PASS no unplanted encounter fails (got 0)
+## planted: OLD p14_line_identity.py on the same scratch (C2 hole)
+ENC 2027/12/31/900026 E8 verdict=EQUAL-CTX delta={} A=144890 B=144890 C=144890 freshB=1/1 expected={} outcome=MATCH form_model=DIFF ledger_model=DIFF
+PASS C2 old verdict (ledger-conditioned) (got EQUAL-CTX)
+PASS C2 old outcome (the hole: wrong code passes) (got MATCH)
+## B5c on the OLD p15 comparator (the hole: a stale pre-run INSERT is ignored)
+PASS B5c OLD p15 comparator accepts the pre-run INSERT (the hole) (got MATCH)
+## B4 / B2 input errors
+PASS B4 empty list exit (got 2)
+PASS B4 duplicate list exit (got 2)
+PASS plant B4c ROW_COUNT (got 1)
+PASS B4 NULL numeric exit (got 2)
+PASS plant B3n ROW_COUNT (got 1)
+PASS B3 NULL payment exit (p15 comparator) (got 2)
+PASS B3 NULL payment exit (p13 comparator) (got 2)
+PASS plant B2 ROW_COUNT (got 1)
+PASS B2 duplicate ledger key exit (got 2)
+P15-LINE-IDENTITY INPUT-ERROR: empty visit list
+P15-LINE-IDENTITY INPUT-ERROR: duplicate visits in list (3 listed, 2 unique)
+P15-LINE-IDENTITY INPUT-ERROR: NULL/empty numeric in billing 2027/12/31/900022 AB-Vask 10mg (Otsus) (OBAT NON ORAL)
+P15-LINE-IDENTITY INPUT-ERROR: duplicate ledger key 2027/12/31/900023 ('registration', 'REG')
+P15-LINE-IDENTITY INPUT-ERROR: NULL payment column in detail_nota_jalan for 2027/12/31/900024
+INPUT-ERROR: --since is required for fresh-B (or pass --no-fresh-b)
+P15-LINE-NC: PASS=33 FAIL=0
+teardown: sik_p14n dropped

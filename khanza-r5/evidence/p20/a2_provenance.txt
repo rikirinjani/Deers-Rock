@@ -1,0 +1,19 @@
+== [cmd] ls -l --time-style=full-iso /opt/dr-benchmark/p19/preflight/ | head
+-rw-r--r-- 1 root root  89333 2026-10-27 08:38:32.090435666 +0000 a2_live_equal.csv
+-rw-r--r-- 1 root root 113784 2026-10-27 08:38:32.093435680 +0000 a2_live_equal_encounters.json
+-rw-r--r-- 1 root root    295 2026-10-27 08:38:32.093435680 +0000 a2_live_equal_summary.json
+-rw-r--r-- 1 root root  24074 2026-10-27 08:38:32.094435684 +0000 a2_live_equal.txt
+-rw-r--r-- 1 root root  17054 2026-10-27 08:38:31.104431124 +0000 p15_line_identity.py
+-rw-r--r-- 1 root root      5 2026-10-27 08:58:24.568121668 +0000 pre1.done
+-rw-r--r-- 1 root root     94 2026-10-27 08:58:24.568121668 +0000 pre1_summary.txt
+-rw-r--r-- 1 root root      5 2026-10-27 09:02:48.068733634 +0000 pre2.done
+-rw-r--r-- 1 root root     91 2026-10-27 09:02:36.687707689 +0000 pre2_summary.txt
+== [cmd] sha256sum A2 scratch comparator and frozen comparator
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  /opt/dr-benchmark/p19/preflight/p15_line_identity.py
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  /opt/Deers-Rock/tools/p15_line_identity.py
+== [cmd] unfreeze transcript time: 2026-10-27T08:42:32Z (evidence/p19/unfreeze_cycle1.txt)
+== [cmd] clean P19 oracle logs
+-rw-r--r-- 1 root root 5045 2026-10-27 09:13:37.354673257 +0000 oracle_20261027T091213Z.log
+-rw-r--r-- 1 root root 5414 2026-10-27 09:21:24.724687894 +0000 oracle_20261027T091807Z.log
+-rw-r--r-- 1 root root 1774 2026-10-27 09:24:33.357563068 +0000 oracle_20261027T092146Z.log
+-rw-r--r-- 1 root root 76204 2026-10-27 09:51:02.673637030 +0000 oracle_20261027T092146Z.log

@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T14:44:27Z",
+  "category": "test",
+  "severity": "major",
+  "title": "Two controls could not fail for the reason they named: the P19 N5b arm (O2), and, in P20 itself, two assertions of p20_chain.sh that read 'command not found' as 'none'",
+  "what_went_wrong": [
+    "O2: the P19 N5b NEW arm dropped stderr and asserted rc 1 and the child alive. With the ga = 2 branch deleted the dead-leader branch reaches p15_group_is_harness, which also needs ps, finds no member and returns 1 with a different message; the pair therefore passed without the fix.",
+    "P20: p20_chain.sh step 3b' asserted that p15_oracle_batch_failed finds no failed batch in the chain's own C4 oracle logs. The chain never sourced p15_lib.sh, so the function was undefined: 'p20_chain.sh: line 73: p15_oracle_batch_failed: command not found' (twice per run, in the first chain and in the rerun), and `f && echo match || echo none` printed 'none' both times. The first chain's real-300 log actually contained a FAILED batch and STAGE-KEEP (a harness hang, see the next record), so the assertion printed 'none' on a log that should have matched: it was vacuous. I found it by reading the log of the failed run against the assertion that passed.",
+    "The P20 pre-flight ran the chain in P20_SHORT mode, which skips the C4 block, so the new assertions inside that block were not exercised before the freeze; the rule 'every file is run once' was met for the file, not for the new lines in it."
+  ],
+  "root_cause": "An assertion that wraps a command in `&& echo match || echo none` turns an undefined command into a valid answer; and the pre-flight mode skipped exactly the block that held the new lines.",
+  "detection": "The executor, reading the first chain's log: a PASS on a log that contained both patterns; confirmed by grep for 'command not found' (2 per run).",
+  "impact": "No false pass reached a claim: R5 section 32 relies on the p20_a_negctl.sh application of the helper to real logs (clean: none; failed: match; both from a shell that sources the lib) and on the fix-up chain below. The two vacuous assertions are kept in the first chain's log.",
+  "correction": {
+    "applied": "Fix-up cycle 1 (manifest b, only p20_chain.sh changed): the chain sources p15_lib.sh; a new always-run step 3z asserts that the helper is a shell function, that the newest clean fixture and real C4 oracle logs give none, and (positive control) that the failed real-300 log of the first chain gives match; the P20_SHORT pre-flight now runs 3z. O2: p20_a_negctl.sh keeps stderr, asserts the reason text and uses a mutant lib to show that the text tells the fix from its absence.",
+    "result": "evidence/p20/chain_b/chain_b.log (3z: function, none, none, match); evidence/p20/chain/p20_a_negctl.txt (O2 block)"
+  },
+  "rule": "An assertion of 'no match' always has a positive control in the same run, and asserts that the command exists (type -t); a pre-flight mode must execute every block that holds new lines, or the new lines are listed as not pre-flighted.",
+  "agent": "claude (P20 executor)",
+  "status": "closed"
+}

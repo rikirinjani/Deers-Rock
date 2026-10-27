@@ -1808,8 +1808,8 @@ equal-mode unit gate (stop and ask if the live discovery disagrees); the ssh ali
 **Discovery (A2, read-only, before any freeze).** `evidence/p19/a2_live_equal.txt`: the patched but unfrozen comparator in
 equal mode on the real 300 against live `sik` (`--no-fresh-b`): `unit_src` **MATCH 300/300**, `unit_keys_checked` **698**,
 `unit_keys_unchecked` **0**, verdicts EQUAL 181 / EQUAL-SRC 119. The decision rule (fixed in the task doc before the run)
-was met, so the gate became a hard condition. (`pass` was False for all 300 on live because the payment sum differs
-there; not investigated, not the unit gate.)
+was met, so the gate became a hard condition. (`pass` was False for all 300 on live ~~because the payment sum differs
+there; not investigated, not the unit gate~~ *[P20 O3: because live has no payment row for these visits, `B` empty and `B_rows` 0 for all 300; `evidence/p20/erratum_p19.md`]*.)
 
 **Fixes (three frozen files changed, four tools added; one freeze cycle, no fix-up; 35 files frozen).**
 
@@ -1879,3 +1879,94 @@ manifest names differ because the box copies are named `p11_frozen_…` etc.).
 
 **Self-score** is in the task doc §7 and is **not** the verdict: the scores were 6 (P15), 7 (P17) and 3 (P18) points above
 the independent reviews. An independent re-score of P19 comes before Astra v13.
+
+
+## 32. P20: independent P19 review (20/24 vs 23/24), fixes O1-O6, sentences checked against code, state proven last (2026-10-27, new)
+
+**Source.** The independent local review of P19 (`docs/khanza_r5_p19_review.md`): **20/24** against the executor's
+**23/24**; R4, R9 and R12 at 1, so the Accept rule failed on R9. The reviewer's verdict: the bytes are fit for Astra v13, the
+documents are not yet. All findings (O1-O6) were opened in the source before any change (task doc
+`docs/khanza_r5_task_p20_p19_review_fixes.md` §1, committed `8703c18` before the run). Executed under lock
+`P20-CLAUDE-20261027`: **12:20:30Z to 14:39:40Z**, and again **14:40:42Z to 14:43:21Z** for the fix-up cycle below (free
+before, between and after: `evidence/p20/lock_free_and_lsattr_before.txt`, `lock_release.txt`, `fixup1_lock_unfreeze.txt`).
+Owner decisions at the go-ahead: copy the older khanza-r5 traces if at most 300 (there were 15; I copied them and then **removed them again**: 4 of the 15 hold network addresses of the box, which the pre-commit scan caught; none was committed, record `20261027T1449Z-process-r5-p20-copied-traces-held-addresses.json`); keep O6d in (done).
+
+**Fixes (one changed frozen file, four tools added; 39 files frozen; one fix-up cycle).**
+
+| ID | Change | Control | Paired? | Evidence |
+|---|---|---|---|---|
+| O1 | `p15_lib.sh`: `p15_oracle_batch_failed` also matches `STAGE-DROP-FAILED` and `STAGE-KEEP` (the oracle's own words for a stage drop it could not verify and for stage tables it keeps; both make it exit 4) | `oracle_run` extracted from the driver and run with the oracle shadowed, **one canned log per pattern** (the P19 control put all three in one log): the three P19 patterns give 10 in OLD lib and NEW lib; the three new ones (`STAGE-DROP-FAILED`, `STAGE-KEEP … not verifiably restored`, `STAGE-KEEP … held for --retry-failed`) give **4 with OLD (the defect) and 10 with NEW**; a clean log gives 4. The helper on **real** oracle logs: the two clean C4 logs of the P19 chain give none, the P19 chain's B4 log (a FAILED batch and `STAGE-KEEP`) gives match | **yes** | `chain/p20_a_negctl.txt` |
+| O2 | `p20_a_negctl.sh` | N5b NEW keeps stderr and asserts rc 1, child alive and the text `ps failed while looking for group`; a **mutant** of the NEW lib (the `ga = 2` block deleted by `sed`, checked to differ) gives rc 1 with the *other* text (`no member looks like this run's harness`), so the text tells the fix from its absence; a `ps` that fails only after the TERM gives rc 1 and `still alive (or unknown) after KILL` | **yes** (mutant); the after-TERM case is new coverage | same |
+| O6d | `p15_lib.sh`: a `.pid` file that exists but holds no pid is NOT CONFIRMED (rc 1, message) instead of a silent skip | empty and letters-only pid files: OLD rc 0, NEW rc 1 and the message; a pid that names no process and no group, and a missing pid file: rc 0 in both | **yes** | same |
+| O4 | `p20_b_negctl.sh` | an AMBIGUOUS encounter (a duplicate `jns_perawatan` row with the same name and a source row under the new code, ROW_COUNT 1 and 1): verdict AMBIGUOUS, outcome MISMATCH in expect mode and `pass` False in equal mode, not counted as unchecked (the stated exclusion), exactly one encounter fails in each mode | **same bytes, new coverage** (no OLD arm) | `chain/p20_b_negctl.txt` |
+| O6a | the evidence copies after the final capture are logged with their time | n/a | n/a | `evidence/p20/copy_log.txt` |
+
+OLD bytes: `.bak_p20_20261027/p15_lib.sh` (the P19 lib, byte-equal to git `9d91d80`: `evidence/p20/bak_equals_git.txt`).
+**Pre-flight:** every file was run once on the unfrozen bytes, each transcript starting with `sha256sum` lines that equal
+the frozen hashes (`evidence/p20/preflight/pre_hashes.txt`, `r5_p20_frozen_manifest_20261027.sha256`): `p15_lib_test.sh`,
+`p20_a_negctl.sh` (25/25), the history controls, `p20_chain.sh` with `P20_SHORT=1`, the inventory's success path
+(62 files on a temporary manifest), `p20_b_negctl.sh` (first run: 3 FAIL, a script fault of mine: temporary tables created
+without a database name; second run 10/10), `p19_b`, `p18_b`, `p17_b`, the line controls.
+
+**First chain on the 39 frozen files (manifest a) and what went wrong in it** (`evidence/p20/chain.log.txt`, `chain/`):
+lib 23/23; P15 A 9/9; P16 A 26/26, E 20/20; P17 A 37/37, B 31/31; P18 A 50/50, B 33/33; P19 A 19/19, B 28/28; **P20 A
+25/25, B 10/10**; line controls 33/33; B6 6/6; suite **PASS=39**; preservation PASS; unit **44/44**; NC **DISCRIMINATING=5**.
+Two things failed: (1) **the C4 real-300 run lost a batch to a harness hang** (`[timeout 1800s] … date 2027-02-19:
+FAILED (harness rc=-1)`, 115 of 300 billed, the A13 gate printed `FORM-INCOMPLETE`, `P15E FAILED`; the oracle's timeout,
+writer-dead proof and hash-verified stage restore worked; cause not established; record
+`20261027T1444Z-test-r5-p20-first-chain-harness-hang.json`); (2) **two assertions of my own new `p20_chain.sh` were
+vacuous**: the chain did not source `p15_lib.sh`, so `p15_oracle_batch_failed` was "command not found" and read as "none"
+(`chain.log.txt` has the two `command not found` lines); on the failed real-300 log, which contained a FAILED batch and
+`STAGE-KEEP`, the assertion printed `none`. I found it by reading that log against the assertion that had passed.
+
+**Re-run of C4 alone** (`evidence/p20/rerun.log.txt`, `rerun/chain/`, the same commands as steps 3–3c, 3g, 4e and 5 of the
+frozen chain, in an ad hoc script `c4_rerun.sh`, 14:09:35Z–14:39:03Z): fixture **27/27** (DIFFER 12 / EQUAL 12 / EQUAL-SRC 3,
+`unit_keys_checked` 57, unchecked 0); real **300/300** (EQUAL 181 / EQUAL-SRC 119, 1,240 comparison entries, fresh-B 300,
+`unit_keys_checked` 698, unchecked 0, every `unit_src` MATCH; real run 1,565 s); P13 comparator 300/300; asserts-failed 0.
+
+**Fix-up cycle 1 (manifest b; only `p20_chain.sh` changed)**: the chain sources the lib; a new always-run step `3z` asserts
+that the helper is a shell function, that the newest clean fixture and real C4 oracle logs give none, and (positive control)
+that the failed real-300 log of the first chain gives **match**. Pre-flight of the new chain (`preflight/fixup1_chain_short.txt`),
+unfreeze/re-freeze transcripts (`fixup1_lock_unfreeze.txt`, `refreeze_fixup1.txt`), `sha256sum -c` 39/39, `lsattr` 39/39, local =
+box 39/39 for manifest b (`local_eq_box_manifest_b.txt`; the two manifests differ in exactly one line, `p20_chain.sh`).
+**Chain b** (`P20_SHORT=1`, `evidence/p20/chain_b/chain_b.log`): lib 23/23, P20 A 25/25, `3z` four ASSERT PASS (function; none; none;
+match), inventory on the box **62 files, 62 ok, 0 not_ok, 10 manifests**, the 11 P14-only tools 11/11; `asserts-failed=0`.
+
+**Final live-state proof (the last box capture, chain b step 5, 14:43:02Z, `chain_b/chain/live_state_final.txt`).** `sik sik_bench`,
+`database.xml` → `sik`, 0 writer markers, no clone grants, ledger `356355:a66a3a546cc322…` (pin), 0 fixture rows in live,
+`performance_schema` consumers restored (`events_statements_history_long=NO`), 0 harness processes, 39/39 frozen. After it the box
+was touched only by read-only copies (each logged with its time in `copy_log.txt`) and the lock release (`RUNLOCK-FREE`,
+14:43:21Z). The first chain's own final capture (14:09:20Z) and the C4 re-run's (14:39:03Z) are earlier and kept.
+
+**Corrections to earlier sections (struck, not edited).** §31: the cause of `pass` False on live (O3: there is no payment row
+on live for these visits, `B` empty and `B_rows` 0 for all 300). Handoff item 25 (O1). P19 task doc: AC-7 "partly", amendment 9
+(the AMBIGUOUS/UNMAPPED exclusion, O4). `evidence/p20/erratum_p19.md` collects the rest (when the A2 discovery ran, the
+`ps` command behind the "processes 0" line, the origin of `local_eq_box_manifest.txt`).
+
+**Records.** QMS `VER-2026-10-27-DR-KHANZA-R5-P20-001` and an amendment note on the P19 record; three failure records stamped
+with `date -u` at write time (`20261027T1444Z`–`T1446Z`); traces `r5-p20-*`; the retrace
+(`evidence/p20/retrace_trace_clean.txt`: the self-harness run, and the run against the committed `records/traces/`, which
+still leaves **44 files uncovered**: P11-era evidence and records of 2026-10-18/20, the names of two gitignored env files and older
+R5-wave files; the tool prints at most 15 names per directory. The 15 older traces that would cover part of them were not
+committed (addresses, see the record above). AC-7 of P19 and P20 is therefore **partly** met: the repository alone does not
+reproduce the first run); `evidence/release_inventory.json` is the box
+output of chain b (62 files, 10 manifests), the `--local` result is `evidence/p20/release_inventory_local.json` (made with a
+temporary copy of the script that adds manifest b to its `--local` list, because the frozen script names only manifest a;
+same files, same pinned and on-disk hashes).
+
+**Stated limits, carried forward.**
+- The first chain is on wrapper bytes a (`p20_chain.sh` `cb1545da…`); chain b is a `P20_SHORT` run on wrapper bytes b
+  (`6975b522…`). Everything the wrapper runs is unchanged between the manifests (one differing line), but there is no single
+  full chain on manifest b; the full chain's C4 is the ad hoc re-run.
+- The new assertions of the first chain were not exercised by its pre-flight (`P20_SHORT` skips their block): that is how
+  they were vacuous (record `…T1445Z-test-…`).
+- The O1 patterns are covered by canned logs of the oracle's own words and by real logs, not by a live stage-drop failure.
+- A8's failing branch; the P13 driver's EXIT-trap restore; B4 has no OLD arm; the B1 comparison against the source row's
+  own unit price; the command-line identity of a dead leader's group.
+- The cause of the harness hang in the first chain is not established.
+- Unchanged: V6, V13, X2, A11, the clean-box rebuild and third home (the box ends ~2026-11-20), the P14 ledger scope gaps, the
+  P13 original summaries, the P14 lock release unevidenced, the advisory lock, external validity; who dropped the P17 T0 clone;
+  `.bak_p17fix1` never hashed; the lost P16 retrace.
+
+**Self-score** is in the task doc §7 and is **not** the verdict: the scores were 6, 7, 3 and 3 points above the independent
+reviews. An independent re-score of P20 comes before Astra v13.

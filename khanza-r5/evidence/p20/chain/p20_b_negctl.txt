@@ -1,0 +1,18 @@
+scratch sik_p14n verified: billing=450 ledger=97 src_proc=34 src_drug=25
+## clean scratch: both modes accept
+PASS clean expect mode exit (got 0)
+PASS clean equal mode exit (got 0)
+## O4 an AMBIGUOUS encounter: a duplicate jns_perawatan row (same name, new code) and a source row under the new code
+O4 encounter: 2027/12/31/900007, procedure code A001
+PASS O4 an encounter with a procedure source row selected (got yes)
+PASS plant O4-master ROW_COUNT (got 1)
+PASS plant O4-source ROW_COUNT (got 1)
+expect: verdict=AMBIGUOUS outcome=MISMATCH unit_src=MATCH unchecked=0
+equal : verdict=AMBIGUOUS pass=False unit_src=MATCH unchecked=0
+PASS O4 expect mode: verdict AMBIGUOUS, outcome MISMATCH (got AMBIGUOUS/MISMATCH)
+PASS O4 equal mode: verdict AMBIGUOUS, pass False (got AMBIGUOUS/False)
+PASS O4 the AMBIGUOUS key is not counted as unchecked (the stated exclusion) in either mode (got 0/0)
+PASS O4 exactly this encounter fails in each mode (got 1/1)
+PASS O4 exit codes expect/equal (got 1/1)
+P20-B-NC: PASS=10 FAIL=0
+teardown: sik_p14n dropped

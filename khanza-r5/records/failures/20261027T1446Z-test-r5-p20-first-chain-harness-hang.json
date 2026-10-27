@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-10-27T14:44:27Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P20 first chain: the real-300 run lost a batch to a harness hang (timeout 1800 s, harness rc=-1); FORM-INCOMPLETE stopped the driver; C4 was re-run alone",
+  "what_went_wrong": [
+    "evidence/p20/chain/c4_driver.log: oracle[real] real run exit=4 elapsed=2417s; the oracle log shows 'stage-content-hash ... batch 2027-02-19' at 13:17:29, then '[timeout 1800s] WRITER-DEAD-PROOF pgid=588053 group_empty=true' and 'date 2027-02-19: FAILED (harness rc=-1) - pre-reset state restored (hash-verified), run stops (P5-2)'. The remaining batches stayed pending. form[real]: sukses=true 115, sukses=false 0 (of 300).",
+    "The driver printed FORM-INCOMPLETE[real] (the A13 gate of P17), 'P15E FAILED fixture_rc=4 real_rc=10', exit 1; the real comparator then reported 115/300 (fresh-B ok 115); asserts-failed=2 (p13 positive exit, real compare exit). Everything else in the chain was 0: lib, P15-P20 controls, p17/p18/p19/p20 B, line controls, B6, suite 39/39, preservation, unit 44/44, NC 5.",
+    "Cause of the hang: not established. A Java GUI harness under Xvfb stuck on one batch (the system load during that run was not recorded; nothing else of mine ran on the box at the time); the previous C4 runs (P18, P19, and the P20 rerun) took about 1,566 s for the 300 visits. The oracle's timeout, kill and writer-dead proof worked as designed (xml and grants restored, stage restored hash-verified, clone kept)."
+  ],
+  "root_cause": "An environmental flake of the GUI harness, not a product defect: the gates (timeout, WRITER-DEAD-PROOF, hash-verified stage restore, FORM-INCOMPLETE) did their job. It is nevertheless a reminder that the 300-visit run is not deterministic in wall time.",
+  "detection": "Chain step 3 output; the A13/FORM-INCOMPLETE gate.",
+  "impact": "One extra run (about 30 minutes) and the first chain's C4 evidence is a recorded failure; the C4 rerun (same commands as steps 3-3c, 3g, 4e, 5 of the frozen chain, in an ad hoc script, evidence/p20/rerun.log.txt) passed: fixture 27/27, real 300/300, asserts-failed 0.",
+  "correction": {
+    "applied": "C4 re-run alone on the same frozen bytes; both runs kept in the evidence; stated in R5 section 32.",
+    "result": "evidence/p20/chain.log.txt, evidence/p20/rerun.log.txt"
+  },
+  "rule": "A run that is stopped by a safety gate is a result, kept and reported; the re-run uses the same commands and is labelled as a re-run, and the final live-state proof is taken after it.",
+  "agent": "claude (P20 executor)",
+  "status": "closed"
+}

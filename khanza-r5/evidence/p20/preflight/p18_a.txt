@@ -1,0 +1,96 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+PASS precondition: database.xml on sik (got sik )
+## A12 (M10) the clone message: P16 printed a row count as the table count, P17/P18 the table count (the text is asserted)
+old (P16): clone matches sik: tables=1100-equal, 6 key tables row-equal
+new: clone matches sik: tables=1179 (= sik), 6 key tables row-equal
+PASS A12 OLD-P16 prints a tables= figure that is not the real count (1179) (the defect) (got 1/0)
+PASS A12 NEW prints tables=1179 (= sik) (got 1)
+## B1 the A30 snapshot step of the suite: p10_hash_state.py fails
+PASS B1 the A30 step is extracted from both suites (got yes)
+old (hash step exits 1): RCH=0 pre.run=yes preop.run=yes
+new (hash step exits 1): RCH=1 pre.run=no preop.run=yes
+PASS B1 OLD: a failing hash step is recorded as exit 0 and its sidecar is written (the defect) (got RCH=0 pre.run=yes preop.run=yes)
+PASS B1 NEW: the failing exit is recorded and that sidecar is not written (got RCH=1 pre.run=no preop.run=yes)
+PASS B1 OLD: a succeeding hash step (got RCH=0 pre.run=yes preop.run=yes)
+PASS B1 NEW: a succeeding hash step (got RCH=0 pre.run=yes preop.run=yes)
+## B2 p15_kill_run_harness
+# B2a the recorded leader is gone, a harness child (BilingHarness in its command line) is alive
+PASS B2a precondition: the leader is gone and the child lives (got dead/alive)
+PASS B2a OLD returns 0 with the harness child still alive (the defect) (got 0/alive)
+PASS B2a NEW signals the group, kills and confirms (return code, child dead) (got 0/dead)
+# B2b a live leader whose start time is unreadable
+PASS B2b OLD returns 0 and does not signal (the defect: success without confirmation) (got 0/alive)
+p18_a_negctl.sh: line 65: 555812 Killed                  setsid bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1
+PASS B2b NEW returns 1 (not confirmed) and does not signal an unverifiable leader (got 1/alive)
+p18_a_negctl.sh: line 65: 555834 Killed                  setsid bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1
+# B2c the leader is gone and the live group is not the harness
+PASS B2c OLD returns 0, child alive (nothing to see: it skips a dead leader) (got 0/alive)
+PASS B2c NEW returns 1 and signals nothing (no member looks like the harness) (got 1/alive)
+PASS B2c NEW: a recorded pid with no process and no group is a no-op (return 0) (got 0)
+# B2d group liveness of a setpgid group inside a larger session (ps -g selects by session id)
+PASS B2d OLD p15_group_alive misses a live setpgid group (the defect) (got notalive)
+PASS B2d NEW p15_group_alive sees it (got alive)
+## B3 the tail of p13_wide_sample.sh (from the harness-log counts to the result copy)
+PASS B3 the tails are extracted from both drivers (got yes)
+restore fails, form complete: old: rc=0 reached=yes  new: rc=3 reached=no
+PASS B3 OLD goes on although database.xml was not restored (the defect) (got rc=0 reached=yes)
+PASS B3 NEW exits 3 and does not go on (got rc=3 reached=no)
+no sukses lines at all: old: rc=0 reached=yes  new: rc=1 reached=no
+PASS B3 OLD goes on with 0 of 3 visits confirmed (the defect, A13 class) (got rc=0 reached=yes)
+PASS B3 NEW stops (FORM-INCOMPLETE, exit 1) (got rc=1 reached=no)
+stop rule (1 of 3 false): old: rc=1 reached=no  new: rc=1 reached=no
+PASS B3 stop rule: OLD exits 1 (got rc=1 reached=no)
+PASS B3 stop rule: NEW exits 1 (got rc=1 reached=no)
+PASS B3 clean case: OLD reaches the copy (got rc=0 reached=yes)
+PASS B3 clean case: NEW reaches the copy (got rc=0 reached=yes)
+## B5 A6/A6b: the restore clause of A28' and A31' alone (predicate extracted, hashes and checksums held equal)
+PASS B5 the A28' predicate is extracted from the P15, P16 and current suites (got 1 1 1 )
+PASS B5 A6c OLD-P15: A28' passes with R28=restore-not-verified, hashes equal (no restore clause) (got 0)
+PASS B5 A6c NEW: A28' fails on the restore clause alone (got 1)
+PASS B5 A6c NEW: A28' passes with R28=restored (the clause is the only difference) (got 0)
+PASS B5 A6 OLD-P16: A31' passes with R31=restore-not-verified, hashes equal (no restore clause) (got 0)
+PASS B5 A6 NEW: A31' fails on the restore clause alone (got 1)
+PASS B5 A6 NEW: A31' passes with R31=restored (got 0)
+## B5/B6 the same through the real suites (P11_ONLY=31): a restore failure, then the drift hook's own log line
+A31' mode=stage stage=61ba0f72fb03b6a7 stored=61ba0f72fb03b6a7 live=61ba0f72fb03b6a7 (drift injected between copy and ha
+A31: PASS — A31' with a live drift injected between the stage copy and the hashing (both arms), the stored pre-reset h
+PASS B5 A6 through the suite: OLD-P16 A31' passes although the restore failed (the defect) (got PASS)
+A31' restore=restore-not-verified
+A31' mode=stage stage=61ba0f72fb03b6a7 stored=61ba0f72fb03b6a7 live=61ba0f72fb03b6a7 (drift injected between copy and ha
+A31: FAIL — A31' with a live drift injected between the stage copy and the hashing (both arms), the stored pre-reset h
+A31' restore=restore-not-verified
+PASS B5 A6 through the suite: NEW A31' fails (got FAIL)
+PASS B5 the restore failure was injected in both runs: OLD-P16's oracle log carries the FAULT line (its A31' ignores the result), NEW's evidence carries restore=restore-not-verified (got 1/1)
+stage-hash FAULT: ALL 17 billing rows of 2026/10/01/800085 drifted by +1 between copy and hash (test-only)
+PASS B6 A8: the drift hook logged that ALL billing rows of the visit were drifted (its own line) (got 1)
+PASS B6 A8: the hook did not log a failure (got 0)
+PASS B6 A8: the clean run of A31' passes (got PASS)
+## B4 (M7) a full driver run in which ONE visit's save really fails: the stop rule fires (driver bytes unchanged since P17: no OLD arm)
+PASS B4 a fixture visit selected (got yes)
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261027T123701Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 12:38:20.517551
+oracle[fixture]: real run exit=4 elapsed=120s
+form[fixture]: distinct visits sukses=true 26, sukses=false 1 (of 27); rate 13.50 visits/min
+STOP RULE[fixture]: 1/27 sukses=false (>2 %)
+P15E FAILED fixture_rc=10 real_rc=n/a (clone kept for inspection)
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+PASS B4 the injected trigger exists in the clone (got 1)
+PASS B4 exactly one visit logged sukses=false (a real form failure) (got 1)
+PASS B4 the STOP RULE line (not FORM-INCOMPLETE) (got 1/0)
+PASS B4 the driver exits 1 (got 1)
+PASS B4 database.xml back on sik (got sik )
+PASS B4 no grant left on the clone (got 0)
+PASS B4 the clone is kept for inspection (got sik_p14e)
+PASS B4 clone dropped by p14_drop_clone.sh (got 0)
+PASS database.xml on sik at the end (got sik )
+P18-A-NC: PASS=50 FAIL=0

@@ -1,0 +1,33 @@
+## 1. Failing suite run (P10_INJECT=1, P9_FORCE_FAIL_CHECK=30); suite evidence: r5_p6_acceptance_20261027T135715Z.md
+A0: PASS — fixture: 5 STRATA- reg rows present (date-resolved, P6-2a precondition)
+P10 injection: oracle exit=4 batches=2026-10-01=FAILED,2026-10-06=PENDING stage tables=13 protected visits=20 pre-hash exit=0 pre-op-snapshot exit=0
+A30: FAIL — A30 injected real harness failure: batch 1 FAILED, batch 2 PENDING, populated stage tables held, independent pre-hashes AND pre-operation snapshot recorded [FORCED FAIL by P9_FORCE_FAIL_CHECK]
+A13: PASS — live sik_bench ledger + live sik output tables (billing, nota_jalan, detail_nota_jalan, piutang, reg_periksa) untouched; both database.xml copies on sik
+PASS=2 FAIL=1 — a PASS covers only the property in its row, on fixture sik_p6f.
+- PASS: fixture kept with populated r6_p10 stage tables
+SNAPSHOT-BINDING suite start 20261027T135715Z; pre-op and post-failure snapshots written by this run
+- PASS: independent hashes: sample equal to the pre-operation snapshot (a); stage tables preserved (b); protected + live unchanged (c); stage tables populated
+## 3. Retry of the FAILED batch on the kept fixture (writer exclusion)
+perturbation: counted 17 billing rows of 2026/10/01/800085 before; the UPDATE changed 17 rows (+1 each)
+- PASS: perturbation row count asserted: the UPDATE changed exactly the number of rows counted before it (17)
+[13:57:34] FENCE (P9-B4) sik_p6f: sessions_killed=0 remaining=0
+[13:57:39] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=1 killed=none harness_writers=0 fence_sessions_killed=0 quiet=true
+[13:57:39] date 2026-10-01: RETRY: current state is not the pre-reset state (current=2c12d11eb43b41b3... pre-reset=0affc182a74588c4...); restoring from the kept stage tables first
+[13:57:39] FENCE (P9-B4) sik_p6f: sessions_killed=0 remaining=0
+[13:57:39] WRITER-EXCLUSION on (P10-B4) sik_p6f: revoked=['DELETE', 'INSERT', 'UPDATE'] fence_ok=True sessions_killed=0
+[13:57:40] stage-restore 1 visits STAGE-RESTORED-VERIFIED (content hash matches pre-reset)
+[13:57:40] WRITER-EXCLUSION off (P10-B4) sik_p6f: restored=['DELETE', 'INSERT', 'UPDATE']
+[13:57:40] date 2026-10-01: RETRY-FAILED (P9-B2): previous failure 'harness rc=-1'; pre-reset state restored and verified -> re-billing
+[13:57:46] date 2026-10-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:57:53] date 2026-10-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:57:53] stage-drop r5_stage_B3_r6_p10_* verified (0 remaining; box left clean)
+[13:57:53] FINAL: sampled_rows=2 in_envelope=2 out_of_envelope=0 failed_batches=0 drift(in-envelope)=0 parse_errors=0 stage_drop_verified=True (P5-1/P6)
+protected (post-retry vs pre-op): EQUAL
+live (post-retry vs pre-op): EQUAL
+- PASS: retry exit 0 with per-operation lines: writer proof + fence; current state != pre-reset detected; WRITER-EXCLUSION on (DML revoked) and off (grants as before); restore hash-verified; both batches BILLED
+- PASS: protected non-sample visits and live sik unchanged by the retry (assertion c, pre-operation baseline)
+- PASS: explicit --teardown-kept leaves only sik and sik_bench (teardown: databases now: sik sik_bench )
+- PASS: database.xml back on sik (sik ); benchmark grant on sik_p6f removed
+PRESERVATION-CHECK PASS
+evidence: /opt/dr-benchmark/p-chain/r5_p10_preservation_20261027T135611Z.md
+P11-T7 exit-trap: database.xml targets: sik  · benchmark grant on sik_p6f: 0

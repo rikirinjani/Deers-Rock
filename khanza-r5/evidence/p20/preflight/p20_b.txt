@@ -1,0 +1,29 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+scratch sik_p14n verified: billing=450 ledger=97 src_proc=34 src_drug=25
+## clean scratch: both modes accept
+PASS clean expect mode exit (got 0)
+PASS clean equal mode exit (got 0)
+## O4 an AMBIGUOUS encounter: a duplicate jns_perawatan row (same name, new code) and a source row under the new code
+O4 encounter: 2027/12/31/900007, procedure code A001
+PASS O4 an encounter with a procedure source row selected (got yes)
+ERROR 1046 (3D000) at line 1: No database selected
+FAIL plant O4-master ROW_COUNT (got , want 1)
+ERROR 1046 (3D000) at line 1: No database selected
+FAIL plant O4-source ROW_COUNT (got , want 1)
+expect: verdict=EQUAL outcome=MATCH unit_src=MATCH unchecked=0
+equal : verdict=EQUAL pass=True unit_src=MATCH unchecked=0
+FAIL O4 expect mode: verdict AMBIGUOUS, outcome MISMATCH (got EQUAL/MATCH, want AMBIGUOUS/MISMATCH)
+FAIL O4 equal mode: verdict AMBIGUOUS, pass False (got EQUAL/True, want AMBIGUOUS/False)
+PASS O4 the AMBIGUOUS key is not counted as unchecked (the stated exclusion) in either mode (got 0/0)
+FAIL O4 exactly this encounter fails in each mode (got 0/0, want 1/1)
+FAIL O4 exit codes expect/equal (got 0/0, want 1/1)
+P20-B-NC: PASS=4 FAIL=6
+teardown: sik_p14n dropped

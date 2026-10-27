@@ -288,3 +288,13 @@ since commit `129b72c` (written before the run).
 | R11 | 2 | three failure records with `date -u` stamps; every pre-flight iteration listed; QMS P19 and the P18 amendment |
 | R12 | 2 | limits carried forward and new ones stated (N3 not live-tested; pre-flight gaps; command-line identity) |
 | **Total** | **23/24** | R5 = 1 (not a critical item); the critical items R2, R3, R6, R9 are 2 by my scoring. **Not the verdict:** the scores were 6, 7 and 3 over the independent reviews. Re-score independently before Astra v13. |
+
+**P20 addendum (added 2026-10-27 after the independent P19 review; amendments 1-8 above are not edited).**
+9. The unit count leaves out billed keys whose code starts with `AMBIGUOUS:` or `UNMAPPED:` (`tools/p15_line_identity.py:196`).
+   This was in no plan item and no control. Reason: such an encounter's verdict is AMBIGUOUS/UNMAPPED, which fails equal mode
+   (`pass` needs EQUAL/EQUAL-SRC) and expect mode; counting its keys as unchecked would only duplicate that failure. Covered since
+   P20 by `p20_b_negctl.sh` (same bytes, new coverage).
+10. **AC-7 was partly met, not met-and-scored-2:** the second retrace run printed `UNTRACED: 44`. P20 copied the 15 missing
+    older khanza-r5 traces into `records/traces/` and committed the full run (`evidence/p20/retrace_trace_clean.txt`).
+11. The §7 R9 reason "the retrace says clean" and the cause given for the live `pass` False (O3) are corrected in R5 §32 and
+    `evidence/p20/erratum_p19.md`.

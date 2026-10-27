@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-10-27T14:44:27Z",
+  "category": "process",
+  "severity": "major",
+  "title": "P19 self-score 23/24 was 3 points too high: a handoff sentence said more than the helper did (O1), R5 section 31 stated a cause I had not looked up (O3), AC-7 was scored as met",
+  "what_went_wrong": [
+    "O1: handoff item 25 said 'a FAILED oracle batch can no longer end P15E OK'. The helper matched three strings; the oracle's own STAGE-DROP-FAILED and STAGE-KEEP words (which make it exit 4 with failed_batches = [stage-drop]) were not among them. The P18 review had named 'a failed stage drop' in its N3 scenario.",
+    "O3: R5 section 31 and a2_live_equal.txt said the live equal-mode pass was False 'because the payment sum differs'. The data (a2_live_equal_encounters.json) has B empty and B_rows 0 for all 300: there is no payment row on live for those visits. I wrote a cause without opening the data.",
+    "O5: P19 AC-7 ('repeatable from the committed traces') was scored as met while the second retrace run printed UNTRACED: 44; the output was cut to 20 lines so the 44 could not be checked.",
+    "O4: the AMBIGUOUS/UNMAPPED exclusion in the unit count was added without a plan item, an amendment or a control.",
+    "O6: no copy transcript for the evidence read after the final capture; the QMS not_done list omitted the pre-flight gaps."
+  ],
+  "root_cause": "The same cause as P15, P17 and P18: a sentence about what a gate does, or why something happened, was written from intent and expectation instead of from the code line or the data it describes.",
+  "detection": "Independent local review of P19 (20/24); each finding verified against the source in the P20 task doc section 1.",
+  "impact": "Documents that Astra v13 would have read; no result changed.",
+  "correction": {
+    "applied": "P20: helper patterns added and paired (canned log per pattern, OLD lib 4 / NEW lib 10, real clean and failed logs); sentences struck, not edited (R5 section 31, handoff 25); evidence/p20/erratum_p19.md; the retrace against the committed traces still lists older files (AC-7 partly; the 15 older traces I copied for it held addresses and were not committed); every box command after the final capture logged (copy_log.txt).",
+    "result": "R5 section 32; evidence/p20/"
+  },
+  "rule": "A cause is stated only after the data that shows it has been opened; a sentence that says a failure 'can no longer' pass is checked against every word the failing component logs for that failure (grep the producer's source for its log lines, not only the strings seen in one run).",
+  "agent": "claude (P19 executor)",
+  "status": "closed"
+}

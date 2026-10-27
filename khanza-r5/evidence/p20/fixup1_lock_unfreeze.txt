@@ -1,0 +1,10 @@
+== [cmd] dr_runlock.sh status (2026-10-27T14:40:42Z)
+RUNLOCK-FREE
+rc=1
+== [cmd] dr_runlock.sh acquire P20-CLAUDE-20261027 (second acquisition, fix-up cycle 1)
+RUNLOCK-ACQUIRED: session=P20-CLAUDE-20261027 (/opt/dr-benchmark/LOCK)
+== [cmd] sha256sum -c p20_frozen_20261027.sha256 | grep -c OK
+39
+== unfreeze 2026-10-27T14:40:42Z (fix-up cycle 1: p20_chain.sh)
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  .bak_p20fix1_20261027/p20_chain.sh
+--------------e------- p20_chain.sh

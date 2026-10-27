@@ -1,0 +1,21 @@
+## A1 P13 driver, existing clone: OLD bytes (.bak_p15_20261026/p13_wide_sample.sh)
+before: sentinel=1 grant=4 dummy=alive
+old driver exit=3; after: sentinel=0 grant=0 dummy=dead
+PASS A1 OLD P13 refusal destroyed the existing clone (the defect) (got sentinel=0)
+## A1 P13 driver, existing clone: NEW bytes
+PASS A1 NEW P13 refusal exit (got 3)
+PASS A1 NEW P13 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+## A2 P14 driver, existing clone: OLD bytes (.bak_p15_20261026/p14_edge_run.sh)
+old driver exit=3; after: sentinel=1 grant=0 dummy=dead
+PASS A2 OLD P14 refusal killed the unrelated harness and revoked the grant (the defect) (got grant=0 dummy=dead)
+## A2 P14 driver, existing clone: NEW bytes
+PASS A2 NEW P14 refusal exit (got 3)
+PASS A2 NEW P14 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+## A3 P14 driver, failing mysqldump (pipefail)
+ABORT: clone pipeline failed (pipefail: mysqldump or mysql exit != 0)
+cleanup: clone sik_p14e dropped (created by this run, not complete)
+cleanup-final: sik_dbs=sik,sik_bench, dbxml_targets=sik  clone_grants=0
+PASS A3 pipefail abort exit (got 3)
+PASS A3 abort names the pipeline (got 1)
+PASS A3 half-clone created by this run is dropped (got 0)
+P15-A-NC: PASS=9 FAIL=0

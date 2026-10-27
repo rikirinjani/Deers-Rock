@@ -1,0 +1,30 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+## A1 P13 driver, existing clone: OLD bytes (.bak_p15_20261026/p13_wide_sample.sh)
+before: sentinel=1 grant=4 dummy=alive
+old driver exit=3; after: sentinel=0 grant=0 dummy=dead
+PASS A1 OLD P13 refusal destroyed the existing clone (the defect) (got sentinel=0)
+## A1 P13 driver, existing clone: NEW bytes
+PASS A1 NEW P13 refusal exit (got 3)
+PASS A1 NEW P13 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+## A2 P14 driver, existing clone: OLD bytes (.bak_p15_20261026/p14_edge_run.sh)
+old driver exit=3; after: sentinel=1 grant=0 dummy=dead
+PASS A2 OLD P14 refusal killed the unrelated harness and revoked the grant (the defect) (got grant=0 dummy=dead)
+## A2 P14 driver, existing clone: NEW bytes
+PASS A2 NEW P14 refusal exit (got 3)
+PASS A2 NEW P14 refusal leaves clone, grant, process (got sentinel=1 grant=4 dummy=alive)
+## A3 P14 driver, failing mysqldump (pipefail)
+ABORT: clone pipeline failed (pipefail: mysqldump or mysql exit != 0)
+cleanup: clone sik_p14e dropped (created by this run, not complete)
+cleanup-final: sik_dbs=sik,sik_bench, dbxml_targets=sik  clone_grants=0
+PASS A3 pipefail abort exit (got 3)
+PASS A3 abort names the pipeline (got 1)
+PASS A3 half-clone created by this run is dropped (got 0)
+P15-A-NC: PASS=9 FAIL=0

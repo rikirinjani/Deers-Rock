@@ -1,0 +1,75 @@
+PASS precondition: database.xml on sik (got sik )
+## A12 clone message (read-only)
+old: clone matches sik: tables=1100-equal, 6 key tables row-equal
+new: clone matches sik: tables=1179 (= sik), 6 key tables row-equal
+PASS A12 OLD does not print the table count (1179) - the defect (got 0)
+PASS A12 NEW prints the table count (got 1)
+## A3 a group leader that ignores TERM
+PASS A3 OLD: the leader that ignores TERM is still alive after the kill (the defect) (got alive)
+p17_a_negctl.sh: line 54: 569677 Killed                  setsid bash -c 'trap "" TERM; echo $$ > "$0"; while :; do sleep 1; done' "$1" > /dev/null 2>&1
+p17_a_negctl.sh: line 61: 569701 Killed                  setsid bash -c 'trap "" TERM; echo $$ > "$0"; while :; do sleep 1; done' "$1" > /dev/null 2>&1
+PASS A3 NEW: killed and confirmed (return code) (got 0)
+PASS A3 NEW: the leader is dead (got dead)
+## A4 a leader started 200 ms after its pid file
+PASS A4 OLD signals it (whole-second slack, the defect) (got dead)
+PASS A4 NEW does not signal it (got alive)
+p17_a_negctl.sh: line 54: 569883 Killed                  setsid bash -c 'echo $$ > "$0"; exec sleep 300' "$1" > /dev/null 2>&1
+PASS A4 NEW still kills a legitimate leader (pid file written after the start) (got dead)
+## A3d the real cleanup() of the P14 driver when the harness is not confirmed dead
+old: rc=0 restore=1 revoke=1 drop=1
+new: rc=3 restore=0 revoke=0 drop=0
+PASS A3d OLD goes on to restore, revoke and drop although the harness may be alive (the defect) (got rc=0 restore=1 revoke=1 drop=1)
+PASS A3d NEW exits 3 and leaves xml, grant and clone as they are (got rc=3 restore=0 revoke=0 drop=0)
+## A1 the real tail of the P14 driver with a failing xml restore
+PASS A1 OLD exits 0 although database.xml was not restored (the defect) (got 0)
+PASS A1 NEW exits 3 (got 3)
+PASS A1 NEW exits 0 when the restore succeeded (got 0)
+PASS A1 OLD exits 0 when the restore succeeded (got 0)
+## A2 p13_wide_sample.sh: CREATE DATABASE that fails on an existing database
+old exit=3 sentinel=0
+PASS A2 OLD: its cleanup dropped a database it did not create (the defect) (got 0)
+ABORT: CREATE DATABASE sik_p13w failed - refusing, nothing dropped (P17 A2)
+PASS A2 NEW: exit 3 (got 3)
+PASS A2 NEW: the existing database survives (got 1)
+## A5 the P15 safety helper with an existing sik_p13w
+PASS A5 OLD helper dropped an existing database (the defect) (got 0)
+PASS A5 NEW helper refuses (exit 3) (got 3)
+PASS A5 NEW helper leaves the existing database (got 1)
+## A7 snapshot binding block of p10_preservation_check.sh
+PASS A7 binding block extracted from both scripts (got yes)
+old/other-run sidecar: SNAPSHOT-BINDING suite start 20261026T000000Z; pre-op and post-failure snapshots written by this run REACHED 
+PASS A7 OLD accepts snapshots of another run when the mtime is newer (the defect) (got 1)
+new/other-run sidecar: SNAPSHOT-BINDING ERROR: preop.json was written by 'r5_p6_acceptance_20250101T000000Z.md', not by r5_p6_acceptance_20261026T000000Z.md ABORT: snapshots not bound to this run 
+PASS A7 NEW rejects a sidecar naming another run (got 1)
+PASS A7 NEW does not reach the next statement (got 0)
+PASS A7 NEW rejects snapshots without a sidecar (got 1)
+new/our sidecar: SNAPSHOT-BINDING suite start 20261026T000000Z; pre-op and post-failure snapshots written by this run REACHED 
+PASS A7 NEW accepts snapshots whose sidecar names this run (got 1)
+## A6b a real restore failure (R5_FAULT_RESTORE_FAIL=1), A28' via the suite (P11_ONLY=28)
+A28' restore=restore-not-verified fixture hash before/after the test: 61ba0f72fb03b6a7 / 61ba0f72fb03b6a7
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:564
+A28: PASS — A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content i
+PASS A6b OLD (P15 suite): A28' PASSES although the restore failed - masked by the unconditional compensation (the defect) (got PASS)
+PASS A6b OLD: the failure was injected (got 1)
+A28' restore=restore-not-verified fixture hash before/after the test: 61ba0f72fb03b6a7 / dcbee9467096d28b
+A28' C0=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:56426825:0: C1=2297340603:3005306964:0:884997566:0:0:3120539456:0:0:0:0:564
+A28: FAIL — A28' a failed re-backup keeps the earlier staged rows (C0 == C1): the transactional backup rolls back and the staged content i
+PASS A6b NEW: A28' FAILS (got FAIL)
+## A9 full driver run with an injected failure (NEW bytes only): R5_HARNESS_TIMEOUT_S=3
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261027T125418Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 12:55:33.284106
+oracle[fixture]: real run exit=4 elapsed=6s
+form[fixture]: distinct visits sukses=true 0, sukses=false 0 (of 27); rate 270.00 visits/min
+FORM-INCOMPLETE[fixture]: sukses=true for 0 of 27 visits
+P15E FAILED fixture_rc=10 real_rc=n/a (clone kept for inspection)
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+PASS A9 the driver exits 1 (got 1)
+PASS A9 a STOP RULE or FORM-INCOMPLETE line (got yes)
+PASS A9 database.xml back on sik (got sik )
+PASS A9 no grant left on the clone (got 0)
+PASS A9 the clone is kept for inspection (got sik_p14e)
+PASS A9 clone dropped by p14_drop_clone.sh (got 0)
+PASS database.xml on sik at the end (got sik )
+P17-A-NC: PASS=37 FAIL=0

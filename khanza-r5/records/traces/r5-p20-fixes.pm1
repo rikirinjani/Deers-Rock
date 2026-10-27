@@ -1,0 +1,32 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p20-fixes",
+  "timestamp": "2026-10-27T14:46:55.212451+00:00",
+  "agent": "claude",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p15_lib.sh",
+    "khanza-r5/tools/p20_a_negctl.sh",
+    "khanza-r5/tools/p20_b_negctl.sh",
+    "khanza-r5/tools/p20_chain.sh",
+    "khanza-r5/tools/p20_release_inventory.py"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p20-fixes",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........--------........................................................--.-..-.........................................-.--...-",
+  "action": "P20 fixes: failed-batch helper patterns (stage-drop, stage-keep), empty pid file, N5b reason control with mutant, AMBIGUOUS coverage; 39 files frozen, fix-up of the chain wrapper"
+}

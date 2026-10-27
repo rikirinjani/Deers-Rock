@@ -1,0 +1,34 @@
+PASS precondition: database.xml on sik (got sik )
+## O1 oracle_run with one canned pattern at a time (OLD lib vs NEW lib, same driver)
+PASS O1 oracle_run is extracted from the driver (got yes)
+PASS O1 P19 pattern failed: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern restoreerr: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern notrestored: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P20 pattern dropfailed: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepunrest: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepheld: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 clean log: OLD 4 / NEW 4 (got RC=4/RC=4)
+PASS O1 the NEW driver run prints ORACLE-BATCH-FAILED for STAGE-DROP-FAILED (got 1)
+## O1 the helper on real oracle logs
+PASS O1 real clean C4 oracle log (fixture, P19 chain): no match (got none)
+PASS O1 real clean C4 oracle log (real, P19 chain): no match (got none)
+PASS O1 real oracle log of the P19 chain's B4 run (a FAILED batch and STAGE-KEEP): match (got match)
+PASS O1 that log carries STAGE-KEEP, which the P19 patterns did not cover on their own (got 1)
+## kill-function cases
+# O2 N5b with the reason text asserted, and a mutant that must give the other text
+PASS O2 the mutant lib differs from the NEW lib and still parses (got differs/ok)
+PASS O2 NEW: rc 1, child alive, and the reason is 'ps failed while looking for group' (got 1/alive/1)
+mutant: 1|kill-run-harness: group 634367 is alive but no member looks like this run's harness - not signalled, NOT CONFIRMED 
+PASS O2 MUTANT (no ga=2 branch): rc 1 again but the reason is the OTHER text, so the reason text tells the fix from its absence (got 1/0/1)
+# O2 ps that fails only after the TERM (wait loop and post-KILL confirmation)
+after-TERM: 1|kill-run-harness: leader 634398 is gone but its harness group is alive - signalling the group kill-run-harness: group 634398 still alive (or unknown) after KILL 
+PASS O2 ps failing after the TERM: rc 1 and 'still alive (or unknown) after KILL' (got 1/1)
+# O6d an empty pid file and a letters-only pid file
+PASS O6d empty pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d empty pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d letters pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d letters pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d a pid that names no process and no group: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS O6d no pid file at all: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS database.xml on sik at the end (got sik )
+P20-A-NC: PASS=25 FAIL=0

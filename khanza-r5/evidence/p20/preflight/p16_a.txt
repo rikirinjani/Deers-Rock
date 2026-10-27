@@ -1,0 +1,47 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+PASS precondition: database.xml on sik (got sik )
+## A1 (N1) preservation check refusal on a foreign fixture: OLD bytes (.bak_p16_20261026/p10_preservation_check.sh)
+before: grant=4 xml=sik 
+old exit=3; after: grant=0 xml=sik 
+ABORT: sik_p6f exists but has no r6_p10 stage state (a foreign kept fixture?)
+PASS A1 OLD refusal exit (got 3)
+PASS A1 OLD refusal revoked a grant it did not create (the defect) (got 0)
+## A1 (N1) NEW bytes
+ABORT: sik_p6f exists but has no r6_p10 stage state (a foreign kept fixture?)
+PASS A1 NEW refusal exit (got 3)
+PASS A1 NEW refusal leaves the grant (got 4)
+PASS A1 NEW refusal leaves the fixture (got 1)
+PASS A1 database.xml still on sik (got sik )
+## A3 driver wiring: tail of p14_edge_run.sh (exit decision)
+PASS A3 tail extracted (non-empty, ends with exit 1) (got yes)
+PASS A3 fixture 4, real 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 0 -> driver exit 0 (got 0)
+PASS A3 fixture 4, no real run -> driver exit 0 (got 0)
+PASS A3 fixture 0 (strata not out of envelope) -> driver exit 1 (got 1)
+PASS A3 fixture 10 (stop rule) -> driver exit 1 (got 1)
+PASS A3 fixture 4, real 4 -> driver exit 1 (got 1)
+## A3 driver wiring: ledger pin segment (A6)
+PASS A3 pin segment extracted (2 lines) (got 2)
+stub res: ABORT: clone ledger DIFFERS-FROM-PIN (P15 A6) - clone kept for inspection KEEP=1 RC=3 
+PASS A3 pin mismatch: driver aborts (no CONTINUED) (got 0)
+PASS A3 pin mismatch: clone kept (KEEP=1) (got 1)
+PASS A3 pin mismatch: exit 3 (P17 A10) (got 1)
+PASS A3 pin mismatch: names the ABORT (got 1)
+PASS A3 pin match: driver continues (got 1)
+## E4 observed: pre-operation snapshot missing -> exit 3
+PASS E4 precondition: a suite evidence file to point at (got yes)
+PASS E4 precondition: a pre-op snapshot exists to move aside (got yes)
+ABORT: pre-operation snapshot missing (/opt/dr-benchmark/p-chain/p11_preserve_preop.json) - never re-recorded after a failure
+PASS E4 exit with the pre-op snapshot missing (got 3)
+PASS E4 names the missing snapshot (got 1)
+PASS E4 snapshot restored after the control (got yes)
+PASS database.xml on sik at the end (got sik )
+P16-A-NC: PASS=26 FAIL=0

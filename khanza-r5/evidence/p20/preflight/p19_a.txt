@@ -1,0 +1,37 @@
+# files under test (sha256, taken before the run):
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371  p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a  p14_edge_run.sh
+8c7a13a89dafa7ad8002b0de202bbff6be35b849b4c37315a85b3aea9ce14e57  p15_line_identity.py
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe  p20_a_negctl.sh
+376d907b411bf6b189ddbc186305f699c3020c815b79f04ae1969c118f2c0c6d  p20_b_negctl.sh
+cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb  p20_chain.sh
+994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922  p20_release_inventory.py
+# ---
+PASS precondition: database.xml on sik (got sik )
+## N3 oracle_run: a FAILED batch with every visit sukses=true
+PASS N3 the oracle_run function is extracted from both drivers (got yes)
+failed log, all visits true: old: RC=4  new: RC=10
+PASS N3 OLD returns 4 for a FAILED batch with every visit sukses=true (the value treated as expected: the defect) (got RC=4)
+PASS N3 NEW returns 10 (ORACLE-BATCH-FAILED) (got RC=10)
+PASS N3 clean log: OLD returns 4 (got RC=4)
+PASS N3 clean log: NEW returns 4 (got RC=4)
+PASS N3 the NEW driver prints the ORACLE-BATCH-FAILED line (got 1)
+# the helper on the real P18 logs
+PASS N3 helper matches the real B4 log (a FAILED batch and a restore error) (got match)
+PASS N3 helper does not match the real clean C4 log (got none)
+## N5 p15_kill_run_harness with a shadowing ps
+# N5a a live leader whose pgid cannot be read (it vanished between kill -0 and ps)
+PASS N5a OLD: 'not a leader', rc 0, the harness leader is still alive (the defect) (got 0/alive)
+p19_a_negctl.sh: line 76: 552205 Killed                  setsid bash -c 'echo $$ > "$0"; exec -a BilingHarness_p19 sleep 300' "$1" > /dev/null 2>&1
+PASS N5a NEW: treated as gone, the harness group is signalled and confirmed dead (rc 0) (got 0/dead)
+# N5b ps itself fails while a harness child of a dead leader lives
+PASS N5b precondition: the leader is gone and the child lives (got dead/alive)
+PASS N5b OLD: rc 0, child alive (a failing ps reads as 'no live member': the defect) (got 0/alive)
+PASS N5b NEW: rc 1 (not confirmed), the child is left alone (got 1/alive)
+# N5c p15_group_alive with a failing ps
+PASS N5c OLD returns 1 ('dead') when ps fails (the defect) (got 1)
+PASS N5c NEW returns 2 (unknown) when ps fails (got 2)
+PASS N5c NEW still returns 0 for a live group (pid 1's group) (got 0)
+PASS N5c NEW still returns 1 for a group that does not exist (got 1)
+PASS database.xml on sik at the end (got sik )
+P19-A-NC: PASS=19 FAIL=0

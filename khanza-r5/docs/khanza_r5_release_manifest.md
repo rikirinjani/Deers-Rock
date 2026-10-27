@@ -241,3 +241,12 @@ SHA-256 ~~so the benchmark is re-derivable without the original live box~~ *(P15
 | `p19_release_inventory.py` (P19) | `070dde148f12a8025e86f2fd881eedf674c07f4442877adf3e93076e08468e3b` |
 
 > 2026-10-27 (R5 section 31, P19) re-pins the 3 changed files above (supersedes the P15-P18 rows of the same names) and adds 4 new tools; frozen on the box (`chattr +i`, `sha256sum -c` 35/35 OK, `lsattr` `i` on 35/35): `evidence/p19/r5_p19_frozen_manifest_20261027.sha256` (35 files; the P18 manifest of 31 files is kept as history). Local = box by sha256 for 35/35 (`evidence/p19/local_eq_box_manifest.txt`). Originals of the 3 changed files: `.bak_p19_20261027/` on the box, byte-equal to git `63ef8ca` (`evidence/p19/bak_equals_git.txt`). `evidence/release_inventory.json` is now the output of `tools/p19_release_inventory.py` run **on the box** (58 files, 8 manifests, 58 ok); the `--local` result is `evidence/p19/release_inventory_local.json`.
+
+| `p15_lib.sh` (P20) | `2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371` |
+| `p20_a_negctl.sh` (P20) | `a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe` |
+| `p20_b_negctl.sh` (P20) | `56694cfb541da4d27bdb03c0f396d5ce707d324f8a8d4f2205fd183580b45084` |
+| `p20_release_inventory.py` (P20) | `994d240949ed2466d6a78b0230925fd7d1de018eb3ebfebdd338f6acd9c23922` |
+| `p20_chain.sh` (P20, manifest b, fix-up 1) | `6975b5225141796deb7e8d33c9e6e31686ab838ffcfd749acb3147124ca4b385` |
+| `p20_chain.sh` (P20, manifest a, superseded) | `cb1545dab180cccab0ce5395de7e96bcdc58a42353d3f91693dd8741b29706eb` |
+
+> 2026-10-27 (R5 section 32, P20) re-pins `p15_lib.sh` (supersedes the P15-P19 rows) and adds 4 tools; frozen on the box (`chattr +i`, `sha256sum -c` 39/39 OK, `lsattr` `i` on 39/39): `evidence/p20/r5_p20_frozen_manifest_20261027b.sha256` (manifest b; manifest a, `…27.sha256`, differs only in `p20_chain.sh` and is kept as history; the P19 manifest of 35 files is kept). Local = box by sha256 for 39/39 (`evidence/p20/local_eq_box_manifest_b.txt`). Original of `p15_lib.sh`: `.bak_p20_20261027/` on the box, byte-equal to git `9d91d80`; original of `p20_chain.sh` (manifest a): `.bak_p20fix1_20261027/`. `evidence/release_inventory.json` is the output of `tools/p20_release_inventory.py` run **on the box** in chain b (62 files, 10 manifests, 62 ok).

@@ -1,0 +1,83 @@
+
+=== 0 FROZEN + LIVE BASELINE (14:42:31Z) ===
+frozen P20: 39/39 OK
+lsattr i-flag: 39/39
+# P14 live state: p20-chain-baseline 2026-10-27T14:42:31Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P20-CLAUDE-20261027
+disk: /dev/vda2        94G   20G   70G  23% /
+consumers: events_statements_cpu=NO events_statements_current=YES events_statements_history=YES events_statements_history_long=NO 
+
+=== 1a LIB TEST (14:42:33Z) ===
+P15-LIB-TEST: PASS=23 FAIL=0
+lib exit=0
+
+=== 2 P20 SAFETY CONTROLS (O1 patterns one at a time, O2 reason text and mutant, O6d pid files) (14:42:44Z) ===
+PASS precondition: database.xml on sik (got sik )
+PASS O1 oracle_run is extracted from the driver (got yes)
+PASS O1 P19 pattern failed: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern restoreerr: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern notrestored: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P20 pattern dropfailed: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepunrest: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepheld: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 clean log: OLD 4 / NEW 4 (got RC=4/RC=4)
+PASS O1 the NEW driver run prints ORACLE-BATCH-FAILED for STAGE-DROP-FAILED (got 1)
+PASS O1 real clean C4 oracle log (fixture, P19 chain): no match (got none)
+PASS O1 real clean C4 oracle log (real, P19 chain): no match (got none)
+PASS O1 real oracle log of the P19 chain's B4 run (a FAILED batch and STAGE-KEEP): match (got match)
+PASS O1 that log carries STAGE-KEEP, which the P19 patterns did not cover on their own (got 1)
+PASS O2 the mutant lib differs from the NEW lib and still parses (got differs/ok)
+PASS O2 NEW: rc 1, child alive, and the reason is 'ps failed while looking for group' (got 1/alive/1)
+PASS O2 MUTANT (no ga=2 branch): rc 1 again but the reason is the OTHER text, so the reason text tells the fix from its absence (got 1/0/1)
+PASS O2 ps failing after the TERM: rc 1 and 'still alive (or unknown) after KILL' (got 1/1)
+PASS O6d empty pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d empty pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d letters pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d letters pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d a pid that names no process and no group: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS O6d no pid file at all: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS database.xml on sik at the end (got sik )
+P20-A-NC: PASS=25 FAIL=0
+p20-a-nc exit=0
+
+=== 3z O1 HELPER ON THE REAL ORACLE LOGS (runs in P20_SHORT mode too; the function must exist and a failed log must match) (14:43:02Z) ===
+ASSERT PASS 3z p15_oracle_batch_failed is a shell function (got function)
+ASSERT PASS 3z helper on the newest fixture oracle log (oracle_20261027T140937Z.log, a clean C4 run) finds no failed batch (got none)
+ASSERT PASS 3z helper on the newest real oracle log (oracle_20261027T140937Z.log, a clean C4 run) finds no failed batch (got none)
+ASSERT PASS 3z positive control: the real-300 oracle log of the first P20 chain (harness rc=-1, STAGE-KEEP) matches (got match)
+
+=== 4e RELEASE INVENTORY ON THE BOX (read-only, P19 N6; success path pre-flighted in P20) (14:43:02Z) ===
+files 62 ok 62 not_ok [] manifests 10
+ASSERT PASS inventory on the box: not_ok (got 0)
+
+=== 5 FINAL (the last box capture of this wave; nothing below touches the box) (14:43:02Z) ===
+frozen P20: 39/39 OK
+lsattr i-flag: 39/39
+# P14 live state: p20-chain-final 2026-10-27T14:43:02Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P20-CLAUDE-20261027
+disk: /dev/vda2        94G   20G   70G  23% /
+consumers: events_statements_cpu=NO events_statements_current=YES events_statements_history=YES events_statements_history_long=NO 
+databases: sik sik_bench 
+harness procs: 0
+
+=== P20 CHAIN DONE (short=1): lib=0 p15-a=skip p16-a=skip p16-e=skip p17-a=skip p18-a=skip p19-a=skip p20-a=0 c4=skip fixture=skip real=skip asserts-failed=0 p17-b=skip p18-b=skip p19-b=skip p20-b=skip line-nc=skip b6=skip suite=skip preservation=skip unit=skip nc=skip ===

@@ -1,0 +1,399 @@
+P14-VERIFY: 27 visits, 0 violations, strata {'E1': 3, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+clone: creating sik_p14e
+clone matches sik: tables=1179 (= sik), 6 key tables row-equal
+clone sik_p14e ready in 63s (1464593 billing rows)
+fixture loaded: reg=25 proc=32 dpo=23
+live untouched by the load: 0 fixture rows in sik.reg_periksa
+audit triggers: 8 (need 8)
+dr_tariff copied into sik_p14e: 685 rows (sik_bench read only)
+builder: exit=0 (16 log lines)
+[13:05:13] window=ALL cohort=dr fallback=False require-tariff=True
+[13:05:13] dr_tariff authority rows: 685
+[13:05:13] registration rows: 86480
+[13:05:15] procedure rows: 86486
+[13:05:16] drug rows: 113411
+[13:05:17] tax rows: 70075 (cohort-scoped to window=ALL)
+[13:05:17] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+clone ledger fixture rows: 97
+late fixture loaded after the ledger build: reg=27 (ledger rows for them: 0)
+grant: benchmark@localhost on sik_p14e (probe sees 4 privileges; positive case for P15 A7)
+harness+consumer database.xml -> sik_p14e (RETARGET-VERIFIED)
+consumer (ENC-only fixture baseline): rc=0
+consumer baseline billing rows for fixture: 450
+fixture detail_pemberian_obat before/after consumer: [25 1350 1350 757536 29] / [25 1350 1350 757536 29]
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261027T130408Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 13:05:24.082241
+oracle[fixture]: real run exit=4 elapsed=90s
+[13:05:22] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[13:05:24] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[13:05:25] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[13:05:26] reset 27 visits (output cleared, status_bayar=Belum Bayar)
+[13:06:53] date 2027-12-31: rc=0 visits=27 sukses_true=27 -> BILLED
+[13:06:54] ORACLE_PARTIAL-NOT-COVERED: exit 4 (fail-closed, P5-1/P6-2e)
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 18.00 visits/min
+fixture oracle rc=4 (4 = PARTIAL-NOT-COVERED is the only expected value for out-of-envelope strata)
+oracle[real]: freeze-only (RUN_ID=p15e_real_20261027T130408Z, 300 visits)
+oracle[real]: freeze-only exit=0
+oracle[real]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 13:07:16.091548
+oracle[real]: real run exit=4 elapsed=2417s
+[13:07:00] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[13:07:21] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[13:07:31] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[13:07:32] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:07:38] date 2026-10-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:07:38] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:07:44] date 2026-10-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:07:44] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:07:50] date 2026-10-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:07:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:07:56] date 2026-10-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:07:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:02] date 2026-10-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:03] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:08] date 2026-10-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:09] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:14] date 2026-10-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:20] date 2026-10-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:21] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:27] date 2026-10-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:36] date 2026-10-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:08:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:42] date 2026-10-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:43] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:08:48] date 2026-10-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:08:49] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:01] date 2026-10-19: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:09:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:07] date 2026-10-20: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:09:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:13] date 2026-10-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:09:14] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:29] date 2026-10-23: rc=0 visits=4 sukses_true=4 -> BILLED
+[13:09:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:35] date 2026-10-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:09:35] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:44] date 2026-10-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:09:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:50] date 2026-10-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:09:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:09:56] date 2026-10-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:09:57] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:06] date 2026-10-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:10:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:12] date 2026-10-31: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:10:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:18] date 2026-11-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:10:19] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:28] date 2026-11-03: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:10:28] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:37] date 2026-11-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:10:38] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:46] date 2026-11-05: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:10:47] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:52] date 2026-11-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:10:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:10:59] date 2026-11-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:10:59] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:11] date 2026-11-10: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:11:12] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:20] date 2026-11-11: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:11:21] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:27] date 2026-11-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:11:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:36] date 2026-11-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:11:37] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:42] date 2026-11-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:11:43] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:11:52] date 2026-11-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:11:52] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:01] date 2026-11-21: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:12:02] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:07] date 2026-11-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:12:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:13] date 2026-11-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:12:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:19] date 2026-12-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:12:20] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:28] date 2026-12-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:12:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:35] date 2026-12-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:12:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:41] date 2026-12-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:12:41] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:50] date 2026-12-07: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:12:51] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:12:59] date 2026-12-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:13:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:05] date 2026-12-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:12] date 2026-12-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:12] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:18] date 2026-12-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:19] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:30] date 2026-12-17: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:13:31] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:40] date 2026-12-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:13:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:46] date 2026-12-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:52] date 2026-12-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:13:58] date 2026-12-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:13:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:04] date 2026-12-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:14:05] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:11] date 2026-12-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:14:11] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:17] date 2026-12-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:14:18] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:26] date 2026-12-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:14:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:35] date 2027-01-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:14:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:41] date 2027-01-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:14:42] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:14:51] date 2027-01-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:14:51] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:03] date 2027-01-07: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:15:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:09] date 2027-01-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:15:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:15] date 2027-01-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:15:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:22] date 2027-01-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:15:22] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:31] date 2027-01-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:15:32] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:37] date 2027-01-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:15:38] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:50] date 2027-01-20: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:15:50] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:15:56] date 2027-01-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:15:56] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:02] date 2027-01-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:03] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:14] date 2027-01-26: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:16:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:21] date 2027-01-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:21] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:27] date 2027-01-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:27] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:33] date 2027-02-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:39] date 2027-02-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:40] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:48] date 2027-02-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:16:49] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:16:54] date 2027-02-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:16:55] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[13:17:07] date 2027-02-09: rc=0 visits=3 sukses_true=3 -> BILLED
+[13:17:08] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[13:17:16] date 2027-02-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[13:17:17] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:17:23] date 2027-02-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:17:23] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[13:17:29] date 2027-02-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[13:17:30] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[timeout 1800s] WRITER-DEAD-PROOF pgid=588053 group_empty=true
+[13:47:30] WRITER-EXCLUSION on (P10-B4) sik_p14e: revoked=['DELETE', 'INSERT', 'UPDATE'] fence_ok=True sessions_killed=0
+[13:47:31] stage-restore 3 visits STAGE-RESTORED-VERIFIED (content hash matches pre-reset)
+[13:47:31] WRITER-EXCLUSION off (P10-B4) sik_p14e: restored=['DELETE', 'INSERT', 'UPDATE']
+[13:47:31] date 2027-02-19: FAILED (harness rc=-1) — pre-reset state restored (hash-verified), run stops (P5-2)
+[13:47:31] REPAIR-SKIPPED 2027/02/19/800069 (batch FAILED: harness rc=-1) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/19/800086 (batch FAILED: harness rc=-1) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/19/800162 (batch FAILED: harness rc=-1) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/22/800181 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/23/800071 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/23/800111 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/23/800286 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/24/800121 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/24/800132 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/26/800242 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/02/26/800265 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/02/800253 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/04/800235 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/05/800259 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/08/800163 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/09/800059 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/11/800194 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/13/800077 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/13/800078 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/15/800081 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/16/800190 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/17/800064 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/18/800100 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/18/800159 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/18/800231 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/18/800312 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/19/800193 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/24/800008 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/24/800105 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/25/800149 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/25/800155 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/26/800091 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/26/800292 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/30/800111 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/31/800033 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/03/31/800115 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/05/800050 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/06/800033 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/08/800032 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/09/800111 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/09/800227 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/10/800109 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/11/800014 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/13/800140 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/14/800026 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/14/800108 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/14/800130 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/14/800205 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/19/800228 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/20/800127 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/20/800264 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/22/800278 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/23/800124 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/26/800029 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/27/800033 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/27/800054 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/27/800230 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/28/800230 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/29/800215 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/30/800132 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/04/30/800241 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/01/800007 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/01/800023 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/01/800031 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/03/800112 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/04/800178 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/05/800037 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/05/800157 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/07/800261 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/10/800223 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/11/800104 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/12/800206 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/13/800249 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/14/800312 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/15/800094 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/17/800222 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/17/800249 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/19/800039 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/19/800183 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/25/800234 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/26/800065 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/26/800168 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/27/800137 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/29/800025 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/05/29/800053 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/01/800161 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/01/800276 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/02/800028 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/02/800128 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/03/800217 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/03/800220 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/05/800005 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/08/800215 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/12/800036 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/14/800047 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/15/800050 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/15/800203 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/16/800028 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/16/800090 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/16/800131 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/17/800228 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/18/800138 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/19/800034 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/19/800046 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/23/800295 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/24/800252 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/25/800038 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/25/800085 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/25/800239 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/06/29/800220 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/01/800102 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/05/800181 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/06/800182 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/09/800030 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/09/800078 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/09/800305 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/12/800263 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/13/800121 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/13/800160 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/13/800270 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/15/800042 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/15/800221 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/16/800160 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/16/800227 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/19/800223 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/21/800018 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/22/800126 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/23/800191 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/23/800280 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/26/800065 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/27/800234 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/29/800144 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/29/800180 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/29/800191 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/07/31/800089 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/02/800032 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/02/800257 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/04/800113 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/04/800158 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/05/800074 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/06/800061 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/06/800210 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/09/800228 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/09/800308 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/11/800044 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/12/800043 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/13/800232 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/13/800309 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/19/800102 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/23/800055 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/24/800055 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/24/800061 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/24/800235 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/25/800209 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/25/800281 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/28/800004 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/30/800204 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/31/800273 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/31/800318 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/08/31/800324 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/01/800088 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/01/800220 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/02/800102 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/07/800301 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/08/800210 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/08/800237 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/08/800262 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/09/800171 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/10/800077 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/10/800224 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/11/800067 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/13/800034 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/13/800090 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/13/800285 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/15/800229 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/17/800271 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/20/800109 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/21/800044 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/22/800053 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/23/800164 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/23/800191 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/24/800054 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/28/800100 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/29/800154 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:31] REPAIR-SKIPPED 2027/09/30/800044 (batch FAILED: ) — drift stays drift (P5-4); set --repair-consumer to allow consumer rebill
+[13:47:33] STAGE-KEEP r5_stage_B3_p15e_real_20261027T130408Z_*: FAILED batches ['2027-02-19'] restored but held for --retry-failed (--abandon-failed releases them; box NOT clean)
+[13:47:33] ORACLE_PARTIAL-NOT-COVERED: exit 4 (fail-closed, P5-1/P6-2e)
+form[real]: distinct visits sukses=true 115, sukses=false 0 (of 300); rate 7.45 visits/min
+FORM-INCOMPLETE[real]: sukses=true for 115 of 300 visits
+real oracle rc=10 (0 expected)
+database.xml restored (targets: sik)
+P15E FAILED fixture_rc=4 real_rc=10 (clone kept for inspection)
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0

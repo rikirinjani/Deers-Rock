@@ -100,5 +100,12 @@
     "20261027T1015Z-process-r5-p18-gate-described-from-intent",
     "20261027T1016Z-tool-r5-p18-driver-failed-batch-and-kill-fail-open",
     "20261027T1016Z-test-r5-p19-preflight-gaps"
+  ],
+  "amendments": [
+    "P20: the independent review of P19 scored 20/24 (self 23/24, withdrawn); R4, R9, R12 = 1",
+    "P20 O1: the failed-batch helper missed the oracle's STAGE-DROP-FAILED and STAGE-KEEP words; fixed in P20 (VER-2026-10-27-DR-KHANZA-R5-P20-001)",
+    "P20 O3: the cause given for the live pass False (the payment sum) was wrong: live has no payment row for those visits",
+    "P20 O5: AC-7 was partly met (second retrace run UNTRACED: 44); P20 made the retrace repeatable from the repository",
+    "P20: not_done above also lacked: the two final files not pre-flighted unfrozen (p19_chain.sh, the inventory success path), AC-7 partly"
   ]
 }

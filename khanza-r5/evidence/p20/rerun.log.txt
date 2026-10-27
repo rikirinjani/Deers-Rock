@@ -1,0 +1,98 @@
+
+=== 0 FROZEN + BASELINE (rerun) (14:09:35Z) ===
+frozen P20: 39/39 OK
+lsattr i-flag: 39/39
+# P14 live state: p20-rerun-baseline 2026-10-27T14:09:35Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P20-CLAUDE-20261027
+disk: /dev/vda2        94G   20G   70G  23% /
+
+=== 3 C4 FIXTURE + 300 REAL ON A FRESH CLONE (14:09:37Z) ===
+clone matches sik: tables=1179 (= sik), 6 key tables row-equal
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+grant: benchmark@localhost on sik_p14e (probe sees 4 privileges; positive case for P15 A7)
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261027T140937Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 14:10:51.894882
+oracle[fixture]: real run exit=4 elapsed=91s
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 17.80 visits/min
+oracle[real]: freeze-only (RUN_ID=p15e_real_20261027T140937Z, 300 visits)
+oracle[real]: freeze-only exit=0
+oracle[real]: run start (MySQL NOW(6), for fresh-B --since) = 2026-10-27 14:12:43.977884
+oracle[real]: real run exit=0 elapsed=1565s
+form[real]: distinct visits sukses=true 300, sukses=false 0 (of 300); rate 11.50 visits/min
+database.xml restored (targets: sik)
+P15E OK fixture_rc=4 real_rc=0 clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0
+driver exit=0
+run starts: fixture=2026-10-27 14:10:51.894882 (/opt/dr-benchmark/p15/runs/fixture_run_start_20261027T140937Z.txt) real=2026-10-27 14:12:43.977884 (/opt/dr-benchmark/p15/runs/real_run_start_20261027T140937Z.txt)
+
+=== 3a FIXTURE (expect mode, clone ledger) (14:38:51Z) ===
+P15-LINE-IDENTITY: {"b_eq_a": 27, "db": "sik_p14e", "encounters": 27, "fail": 0, "fresh_b_ok": 27, "ledger": "sik_p14e", "line_differ": 24, "lines": 105, "mode": "expect", "pass": 27, "since": "2026-10-27 14:10:51.894882", "unit_keys_checked": 57, "unit_keys_unchecked": 0, "verdicts": {"DIFFER": 12, "EQUAL": 12, "EQUAL-SRC": 3}}
+fixture compare exit=0
+
+=== 3b REAL 300 (equal mode, live-pinned ledger) (14:38:51Z) ===
+P15-LINE-IDENTITY: {"b_eq_a": 300, "db": "sik_p14e", "encounters": 300, "fail": 0, "fresh_b_ok": 300, "ledger": "sik_bench", "line_differ": 0, "lines": 1240, "mode": "equal", "pass": 300, "since": "2026-10-27 14:12:43.977884", "unit_keys_checked": 698, "unit_keys_unchecked": 0, "verdicts": {"EQUAL": 181, "EQUAL-SRC": 119}}
+real compare exit=0
+
+=== 3b' UNIT GATE ASSERTS (P19 N1/AC-5: both modes) (14:38:52Z) ===
+ASSERT PASS fixture unit_keys_unchecked (got 0)
+ASSERT PASS fixture unit_keys_checked > 0 (got yes)
+ASSERT PASS real300 unit_keys_unchecked (got 0)
+ASSERT PASS real300 unit_keys_checked > 0 (got yes)
+ASSERT PASS real300 all unit_src MATCH (got 0)
+/opt/dr-benchmark/p20/c4_rerun.sh: line 65: p15_oracle_batch_failed: command not found
+ASSERT PASS O1 helper on the chain's own clean fixture oracle log (oracle_20261027T140937Z.log) (got none)
+/opt/dr-benchmark/p20/c4_rerun.sh: line 65: p15_oracle_batch_failed: command not found
+ASSERT PASS O1 helper on the chain's own clean real oracle log (oracle_20261027T140937Z.log) (got none)
+
+=== 3c P13 COMPARATOR (asserted and counted, P18 M10) (14:38:52Z) ===
+ASSERT PASS p13 positive (since=run start) exit (got 0)
+P13 compare: 300 encounters | with B: 300 | A_form==C: 300/300 | B==C: 300/300 | fresh-B(benchmark,1): 300/300 | differences: 0 -> /opt/dr-benchmark/p20/rerun/chain/p13cmp_pos.csv
+RESULT: ALL-EQUAL
+ASSERT PASS p13 no --since exit (got 2)
+ASSERT PASS p13 since in the future exit (got 1)
+ASSERT PASS p13 duplicate list exit (got 2)
+ASSERT PASS fixture compare exit (got 0)
+ASSERT PASS real compare exit (got 0)
+
+=== 3g TEARDOWN (14:38:52Z) ===
+dropped sik_p14e
+databases: sik sik_bench 
+database.xml: sik 
+
+=== 4e RELEASE INVENTORY ON THE BOX (read-only, P19 N6; success path pre-flighted in P20) (14:39:03Z) ===
+files 62 ok 62 not_ok [] manifests 9
+ASSERT PASS inventory on the box: not_ok (got 0)
+
+=== 5 FINAL (the last box capture of this wave; nothing below touches the box) (14:39:03Z) ===
+frozen P20: 39/39 OK
+lsattr i-flag: 39/39
+# P14 live state: p20-chain-final 2026-10-27T14:39:03Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P20-CLAUDE-20261027
+disk: /dev/vda2        94G   20G   70G  23% /
+consumers: events_statements_cpu=NO events_statements_current=YES events_statements_history=YES events_statements_history_long=NO 
+databases: sik sik_bench 
+harness procs: 0
+
+=== P20 CHAIN DONE (short=0): lib=skip p15-a=skip p16-a=skip p16-e=skip p17-a=skip p18-a=skip p19-a=skip p20-a=skip c4=0 fixture=0 real=0 asserts-failed=0 p17-b=skip p18-b=skip p19-b=skip p20-b=skip line-nc=skip b6=skip suite=skip preservation=skip unit=skip nc=skip ===

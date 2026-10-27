@@ -1,0 +1,57 @@
+== [cmd] bash dr_runlock.sh status (2026-10-27T12:20:30Z)
+RUNLOCK-FREE
+rc=1
+== [cmd] awk manifest | xargs lsattr (35 files, P19 manifest)
+----i---------e------- p10_preservation_check.sh
+----i---------e------- p11_negative_controls.sh
+----i---------e------- p12_perencounter_reconcile.py
+----i---------e------- p13_kill_test.sh
+----i---------e------- p13_sample_compare.py
+----i---------e------- p13_wide_sample.sh
+----i---------e------- p14_edge_run.sh
+----i---------e------- p15_a_negctl.sh
+----i---------e------- p15_b6_negctl.sh
+----i---------e------- p15_chain_e.sh
+----i---------e------- p15_chain.sh
+----i---------e------- p15_lib.sh
+----i---------e------- p15_lib_test.sh
+----i---------e------- p15_line_identity.py
+----i---------e------- p15_line_negctl.sh
+----i---------e------- p16_a_negctl.sh
+----i---------e------- p16_chain_b.sh
+----i---------e------- p16_chain.sh
+----i---------e------- p16_e_negctl.sh
+----i---------e------- p17_a_negctl.sh
+----i---------e------- p17_b_negctl.sh
+----i---------e------- p17_c3_t0.sh
+----i---------e------- p17_chain_b.sh
+----i---------e------- p17_chain.sh
+----i---------e------- p18_a_negctl.sh
+----i---------e------- p18_b_negctl.sh
+----i---------e------- p18_chain.sh
+----i---------e------- p19_a_negctl.sh
+----i---------e------- p19_b_negctl.sh
+----i---------e------- p19_chain.sh
+----i---------e------- p19_release_inventory.py
+----i---------e------- p6_acceptance_suite.sh
+----i---------e------- p6_dbxml.py
+----i---------e------- p8_recovery_unit_test.py
+----i---------e------- sampled_real_form_diff_r5.py
+== [cmd] sha256sum -c p19_frozen_20261027.sha256 | grep -c OK
+35
+== [cmd] mysql SHOW DATABASES (sik*)
+sik sik_bench 
+== [cmd] mysql setup_consumers
+events_statements_cpu	NO
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	NO
+== [cmd] ps -eo pid,etime,args | grep -E [B]ilingHarness|[s]ampled_real | wc -l
+0
+== [cmd] bash dr_runlock.sh acquire P20-CLAUDE-20261027
+RUNLOCK-ACQUIRED: session=P20-CLAUDE-20261027 (/opt/dr-benchmark/LOCK)
+session=P20-CLAUDE-20261027
+pid=543996
+start_utc=2026-10-27T12:20:30Z
+host=mac-mini-vultr
+note=P20 independent P19 review fixes O1-O6
