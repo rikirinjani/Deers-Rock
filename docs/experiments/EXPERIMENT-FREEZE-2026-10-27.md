@@ -63,6 +63,76 @@ come from the earlier length-of-stay model and **must not be compared** with the
 
 This freeze fixes the E1 configuration as a deterministic regression reference: any later change that moves these
 bytes changes trajectories. It is **not** a clinical outcome baseline. An outcome baseline needs a horizon of at least
-~10 simulated days (14,400 ticks). Not run yet: per-tick cost grows with accumulated state, about 2 minutes per
-simulated day by day 2 with `DR_BOUNDED_STATE=1`, so 10 seeds × 10 days is about 1–1.5 hours on 4 cores. The slowdown
-is identical on `main` and is not from this branch.
+~10 simulated days (14,400 ticks): see **Study 2** below (`outcome-v1`). Running it required removing three
+O(encounters × orders) scans (`30d441f`), verified result-neutral against this E1 freeze (byte-identical).
+
+---
+
+# Study 2: Outcome baseline `outcome-v1` (10 seeds × 10 simulated days)
+
+**Approved by:** owner, 2026-10-27 ("run the new outcome baseline").
+**Code commit:** `30d441f`, run from a fresh `git clone` of the pushed branch into an isolated directory (dependencies
+shared via symlinked `node_modules`; the clone's source tree was clean before and after).
+**Why:** the E1 horizon (above) cannot observe inpatient outcomes. 14,400 ticks covers 3–7-day stays several times.
+**Runtime:** 09:19–12:31 UTC on 4 cores via `src/experiment/parallel.ts` (one process per seed, merged in seed order).
+The job hit the 2-hour background limit after 6 seeds; it resumed from the saved per-seed results and re-ran the 4
+interrupted seeds from tick 0. No partial run was reused.
+
+| Artifact | Bytes | SHA-256 |
+|---|---|---|
+| `freeze-2026-10-27-outcome-v1/outcome-v1-2026-10-27T12-31-58-122Z.csv` | 1,504 | `62b0850ad610d0b2188e9ed1af272b4e4653b5c625ebff8ba4363f9dd614db5f` |
+| `freeze-2026-10-27-outcome-v1/outcome-v1-2026-10-27T12-31-58-122Z-summary.json` | 7,029 | `9f0b7a3e08cc4256536b6d54052999f6fc4b0fb52e332240c0bee469a1c49a86` |
+| `freeze-2026-10-27-outcome-v1/outcome-v1-outcomes.json` | 11,189 | `1c9a2e2174b8d4f183e48aaf3e717034d254b11c9a42a4b52cd6a5df4617b851` |
+
+The CSV and summary use the E1 format; `outcomes.json` holds the per-seed `OutcomeMetrics` (`src/experiment/outcomes.ts`).
+
+## Configuration
+
+Seeds 0–9, 14,400 ticks (10 simulated days) each, 50 initial patients, 131 beds, no flags, stochastic disasters.
+
+```
+npx tsx src/experiment/parallel.ts --seeds 10 --ticks 14400 --patients 50 --jobs 4 --prefix outcome-v1
+```
+
+## Results (mean, SD, 95% CI, range across 10 seeds)
+
+| Metric | Value | Indonesian reference (Depkes RI) |
+|---|---|---|
+| Inpatient discharges per run | 191.6 (SD 6.6; ±4.1; 184–206) | — |
+| Deaths per run | 6.9 (SD 2.2; ±1.4; 4–11) | — |
+| In-hospital mortality | **3.62 %** (SD 1.23; ±0.76; 2.14–5.98) = 36 ‰ | GDR < 45 ‰; NDR < 25 ‰ |
+| Inpatient length of stay, mean | **4.79 days** (SD 0.09; 4.64–4.93) | ALOS 6–9 days |
+| Bed occupancy at day 10 | **99.7 %** (98.5–100) | BOR 60–85 % |
+| Discharged "improved" / "deteriorated" | **2.9 % / 93.5 %** | — (see finding 1) |
+| ED + outpatient encounters held at day 10 | 3,634 (SD 28) | — |
+| Referral letters / completed | 292.9 / 291.6 | — |
+| Ambulance dispatches / charged | 72.9 / 62.1 M IDR | — |
+| Kontrol appointments booked / completed | 167.6 / 0 | due after day 10 by design |
+| Sick-leave episodes (122 staff) | 0.8 | ~0.8 expected (0.25 severe episodes per person-year) |
+| Jasa Raharja incidents / claims / claims with incident | 50.3 / 32.0 / 54.7 % | — |
+
+Deaths by ICD across all 69 deaths: I10 hypertension 6, A91 dengue 5, K80, J96, E11, I26, E78 3 each, the rest ≤ 2.
+
+## Reproducibility
+
+Seed 8 was re-run alone from tick 0 after the batch; its per-seed result is compared byte-for-byte below (wall-clock
+time excluded). Determinism of the parallel runner is also covered by the E1 study above (byte-identical through
+`parallel.ts`) and `tests/experiment-runner.test.ts`.
+
+**Seed 8 re-run: pending** (started 12:33 UTC; this line is updated when it completes).
+
+## What this baseline shows (model findings, not engine bugs)
+
+1. **Discharge outcomes are an artefact.** 93.5 % of inpatients leave "deteriorated". `vitalsUpdateHandler`
+   (`markov.ts`, unchanged since at least `e458f6f`) moves every vital sign by `floor(rng·6) − 3` per minute: a
+   **biased** random walk (mean −0.5/min) with no pull back to normal. Within one simulated hour mean HR falls 76 → 57,
+   systolic BP 124 → 97, SpO₂ 97.8 → 92.3 %, RR 17.9 → 12.8, and patients pile up at the clamps (HR 50, SBP 90,
+   SpO₂ 90 %). Outcome classification ("≥ 5 of 7 vitals normal") then fails almost everyone. The same vitals feed the
+   mortality-risk score and the AI doctor's triggers, so **mortality is also shaped by this artefact**.
+2. **The hospital is saturated:** 99.7 % bed occupancy against the 60–85 % standard, with a large ED/outpatient load.
+3. **Stays are short:** 4.8 days against the 6–9-day ALOS standard (the 3–7-day draw in `markov.ts`).
+4. **Hypertension (I10) is the leading recorded cause of death**, which is implausible for in-hospital mortality and
+   follows from primary-diagnosis selection, not clinical cause.
+
+These are reported, not fixed: each changes outcomes and needs the owner's decision (Research OC). Re-freeze after
+any of them is fixed.
