@@ -12,7 +12,9 @@ import { getDischargePlans } from "../src/engine/discharge-planning.js";
 describe("Epic VI Full Pipeline Integration", () => {
   it("sick leave: agents get sick, recover, replacements tracked", () => {
     let w = createWorld(20, undefined, 42);
-    // Run enough ticks for agents to accumulate fatigue and get sick
+    // Put two agents on severe sick leave (organic severe illness is rare by design since 2026-10-27).
+    const pool0 = (w.state as unknown as { _agentState: { pool: { agents: Map<string, any> } } })._agentState.pool.agents;
+    for (const id of Array.from(pool0.keys()).slice(0, 2)) { const a = pool0.get(id); pool0.set(id, { ...a, status: { ...a.status, kesehatan: "sakit_berat" } }); }
     for (let i = 0; i < 200; i++) {
       w = runWorld(w, 1);
     }

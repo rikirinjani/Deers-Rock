@@ -1,7 +1,8 @@
 import type { HospitalState } from "../engine/state-store.js";
 import type { Clock } from "../engine/clock.js";
 import { EventQueue } from "../engine/event-queue.js";
-import type { HospitalAgent, AgentPool, Shift, KeadaanKesehatan } from "./types.js";
+import type { HospitalAgent, AgentPool, KeadaanKesehatan } from "./types.js";
+import { rosterStatus } from "./roster.js";
 
 export interface AgentState {
   pool: AgentPool;
@@ -11,51 +12,84 @@ export function initAgentState(): AgentState {
   return { pool: { agents: new Map(), assignments: new Map() } };
 }
 
+// Epic VI M6.1 (2026-10-27): workforce health model.
+// Calibration targets (Research OC): ~4 mild episodes per person-year lasting
+// ~2 days, 10% progressing to a ~5-day severe episode, i.e. ~2.7% sickness
+// absence, inside the 2–5% typically reported for health workers.
+const TICKS_PER_YEAR = 365 * 1440;
+export const MILD_ONSET_PER_TICK = 4 / TICKS_PER_YEAR;
+export const MILD_RECOVERY_TICKS = 2 * 1440;
+export const SEVERE_RECOVERY_TICKS = 5 * 1440;
+export const SEVERE_PROGRESSION_PER_TICK = 1 - Math.pow(0.9, 1 / MILD_RECOVERY_TICKS);
+/** Off-duty fatigue recovery per tick: a full 8-h shift is shed in 4 h of rest. */
+const FATIGUE_RECOVERY_PER_TICK = 2;
+
 export function agentHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const agentState = (state as unknown as { _agentState?: AgentState })._agentState;
   if (!agentState) return state;
 
   const newAgents = new Map(agentState.pool.agents);
+  const newDay = clock.tick > 0 && clock.tick % 1440 === 0;
 
   for (const [id, agent] of newAgents) {
-    const fatigue = agent.status.consecutiveTicks;
+    const st = agent.status;
+    // Fixed draw count: exactly 2 draws per agent per tick, whatever the state.
+    const onsetDraw = clock.rng();
+    const progressionDraw = clock.rng();
 
-    const shift: Shift = clock.tick % 24 < 8 ? "pagi" : clock.tick % 24 < 16 ? "siang" : "malam";
-    const inShift = true;
+    const roster = rosterStatus(agent, clock.tick);
+    let kesehatan: KeadaanKesehatan = st.kesehatan;
+    let sakitTerhitung = st.sakitTerhitung;
 
-    let kesehatan: KeadaanKesehatan = agent.status.kesehatan;
-    if (fatigue > 20 && kesehatan === "sehat") kesehatan = "lelah";
-    if (fatigue > 40 && kesehatan === "lelah") kesehatan = "sakit_ringan";
-    if (clock.rng() > 0.995 && (kesehatan === "sehat" || kesehatan === "lelah")) kesehatan = "sakit_ringan";
-    if (kesehatan === "sakit_ringan" && clock.rng() > 0.998) kesehatan = "sakit_berat";
+    // Illness course: onset, progression, recovery (sakitTerhitung = ticks in the current sick state).
+    if (kesehatan === "sakit_berat") {
+      sakitTerhitung++;
+      if (sakitTerhitung >= SEVERE_RECOVERY_TICKS) { kesehatan = "sehat"; sakitTerhitung = 0; }
+    } else if (kesehatan === "sakit_ringan") {
+      sakitTerhitung++;
+      if (progressionDraw < SEVERE_PROGRESSION_PER_TICK) { kesehatan = "sakit_berat"; sakitTerhitung = 0; }
+      else if (sakitTerhitung >= MILD_RECOVERY_TICKS) { kesehatan = "sehat"; sakitTerhitung = 0; }
+    } else if (onsetDraw < MILD_ONSET_PER_TICK) {
+      kesehatan = "sakit_ringan"; sakitTerhitung = 0;
+    }
 
-    const consecutiveTicks = inShift ? agent.status.consecutiveTicks + 1 : 0;
+    // On leave while sakit_berat; mild illness still works its shifts.
+    const inShift = roster.onDuty && kesehatan !== "sakit_berat";
+    const working = inShift && !roster.onCall;
+    const consecutiveTicks = working ? st.consecutiveTicks + 1 : Math.max(0, st.consecutiveTicks - FATIGUE_RECOVERY_PER_TICK);
+    const fatigue = consecutiveTicks;
 
-    let isHaids = agent.status.isHaids;
-    let haidCycleDay = agent.status.haidCycleDay;
-    let isHamil = agent.status.isHamil;
-    let hamilWeeks = agent.status.hamilWeeks;
+    if (kesehatan === "sehat" && fatigue >= FATIGUE_WARN) kesehatan = "lelah";
+    else if (kesehatan === "lelah" && fatigue < FATIGUE_WARN) kesehatan = "sehat";
+    // Overtime beyond FATIGUE_CRITICAL (a double shift) can tip a tired agent into illness.
+    if (kesehatan === "lelah" && fatigue >= FATIGUE_CRITICAL) { kesehatan = "sakit_ringan"; sakitTerhitung = 0; }
 
-    if (agent.identity.gender === "female" && !isHamil) {
+    let isHaids = st.isHaids;
+    let haidCycleDay = st.haidCycleDay;
+    let isHamil = st.isHamil;
+    let hamilWeeks = st.hamilWeeks;
+
+    // Cycle and gestation advance per sim-day / sim-minute (1 tick = 1 minute).
+    if (agent.identity.gender === "female" && !isHamil && newDay) {
       haidCycleDay = (haidCycleDay + 1) % 28;
       isHaids = haidCycleDay < 5;
     }
     if (isHamil) {
-      hamilWeeks = Math.min(42, hamilWeeks + 1 / (24 * 7));
+      hamilWeeks = Math.min(42, hamilWeeks + 1 / (7 * 1440));
     }
 
     newAgents.set(id, {
       ...agent,
       status: {
-        ...agent.status,
+        ...st,
         kelelahan: fatigue,
         kesehatan,
-        shift,
+        shift: roster.shift,
         inShift,
-        shiftStartTick: agent.status.shiftStartTick,
-        totalShiftTicks: inShift ? agent.status.totalShiftTicks + 1 : agent.status.totalShiftTicks,
+        shiftStartTick: inShift && !st.inShift ? clock.tick : st.shiftStartTick,
+        totalShiftTicks: inShift ? st.totalShiftTicks + 1 : st.totalShiftTicks,
         consecutiveTicks,
-        sakitTerhitung: kesehatan === "sakit_berat" ? agent.status.sakitTerhitung + 1 : agent.status.sakitTerhitung,
+        sakitTerhitung,
         isHaids,
         haidCycleDay,
         isHamil,
@@ -98,9 +132,9 @@ export function initSickLeaveState(): SickLeaveState {
   return { records: new Map(), counter: 0 };
 }
 
-/** Fatigue (consecutive ticks on duty) at which agentHandler degrades health. */
-export const FATIGUE_WARN = 20;
-export const FATIGUE_CRITICAL = 40;
+/** Fatigue = consecutive ticks on duty: "lelah" after 7 h, illness risk past a 10-h overtime stretch. */
+export const FATIGUE_WARN = 420;
+export const FATIGUE_CRITICAL = 600;
 
 function isFitForCover(a: HospitalAgent): boolean {
   return a.status.inShift && (a.status.kesehatan === "sehat" || a.status.kesehatan === "lelah");
@@ -132,19 +166,8 @@ export function sickLeaveHandler(state: HospitalState, clock: Clock, _queue: Eve
   let counter = sickState.counter;
   let assignments = agentState.pool.assignments;
 
-  for (const [id, agent] of newAgents) {
-    const st = agent.status;
-    // Check recovery: sakit_berat recovers after 120 ticks, sakit_ringan after 48 ticks
-    if (st.kesehatan === "sakit_berat") {
-      if (st.sakitTerhitung >= 120) {
-        newAgents.set(id, { ...agent, status: { ...st, kesehatan: "lelah", sakitTerhitung: 0 } });
-      }
-    } else if (st.kesehatan === "sakit_ringan") {
-      if (st.sakitTerhitung >= 48) {
-        newAgents.set(id, { ...agent, status: { ...st, kesehatan: "sehat", sakitTerhitung: 0 } });
-      }
-    }
-  }
+  // Recovery is owned by agentHandler (SEVERE_RECOVERY_TICKS); this handler
+  // only opens and closes leave records and arranges cover.
 
   // Close leave for agents no longer sakit_berat.
   const onLeave = new Set<string>();

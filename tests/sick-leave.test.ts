@@ -8,7 +8,7 @@ import { describe, it, expect } from "vitest";
 import { createWorld, runWorld, type World } from "../src/engine/world.js";
 import { createClock } from "../src/engine/clock.js";
 import { EventQueue } from "../src/engine/event-queue.js";
-import { sickLeaveHandler, summarizeAgentHealth, FATIGUE_CRITICAL, type SickLeaveState } from "../src/agent/system.js";
+import { agentHandler, sickLeaveHandler, summarizeAgentHealth, FATIGUE_CRITICAL, SEVERE_RECOVERY_TICKS, type SickLeaveState } from "../src/agent/system.js";
 import { apiRoutes } from "../src/api/rest.js";
 import type { HospitalAgent, KeadaanKesehatan } from "../src/agent/types.js";
 import type { HospitalState } from "../src/engine/state-store.js";
@@ -90,21 +90,29 @@ describe("Epic VI M6.1 — sick leave", () => {
     expect(summarizeAgentHealth(s2).sickLeave.uncovered).toBe(1);
   });
 
-  it("closes the record when the agent recovers (sakitTerhitung ≥ 120)", () => {
+  it("closes the record once agentHandler has recovered the agent (SEVERE_RECOVERY_TICKS)", () => {
     const w = healthyWorld();
     const [n1] = nurses(w);
     setHealth(w, n1!.id, "sakit_berat");
     const s2 = sickLeaveHandler(w.state, clockAt(10), new EventQueue());
     const a = pool(s2).agents.get(n1!.id)!;
-    pool(s2).agents.set(n1!.id, { ...a, status: { ...a.status, sakitTerhitung: 120 } });
-    const s3 = sickLeaveHandler(s2, clockAt(130), new EventQueue());
-    const rec = Array.from(sick(s3).records.values())[0]!;
-    expect(rec.recoveredTick).toBe(130);
-    expect(pool(s3).agents.get(n1!.id)!.status.kesehatan).toBe("lelah");
+    pool(s2).agents.set(n1!.id, { ...a, status: { ...a.status, sakitTerhitung: SEVERE_RECOVERY_TICKS - 1 } });
+    const s3 = agentHandler(s2, clockAt(7200), new EventQueue());
+    expect(pool(s3).agents.get(n1!.id)!.status.kesehatan).toBe("sehat");
+    const s4 = sickLeaveHandler(s3, clockAt(7200), new EventQueue());
+    const rec = Array.from(sick(s4).records.values())[0]!;
+    expect(rec.recoveredTick).toBe(7200);
   });
 
+  /** Seeded world with three nurses on severe sick leave from tick 0 (organic severe illness is rare by design). */
+  function sickWorld(): World {
+    const w = createWorld(30, undefined, 42);
+    for (const n of nurses(w).slice(0, 3)) setHealth(w, n.id, "sakit_berat");
+    return w;
+  }
+
   it("over a seeded run, every sakit_berat agent has exactly one open leave record", () => {
-    const w = runWorld(createWorld(30, undefined, 42), 200);
+    const w = runWorld(sickWorld(), 200);
     const s = sickLeaveHandler(w.state, clockAt(w.clock.tick), new EventQueue());
     const open = Array.from(sick(s).records.values()).filter(r => r.recoveredTick === null);
     const berat = Array.from(pool(s).agents.values()).filter(a => a.status.kesehatan === "sakit_berat");
@@ -114,8 +122,8 @@ describe("Epic VI M6.1 — sick leave", () => {
   });
 
   it("is deterministic: same seed gives identical leave records", () => {
-    const w1 = runWorld(createWorld(30, undefined, 42), 200);
-    const w2 = runWorld(createWorld(30, undefined, 42), 200);
+    const w1 = runWorld(sickWorld(), 200);
+    const w2 = runWorld(sickWorld(), 200);
     expect(sick(w1.state).records.size).toBeGreaterThan(0);
     expect(JSON.stringify(Array.from(sick(w2.state).records.entries()))).toBe(JSON.stringify(Array.from(sick(w1.state).records.entries())));
   });
@@ -138,7 +146,10 @@ describe("Epic VI M6.1 — agent health & fatigue alerts", () => {
     expect(h.alerts[0]!.agentId).toBe(n1!.id);
     expect(h.alerts[0]!.level).toBe("critical");
     expect(h.alerts[1]!.level).toBe("warning");
-    expect(h.available).toBe(h.total - 1);
+    // Available = on duty per the roster and not sick (n1 is sakit_berat).
+    const onDutyFit = Array.from(pool(w.state).agents.values()).filter(a => a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan").length;
+    expect(h.available).toBe(onDutyFit);
+    expect(h.available).toBeLessThan(h.total);
   });
 
   it("caps the alert list", () => {

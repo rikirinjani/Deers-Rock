@@ -1,6 +1,7 @@
 import type { HospitalAgent, AgentRole, DepartmentCode, Spesialisasi, AgentPool } from "./types.js";
 import { generateIdentity } from "../identity/generator.js";
 import { PROVINCES, STREET_NAMES, getRandomPostalCode } from "../identity/data.js";
+import { assignRoster } from "./roster.js";
 
 const DOKTER_NAMES_M = ["dr. Agus", "dr. Bambang", "dr. Cahyono", "dr. Dwi", "dr. Eko", "dr. Faisal", "dr. Gatot", "dr. Hasan", "dr. Irwan", "dr. Joko", "dr. Kusno", "dr. Lukman", "dr. Marwan", "dr. Nurdin", "dr. Rahmat", "dr. Supardi", "dr. Taufik", "dr. Usman", "dr. Wawan", "dr. Yusuf"];
 const DOKTER_NAMES_F = ["dr. Ani", "dr. Dewi", "dr. Endang", "dr. Fitri", "dr. Gita", "dr. Hesti", "dr. Intan", "dr. Kartika", "dr. Lestari", "dr. Maya", "dr. Nurul", "dr. Putri", "dr. Ratna", "dr. Sari", "dr. Triana", "dr. Aisyah", "dr. Bunga", "dr. Citra", "dr. Fatmawati", "dr. Wulandari"];
@@ -166,6 +167,7 @@ export function generateAgentPool(totalBeds: number = 133, rng?: () => number): 
     const agent = generateAgent(role, rng);
     agents.set(agent.id, agent);
   }
+  assignRoster(agents);
 
   return { agents, assignments: new Map() };
 }

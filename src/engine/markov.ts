@@ -138,13 +138,23 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     const agentState = (state as unknown as { _agentState?: { pool: { agents: Map<string, HospitalAgent>; assignments: Map<string, string> } } })._agentState;
     if (agentState) {
       const dept = targetSpecialty ? (targetSpecialty === "pulmonology" ? "PARU" : targetSpecialty === "pediatrics" ? "ANAK" : targetSpecialty === "obgyn" ? "OBGYN" : targetSpecialty === "neurology" ? "SARAF" : targetSpecialty === "cardiology" ? "JANTUNG" : "PENYAKIT_DALAM") : "DOKTER";
-      const candidates = Array.from(agentState.pool.agents.values())
-        .filter(a => a.department === dept && a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan")
-        .sort((a, b) => {
-          const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
-          const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
-          return countA - countB;
-        });
+      // The attending specialist (DPJP) is responsible on call, so is assigned
+      // by department whatever the roster says; with no fit specialist, the
+      // on-duty GP (dokter jaga) takes the admission (2026-10-27 roster).
+      const fit = (a: HospitalAgent) => a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan";
+      const byLoad = (a: HospitalAgent, b: HospitalAgent) => {
+        const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
+        const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
+        return countA - countB;
+      };
+      let candidates = Array.from(agentState.pool.agents.values())
+        .filter(a => a.department === dept && fit(a) && (a.role === "dokter_spesialis" || a.status.inShift))
+        .sort(byLoad);
+      if (candidates.length === 0) {
+        candidates = Array.from(agentState.pool.agents.values())
+          .filter(a => a.role === "dokter_umum" && a.status.inShift && fit(a))
+          .sort(byLoad);
+      }
       if (candidates.length > 0) {
         agentState.pool.assignments.set(encounter.id, candidates[0]!.id);
       }

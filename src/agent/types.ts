@@ -45,6 +45,9 @@ export interface AgentStatus {
   haidCycleDay: number;
   isHamil: boolean;
   hamilWeeks: number;
+  /** Roster (src/agent/roster.ts); absent on agents from older snapshots. */
+  rosterPattern?: "rotating4" | "rotating3" | "oncall" | "day";
+  rosterTeam?: number;
 }
 
 export interface HospitalAgent {
