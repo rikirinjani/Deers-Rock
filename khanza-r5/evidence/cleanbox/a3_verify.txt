@@ -1,0 +1,17 @@
+== [cmd] verify export archives 2026-10-31T16:29:01Z
+gzip -t OK simrs-khanza.tar.gz
+gzip -t OK dr-benchmark.tar.gz
+gzip -t OK Deers-Rock-tools.tar.gz
+gzip -t OK db/sik.sql.gz
+gzip -t OK db/sik_bench.sql.gz
+6
+credential-like member names in the tarballs:
+(end list)
+sik dump CREATE TABLE: 1179  sik_bench: 23
+1179
+restore sik_bench dump into a scratch DB:
+restore rc=0
+23
+356355
+ledger (non-fixture rows) sik_bench_expchk: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+scratch dropped; databases: sik sik_bench 

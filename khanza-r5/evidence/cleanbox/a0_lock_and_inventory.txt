@@ -1,0 +1,37 @@
+== [cmd] lock status + acquire 2026-10-31T16:27:19Z
+RUNLOCK-FREE
+RUNLOCK-ACQUIRED: session=P23-CLAUDE-20261031 (/opt/dr-benchmark/LOCK)
+total 12
+drwxr-xr-x 3 root root 4096 Oct 23 07:34 .
+drwxr-xr-x 7 root root 4096 Oct 23 08:04 ..
+drwxr-xr-x 3 root root 4096 Oct 23 13:06 20261023T0633Z
+alarm
+api-bpjsfktl
+api-bpjsfktp
+api-bridgingradiologi
+bankjateng
+bankpapua
+bjb
+build
+build.py
+build.xml
+cache
+consumer
+DataAdmisiSkoringTOLAC.csv
+DataAdmisiSkoringTOLAC.html
+DataAdmisiSkoringTOLAC.wps
+DataChecklistKriteriaKeluarHCU.html
+DataChecklistKriteriaKeluarICU.html
+DataChecklistKriteriaKeluarIsolasi.html
+DataChecklistKriteriaMasukHCU.html
+DataChecklistKriteriaMasukICU.html
+benchmark_pw
+cache
+gambar
+harness
+picture
+report
+setting
+shim
+suara
+webapps

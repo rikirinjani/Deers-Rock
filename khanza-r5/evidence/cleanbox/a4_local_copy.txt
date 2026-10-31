@@ -1,0 +1,15 @@
+# A4 local copy (sanitized; the first attempt, scp, was cut by 'Connection reset by peer' during simrs-khanza.tar.gz; resumed with offset reads over ssh, 2 passes; final check from the local disk):
+# 2026-10-31T20:50:43Z path: C:\Users\think\dr-archives\20261031T1630Z (outside the repo)
+simrs-khanza.tar.gz: OK
+dr-benchmark.tar.gz: OK
+Deers-Rock-tools.tar.gz: OK
+Deers-Rock-tools.lsattr.txt: OK
+db/sik.sql.gz: OK
+db/sik_bench.sql.gz: OK
+
+b37d27580905fc4fcf75487406eef645f606772b4a92ab725356d5fff441af81  simrs-khanza.tar.gz
+c0847d2027bf21859f1a361eeccf8c71a92b1449e54d1da748cf152fc8728275  dr-benchmark.tar.gz
+0bc595c0d2196615b048b76ebeba97406e68ac7ccd67ab6935331ece0643822d  Deers-Rock-tools.tar.gz
+60f0a22287857de6bf2f9d9895164aa3200e0a643c8857a0db8512ae78fbb47c  Deers-Rock-tools.lsattr.txt
+f6312a475c0effa827a9d585262e63a81eebc784cca19834530a4d8001901acf  db/sik.sql.gz
+c5acd984149fb5c5851234660990c993b23ff0984e9a6030526d530c341194b3  db/sik_bench.sql.gz

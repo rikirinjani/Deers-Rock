@@ -1,0 +1,22 @@
+== [cmd] build export archives 2026-10-31T16:27:39Z
+simrs tar rc=0 33s
+dr-benchmark tar rc=0 37s
+tools tar rc=0 37s
+sik dump rc=0 46s
+sik_bench dump rc=0 50s
+/opt/dr-asset-export/20261031T1630Z:
+total 659760
+drwxr-xr-x 3 root root      4096 Oct 31 16:28 .
+drwxr-xr-x 4 root root      4096 Oct 31 16:27 ..
+drwxr-xr-x 2 root root      4096 Oct 31 16:28 db
+-rw-r--r-- 1 root root      9937 Oct 31 16:28 Deers-Rock-tools.lsattr.txt
+-rw-r--r-- 1 root root    887485 Oct 31 16:28 Deers-Rock-tools.tar.gz
+-rw-r--r-- 1 root root  39020212 Oct 31 16:28 dr-benchmark.tar.gz
+-rw-r--r-- 1 root root 635651878 Oct 31 16:28 simrs-khanza.tar.gz
+
+/opt/dr-asset-export/20261031T1630Z/db:
+total 39176
+drwxr-xr-x 2 root root     4096 Oct 31 16:28 .
+drwxr-xr-x 3 root root     4096 Oct 31 16:28 ..
+-rw-r--r-- 1 root root 20119591 Oct 31 16:28 sik_bench.sql.gz
+-rw-r--r-- 1 root root 19982053 Oct 31 16:28 sik.sql.gz
