@@ -367,7 +367,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
 | **X** International Billing | 🔴 Deferred | — | Design only; commercialization brainstorm (ID/US/EU) exists as a Claude Doc |
-| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 44/44 | P1–P20 done (P15: safety + source-row line identity; P16: independent-review fixes; P17: Astra v12 findings, C3 not observable), Astra 71/100 (v12); rebuild rehearsal + v11 blocked; P15 candidates open |
+| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 44/44 | P1–P20 done, P20 Accept rule not met (R9 = 1, independent 19/24), P21 documents fix-up (P15: safety + source-row line identity; P16: independent-review fixes; P17: Astra v12 findings, C3 not observable), Astra 71/100 (v12); rebuild rehearsal + v11 blocked; P15 candidates open |
 
 **Overall (HOE platform, as of 2026-10-07):** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
 **Epic XI (as of 2026-10-25):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.

@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-10-31T12:40:00Z",
+  "category": "process",
+  "severity": "major",
+  "title": "P20 self-score 22/24 was 3 points too high: two records and several sentences said what the plan intended, not what was done (Q1, Q2, Q3, Q6, Q7)",
+  "what_went_wrong": [
+    "Q1: the P19 QMS amendment and P19 addendum 10 said P20 made the retrace repeatable and committed the full run; the 15 traces were withdrawn and the committed run prints UNTRACED: 44.",
+    "Q2: copy_log.txt header named a capture that was not final and said all later commands were reads.",
+    "Q3: R5 section 32 said every file was run once on unfrozen bytes; about 17 of 39 were, and p13_wide_sample.sh never.",
+    "Q6/Q7: 'one canned log per pattern' (the first log holds two); hang root cause stated although the same record says it is not established."
+  ],
+  "root_cause": "Same as P15-P19: sentences were written from the plan before the plan changed (the trace withdrawal) and were not re-read afterwards.",
+  "detection": "Independent local review of P20 (19/24, docs/khanza_r5_p20_review.md); each finding opened in the file before P21 changed it.",
+  "impact": "Records that Astra v13 would have read; no tool byte or box state changed.",
+  "correction": {
+    "applied": "P21 (R5 section 33): lines struck or corrected; after each edit the changed lines were reopened and compared with the data.",
+    "result": "R5 section 33"
+  },
+  "rule": "After a plan changes mid-wave, every record line written before the change that contains copied, committed, repeatable, every, all, final or only is reopened against the data before the commit.",
+  "agent": "claude (P20 executor)",
+  "status": "closed"
+}

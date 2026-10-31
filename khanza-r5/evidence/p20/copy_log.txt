@@ -1,4 +1,4 @@
-# P20 O6a: every box command after the final live-state capture (rerun chain step 5, 2026-10-27T14:39:03Z). All are reads (tar/cat); the lock release is logged at the end.
+# P20 O6a: box commands logged after the rerun chain's step 5 (2026-10-27T14:39:03Z). [P21 correction: that is NOT the final capture. The final live-state capture is chain b step 5, 2026-10-27T14:43:02Z. Entries [1]-[5] predate it. Between [5] and [6] the box was re-locked, unfrozen, edited, re-frozen and run (chain b): those commands are in fixup1_lock_unfreeze.txt, refreeze_fixup1.txt and chain_b/chain_b.log, not here. Only [6] and [7] come after the final capture: a tar read and the lock release.]
 2026-10-27T14:39:28Z [1] ssh mac-mini-vultr 'cd /opt/dr-benchmark/p20; tar cf - chain chain.log rerun rerun.log preflight' | tar xf -
 2026-10-27T14:39:29Z    done: 40 files in chain/, 20 in rerun/chain/
 2026-10-27T14:39:29Z [2] ssh mac-mini-vultr 'cat /opt/dr-benchmark/p-chain/r5_p10_preservation_20261027T135611Z.md' > chain/r5_p10_preservation_20261027T135611Z.md
@@ -6,10 +6,10 @@
 2026-10-27T14:39:31Z [2] ssh mac-mini-vultr 'cat /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261027T134909Z.md' > chain/r5_p6_acceptance_20261027T134909Z.md
 2026-10-27T14:39:32Z [3] ssh mac-mini-vultr 'ls /opt/dr-benchmark/p15/runs/fixture/ /opt/dr-benchmark/p15/runs/real/ (timestamps)' > oracle_log_list.txt
 2026-10-27T14:39:32Z    done
-2026-10-27T14:39:39Z [4] ssh mac-mini-vultr 'bash dr_runlock.sh release P20-CLAUDE-20261027; bash dr_runlock.sh status'  (the only write: the lock release)
+2026-10-27T14:39:39Z [4] ssh mac-mini-vultr 'bash dr_runlock.sh release P20-CLAUDE-20261027; bash dr_runlock.sh status'  (a write: the lock release)
 2026-10-27T14:39:40Z    done
 2026-10-27T14:39:58Z [5] ssh mac-mini-vultr 'grep -ac patterns /opt/dr-benchmark/p15/runs/real/oracle_20261027T130408Z.log; wc -c; (read-only, to explain why the chain-1 helper assert printed none)'
 2026-10-27T14:43:18Z [6] ssh mac-mini-vultr 'cd /opt/dr-benchmark/p20; tar cf - chain_b.log preflight/fixup1_chain_short.txt; and the files of chain/ rewritten by the fix-up chain (live_state_*, lsattr_chain_*, release_inventory_box.json, a_lib_test.txt, p20_a_negctl.txt)'
 2026-10-27T14:43:19Z    done
-2026-10-27T14:43:19Z [7] ssh mac-mini-vultr 'bash dr_runlock.sh release P20-CLAUDE-20261027; bash dr_runlock.sh status' (second release; the only write)
+2026-10-27T14:43:19Z [7] ssh mac-mini-vultr 'bash dr_runlock.sh release P20-CLAUDE-20261027; bash dr_runlock.sh status' (second release; a write)
 2026-10-27T14:43:20Z    done

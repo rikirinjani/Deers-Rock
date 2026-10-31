@@ -105,7 +105,7 @@
     "P20: the independent review of P19 scored 20/24 (self 23/24, withdrawn); R4, R9, R12 = 1",
     "P20 O1: the failed-batch helper missed the oracle's STAGE-DROP-FAILED and STAGE-KEEP words; fixed in P20 (VER-2026-10-27-DR-KHANZA-R5-P20-001)",
     "P20 O3: the cause given for the live pass False (the payment sum) was wrong: live has no payment row for those visits",
-    "P20 O5: AC-7 was partly met (second retrace run UNTRACED: 44); P20 made the retrace repeatable from the repository",
+    "P20 O5: AC-7 was partly met (second retrace run UNTRACED: 44); P20 made the retrace repeatable from the repository [WRONG, corrected in P21: the 15 older traces were withdrawn (addresses); the retrace from the repository still prints UNTRACED: 44 and AC-7 stays partly met]",
     "P20: not_done above also lacked: the two final files not pre-flighted unfrozen (p19_chain.sh, the inventory success path), AC-7 partly"
   ]
 }

@@ -1895,14 +1895,14 @@ Owner decisions at the go-ahead: copy the older khanza-r5 traces if at most 300 
 
 | ID | Change | Control | Paired? | Evidence |
 |---|---|---|---|---|
-| O1 | `p15_lib.sh`: `p15_oracle_batch_failed` also matches `STAGE-DROP-FAILED` and `STAGE-KEEP` (the oracle's own words for a stage drop it could not verify and for stage tables it keeps; both make it exit 4) | `oracle_run` extracted from the driver and run with the oracle shadowed, **one canned log per pattern** (the P19 control put all three in one log): the three P19 patterns give 10 in OLD lib and NEW lib; the three new ones (`STAGE-DROP-FAILED`, `STAGE-KEEP … not verifiably restored`, `STAGE-KEEP … held for --retry-failed`) give **4 with OLD (the defect) and 10 with NEW**; a clean log gives 4. The helper on **real** oracle logs: the two clean C4 logs of the P19 chain give none, the P19 chain's B4 log (a FAILED batch and `STAGE-KEEP`) gives match | **yes** | `chain/p20_a_negctl.txt` |
+| O1 | `p15_lib.sh`: `p15_oracle_batch_failed` also matches `STAGE-DROP-FAILED` and `STAGE-KEEP` (the oracle's own words for a stage drop it could not verify and for stage tables it keeps; both make it exit 4) | `oracle_run` extracted from the driver and run with the oracle shadowed, **one canned log per failure shape** (P21: the first log, `failed`, holds both `: FAILED (` and `NOT restored`, so those two are not tested apart; the P19 control put all three in one log): the three P19 patterns give 10 in OLD lib and NEW lib; the three new ones (`STAGE-DROP-FAILED`, `STAGE-KEEP … not verifiably restored`, `STAGE-KEEP … held for --retry-failed`) give **4 with OLD (the defect) and 10 with NEW**; a clean log gives 4. The helper on **real** oracle logs: the two clean C4 logs of the P19 chain give none, the P19 chain's B4 log (a FAILED batch and `STAGE-KEEP`) gives match | **yes** | `chain/p20_a_negctl.txt` |
 | O2 | `p20_a_negctl.sh` | N5b NEW keeps stderr and asserts rc 1, child alive and the text `ps failed while looking for group`; a **mutant** of the NEW lib (the `ga = 2` block deleted by `sed`, checked to differ) gives rc 1 with the *other* text (`no member looks like this run's harness`), so the text tells the fix from its absence; a `ps` that fails only after the TERM gives rc 1 and `still alive (or unknown) after KILL` | **yes** (mutant); the after-TERM case is new coverage | same |
 | O6d | `p15_lib.sh`: a `.pid` file that exists but holds no pid is NOT CONFIRMED (rc 1, message) instead of a silent skip | empty and letters-only pid files: OLD rc 0, NEW rc 1 and the message; a pid that names no process and no group, and a missing pid file: rc 0 in both | **yes** | same |
 | O4 | `p20_b_negctl.sh` | an AMBIGUOUS encounter (a duplicate `jns_perawatan` row with the same name and a source row under the new code, ROW_COUNT 1 and 1): verdict AMBIGUOUS, outcome MISMATCH in expect mode and `pass` False in equal mode, not counted as unchecked (the stated exclusion), exactly one encounter fails in each mode | **same bytes, new coverage** (no OLD arm) | `chain/p20_b_negctl.txt` |
 | O6a | the evidence copies after the final capture are logged with their time | n/a | n/a | `evidence/p20/copy_log.txt` |
 
 OLD bytes: `.bak_p20_20261027/p15_lib.sh` (the P19 lib, byte-equal to git `9d91d80`: `evidence/p20/bak_equals_git.txt`).
-**Pre-flight:** every file was run once on the unfrozen bytes, each transcript starting with `sha256sum` lines that equal
+**Pre-flight:** ~~every file was run once on the unfrozen bytes~~ (P21: only the files listed next were run on unfrozen bytes; about 17 of the 39 frozen files; `p13_wide_sample.sh`, which calls the changed `p15_kill_run_harness`, ran in no pre-flight and no chain), each transcript starting with `sha256sum` lines that equal
 the frozen hashes (`evidence/p20/preflight/pre_hashes.txt`, `r5_p20_frozen_manifest_20261027.sha256`): `p15_lib_test.sh`,
 `p20_a_negctl.sh` (25/25), the history controls, `p20_chain.sh` with `P20_SHORT=1`, the inventory's success path
 (62 files on a temporary manifest), `p20_b_negctl.sh` (first run: 3 FAIL, a script fault of mine: temporary tables created
@@ -1970,3 +1970,31 @@ same files, same pinned and on-disk hashes).
 
 **Self-score** is in the task doc §7 and is **not** the verdict: the scores were 6, 7, 3 and 3 points above the independent
 reviews. An independent re-score of P20 comes before Astra v13.
+
+## 33. P21: independent P20 review (19/24 vs 22/24), documents-only fixes (2026-10-31, new)
+
+Independent local review `docs/khanza_r5_p20_review.md`: **19/24** against my 22/24; R4, R10 and R11 are 1, not 2; R9 = 1, so the
+Accept rule is not met. The bytes were confirmed (manifest b 39/39 equal to git, manifest a reconstructed, inventory reproduced
+byte for byte, final capture last). The defects are records. I checked Q1, Q2, Q3, Q6, Q7 and the ROADMAP line against the files
+before changing anything; Q4, Q5 and Q8 are taken from the review and not re-opened. **No box access, no unfreeze, no tool byte changed.**
+
+| ID | Fix |
+|---|---|
+| Q1 | Two sentences claimed P20 made the retrace repeatable / committed the full run (P19 QMS amendment, P19 addendum 10). Corrected (addendum struck). |
+| Q2 | `evidence/p20/copy_log.txt` header re-anchored: the final capture is chain b step 5 (14:43:02Z); "all reads" removed. |
+| Q3 | R5 §32 "every file was run once on the unfrozen bytes" struck; `p13_wide_sample.sh` added as a limit: it calls `p15_kill_run_harness`, whose empty-pid-file behaviour (O6d) changed, and ran nowhere in P20. |
+| Q6 | "one canned log per pattern" reworded (the `failed` log holds two patterns) in R5 §32 and handoff 26. |
+| Q7 | Hang record `root_cause` now "not established". |
+| ROADMAP | Row XI no longer reads "P20 done" alone. |
+
+**Not done, stated limits (taken over from the review):** Q4 (the after-TERM case discriminates only the post-KILL message), Q5 (step
+`3z` passes on a missing oracle log and its positive control can be skipped), Q8 (rerun banner, line number of the vacuous assertion,
+`asserts-failed 0` includes two vacuous assertions, later re-checked by chain b) and the review's R10 notes (three failure records
+share one stamp; two pre-flight iterations unreported). These need an unfreeze and are for the next tool change.
+**Retrace:** the full 44-name list could not be produced: `pm1-retrace` shows at most 15 names per directory even when scoped to
+`evidence/p11` (31 files). `evidence/p21_p11_files_not_named_in_traces.txt` lists the 47 `evidence/p11` files whose name appears in no
+committed trace; it is a different test from the tool's, so it is an approximation, not the tool's list. AC-7 stays partly met.
+**Method for this wave:** each changed record line was reopened after the edit (see the task record) because the cause of Q1 was a
+sentence written from the plan and not re-read after the plan changed.
+**Self-score:** none given; the independent score of P20 (19/24) stands. The independent reviewer recommends Astra v13 after this
+documents fix-up; that needs the owner's decision.

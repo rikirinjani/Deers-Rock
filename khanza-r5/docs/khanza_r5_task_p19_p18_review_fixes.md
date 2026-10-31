@@ -294,7 +294,9 @@ since commit `129b72c` (written before the run).
    This was in no plan item and no control. Reason: such an encounter's verdict is AMBIGUOUS/UNMAPPED, which fails equal mode
    (`pass` needs EQUAL/EQUAL-SRC) and expect mode; counting its keys as unchecked would only duplicate that failure. Covered since
    P20 by `p20_b_negctl.sh` (same bytes, new coverage).
-10. **AC-7 was partly met, not met-and-scored-2:** the second retrace run printed `UNTRACED: 44`. P20 copied the 15 missing
-    older khanza-r5 traces into `records/traces/` and committed the full run (`evidence/p20/retrace_trace_clean.txt`).
+10. **AC-7 was partly met, not met-and-scored-2:** the second retrace run printed `UNTRACED: 44`. ~~P20 copied the 15 missing
+    older khanza-r5 traces into `records/traces/` and committed the full run (`evidence/p20/retrace_trace_clean.txt`).~~
+    **Corrected in P21:** P20 copied them and then removed all 15 before any commit (4 held network addresses); the committed
+    second run (`evidence/p20/retrace_trace_clean.txt`) still prints `UNTRACED: 44`, and the tool hides names beyond 15 per directory.
 11. The §7 R9 reason "the retrace says clean" and the cause given for the live `pass` False (O3) are corrected in R5 §32 and
     `evidence/p20/erratum_p19.md`.
