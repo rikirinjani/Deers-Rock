@@ -1,0 +1,10 @@
+== [cmd] pre-flight p20_a_negctl.sh (changed: R5, R6) 2026-10-31T13:15:02Z
+137b2dc4223de28a84eaa7c934bdad7daf1412a4184af93cf3f7422f3743d6f9  p20_a_negctl.sh
+20b3e4581db0b923c1fdd466d59d3d0c624a45660ac61d8a02e7a6905ec534a8  p15_lib.sh
+PASS O1 the NEW driver run prints ORACLE-BATCH-FAILED for STAGE-DROP-FAILED (got 1)
+PASS O1 real oracle log of the P19 chain's B4 run (a FAILED batch and STAGE-KEEP): match (got match)
+after-TERM: 1|kill-run-harness: leader 648058 is gone but its harness group is alive - signalling the group kill-run-harness: group 648058 still alive (or unknown) after KILL  (elapsed 11 s; kill calls: -0 -TERM -KILL )
+PASS O2 after-TERM: the wait loop ran its full wait (elapsed >= 8 s), not an early break on unknown (got yes)
+PASS O2 after-TERM: a TERM and then a KILL were sent to the group (got ge1/ge1)
+P20-A-NC: PASS=27 FAIL=0
+p20_a exit=0

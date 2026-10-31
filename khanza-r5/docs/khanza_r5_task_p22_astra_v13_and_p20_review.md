@@ -34,3 +34,13 @@ Not worked: the clean-box rebuild and third home, X2, C3 code-identity observati
 
 ## 5. Rubric
 Same R1-R12 (0/1/2, /24; critical R2, R3, R6, R9) as P20 section 6; the self-score is not the verdict; an independent re-score follows.
+
+## 7. Result (filled after execution, 2026-10-31)
+Executed under lock `P22-CLAUDE-20261031` (13:11:29Z-15:59:21Z). All of §2 A-E done; R1-R7 as in R5 section 34. One full chain on manifest
+`p22_frozen_20261031.sha256` (42 files): every step green, `asserts-failed=0`, inventory 65/65. Amendments: (1) the R1 helper also checks that the log is a regular file and
+treats a grep error as FAILED (the first pre-flight found a directory passed as a log); (2) R5 pairing is an ad hoc mutant run, only the timing assertion discriminates;
+(3) `p22_chain.sh` inherits the label `p20-chain-final` in its live-state header. Self-score 20/24 (R4, R5, R9, R10 = 1); Accept rule not met (R9 = 1). Details in R5 section 34.
+
+**Erratum (P22 independent review S6, 2026-10-31):** §2A says the empty-log oracle_run case is "OLD 10 / NEW 4": reversed, the transcript (`evidence/p22/chain.log:108`) and the control say OLD 4 / NEW 10.
+§2A says "each `mysql` rc is checked": the code checks the output (empty / non-numeric), not the exit status. §2C says the new chain "runs 3z first": 3z stays after step 4d, as in `p20_chain.sh`.
+Independent score of P22: **18/24** (R3, R4, R5, R9, R10, R11 = 1); Accept rule not met (R3 and R9 = 1).

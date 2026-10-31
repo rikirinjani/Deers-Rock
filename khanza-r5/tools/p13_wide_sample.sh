@@ -36,7 +36,10 @@ cleanup() {
     res "CLEANUP-INCOMPLETE: a harness process group was not confirmed dead - database.xml, grant and clone left as they are (P17 A3)"
     exit 3
   fi
-  [ "$RETARGETED" = "1" ] && $DBXML restore >> /tmp/p13w_dbxml.log 2>&1
+  if [ "$RETARGETED" = "1" ] && ! $DBXML restore >> /tmp/p13w_dbxml.log 2>&1; then   # P22 R2: a failed restore is reported and fails the run
+    res "CLEANUP-RESTORE-FAILED: database.xml restore failed (see /tmp/p13w_dbxml.log) - grant and clone left as they are"
+    exit 3
+  fi
   [ "$GRANTED" = "1" ] && SQL "REVOKE SELECT, INSERT, UPDATE, DELETE ON \`$FX\`.* FROM 'benchmark'@'localhost';" 2>/dev/null
   if [ "$CREATED" = "1" ]; then
     if [ "$BUILT" = "1" ] && [ "$ORACLE_RC" -ne 3 ]; then

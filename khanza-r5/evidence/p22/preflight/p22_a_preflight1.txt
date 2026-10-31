@@ -1,0 +1,42 @@
+== [cmd] sha256sum (pre-flight headers 2026-10-31T13:14:05Z)
+935c3612e4aba72b804c713372e38bbd1ba56be21abc9024f8d3d9f65e6e3fa0  p15_lib.sh
+8b6c1ea6a6c31d04c469d5bc87e3d790d643d092e44adced8cf4eb7fb144d774  p14_edge_run.sh
+b4bc6bb0b7be18addf42c0092d09c741cea07bfd9dd3c091809eb5c4b175d7c9  p13_wide_sample.sh
+137b2dc4223de28a84eaa7c934bdad7daf1412a4184af93cf3f7422f3743d6f9  p20_a_negctl.sh
+d7d248010e35b44571ad34d2d8485010900d93e40d823ef1212a7d8db2123771  p22_a_negctl.sh
+77122517c4f004ffe65b522db5b8d8d3a0a4800ca77cef76e1445a31e3707bfa  p15_lib_test.sh
+== [cmd] p22_a_negctl.sh
+PASS precondition: database.xml on sik (got sik )
+PASS precondition: OLD bytes differ from NEW bytes (lib, p14, p13) (got differs/differs/differs)
+## R1 the helper on a missing, empty, unreadable, clean and failed log (OLD lib vs NEW lib)
+PASS R1 missing log: OLD none (the defect) / NEW match (got none/match)
+PASS R1 empty log: OLD none / NEW match (got none/match)
+FAIL R1 a directory instead of a log: OLD none / NEW match (got none/none, want none/match)
+PASS R1 clean log: OLD none / NEW none (no false trigger) (got none/none)
+PASS R1 failed log: OLD match / NEW match (positive control for the line above) (got match/match)
+PASS R1 the NEW helper says why on stderr for a missing log (got 1)
+## R1 through the real oracle_run (extracted from the driver)
+PASS R1 oracle_run is extracted from the driver (got yes)
+PASS R1 oracle exits 4 with an EMPTY log: OLD 4 (accepted as an out-of-envelope run) / NEW 10 (ORACLE-BATCH-FAILED) (got RC=4/RC=10)
+PASS R1 oracle exits 4 with a clean log: OLD 4 / NEW 4 (got RC=4/RC=4)
+PASS R1 oracle exits 4 with a failed log: OLD 10 / NEW 10 (got RC=10/RC=10)
+## R2 the EXIT-trap cleanup, failing and succeeding $DBXML restore (OLD driver vs NEW driver)
+PASS R2 p14_edge_run.sh: cleanup is extracted (got yes)
+  p14_edge_run.sh failing restore: OLD [0|RES: cleanup-final: sik_dbs= dbxml_targets=sik  clone_grants=0 ] NEW [3|RES: CLEANUP-RESTORE-FAILED: database.xml restore failed (see /tmp/p14e_dbxml.log) - grant and clone left as they are ]
+PASS R2 p14_edge_run.sh failing restore: OLD rc 0 and no CLEANUP-RESTORE-FAILED (the defect) (got 0/0)
+PASS R2 p14_edge_run.sh failing restore: NEW rc 3 and the message (got 3/1)
+PASS R2 p14_edge_run.sh succeeding restore: OLD rc 0 / NEW rc 0, no CLEANUP-RESTORE-FAILED (got 0/0/0)
+PASS R2 p13_wide_sample.sh: cleanup is extracted (got yes)
+  p13_wide_sample.sh failing restore: OLD [0|RES: cleanup-final: sik_dbs= dbxml_targets=sik clone_grants=0 ] NEW [3|RES: CLEANUP-RESTORE-FAILED: database.xml restore failed (see /tmp/p13w_dbxml.log) - grant and clone left as they are ]
+PASS R2 p13_wide_sample.sh failing restore: OLD rc 0 and no CLEANUP-RESTORE-FAILED (the defect) (got 0/0)
+PASS R2 p13_wide_sample.sh failing restore: NEW rc 3 and the message (got 3/1)
+PASS R2 p13_wide_sample.sh succeeding restore: OLD rc 0 / NEW rc 0, no CLEANUP-RESTORE-FAILED (got 0/0/0)
+## R3 p15_clone_matches_sik with mysql shadowed
+  failing mysql: OLD [0|clone matches sik: tables= (= sik), 6 key tables row-equal ] NEW [1|clone check: table counts are not numbers (sik='' clone='') - mysql failed ]
+PASS R3 failing mysql (two empty strings): OLD rc 0 'clone matches sik' (the defect) / NEW rc 1 (got 0/1/1/1)
+PASS R3 non-numeric output on both sides: OLD rc 0 (the defect) / NEW rc 1 (got 0/1)
+PASS R3 equal numbers: OLD rc 0 / NEW rc 0, NEW prints 'tables=1179 (= sik)' and 'count-equal' (got 0/0/1)
+PASS R3 a real table-count mismatch: OLD rc 1 / NEW rc 1 (positive control) (got 1/1/1)
+PASS database.xml on sik at the end (got sik )
+P22-A-NC: PASS=24 FAIL=1
+p22_a exit=1

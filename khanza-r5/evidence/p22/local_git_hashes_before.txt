@@ -1,0 +1,4 @@
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371 *local-git p15_lib.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a *local-git p14_edge_run.sh
+ea1c3f2811d8afe6e63b89129f1cb91f1e4f1b4f2c4295522271888658a3aea6 *local-git p13_wide_sample.sh
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe *local-git p20_a_negctl.sh

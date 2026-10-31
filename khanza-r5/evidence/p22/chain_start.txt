@@ -1,0 +1,5 @@
+== [cmd] start full chain 2026-10-31T13:17:27Z
+started pid=650966
+4e9c9f9745be836f74ee52ee27333fd0b0c003ecfdc7cd4fd79471a12434deeb  p22_chain.sh
+Read from remote host <host>: Connection reset by peer
+client_loop: send disconnect: Connection reset by peer

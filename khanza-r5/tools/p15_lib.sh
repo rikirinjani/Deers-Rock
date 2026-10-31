@@ -57,7 +57,12 @@ p15_group_is_harness() { # pgid log-path
 # with failed_batches = ["stage-drop"]) and for stage tables it keeps because a batch is not restored or is FAILED
 # (STAGE-KEEP). A clean run logs neither (the oracle drops its stage tables and says "verified").
 p15_oracle_batch_failed() { # log
-  grep -aEq ': FAILED \(|STAGE-RESTORE-ERROR|NOT restored|STAGE-DROP-FAILED|STAGE-KEEP' "$1"
+  # P22 R1: a log that is missing, unreadable or empty is not evidence of a clean run - treat it as FAILED (fail closed)
+  [ -f "$1" ] && [ -r "$1" ] && [ -s "$1" ] || { echo "oracle-batch-failed: log '$1' is missing, unreadable or empty - treated as FAILED" >&2; return 0; }
+  local grc
+  grep -aEq ': FAILED \(|STAGE-RESTORE-ERROR|NOT restored|STAGE-DROP-FAILED|STAGE-KEEP' "$1"; grc=$?
+  [ "$grc" = 2 ] && { echo "oracle-batch-failed: grep could not read '$1' - treated as FAILED" >&2; return 0; }
+  return $grc
 }
 # P17 A3/A4 + P18 B2 + P19 N5: signal a recorded harness group only if it is provably this run's. Live leader: it
 # leads its group and started no later than its pid file was written (to the millisecond); an unreadable start
@@ -116,13 +121,18 @@ p15_clone_matches_sik() { # clone
   local t a b ta tb
   ta=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='sik'")
   tb=$(mysql -uroot -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$1'")
+  # P22 R3: a failed mysql call gives an empty string; two empty strings must not compare equal
+  case "$ta$tb" in *[!0-9]*|"") echo "clone check: table counts are not numbers (sik='$ta' clone='$tb') - mysql failed"; return 1;; esac
+  [ -n "$ta" ] && [ -n "$tb" ] || { echo "clone check: a table count is empty (sik='$ta' clone='$tb') - mysql failed"; return 1; }
   [ "$ta" = "$tb" ] || { echo "clone table count $tb != sik $ta"; return 1; }
   for t in reg_periksa billing rawat_jl_dr detail_pemberian_obat nota_jalan detail_nota_jalan; do
     a=$(mysql -uroot -N -e "SELECT COUNT(*) FROM sik.$t")
     b=$(mysql -uroot -N -e "SELECT COUNT(*) FROM $1.$t")
+    case "$a$b" in *[!0-9]*) echo "clone check: $t counts are not numbers (sik='$a' clone='$b') - mysql failed"; return 1;; esac
+    [ -n "$a" ] && [ -n "$b" ] || { echo "clone check: $t count is empty (sik='$a' clone='$b') - mysql failed"; return 1; }
     [ "$a" = "$b" ] || { echo "clone $t rows $b != sik $a"; return 1; }
   done
-  echo "clone matches sik: tables=$ta (= sik), 6 key tables row-equal"   # P17 A12: the table count, not the last row count
+  echo "clone matches sik: tables=$ta (= sik), 6 key tables count-equal (COUNT(*) only)"   # P22 R3: counts, not row contents; P17 A12: the table count, not the last row count
 }
 
 # Ledger pin (A6): content hash of the non-fixture rows of <db>.dr_charge_ledger; returns 1 on mismatch.

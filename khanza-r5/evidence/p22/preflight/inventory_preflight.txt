@@ -1,0 +1,3 @@
+== [cmd] inventory success path with the prospective manifest in place 2026-10-31T13:16:55Z
+rc=0
+files 65 ok 65 not_ok [] manifests 11

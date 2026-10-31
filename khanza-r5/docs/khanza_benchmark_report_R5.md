@@ -1998,3 +1998,57 @@ committed trace; it is a different test from the tool's, so it is an approximati
 sentence written from the plan and not re-read after the plan changed.
 **Self-score:** none given; the independent score of P20 (19/24) stands. The independent reviewer recommends Astra v13 after this
 documents fix-up; that needs the owner's decision.
+
+## 34. P22: Astra v13 findings and the open P20-review items, documents and three tool fixes, one full chain on the final bytes (2026-10-31, new)
+
+Task doc `docs/khanza_r5_task_p22_astra_v13_and_p20_review.md` (committed `068c33d` before execution). Run lock `P22-CLAUDE-20261031`,
+13:11:29Z-15:59:21Z (released, `RUNLOCK-FREE`). Frozen set: 42 files (`evidence/p22/r5_p22_frozen_manifest_20261031.sha256`; the 39 of P20
+manifest b with 4 changed and 3 new), `sha256sum -c` 42/42, `lsattr` `i` 42/42, local = box 42/42. Originals in `.bak_p22_20261031`
+(hashes equal git, `evidence/p22/local_git_hashes_before.txt`).
+
+| ID | Fix | Control |
+|---|---|---|
+| R1 | `p15_oracle_batch_failed` treats a missing, empty, non-regular or unreadable log (and a grep error) as FAILED | `p22_a_negctl.sh`: missing / empty / directory: OLD none, NEW match; clean none/none; failed match/match; through `oracle_run` an oracle that exits 4 with an empty log: OLD 4, NEW 10 |
+| R2 | A failing `$DBXML restore` in the EXIT-trap `cleanup()` prints `CLEANUP-RESTORE-FAILED` and exits 3 (`p14_edge_run.sh`, `p13_wide_sample.sh`) | `cleanup()` extracted by `sed` from OLD and NEW driver, `$DBXML` shadowed: OLD rc 0 / NEW rc 3 for both drivers; a succeeding restore is silent and rc 0 in both |
+| R3 | `p15_clone_matches_sik` rejects empty and non-numeric counts; the message says `count-equal (COUNT(*) only)` | `mysql` shadowed: failing and junk output OLD rc 0 / NEW rc 1; equal numbers still match; a real mismatch still fails |
+| R4 | Step `3z` of the new `p22_chain.sh`: the newest oracle logs must exist and be non-empty, and the positive control file must exist and carry STAGE-KEEP, as assertions | in the chain: 7 assertions, all PASS |
+| R5 | After-TERM case of `p20_a_negctl.sh` also asserts the elapsed wait (>= 8 s) and that a TERM and a KILL were sent | ad hoc mutant (`evidence/p22/preflight/r5_mutant_control.txt`): a lib whose wait loop treats "unknown" as dead gives elapsed 1 s and the timing assertion FAILS (26/27); the TERM/KILL-count assertion does **not** discriminate that mutant |
+| R6 | The first canned log of `p20_a_negctl.sh` holds only the `: FAILED (` pattern | no old arm (test hygiene) |
+| R7 | Handoff section 1 refreshed (latest wave, records line) | reopened after the edit |
+
+**Result of the one full chain on the final frozen bytes** (`evidence/p22/chain.log`, `chain/`; 13:17:28Z to the final capture at 14:24:06Z):
+lib 23/23, P15 A 9/9, P16 A 26/26 and E 20/20, P17 A 37/37 and B 31/31, P18 A 50/50 and B 33/33, P19 A 19/19 and B 28/28, P20 A 27/27 and B 10/10,
+**P22 A 25/25**, C4 fixture 27/27 (57 unit keys checked, 0 unchecked) and real 300/300 (1,240 lines, 698/0, all `unit_src` MATCH), line 33/33, B6 6/6,
+suite PASS=39, preservation exit 0, unit 44/44, NC 5 discriminating, `asserts-failed=0` (21 ASSERT PASS), inventory on the box **65 files, 65 ok, 11 manifests**,
+frozen 42/42. This closes the earlier limit "no single full chain on the final wrapper" for one run (n = 1; the P20 first chain showed a hang once): the chain wrapper that ran is the frozen one.
+
+**What went wrong and is kept**
+- The first pre-flight of `p22_a_negctl.sh` failed 1 of 25 (`evidence/p22/preflight/p22_a_preflight1.txt`): my R1 fix passed a **directory** as a clean log (`-r` and `-s` are true for a directory, grep returns 2). The control found a defect in my own fix; the lib was fixed (`-f`, and grep rc 2 treated as failed) and re-run 25/25 (`p22_a_preflight2.txt`).
+- The `P22_SHORT` pre-flight failed the inventory assertion (`not_ok` empty). Cause (inferred, then confirmed): the P22 manifest did not exist yet; with it in place the inventory printed 65/65 (`inventory_preflight.txt`).
+- `chain/live_state_final.txt` has the header label `p20-chain-final`: a stale string inherited from `p20_chain.sh` (`p14_live_state.sh p20-chain-final`). The capture is the final one (14:24:06Z); the label is wrong. The frozen wrapper was not changed.
+- The box stayed locked from 14:24Z to 15:59Z while I wrote this up; nothing touched the box in between except the logged copies and release (`evidence/p22/copy_log.txt`, entries at 15:58-15:59Z).
+
+**Not done / stated limits:** R2 is shown by extracting `cleanup()` with the restore shadowed, not by a driver run with an induced restore failure; the R5 TERM/KILL-count assertion is not discriminating (only the timing one is); R6 has no old arm; the P22 R4 positive control is the log of the **first P20 chain** (still on the box); the P20 chain wrapper remains frozen history and was not run; AC-7 (retrace, 44 files uncovered), `.bak_p17fix1` never hashed, X2, C3 code-identity observation, the clean-box rebuild and the third home (box ends ~2026-11-20), the P14 ledger scope gaps, A8 failing branch, B4 unpaired and P20 Q8 minor points (rerun banner, line number in the 1445 record) are **not** worked in P22.
+
+**Self-score 20/24** (R4 = 1: the task doc said "paired" for R1-R6 and R5/R6 are not paired in the chain; R5 = 1: the full chain was not pre-flighted unfrozen, only its SHORT mode; R9 = 1: AC-7 untouched; R10 = 1: the new record lines were reopened but I have not had them independently re-read). Critical item R9 = 1, so the plan's Accept rule is **not** met. This is not the verdict: the executor's scores ran 3 to 7 points above the independent ones in five waves. An independent re-score comes before any claim of closure.
+
+## 35. P23: independent P22 review (18/24 vs 20/24), corrections (2026-10-31, new)
+
+Independent local review `docs/khanza_r5_p22_review.md`: **18/24** against my 20/24 (R3, R4, R5, R9, R10, R11 = 1); the Accept rule is not met
+(R3 and R9 = 1). The gap is 2, the smallest of the series (6, 7, 3, 3, 3, 2). The reviewer found no wrong behaviour in R1-R3 and recommends
+stopping tool-byte iterations for the clean-box rehearsal. I opened each finding before acting; **no box access and no tool byte changed in this step.**
+
+| ID | Finding | Verified | Action |
+|---|---|---|---|
+| S1 | `evidence/p22/chain_start.txt:4` held a tailnet-range address in an ssh error line (breach of AC-5 and the public-repo rule) | yes | Replaced by `<host>`. The commit was local only (origin was at `f771e04`), so the local P22 commit was rebuilt without it (backup branch `backup-pre-redact-20261031` holds the old commits and the address; delete it before any push of that branch). AC-5 scan now run on the rebuilt commit: added lines of `git diff 875d55a..HEAD` for IPv4/IPv6, `ts.net`, `AES_KEY/IV`, `passw*=`; remaining matches are version strings (`17.0.20.1`) and checksum lines. I had not run or reported an AC-5 scan in §34: that was my miss. |
+| S2 | `p13_wide_sample.sh` changed but never run whole; AC-4 not met for it | yes | Not fixed; stated as a limit (the reviewer ran `bash -n`: OK). |
+| S3 | `exit 3` in the trap skips the `cleanup-final` line and the control never sets CREATED/GRANTED | yes (read `p14_edge_run.sh:55-61`) | Not fixed; limit. |
+| S4 | R5 count assertion decorative; mutant lib not committed | yes (disclosed in §34) | Not fixed; limit. |
+| S5 | Unlisted: P20 hang unexplained, one clean C4 only, p13 driver never run, stray `__pycache__/*.pyc` committed | yes (`git ls-files`) | pyc removed from the tree; other items limits. |
+| S6 | Plan-text errors in the P22 task doc | yes | Erratum appended to task doc §7. |
+| S7 | The stale `p20-chain-final` label is also in the baseline capture (`chain.log:3`) | yes | Disclosed here. |
+| S9 | "44 uncovered" is carried from P20, "local = box 42/42" has no transcript | yes | Handoff reworded; the equality holds transitively (box `sha256sum -c` 42/42 + the committed manifest = local hashes, re-hashed by the reviewer). |
+| S10 | "closes the earlier limit" rests on one run | yes | Reworded: one full chain, one run. |
+
+**Self-score of this step:** none. The independent total for P22 is 18/24 and stands. **State:** P22 tool set judged sound; the next step the reviewer and Astra v13
+both name is the clean-box archive and rehearsal (the box ends ~2026-11-20), then the international version.

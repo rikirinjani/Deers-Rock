@@ -29,7 +29,7 @@ chk "precondition: database.xml on sik" "$(XMLP)" "sik "
 echo "## O1 oracle_run with one canned pattern at a time (OLD lib vs NEW lib, same driver)"
 printf '2027/12/31/900001\n2027/12/31/900002\n2027/12/31/900003\n' > $T/vis3.txt
 mk() { printf '[01:38:36] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE\n%s\n' "$2" > $T/canned_$1.log; }
-mk failed       '[01:40:36] date 2027-12-31: FAILED (sukses=false for 0/3 visits) - pre-reset state NOT restored (unverified/mismatch/error; stage tables kept), run stops (P5-2)'
+mk failed       '[01:40:36] date 2027-12-31: FAILED (sukses=false for 0/3 visits) - run stops (P5-2)'   # P22 R6: the line holds only the FAILED ( pattern; NOT restored has its own line below
 mk restoreerr   '[01:40:36] STAGE-RESTORE-ERROR r5_stage_B3_x_*: RuntimeError: mysql rc=1: ERROR 1644 (45000) at line 1: injected'
 mk notrestored  '[01:40:36] pre-reset state of 2026-10-01 NOT restored after the failed batch'
 mk dropfailed   '[01:40:37] STAGE-DROP-FAILED r5_stage_B3_x_*: errors=[] remaining=[x] (box NOT clean; verdict forced fail-closed)'
@@ -103,11 +103,14 @@ reap $RD/harness_b.log.pid
 
 echo "# O2 ps that fails only after the TERM (wait loop and post-KILL confirmation)"
 mkpid; gone_with_child $RD/harness_c.log.pid BilingHarness_p20
-PSAFTER="kill() { case \"\$1\" in -TERM) : > $T/psfail;; esac; builtin kill \"\$@\"; }; ps() { if [ -e $T/psfail ]; then return 1; fi; command ps \"\$@\"; }"
-rm -f $T/psfail
-R=$(kill_run ./p15_lib.sh "$PSAFTER"); sleep 1
-echo "after-TERM: $R"
+PSAFTER="kill() { echo \"\$1\" >> $T/kills; case \"\$1\" in -TERM) : > $T/psfail;; esac; builtin kill \"\$@\"; }; ps() { if [ -e $T/psfail ]; then return 1; fi; command ps \"\$@\"; }"
+rm -f $T/psfail $T/kills
+T0=$(date +%s); R=$(kill_run ./p15_lib.sh "$PSAFTER"); T1=$(date +%s); sleep 1
+echo "after-TERM: $R (elapsed $((T1-T0)) s; kill calls: $(tr '\n' ' ' < $T/kills))"
 chk "O2 ps failing after the TERM: rc 1 and 'still alive (or unknown) after KILL'" "${R%%|*}/$(echo "$R" | grep -c 'still alive (or unknown) after KILL')" 1/1
+# P22 R5: the wait loop did not treat an unknown (rc 2) as dead (it ran its full wait before the KILL), and the KILL was sent
+chk "O2 after-TERM: the wait loop ran its full wait (elapsed >= 8 s), not an early break on unknown" "$([ $((T1-T0)) -ge 8 ] && echo yes || echo no)" yes
+chk "O2 after-TERM: a TERM and then a KILL were sent to the group" "$(grep -c -- '-TERM' $T/kills | awk '{print ($1>=1)?"ge1":"0"}')/$(grep -c -- '-KILL' $T/kills | awk '{print ($1>=1)?"ge1":"0"}')" ge1/ge1
 reap $RD/harness_c.log.pid; rm -f $T/psfail
 
 echo "# O6d an empty pid file and a letters-only pid file"

@@ -1,0 +1,28 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p22-fixes-and-full-chain",
+  "timestamp": "2026-10-31T16:01:41.132500+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p15_lib.sh,khanza-r5/tools/p14_edge_run.sh,khanza-r5/tools/p13_wide_sample.sh,khanza-r5/tools/p20_a_negctl.sh,khanza-r5/tools/p22_a_negctl.sh,khanza-r5/tools/p22_chain.sh,khanza-r5/tools/p22_release_inventory.py,khanza-r5/docs/khanza_r5_task_p22_astra_v13_and_p20_review.md,khanza-r5/docs/khanza_benchmark_report_R5.md,khanza-r5/evidence/p22/chain.log,khanza-r5/records/qms/VER-2026-10-31-DR-KHANZA-R5-P22-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p22-fixes-and-full-chain",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................-.--...-........................................-.--...-",
+  "action": "R5 P22: Astra v13 findings and open P20-review items; helper fails closed, trap restore checked, clone check validated; one full chain on 42 frozen files; self-score 20/24"
+}

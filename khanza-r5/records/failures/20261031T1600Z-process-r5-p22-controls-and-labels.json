@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-31T16:00:00Z",
+  "category": "test",
+  "severity": "minor",
+  "title": "P22: the new R1 fix passed a directory as a clean log (found by its own control); the chain header label p20-chain-final is stale",
+  "what_went_wrong": [
+    "p15_oracle_batch_failed checked -r and -s only; for a directory both are true and grep exits 2, which read as 'none'. p22_a_negctl.sh failed 1 of 25 on its first pre-flight.",
+    "p22_chain.sh was derived from p20_chain.sh and kept the string p20-chain-final in the live-state capture label; the final capture is correct, its header is not."
+  ],
+  "root_cause": "R1 was written from the case I had in mind (missing and empty file); the control also covered a directory because it was planned from the helper's inputs, not from my fix. The label was not grepped for 'p20' after the derivation.",
+  "detection": "First pre-flight of p22_a_negctl.sh; the label while writing R5 section 34.",
+  "impact": "None on results; the first run is kept as evidence/p22/preflight/p22_a_preflight1.txt.",
+  "correction": {
+    "applied": "helper now requires a regular file and treats grep rc 2 as FAILED; re-run 25/25. The label is disclosed, the frozen wrapper not changed.",
+    "result": "R5 section 34"
+  },
+  "rule": "After deriving a wrapper from another, grep the new file for the old wave's name; plan a control per input class of the fixed function (missing, empty, directory, unreadable), not only the case that motivated the fix.",
+  "agent": "claude (P22 executor)",
+  "status": "closed"
+}

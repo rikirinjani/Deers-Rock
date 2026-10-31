@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-10-31T17:00:00Z",
+  "category": "process",
+  "severity": "major",
+  "title": "P22: a tailnet-range address was committed in evidence/p22/chain_start.txt (ssh error line); no AC-5 scan was run or reported before the commit",
+  "what_went_wrong": [
+    "evidence/p22/chain_start.txt line 4 held the address printed by an ssh 'Connection reset by peer' error; the P22 commit contained it.",
+    "R5 section 34 and the task doc section 7 reported no AC-5 scan; I scanned the v13 builder output and the P21 diff but not the P22 evidence."
+  ],
+  "root_cause": "Evidence from the box was committed with its error output unfiltered, and my pre-commit scan used a pattern with a fixed context width (30 characters before the address, 20 after), so a line with fewer than 30 characters before the address ('Read from remote host <addr>') could not match. The scan therefore reported no hit and I read that as clean.",
+  "detection": "Independent review of P22 (finding S1).",
+  "impact": "None outside the machine: the commit was local only (origin at f771e04). The local P22 commit was rebuilt without the address; the old commits sit on backup-pre-redact-20261031 (delete before any push of that branch).",
+  "correction": {
+    "applied": "address replaced by <host>; local commits rebuilt; AC-5 scan re-run on the rebuilt commit and its result recorded in R5 section 35.",
+    "result": "R5 section 35"
+  },
+  "rule": "Before every commit of box output, scan the whole staged diff for addresses with a plain pattern (no required context width, no head), read every hit, and state the scan and its result in the wave's report.",
+  "agent": "claude (P22 executor)",
+  "status": "closed"
+}

@@ -1,0 +1,7 @@
+# P22 copy log: box commands after the final live-state capture (chain step 5). Written at run time with date -u.
+2026-10-31T15:58:54Z [1] ssh mac-mini-vultr 'cd /opt/dr-benchmark/p22; tar cf - chain chain.log' | tar xf -
+2026-10-31T15:58:55Z    done: 41 files in chain/
+2026-10-31T15:59:03Z [2] ssh mac-mini-vultr 'cat /opt/dr-benchmark/p-chain/r5_p10_preservation_20261031T141100Z.md' > chain/r5_p10_preservation_20261031T141100Z.md
+2026-10-31T15:59:04Z [2] ssh mac-mini-vultr 'cat /opt/dr-benchmark/p-chain/r5_p11_negative_controls_20261031T141255Z.md' > chain/r5_p11_negative_controls_20261031T141255Z.md
+2026-10-31T15:59:05Z [2] ssh mac-mini-vultr 'cat /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261031T140359Z.md' > chain/r5_p6_acceptance_20261031T140359Z.md
+2026-10-31T15:59:20Z [3] ssh mac-mini-vultr 'bash dr_runlock.sh release P22-CLAUDE-20261031; bash dr_runlock.sh status'  (a write: the lock release)

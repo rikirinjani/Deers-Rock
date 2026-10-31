@@ -1,0 +1,13 @@
+== [cmd] dr_runlock.sh status (2026-10-31T13:11:15Z)
+RUNLOCK-FREE
+rc=1
+== [cmd] ps harness count
+0
+== [cmd] sha256sum -c p20_frozen_20261027b.sha256 | grep -c OK
+39
+== lsattr i count
+39
+== dbs
+sik sik_bench /opt/Deers-Rock/tools/.bak_p20_20261027
+/opt/Deers-Rock/tools/.bak_p20fix1_20261027
+/dev/vda2        94G   20G   70G  23% /

@@ -1,0 +1,38 @@
+{
+  "id": "VER-2026-10-31-DR-KHANZA-R5-P22-001",
+  "title": "R5 P22: Astra v13 findings and open P20-review items; helper fails closed, trap restore checked, clone check validated; one full chain on 42 frozen files",
+  "date_utc": "2026-10-31",
+  "lock_session": "P22-CLAUDE-20261031",
+  "lock_window_utc": "2026-10-31T13:11:29Z-2026-10-31T15:59:21Z",
+  "frozen_files": 42,
+  "chain": "evidence/p22/chain.log: all steps exit 0, asserts-failed=0, inventory 65/65, 11 manifests",
+  "self_score": "20/24 (R4, R5, R9, R10 = 1); Accept rule not met (R9 = 1); independent re-score pending",
+  "kept_failures": [
+    "first pre-flight of p22_a_negctl.sh failed 1/25: a directory passed as a log (fixed, re-run 25/25)",
+    "P22_SHORT pre-flight inventory assertion failed before the P22 manifest existed",
+    "chain/live_state_final.txt header label p20-chain-final is stale",
+    "an address in evidence/p22/chain_start.txt (ssh error line) was committed locally, found by the independent review, redacted and the local commit rebuilt before any push (R5 section 35)"
+  ],
+  "not_done": [
+    "AC-7 retrace (44 uncovered files)",
+    ".bak_p17fix1 never hashed",
+    "X2",
+    "C3 code-identity observation",
+    "clean-box rebuild and third home (box ends ~2026-11-20)",
+    "P14 ledger scope gaps",
+    "A8 failing branch",
+    "B4 unpaired",
+    "R2 shown by extraction, not by a driver run with an induced restore failure",
+    "R5 TERM/KILL-count assertion not discriminating",
+    "P20 Q8 minor points",
+    "p13_wide_sample.sh never run whole (S2)",
+    "exit 3 in the trap skips cleanup-final; control does not set CREATED/GRANTED (S3)",
+    "R5 mutant lib not committed (S4)"
+  ],
+  "records": [
+    "20261031T1600Z-process-r5-p22-controls-and-labels"
+  ],
+  "agent": "claude (P22 executor)",
+  "status": "executed; independently re-scored 18/24",
+  "independent_score": "18/24 (docs/khanza_r5_p22_review.md; R3, R4, R5, R9, R10, R11 = 1); Accept rule not met (R3 and R9 = 1)"
+}

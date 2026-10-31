@@ -1,0 +1,8 @@
+== ad hoc R5 mutant control 2026-10-31T13:15:44Z: NEW p20_a_negctl.sh against a lib whose wait loop treats 'unknown' (rc 2) as dead; the two R5 assertions must FAIL
+mutant differs from NEW lib: differs, diff lines: 1
+2e75c2dccb5e3b8ececc8d23a76f2ad777eb586498d9a58951d50a8b0b36c847  /tmp/p15_lib_r5mut.sh
+756b03519824e9796ee83b966e26ecddcd2f6e6695cd5b1a70a80bc2093d1fa0  /tmp/p20_a_r5mut.sh
+after-TERM: 1|kill-run-harness: leader 648835 is gone but its harness group is alive - signalling the group kill-run-harness: group 648835 still alive (or unknown) after KILL  (elapsed 1 s; kill calls: -0 -TERM -KILL )
+FAIL O2 after-TERM: the wait loop ran its full wait (elapsed >= 8 s), not an early break on unknown (got no, want yes)
+PASS O2 after-TERM: a TERM and then a KILL were sent to the group (got ge1/ge1)
+P20-A-NC: PASS=26 FAIL=1
