@@ -169,7 +169,7 @@ export function appointmentHandler(state: HospitalState, clock: Clock, _queue: E
       startTime: clock.hospitalTimeMs,
       endTime: null,
       status: "active",
-      payer: assignPayer(patient, clock.rng),
+      payer: assignPayer(patient, clock.rng, clock.rngSeed),
       primaryDiagnosis: appt.icdCode ?? "Z09",
     };
     const visit: OutpatientVisit = {

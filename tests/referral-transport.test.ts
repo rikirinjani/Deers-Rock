@@ -16,6 +16,7 @@ import { outpatientHandler } from "../src/engine/outpatient.js";
 import type { ReferralLetter } from "../src/identity/types.js";
 import type { HospitalState } from "../src/engine/state-store.js";
 import type { Encounter } from "../src/patient/schema.js";
+import { injuryMechanism } from "../src/engine/finance.js";
 
 const q = () => new EventQueue();
 function clockAt(tick: number) { const c = createClock(60, 1); c.tick = tick; c.hospitalTimeMs = tick * 60_000; return c; }
@@ -118,7 +119,9 @@ describe("arrival, letter back-link and ambulance charge", () => {
     expect(L.encounterId).toBe(visit.encounterId);
     const pat = s2.patients.get(visit.patientId)!;
     expect(pat.diagnoses[0]).toMatchObject({ code: "S72", priority: 0 });
-    expect(s2.encounters.get(visit.encounterId)!.payer).toBe("Jasa Raharja");
+    // Jasa Raharja only if this S72 was a traffic accident (owner decision 2026-10-31).
+    const traffic = injuryMechanism(pat, "S72", 1) === "traffic";
+    expect(s2.encounters.get(visit.encounterId)!.payer === "Jasa Raharja").toBe(traffic);
     expect(s.patients.has(visit.patientId)).toBe(false); // input state not mutated
   });
 
@@ -159,7 +162,7 @@ describe("Jasa Raharja incident per accident, linked to letter and claim", () =>
     const w = createWorld(5, undefined, 1);
     const encounters = new Map([
       ["E1", enc("E1", "P1", 10)], ["E2", enc("E2", "P1", 400)], ["E3", enc("E3", "P2", 20)],
-      ["E4", enc("E4", "P1", 10 + 31 * 1440)], ["E5", enc("E5", "P3", 30, "I10")],
+      ["E4", enc("E4", "P1", 10 + 31 * 1440)], ["E5", { ...enc("E5", "P3", 30, "I10"), payer: "BPJS Kesehatan" }],
     ]);
     const s = jrProvenanceHandler({ ...w.state, encounters }, clockAt(50_000), q());
     const incs = Array.from(jrOf(s).incidents.values());

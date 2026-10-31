@@ -1,11 +1,14 @@
 /**
  * Jasa Raharja incident provenance — Epic IX M9.3 wave 2 (ADR-016 D6).
  *
- * When a road accident patient arrives (via ambulance or ED walk-in with
- * road-accident ICD codes), create an incidentRef record that links the
- * encounter to a Jasa Raharja claim.
+ * When a road-traffic accident patient arrives (via ambulance, referral or
+ * ED walk-in), create an incidentRef record that links the encounter to a
+ * Jasa Raharja claim.
  *
- * Trigger set: T20 (burns), T63 (toxic effect) — per M9.3-BLOCKER-DECISIONS.
+ * Trigger (owner decision 2026-10-31, replacing M9.3-BLOCKER-DECISIONS §5's
+ * six-code set with T20 burns / T63 toxins): an encounter is a JR incident
+ * exactly when finance assigned it the Jasa Raharja payer, i.e. a traffic
+ * accident (finance.ts injuryMechanism). Incident and claim use one rule.
  */
 import type { HospitalState } from "../engine/state-store.js";
 import type { Clock } from "../engine/clock.js";
@@ -32,23 +35,18 @@ export interface JrState {
   counter: number;
 }
 
-// JR trigger ICD codes per M9.3-BLOCKER-DECISIONS D5
-const JR_TRIGGER_ICDS = new Set(["T20", "T63", "S72", "S82", "S92", "T07"]);
-
 export function initJrState(): JrState {
   return { incidents: new Map(), counter: 0 };
 }
 
 /**
- * Check if an encounter's diagnoses trigger Jasa Raharja coverage.
- * Returns the trigger ICD if found, null otherwise.
+ * Does this encounter open (or join) a Jasa Raharja traffic-accident incident?
+ * Returns the ICD-10 category of the injury if so, null otherwise.
  */
-export function checkJrTrigger(encounter: { primaryDiagnosis: string; patientId: string }): string | null {
+export function checkJrTrigger(encounter: { primaryDiagnosis: string; patientId: string; payer?: string }): string | null {
+  if (encounter.payer !== "Jasa Raharja") return null;
   const icd = encounter.primaryDiagnosis;
-  if (!icd) return null;
-  // Match first 3 chars (ICD-10 category)
-  const prefix = icd.substring(0, 3);
-  return JR_TRIGGER_ICDS.has(prefix) ? prefix : null;
+  return icd ? icd.substring(0, 3) : null;
 }
 
 /**
@@ -90,8 +88,8 @@ export function createJrIncident(
  * Simple damage level heuristic based on ICD code.
  */
 function determineDamageLevel(icd: string): JRIIncident["damageLevel"] {
-  // Burns (T20) and toxic effects (T63) default to moderate
-  // Fractures (S72, S82, S92) can be severe
+  // Hip, leg and ankle/foot injuries (S70–S99) are graded severe; other
+  // traffic injuries default to moderate.
   if (icd.startsWith("S7") || icd.startsWith("S8") || icd.startsWith("S9")) {
     return "severe";
   }
@@ -140,7 +138,7 @@ export function jrProvenanceHandler(state: HospitalState, _clock: Clock, _queue:
 
   for (const enc of encounters) {
     if (logged.has(enc.id)) continue;
-    const trigger = checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis ?? "", patientId: enc.patientId });
+    const trigger = checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis ?? "", patientId: enc.patientId, payer: enc.payer });
     if (!trigger) continue;
     const tick = Math.floor(enc.startTime / 60_000);
 

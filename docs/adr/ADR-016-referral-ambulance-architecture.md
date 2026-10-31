@@ -94,5 +94,6 @@ D8 ambulance dispatch and D6 Jasa Raharja provenance were coded but had no calle
   dispatch cost is charged once (`ambulance` category). Letters in transit no longer age out.
 - One JR incident per accident (re-presentations within the 30-day window join it), linked to letter and dispatch;
   Jasa Raharja claims carry `incidentRef`.
-- Still open (owner decision, M9.3-BLOCKER-DECISIONS §5): finance bills 199 S/T/V codes to Jasa Raharja while
-  provenance triggers on 6, so e.g. S06 claims carry no incident.
+- ~~Still open: finance bills 199 S/T/V codes to Jasa Raharja while provenance triggers on 6.~~ Resolved
+  2026-10-31 (owner, M9.3-BLOCKER-DECISIONS §5): Jasa Raharja = traffic accidents only, and incident and payer use one
+  rule, so every Jasa Raharja claim has an incident.

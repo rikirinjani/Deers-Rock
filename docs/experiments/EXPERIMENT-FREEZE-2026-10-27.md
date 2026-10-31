@@ -136,3 +136,13 @@ time excluded). Determinism of the parallel runner is also covered by the E1 stu
 
 These are reported, not fixed: each changes outcomes and needs the owner's decision (Research OC). Re-freeze after
 any of them is fixed.
+
+---
+
+## Validity note (2026-10-31)
+
+Both studies above are pinned to code commit `30d441f` and remain the reference for it. The owner's Jasa Raharja
+change on 2026-10-31 (traffic accidents only) moves trajectories slightly: injury patients who are no longer
+Jasa Raharja roll the normal payer mix, one extra draw in their admission handler's stream. The E1 configuration
+on the new code no longer matches `substream-v1`'s bytes. **Re-freeze pending**, planned once, after the owner's
+decision on the vital-signs drift finding (Study 2, finding 1), which also changes every outcome.

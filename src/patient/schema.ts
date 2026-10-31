@@ -17,6 +17,8 @@ export interface Patient {
   medications: Medication[];
   /** Epic VI M6.2: morgue ID if deceased; null if alive */
   morgueId: string | null;
+  /** Mechanism of a trauma injury when known (e.g. from a referral or a police report); otherwise derived per patient (finance.ts injuryMechanism). */
+  injuryMechanism?: "traffic" | "other";
 }
 
 export type BloodType = "A" | "B" | "AB" | "O";

@@ -1,5 +1,5 @@
 import type { HospitalState } from "./state-store.js";
-import type { Clock } from "./clock.js";
+import { subStreamRng, streamId, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Charge, Encounter, InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
 import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
@@ -10,33 +10,49 @@ import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 import { getIncidentForEncounter } from "../referral/jr-provenance.js";
 
 /**
- * ADR-025: Expanded accident ICD code detection for Jasa Raharja eligibility.
- * Covers trauma, injury, poisoning, and external cause codes per ICD-10 chapters.
+ * Jasa Raharja eligibility — traffic accidents only (owner decision 2026-10-31,
+ * supersedes ADR-025's all-S/T-chapter rule and M9.3-BLOCKER-DECISIONS §5).
+ * Jasa Raharja covers road-traffic victims and public-transport passengers
+ * (UU 33 & 34/1964); a police traffic-accident report backs every claim.
+ *
+ * The simulation records injuries, not their cause, so a trauma injury gets
+ * a mechanism: traffic with P_TRAFFIC_GIVEN_INJURY, drawn ONCE per patient
+ * from a dedicated sub-stream keyed on (world seed, patient id). The same
+ * accident therefore stays traffic across re-presentations, and no existing
+ * rng stream moves. Burns, poisonings and complications of care (T15–T98)
+ * are not traffic injuries.
  */
-const ACCIDENT_ICD_CODES = new Set([
-  // Trauma (S00-S99) - head, neck, trunk, limb injuries
-  "S00", "S01", "S02", "S03", "S04", "S05", "S06", "S07", "S08", "S09",
-  "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S19",
-  "S20", "S21", "S22", "S23", "S24", "S25", "S26", "S27", "S28", "S29",
-  "S30", "S31", "S32", "S33", "S34", "S35", "S36", "S37", "S38", "S39",
-  "S40", "S41", "S42", "S43", "S44", "S45", "S46", "S47", "S48", "S49",
-  "S50", "S51", "S52", "S53", "S54", "S55", "S56", "S57", "S58", "S59",
-  "S60", "S61", "S62", "S63", "S64", "S65", "S66", "S67", "S68", "S69",
-  "S70", "S71", "S72", "S73", "S74", "S75", "S76", "S77", "S78", "S79",
-  "S80", "S81", "S82", "S83", "S84", "S85", "S86", "S87", "S88", "S89",
-  "S90", "S91", "S92", "S93", "S94", "S95", "S96", "S97", "S98", "S99",
-  // Injury, poisoning & certain other consequences of external causes (T00-T98)
-  "T00", "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09",
-  "T10", "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19",
-  "T20", "T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29",
-  "T30", "T31", "T32", "T33", "T34", "T35", "T36", "T37", "T38", "T39",
-  "T40", "T41", "T42", "T43", "T44", "T45", "T46", "T47", "T48", "T49",
-  "T50", "T51", "T52", "T53", "T54", "T55", "T56", "T57", "T58", "T59",
-  "T60", "T61", "T62", "T63", "T64", "T65", "T66", "T67", "T68", "T69",
-  "T70", "T71", "T72", "T73", "T74", "T75", "T76", "T77", "T78", "T79",
-  "T80", "T81", "T82", "T83", "T84", "T85", "T86", "T87", "T88", "T89",
-  "T90", "T91", "T92", "T93", "T94", "T95", "T96", "T97", "T98",
-]);
+const TRANSPORT_ACCIDENT = /^V\d\d/;           // ICD-10 V01–V99: transport accidents
+const TRAUMA_INJURY = /^(S\d\d|T0\d|T1[0-4])/; // S00–S99, T00–T14
+/**
+ * Share of trauma injuries caused by traffic. Riskesdas: motorcycle crashes
+ * 40.6 % of all injuries (falls 40.9 %), plus other road users; hospital
+ * series run higher (70 % of traumatic brain injury). Calibration target.
+ */
+export const P_TRAFFIC_GIVEN_INJURY = 0.45;
+
+export type InjuryMechanism = "traffic" | "other";
+
+interface PayerPatient {
+  id?: string;
+  diagnoses: { code: string; active: boolean }[];
+  identity?: { nationality?: string };
+  injuryMechanism?: InjuryMechanism;
+}
+
+/**
+ * Mechanism of a patient's injury, or null when the code is not an injury.
+ * An explicit `patient.injuryMechanism` wins; V codes are traffic by
+ * definition; trauma codes draw once per (world seed, patient).
+ */
+export function injuryMechanism(patient: PayerPatient, code: string, worldSeed?: number): InjuryMechanism | null {
+  if (TRANSPORT_ACCIDENT.test(code)) return "traffic";
+  if (!TRAUMA_INJURY.test(code)) return null;
+  if (patient.injuryMechanism) return patient.injuryMechanism;
+  if (worldSeed === undefined || patient.id === undefined) return "other";
+  return subStreamRng(worldSeed, 0, streamId(`injury-mechanism:${patient.id}`))() < P_TRAFFIC_GIVEN_INJURY ? "traffic" : "other";
+}
+
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
 
 /** ADR-015 D2: one sim-day = 1440 ticks (1 tick = 1 sim-minute). */
@@ -48,7 +64,8 @@ const TICKS_PER_SIM_DAY = 1440;
  * the encounter — never re-derived per-tick (D8 entity-creation rule).
  *
  * - Non-WNI patients → Self-pay (override, no roll)
- * - Accident ICD codes → Jasa Raharja (override, no roll)
+ * - Traffic-accident injuries → Jasa Raharja (override, no roll); other
+ *   injuries roll the mix like any other case (see injuryMechanism)
  * - Everyone else rolls against PAYER_MIX:
  *     BPJS Kesehatan 82%, BPJS Ketenagakerjaan 8% (CBG-like path, billed
  *     identically to BPJS Kesehatan in wave 1 — JKK accident workflow is
@@ -82,14 +99,15 @@ function rollPayerMix(rng: number): PayerType {
  * With it, the PAYER_MIX table is rolled ONCE at encounter creation.
  */
 export function assignPayer(
-  patient: { diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string } },
+  patient: PayerPatient,
   rngDraw?: () => number,
+  worldSeed?: number,
 ): PayerType {
   if (patient.identity?.nationality && patient.identity.nationality !== "WNI") {
     return "Self-pay";
   }
   const primaryDiag = getPrimaryDiagnosis(patient);
-  if (primaryDiag && ACCIDENT_ICD_CODES.has(primaryDiag.code)) {
+  if (primaryDiag && injuryMechanism(patient, primaryDiag.code, worldSeed) === "traffic") {
     return "Jasa Raharja";
   }
   if (rngDraw) {

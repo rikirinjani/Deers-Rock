@@ -125,7 +125,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       startTime: clock.hospitalTimeMs,
       endTime: null as number | null,
       status: "active" as const,
-      payer: assignPayer(patient, clock.rng),
+      payer: assignPayer(patient, clock.rng, clock.rngSeed),
       primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
       // ADR-015 D2: stamp the room class ONCE at bed assignment. Per-day room
       // billing (finance.ts) reads this stamp; absent on outpatient/ED

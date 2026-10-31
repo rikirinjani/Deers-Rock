@@ -126,7 +126,7 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
         startTime: clock.hospitalTimeMs,
         endTime: null,
         status: "active",
-        payer: assignPayer(pat, rng),
+        payer: assignPayer(pat, rng, clock.rngSeed),
         // Phase D: outpatient encounters carry the clinic-visit diagnosis
         // (referral-matched or walk-in pool draw) — the acute reason for the visit.
         primaryDiagnosis: dx.icd,

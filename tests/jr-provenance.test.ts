@@ -7,16 +7,20 @@ import type { JrState } from "../src/referral/jr-provenance.js";
 import type { AmbulanceDispatch } from "../src/referral/ambulance.js";
 
 describe("Epic IX M9.3 wave 2 — Jasa Raharja Provenance", () => {
-  it("triggers on T20 (burns)", () => {
-    expect(checkJrTrigger({ primaryDiagnosis: "T20.0", patientId: "PAT-001" })).toBe("T20");
+  // Owner decision 2026-10-31: Jasa Raharja is traffic accidents only. An
+  // encounter is an incident exactly when finance gave it the JR payer.
+  it("triggers on a Jasa Raharja (traffic accident) encounter", () => {
+    expect(checkJrTrigger({ primaryDiagnosis: "S72.0", patientId: "PAT-003", payer: "Jasa Raharja" })).toBe("S72");
+    expect(checkJrTrigger({ primaryDiagnosis: "S06", patientId: "PAT-006", payer: "Jasa Raharja" })).toBe("S06");
   });
 
-  it("triggers on T63 (toxic effect)", () => {
-    expect(checkJrTrigger({ primaryDiagnosis: "T63.4", patientId: "PAT-002" })).toBe("T63");
+  it("does not trigger on the same injury when it was not a traffic accident", () => {
+    expect(checkJrTrigger({ primaryDiagnosis: "S72.0", patientId: "PAT-003", payer: "BPJS Kesehatan" })).toBeNull();
   });
 
-  it("triggers on S72 (femur fracture)", () => {
-    expect(checkJrTrigger({ primaryDiagnosis: "S72.0", patientId: "PAT-003" })).toBe("S72");
+  it("no longer triggers on burns or toxic effects (T20, T63)", () => {
+    expect(checkJrTrigger({ primaryDiagnosis: "T20.0", patientId: "PAT-001", payer: "BPJS Kesehatan" })).toBeNull();
+    expect(checkJrTrigger({ primaryDiagnosis: "T63.4", patientId: "PAT-002" })).toBeNull();
   });
 
   it("does not trigger on I10 (hypertension)", () => {

@@ -44,6 +44,10 @@ Two LLM assessments identified genuine quality gaps:
 - Eliminates inconsistency between admission specialty routing and payer assignment
 
 ### 4. Expanded JR Accident ICD Detection (Fixes oversimplified detection)
+
+> **Superseded 2026-10-31 (owner decision, M9.3-BLOCKER-DECISIONS §5):** Jasa Raharja is traffic accidents only.
+> `ACCIDENT_ICD_CODES` is removed; `finance.ts injuryMechanism` decides (V01–V99, or a trauma injury S00–S99 / T00–T14
+> whose mechanism is traffic). T15–T98 (burns, poisonings, complications of care) no longer go to Jasa Raharja.
 - `ACCIDENT_ICD_CODES` expanded from 5 codes to 200+ codes
 - Covers full ICD-10 Chapter 19: `S00-S99` (injures) and `T00-T98` (external causes)
 - `finance.ts` now uses `getPrimaryDiagnosis()` for consistent detection

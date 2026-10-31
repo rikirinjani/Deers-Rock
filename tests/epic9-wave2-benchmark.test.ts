@@ -13,14 +13,14 @@ import type { ReferralState } from "../src/referral/system.js";
 
 const SEED = 42, PATIENTS = 60, TICKS = 900;
 
-/** Road-accident cases planted at tick 0 so the JR path is exercised whatever the seed's case mix. */
+/** Road-traffic accident cases planted at tick 0 so the JR path is exercised whatever the seed's case mix. */
 const PLANTED: [string, string][] = [["S72", "Fracture of femur"], ["S82", "Fracture of lower leg"], ["S06", "Intracranial injury"]];
 
 function run(): World {
   const w = createWorld(PATIENTS, undefined, SEED);
   Array.from(w.state.patients.values()).slice(0, PLANTED.length).forEach((p, i) => {
     const [code, name] = PLANTED[i]!;
-    w.state.patients.set(p.id, { ...p, diagnoses: [{ code, name, active: true, priority: 0 }, ...p.diagnoses] });
+    w.state.patients.set(p.id, { ...p, injuryMechanism: "traffic", diagnoses: [{ code, name, active: true, priority: 0 }, ...p.diagnoses] });
   });
   return runWorld(w, TICKS);
 }
@@ -41,7 +41,7 @@ describe("Epic IX wave 2 — Jasa Raharja provenance over a seeded run", () => {
       expect(inc.encounterIds![0]).toBe(inc.encounterId);
       for (const id of inc.encounterIds!) {
         const enc = a.state.encounters.get(id);
-        if (enc) expect(checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis ?? "", patientId: enc.patientId })).not.toBeNull();
+        if (enc) expect(checkJrTrigger({ primaryDiagnosis: enc.primaryDiagnosis ?? "", patientId: enc.patientId, payer: enc.payer })).not.toBeNull();
       }
       expect(inc.damageLevel).toBe(/^S[789]/.test(inc.triggerIcd) ? "severe" : "moderate");
     }
@@ -53,7 +53,7 @@ describe("Epic IX wave 2 — Jasa Raharja provenance over a seeded run", () => {
     for (const inc of jr(a).incidents.values()) for (const e of inc.encounterIds ?? []) owners.set(e, (owners.get(e) ?? 0) + 1);
     const lastFire = TICKS - (TICKS % 5);
     for (const e of a.state.encounters.values()) {
-      if (checkJrTrigger({ primaryDiagnosis: e.primaryDiagnosis ?? "", patientId: e.patientId }) === null) continue;
+      if (checkJrTrigger({ primaryDiagnosis: e.primaryDiagnosis ?? "", patientId: e.patientId, payer: e.payer }) === null) continue;
       if (e.startTime / 60_000 > lastFire) continue;
       expect(owners.get(e.id), e.id).toBe(1);
     }
@@ -68,11 +68,13 @@ describe("Epic IX wave 2 — Jasa Raharja provenance over a seeded run", () => {
     }
   });
 
-  it("Jasa Raharja claims for incident encounters carry the incidentRef", () => {
+  it("every Jasa Raharja claim is filed under its traffic-accident incident", () => {
     const owner = new Map<string, string>();
     for (const inc of jr(a).incidents.values()) for (const e of inc.encounterIds ?? []) owner.set(e, inc.id);
     const jrClaims = Array.from(a.state.insuranceClaims.values()).filter(c => c.payer === "Jasa Raharja");
-    for (const c of jrClaims) if (owner.has(c.encounterId)) expect(c.incidentRef).toBe(owner.get(c.encounterId));
+    expect(jrClaims.length).toBeGreaterThan(0);
+    // Owner decision 2026-10-31: incident and claim use one rule (traffic accident), so coverage is complete.
+    for (const c of jrClaims) expect(c.incidentRef, c.encounterId).toBe(owner.get(c.encounterId));
     for (const c of a.state.insuranceClaims.values()) if (c.payer !== "Jasa Raharja") expect(c.incidentRef).toBeUndefined();
   });
 

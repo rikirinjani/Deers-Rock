@@ -306,10 +306,10 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 - [x] Claim workflow — `submitted → verifying → adjudicated → paid | denied` (+ `returned`), batch adjudication ≤8/15-tick pass, causal denial taxonomy
 - [x] Payer mix — all five `PayerType` activated (82/8/7/3) via one admission-time rng draw
 
-### Milestone 9.3: Referral System Redesign 🟡
+### Milestone 9.3: Referral System Redesign ✅
 - [x] Geographic hierarchy: Puskesmas → RS D → RS C → RS B → RS A (tier function, catchment band, distanceKm) — ADR-016 wave 1
 - [x] ED walk-in / self-referral with ESI-based routing (ESI-lite table, level 5 reintroduced, fast-track ESI 4-5 → POLI) — ADR-016 wave 1
-- [ ] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — 2026-10-27: one incident per accident (30-day window), linked to letter + dispatch, JR claims carry `incidentRef`; `/api/jr-incidents`. **Still open (owner decision §5):** finance bills 199 S/T/V codes to JR while provenance triggers on 6, so e.g. S06 claims have no incident (3 of 7 JR claims at seed 42 / 900 ticks)
+- [x] Road accidents + Jasa Raharja claim integration (incidentRef provenance) — 2026-10-27: one incident per accident (30-day window), linked to letter + dispatch, JR claims carry `incidentRef`; `/api/jr-incidents`. 2026-10-31 (owner decision §5): **Jasa Raharja = traffic accidents only** (V01–V99, or a trauma injury whose mechanism is traffic, ~45 % per Riskesdas). Payer and incident use one rule: 100 % of JR claims have an incident (was 55 %); burns, poisonings and T81 no longer billed to JR. `tests/jasa-raharja-traffic.test.ts`
 - [x] Geographic catchment: Makassar city → South Sulawesi → Eastern Indonesia (catchmentBand function, sender province filter) — ADR-016 wave 1
 - [x] Referral capacity: limited specialist slots per day (REFERRAL_DAILY_SLOT_BUDGET=5, FIFO drain, age-out→returned) — ADR-016 wave 1
 - [x] Ambulance system: BLS/ALS dispatch, tracking, costing — 2026-10-27: wired. Transport chosen by referral diagnosis (ALS/BLS/own), road ambulances only within Sulawesi (others `sea_air`, not modelled), dispatch cost charged once on the arrival encounter, `/api/ambulance`. Seed 42 / 900 ticks: 4 dispatches, all charged (ADR-016 Amendment 1, Proposed)
@@ -346,7 +346,7 @@ See ADR-027 (international adapter) for design. ~~See ADR-013~~: ADR-013 is ICD 
 | **VI** Department Completeness | ✅ 3/3 MS | 45 | Roster + calibrated workforce health, sick-leave cover, staff health API/panel, kamar jenazah workflow, kontrol appointments; rates are Research OC calibration targets |
 | **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
 | **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
-| **IX** Financial & Referral | 🟡 3/4 MS (M9.3 🟡) | 21 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; open: JR trigger set (owner decision) |
+| **IX** Financial & Referral | ✅ 4/4 MS | 47 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; 2026-10-31 JR limited to traffic accidents (owner) |
 | **X** International Billing | 🔴 Deferred | — | Design only |
 
-**Overall (2026-10-27, branch `epic-audit-vi-ix`):** 508 tests pass / 3 skipped / 0 failed (65 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen as `substream-v1` (E1 regression reference) and `outcome-v1` (first outcome baseline, 10 seeds × 10 sim-days: mortality 3.62 %, ALOS 4.79 d, BOR 99.7 %) in `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md`; 2026-09-10 JAMIA freeze untouched. Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.
+**Overall (2026-10-27, branch `epic-audit-vi-ix`):** 519 tests pass / 3 skipped / 0 failed (66 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen as `substream-v1` (E1 regression reference) and `outcome-v1` (first outcome baseline, 10 seeds × 10 sim-days: mortality 3.62 %, ALOS 4.79 d, BOR 99.7 %) in `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md`; 2026-09-10 JAMIA freeze untouched. Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.

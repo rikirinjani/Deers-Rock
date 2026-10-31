@@ -74,7 +74,7 @@ export function emergencyHandler(state: HospitalState, clock: Clock, _queue: Eve
     startTime: clock.hospitalTimeMs,
     endTime: null,
     status: "active" as const,
-      payer: assignPayer(patient, clock.rng),
+      payer: assignPayer(patient, clock.rng, clock.rngSeed),
     // Phase D: ED visits carry the patient's principal problem-list diagnosis
     // (deterministic; no ED-complaint→ICD mapping exists in DR and none is invented).
     primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
