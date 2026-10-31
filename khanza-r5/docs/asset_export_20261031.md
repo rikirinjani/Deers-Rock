@@ -13,4 +13,4 @@ f6312a475c0effa827a9d585262e63a81eebc784cca19834530a4d8001901acf  db/sik.sql.gz
 c5acd984149fb5c5851234660990c993b23ff0984e9a6030526d530c341194b3  db/sik_bench.sql.gz
 ```
 
-Stored: local disk (outside the repo). Cloud: pending the owner (Hugging Face private dataset, encrypted).
+Stored: local disk (outside the repo), and a private Hugging Face dataset `balade/dr-khanza-archive-20261031` (commit e27cfd2a, 2026-11-01): the five archives encrypted with `openssl enc -aes-256-cbc -pbkdf2 -iter 200000` and a key file generated locally (not in the repo, not on Hugging Face; the owner holds it), plus MANIFEST.sha256, ENC.sha256, the lsattr listing and a README. Checked: repo private = True; file sizes equal the local ciphertexts; a pull test downloaded `Deers-Rock-tools.tar.gz.enc`, its ciphertext hash equals ENC.sha256 and the decrypted bytes equal the MANIFEST hash. The 635 MB Khanza tree and the dumps were round-trip tested locally (decrypt = original hash) but not pulled back from Hugging Face.
