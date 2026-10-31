@@ -13,6 +13,13 @@ export interface Patient {
   rhesus: Rhesus;
   allergies: string[];
   vitals: Vitals;
+  /**
+   * The patient's own healthy set point: vitals drift around it and are pulled
+   * back to it (vitals-model.ts). Copied from the generated vitals, so it adds
+   * no rng draw. Absent on patients from older snapshots (the handler then
+   * adopts their current vitals as the baseline).
+   */
+  baselineVitals?: Vitals;
   diagnoses: Diagnosis[];
   medications: Medication[];
   /** Epic VI M6.2: morgue ID if deceased; null if alive */

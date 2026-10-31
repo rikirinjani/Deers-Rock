@@ -84,3 +84,29 @@ If Option B:
 - Constitution Article III §3.3 (mortality probabilities)
 - `src/engine/clinical-knowledge.ts:502-518`
 - `src/engine/markov.ts:105-109`
+
+## Amendment 1 — Vital-sign drift model (2026-10-31)
+
+**Status:** Accepted by the owner, 2026-10-31.
+
+**Problem.** The risk score reads current vitals (SpO₂ < 90, SBP < 90, HR > 120 or < 50, temperature, RR), but the only
+thing that ever changed vitals, `vitalsUpdateHandler`, moved each by `floor(rng·6) − 3` per minute: a biased walk
+(mean −0.5/min) with no pull back. Within one simulated hour the pool's mean HR fell 76 → 57, systolic BP 124 → 97 and
+SpO₂ 97.8 → 92.3 %, and patients sat on the clamps (HR 50, SBP 90, SpO₂ 90 %). Mortality risk and the AI doctor's vitals
+triggers therefore ran on an artefact, and 93.5 % of inpatients were discharged "deteriorated" (outcome-v1, finding 1).
+
+**Decision** (`src/engine/vitals-model.ts`). Each vital is a discrete Ornstein–Uhlenbeck process around the patient's own
+baseline (`Patient.baselineVitals`, a copy of the generated vitals; no extra rng draw): `next = round(x + k·(baseline − x) + u)`
+with u uniform and symmetric. Unbiased; per-vital pull k (30 min for HR and BP, 20 min for RR, 10 min for SpO₂, pain and
+temperature) and noise set so the stationary SD is HR 6, SBP 8, DBP 5, temperature 0.25 °C, SpO₂ 1, RR 2, pain 1.
+Hard clamps unchanged. Seven draws per patient per minute, as before.
+
+**Evidence.** 400 patients × 10 simulated days: means stay on baseline (HR 76.9 → 76.7); 98.4 % of observations pass the
+"≥ 5 of 7 normal" check; none sit at a clamp; vitals-rule triggers fire in 3.6 % of observations. Patient generation is
+byte-identical to before. `tests/vitals-model.test.ts` (12); 5 of them fail if the old formula is restored.
+
+**Not modelled.** Vitals still do not respond to diagnosis, severity or treatment (a pneumonia patient keeps normal SpO₂).
+That is the next step for clinical realism and a Research OC item; this amendment only removes the artefact.
+
+**Consequence.** Declared seed break: every outcome differs from before 2026-10-31 (mortality and discharge outcome in
+particular); baselines re-frozen.

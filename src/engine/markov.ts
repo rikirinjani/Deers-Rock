@@ -14,6 +14,7 @@ import type { HospitalAgent } from "../agent/types.js";
 import { recordDischargePlan } from "./discharge-planning.js";
 import { recordConsumption } from "./dept-consumption.js";
 import { registerBody } from "./kamar-jenazah.js";
+import { driftVitals } from "./vitals-model.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -277,19 +278,14 @@ export function newPatientHandler(state: HospitalState, clock: Clock, _queue: Ev
 export function vitalsUpdateHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newPatients = new Map(state.patients);
   for (const [id, patient] of newPatients) {
-    const drift = () => Math.floor(clock.rng() * 6) - 3;
-    const tempDrift = (clock.rng() * 0.4) - 0.2;
+    // Mean-reverting drift around the patient's own baseline (vitals-model.ts).
+    // Patients without a baseline (older snapshots, hand-built fixtures) adopt
+    // their current vitals as it.
+    const baseline = patient.baselineVitals ?? patient.vitals;
     newPatients.set(id, {
       ...patient,
-      vitals: {
-        heartRate: Math.max(50, Math.min(120, patient.vitals.heartRate + drift())),
-        bloodPressureSystolic: Math.max(90, Math.min(180, patient.vitals.bloodPressureSystolic + drift() * 2)),
-        bloodPressureDiastolic: Math.max(60, Math.min(120, patient.vitals.bloodPressureDiastolic + drift())),
-        temperature: Math.max(35, Math.min(39.5, +(patient.vitals.temperature + tempDrift).toFixed(1))),
-        oxygenSaturation: Math.max(90, Math.min(100, patient.vitals.oxygenSaturation + drift())),
-        respiratoryRate: Math.max(10, Math.min(30, patient.vitals.respiratoryRate + drift())),
-        painLevel: Math.max(0, Math.min(10, patient.vitals.painLevel + (clock.rng() > 0.5 ? 1 : -1))),
-      },
+      baselineVitals: baseline,
+      vitals: driftVitals(patient.vitals, baseline, clock.rng),
     });
   }
   return { ...state, patients: newPatients };

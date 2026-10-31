@@ -277,7 +277,7 @@ export function generatePatient(rng?: () => number): Patient {
   const bloodType = pickRandom(BLOOD_TYPES, rng);
   const rhesus = pickRandom(RHESUS, rng);
 
-  return {
+  const patient: Patient = {
     id: `PAT-${String(patientCounter).padStart(4, "0")}`,
     name: `${pickRandom(firstNames[gender], rng)} ${pickRandom(lastNames, rng)}`,
     age,
@@ -292,6 +292,9 @@ export function generatePatient(rng?: () => number): Patient {
     medications: [],
     morgueId: null,
   };
+  // Healthy set point for vitals drift (vitals-model.ts); a copy, so no extra rng draw.
+  patient.baselineVitals = { ...patient.vitals };
+  return patient;
 }
 
 export function generatePatientPool(count: number, rng?: () => number): Patient[] {

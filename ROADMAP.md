@@ -74,6 +74,7 @@ Make the simulation believable enough that experiments are meaningful. The goal 
 ### Milestone 2.5: Model Calibration ✅
 - [x] Document mortality risk factor weights with plausible clinical ranges (ADR-004)
 - [x] LOS validation doc vs MoH RI Tier A data (`docs/benchmarks/los-validation.md`)
+- [x] 2026-10-31: vital-sign drift fixed (unbiased, mean-reverting around each patient's baseline). The old biased walk made every patient bradycardic, hypotensive and hypoxic within an hour and fed artefactual vitals to mortality risk and the AI doctor (ADR-028 Amendment 1, `tests/vitals-model.test.ts`)
 - [ ] Validate drug allergy prevalence rates against Indonesian pharmacovigilance data — **open gap**: simulation shows 60-70%, real prevalence is 3-5% (documented in calibration-benchmarks.md)
 - [x] **Calibration benchmark table** vs Indonesian hospital data (`docs/benchmarks/calibration-benchmarks.md`)
 - [x] **Calibration test suite** — BPJS share 80.2% ✅, allergy rate 68.8% (documented gap), BOR tracking
