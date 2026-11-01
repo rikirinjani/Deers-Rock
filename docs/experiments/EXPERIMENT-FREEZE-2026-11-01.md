@@ -76,7 +76,9 @@ Per-seed mortality: 2.59, 5.46, 4.74, 3.16, 1.94, 4.17, 2.14, 3.83, 5.73, 3.23 %
 
 ### Reproducibility
 
-**Seed 3 re-run: pending** (started 01:12 UTC; this line is updated when it completes).
+**Seed 3 re-run: identical.** Re-run alone from tick 0 in the same clean clone (01:12–02:01 UTC, 2,948 s), its full per-seed result
+(`RunResult` + `OutcomeMetrics`) matches the batch result byte for byte, excluding the wall-clock field. Study 1 was run twice
+with byte-identical output, and `tests/experiment-runner.test.ts` covers the parallel runner's output format.
 
 ## Findings still open (reported, not fixed — each changes outcomes, owner's call)
 
