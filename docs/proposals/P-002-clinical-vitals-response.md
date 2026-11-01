@@ -1,6 +1,7 @@
 # P-002 — Clinical realism for vital signs and outcomes
 
-**Status:** DRAFT for owner review. Nothing in this document is implemented.
+**Status:** ACCEPTED by owner 2026-11-01. A+B+C+D1 implemented (D2 deferred). See ADR-028 Amendment 2 and `docs/research/vitals-clinical-model.md`.
+**Corrections to this draft:** illness courses apply to inpatient admissions only (ED encounters are type `outpatient` with 2–7 tick stays); treated half-life is 3900 min; grade mix is 30/45/25 with no risk points.
 **Author:** Platform OC · **Date:** 2026-11-01
 **Builds on:** ADR-028 Amendment 1 (vital-sign drift), `outcome-v2` baseline (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01.md`)
 **Would amend:** ADR-028 (mortality risk engine), ADR-006 (agent learning, indirectly), ADR-008 (new sub-stream keys)

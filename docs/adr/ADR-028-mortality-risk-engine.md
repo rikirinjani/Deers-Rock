@@ -118,3 +118,36 @@ mortality unchanged (3.62 % → 3.70 %, inside the CI). Baselines re-frozen as `
 unreachable: the clamps (SpO₂ ≥ 90, SBP ≥ 90, HR 50–120) coincide with the strict thresholds, before and after this
 amendment. Only the temperature and respiratory-rate terms can fire. Widening the clamps is a separate decision; it matters
 once vitals respond to illness.
+
+## Amendment 2 — Clinical vitals response (2026-11-01, owner-approved P-002 A+B+C+D1)
+
+**Problem.** After Amendment 1 vitals were unbiased but still decoration: a pneumonia patient kept normal SpO₂, treatment
+changed nothing, and the risk score's SpO₂/SBP/HR terms could not fire (clamps coincided with thresholds).
+
+**Decision.**
+- **A. Physiological limits.** Vitals are clamped to physiological ranges (HR 30–180, SBP 50–240, DBP 30–140, temperature
+  33–42 °C, SpO₂ 60–100, RR 6–50, pain 0–10) instead of the legacy clamps, so the risk thresholds are reachable.
+- **B. Illness model** (`illness-model.ts`, `clinical-vitals.ts`). An inpatient admission gets a diagnosis group, a severity
+  grade (mild / moderate / severe, drawn from a dedicated keyed stream `illness-grade:<encId>`; older and comorbid patients
+  skew severe) and a course level (6 h ramp, 24 h hold, then decay; faster once definitive treatment is given, slower
+  without). Vitals are pulled toward `baseline + grade × level × signature(group) − treatment relief`. Complications use a
+  per-day keyed stream `illness-compl:<encId>`. No existing stream shifts.
+- **C. Treatment effects** (`treatment-effects.ts`). Administering a drug or ordering oxygen/nebuliser records it on the
+  encounter (`_treat`, copy-on-write). Effects relieve deficits in the harmful direction only (oxygen, antipyretics,
+  analgesics, antihypertensives, fluids, bronchodilators, diuretics).
+- **D1. Sustained vitals.** A vital must stay beyond its threshold for ≥ 30 min (`_watch`) to count in the risk score at
+  discharge; sustained flags replace the instantaneous terms. `assessMortalityRisk` takes an optional 4th argument; omitted,
+  behaviour is unchanged.
+
+**Compatibility.** All new encounter fields are optional and underscore-prefixed; the `Vitals` type is unchanged. Apps that
+ignore them see no difference except that vitals now move with illness. **Kill switch:** `DR_CLINICAL_VITALS=0` restores
+vitals-v1 behaviour. Verified byte-identical against commit `01a0e2f` (seeds 0 and 3, 3 simulated days, full patient /
+encounter / morgue / outcome state hash).
+
+**Provenance.** Signature values are `criteria` (12 groups) or `estimate` (40 groups) — see
+`docs/research/vitals-clinical-model.md`. They are not fitted to patient data.
+
+**Consequence.** Declared seed break for the clinical-vitals-on configuration (flag-off is unchanged). Baselines to be
+re-frozen as `clinical-v1`.
+
+**Still open.** D2 (physiological death before discharge, so NDR can differ from GDR); GDR < 45‰ reference unconfirmed.
