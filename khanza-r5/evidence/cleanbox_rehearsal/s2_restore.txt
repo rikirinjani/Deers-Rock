@@ -1,0 +1,9 @@
+## 2026-11-01T01:36:00Z [local] sudo chroot /data/noble bash -c 'cat /srv/restore.log; mysql -uroot -N -e "select table_schema,count(*) from information_schema.tables where table_schema like \"sik%\" group by 1"'
+Sun Nov  1 01:32:33 UTC 2026
+sik-rc=0
+Sun Nov  1 01:34:29 UTC 2026
+bench-rc=0
+Sun Nov  1 01:34:56 UTC 2026
+sik	1179
+sik_bench	23
+## 2026-11-01T01:36:02Z rc=0

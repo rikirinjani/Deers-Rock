@@ -1,0 +1,32 @@
+## 2026-11-01T01:31:41Z [local] cd /data/noble/srv/arch && sha256sum -c MANIFEST.sha256 2>&1 | tail -8; sudo chroot /data/noble bash -c "ls /var/lib/mysql | head -5; ls /etc/mysql/mysql.conf.d/; ls -ld /var/run/mysqld"
+simrs-khanza.tar.gz: FAILED open or read
+sha256sum: dr-benchmark.tar.gz: No such file or directory
+dr-benchmark.tar.gz: FAILED open or read
+Deers-Rock-tools.tar.gz: OK
+Deers-Rock-tools.lsattr.txt: OK
+db/sik.sql.gz: OK
+db/sik_bench.sql.gz: OK
+sha256sum: WARNING: 2 listed files could not be read
+#ib_16384_0.dblwr
+#ib_16384_1.dblwr
+#innodb_redo
+#innodb_temp
+auto.cnf
+mysql.cnf
+mysqld.cnf
+drwx------ 2 mysql mysql 4096 Oct 31 22:22 /var/run/mysqld
+## 2026-11-01T01:31:43Z rc=0
+## 2026-11-01T01:31:51Z [local] sudo chroot /data/noble bash -c 'printf "[mysqld]\ninnodb_buffer_pool_size=3G\nskip-log-bin\ninnodb_flush_log_at_trx_commit=1\n" > /etc/mysql/mysql.conf.d/drbench.cnf; cat /etc/mysql/mysql.conf.d/drbench.cnf; mkdir -p /var/run/mysqld; chown mysql:mysql /var/run/mysqld'
+[mysqld]
+innodb_buffer_pool_size=3G
+skip-log-bin
+innodb_flush_log_at_trx_commit=1
+## 2026-11-01T01:31:53Z rc=0
+## 2026-11-01T01:32:21Z [local] sudo chroot /data/noble bash -c 'mysql -uroot -N -e "select version(); select @@innodb_buffer_pool_size/1024/1024/1024; show databases"; tail -3 /var/log/mysqld_manual.log'
+8.0.46-0ubuntu0.24.04.4
+3.000000000000
+information_schema
+mysql
+performance_schema
+sys
+## 2026-11-01T01:32:23Z rc=0

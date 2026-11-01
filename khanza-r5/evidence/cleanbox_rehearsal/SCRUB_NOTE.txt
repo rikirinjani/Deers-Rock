@@ -1,0 +1,1 @@
+scrubbed: hostname instabox-exp-g-box -> <host>, machine name -> <box> (rule: no hostname in the repo)

@@ -1,0 +1,46 @@
+## 2026-11-01T03:32:09Z [local] uname -r; lscpu | grep -E "Model name|^CPU\(s\)|Hypervisor|Virtualization type"; free -m | sed -n 2p; df -h / /data | cat; cat /data/noble/etc/os-release | sed -n 1,2p; cat /etc/os-release | sed -n 1,2p; sudo chroot /data/noble bash -c "cat /etc/lsb-release | tail -1; mysql -uroot -N -e \"select @@version, @@innodb_buffer_pool_size/1073741824\"; java -version 2>&1 | head -1; dpkg -l mysql-server-8.0 openjdk-17-jdk xvfb python3 faketime | awk \"/^ii/{print \\$2, \\$3}\"; cd /opt/Deers-Rock/tools; bash dr_runlock.sh status | head -2; ps -eo cmd | grep -c \"[m]ysqld\""; du -sh /data/noble/opt/* /data/noble/var/lib/mysql 2>/dev/null; sudo chroot /data/noble bash -c "ls -ld /opt/dr-benchmark/p22/chain; ls /opt/dr-benchmark/p-chain | tail -3"
+6.18.54-instabox
+CPU(s):                                  4
+Model name:                              AMD EPYC
+Hypervisor vendor:                       KVM
+Virtualization type:                     full
+Mem:            7964        4575        3293           0         329        3388
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        16G  4.3G   11G  29% /
+/dev/vdb         20G  6.6G   13G  34% /data
+PRETTY_NAME="Ubuntu 24.04 LTS"
+NAME="Ubuntu"
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
+8.0.46-0ubuntu0.24.04.4	3.0000
+openjdk version "17.0.20.1" 2026-08-18
+session=P23-REHEARSAL-OP2
+pid=34533
+1
+3.3M	/data/noble/opt/Deers-Rock
+431M	/data/noble/opt/dr-benchmark
+1.5G	/data/noble/opt/simrs-khanza
+4.0K	/data/noble/var/lib/mysql
+drwxr-xr-x 2 1000 root 4096 Oct 31 14:12 /opt/dr-benchmark/p22/chain
+run_p_chain.sh
+sampled_diff_state_contract_20261013T043444Z.json
+sik_p6f_build_20261016T042629Z
+awk: 1: unexpected character '\'
+awk: 1: unexpected character '\'
+## 2026-11-01T03:32:13Z rc=0
+## 2026-11-01T03:32:22Z [local] sudo chroot /data/noble bash -c "cd /opt/Deers-Rock/tools && bash dr_runlock.sh release P23-REHEARSAL-OP2; ls /opt/dr-benchmark/LOCK 2>&1"; sudo rm -rf /data/noble/srv/arch; sudo rm -rf /data/noble/srv/archive_bak; ls /data/noble/srv; sudo find /data/noble -xdev \( -name "*.sql.gz" -o -name "simrs-khanza.tar.gz" -o -name "dr-benchmark.tar.gz" -o -name "Deers-Rock-tools.tar.gz" \) 2>/dev/null | head; df -h /data | tail -1
+RUNLOCK-RELEASED
+ls: cannot access '/opt/dr-benchmark/LOCK': No such file or directory
+chain_run.sh
+inst.sh
+ledger.sh
+rebuilt
+repo
+restore.log
+shim
+shipped_classes
+wire2.sh
+wire.sh
+/dev/vdb         20G  5.5G   15G  28% /data
+## 2026-11-01T03:32:25Z rc=0

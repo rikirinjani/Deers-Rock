@@ -1,0 +1,48 @@
+## 2026-11-01T00:38:39Z [local] sudo mkdir -p /data/noble/srv/arch && sudo chown think /data/noble/srv/arch
+## 2026-11-01T00:38:41Z rc=0
+## 2026-11-01T00:38:41Z push start
+{
+  "error": {
+    "code": "missing_parent",
+    "message": "directory /data/home/C:/Program Files/Git/data/noble/srv/arch does not exist in sandbox <box>; create it first or pass -p",
+    "status": 404
+  }
+}
+## 2026-11-01T01:26:27Z push rc=0
+## 2026-11-01T01:26:27Z [local] cd /data/noble/srv/arch; ls -R | head -30
+.:
+## 2026-11-01T01:26:29Z rc=0
+drwxrwxr-x 2 think think 4096 Nov  1 01:26 /data/noble/srv/arch/db
+## 2026-11-01T01:26:59Z re-push, per-file parallel, MSYS_NO_PATHCONV=1 (first push failed: git-bash path mangling, error only reported after the full 650 MB upload)
+Deers-Rock-tools.lsattr.txt start=2026-11-01T01:26:59Z end=2026-11-01T01:27:00Z rc=0
+db/sik_bench.sql.gz start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+db/sik.sql.gz start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+MANIFEST.sha256 start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+Deers-Rock-tools.tar.gz start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+simrs-khanza.tar.gz start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+dr-benchmark.tar.gz start=2026-11-01T01:26:59Z end=2026-11-01T01:27:01Z rc=0
+## 2026-11-01T01:28:43Z re-push 2 (local paths as C:/..., remote with MSYS_NO_PATHCONV=1; earlier rc=0 lines above are wrong: $? was read after $(date))
+MANIFEST.sha256 start=2026-11-01T01:28:44Z end=2026-11-01T01:28:47Z rc=0
+Deers-Rock-tools.lsattr.txt start=2026-11-01T01:28:44Z end=2026-11-01T01:28:47Z rc=0
+Deers-Rock-tools.tar.gz start=2026-11-01T01:28:44Z end=2026-11-01T01:28:51Z rc=0
+db/sik.sql.gz start=2026-11-01T01:28:44Z end=2026-11-01T01:30:01Z rc=0
+db/sik_bench.sql.gz start=2026-11-01T01:28:44Z end=2026-11-01T01:30:05Z rc=0
+instabox: error missing_parent: directory /data/noble/srv/repo does not exist in sandbox <box>; create it first or pass -p
+Pushed 1637 files (3.6 MiB compressed) to <box>:/data/noble/srv/repo/khanza-r5
+instabox: error permission_denied: in the sandbox: mkdir: cannot create directory ‘/data/noble/srv/rebuilt’: Permission denied
+Pushed 40 files (234.0 KiB compressed) to <box>:/data/noble/srv/rebuilt/rebuilt
+dr-benchmark.tar.gz start=2026-11-01T01:28:44Z end=2026-11-01T01:31:56Z rc=0
+simrs-khanza.tar.gz start=2026-11-01T01:28:44Z end=2026-11-01T02:05:24Z rc=1
+## 2026-11-01T02:07:26Z simrs-khanza.tar.gz first single push failed rc=1 at 02:05:24Z after 37 min: host_unavailable (machine unreachable ~02:05-02:07, mysqld and mounts survived). Re-push as 12 parallel parts (split -n 12), reassemble on the machine, verify against MANIFEST
+simrs.part.08 start=2026-11-01T02:07:27Z end=2026-11-01T02:17:42Z rc=0
+simrs.part.02 start=2026-11-01T02:07:26Z end=2026-11-01T02:18:48Z rc=0
+simrs.part.05 start=2026-11-01T02:07:26Z end=2026-11-01T02:19:40Z rc=0
+simrs.part.07 start=2026-11-01T02:07:27Z end=2026-11-01T02:19:40Z rc=0
+simrs.part.04 start=2026-11-01T02:07:26Z end=2026-11-01T02:20:16Z rc=0
+simrs.part.00 start=2026-11-01T02:07:26Z end=2026-11-01T02:20:18Z rc=0
+simrs.part.10 start=2026-11-01T02:07:27Z end=2026-11-01T02:20:19Z rc=0
+simrs.part.06 start=2026-11-01T02:07:27Z end=2026-11-01T02:20:20Z rc=0
+simrs.part.09 start=2026-11-01T02:07:27Z end=2026-11-01T02:20:20Z rc=0
+simrs.part.11 start=2026-11-01T02:07:27Z end=2026-11-01T02:20:28Z rc=0
+simrs.part.03 start=2026-11-01T02:07:26Z end=2026-11-01T02:20:46Z rc=0
+simrs.part.01 start=2026-11-01T02:07:26Z end=2026-11-01T02:20:59Z rc=0

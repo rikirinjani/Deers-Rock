@@ -1,0 +1,30 @@
+## 2026-11-01T02:22:11Z [local] sudo chroot /data/noble bash -c 'bash /srv/wire.sh 2>&1'
+## wire 2026-11-01T02:22:13Z
+grants: 22 rows (source box: 4 sik + 17 sik_bench = 21)
+GRANT USAGE ON *.* TO `benchmark`@`localhost`
+GRANT SELECT, INSERT, UPDATE, DELETE ON `sik`.* TO `benchmark`@`localhost`
+GRANT ALL PRIVILEGES ON `sik_bench`.* TO `benchmark`@`localhost`
+                  ^
+RetargetDbXml.java:6: error: unmappable character (0x94) for encoding US-ASCII
+ * RetargetDbXml ??? Stage A G2 helper (benchmark runtime config, not Khanza source).
+                   ^
+49 errors
+consumer javac rc=1
+                v = null; // logo ??? unused for CSV data
+                                    ^
+12 errors
+JasperHeadless javac rc=1 (needs jasper jars, not in the doc classpath)
+BilingHarness javac rc=0
+EncodeAES javac rc=0
+ls: cannot access '/opt/simrs-khanza/consumer/*.class': No such file or directory
+/opt/simrs-khanza/run-env/harness/BilingHarness.class
+/opt/simrs-khanza/run-env/harness/EncodeAES.class
+JdbcProbe.class shipped=59e26a00f61d new=
+KhanzaBillingConsumer.class shipped=5ca7a51f99d0 new=
+MiniParse.class shipped=1eb7d47e3e8d new=
+PatchDbXml.class shipped=eb589991d70e new=
+RetargetDbXml.class shipped=30b50b8065aa new=
+TestAES.class shipped=af87532f57a3 new=
+BilingHarness.class shipped=b85e9286c1d8 new=b85e9286c1d8
+EncodeAES.class shipped=312100968094 new=312100968094
+## 2026-11-01T02:22:17Z rc=0

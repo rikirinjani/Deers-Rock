@@ -1,0 +1,248 @@
+
+=== 0 FROZEN + LIVE BASELINE (02:24:08Z) ===
+frozen P22: 42/42 OK
+lsattr i-flag: 42/42
+# P14 live state: p20-chain-baseline 2026-11-01T02:24:08Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P23-REHEARSAL-OP2
+disk: -                20G  6.4G   14G  33% /
+consumers: events_statements_cpu=NO events_statements_current=YES events_statements_history=YES events_statements_history_long=NO 
+
+=== 1a LIB TEST (02:24:11Z) ===
+P15-LIB-TEST: PASS=23 FAIL=0
+lib exit=0
+
+=== 1b P15 A1-A3 CONTROLS (old = .bak_p15) (02:24:25Z) ===
+FAIL A3 abort names the pipeline (got 0, want 1)
+P15-A-NC: PASS=8 FAIL=1
+p15-a-nc exit=1
+
+=== 1c P16 A/E4 CONTROLS (02:24:29Z) ===
+P16-A-NC: PASS=26 FAIL=0
+p16-a-nc exit=0
+
+=== 1d P16 E1-E3 CONTROLS (02:24:32Z) ===
+P16-E-NC: PASS=20 FAIL=0
+p16-e-nc exit=0
+
+=== 1e P17 SAFETY CONTROLS (history, on the P20 bytes) (02:28:09Z) ===
+FAIL A9 the driver exits 1 (got 3, want 1)
+FAIL A9 the clone is kept for inspection (got , want sik_p14e)
+P17-A-NC: PASS=35 FAIL=2
+p17-a-nc exit=1
+
+=== 1f P18 SAFETY CONTROLS (history, on the P20 bytes; B4 builds its own clone) (02:33:18Z) ===
+FAIL B4 the injected trigger exists in the clone (got 0, want 1)
+FAIL B4 exactly one visit logged sukses=false (a real form failure) (got 0, want 1)
+FAIL B4 the STOP RULE line (not FORM-INCOMPLETE) (got 0/0, want 1/0)
+FAIL B4 the driver exits 1 (got 3, want 1)
+FAIL B4 the clone is kept for inspection (got , want sik_p14e)
+P18-A-NC: PASS=45 FAIL=5
+p18-a-nc exit=1
+
+=== 1g P19 SAFETY CONTROLS (history, on the P20 bytes) (03:00:46Z) ===
+PASS precondition: database.xml on sik (got sik )
+PASS N3 the oracle_run function is extracted from both drivers (got yes)
+PASS N3 OLD returns 4 for a FAILED batch with every visit sukses=true (the value treated as expected: the defect) (got RC=4)
+PASS N3 NEW returns 10 (ORACLE-BATCH-FAILED) (got RC=10)
+PASS N3 clean log: OLD returns 4 (got RC=4)
+PASS N3 clean log: NEW returns 4 (got RC=4)
+PASS N3 the NEW driver prints the ORACLE-BATCH-FAILED line (got 1)
+FAIL N3 helper matches the real B4 log (a FAILED batch and a restore error) (got none, want match)
+PASS N3 helper does not match the real clean C4 log (got none)
+PASS N5a OLD: 'not a leader', rc 0, the harness leader is still alive (the defect) (got 0/alive)
+PASS N5a NEW: treated as gone, the harness group is signalled and confirmed dead (rc 0) (got 0/dead)
+PASS N5b precondition: the leader is gone and the child lives (got dead/alive)
+PASS N5b OLD: rc 0, child alive (a failing ps reads as 'no live member': the defect) (got 0/alive)
+PASS N5b NEW: rc 1 (not confirmed), the child is left alone (got 1/alive)
+PASS N5c OLD returns 1 ('dead') when ps fails (the defect) (got 1)
+PASS N5c NEW returns 2 (unknown) when ps fails (got 2)
+PASS N5c NEW still returns 0 for a live group (pid 1's group) (got 0)
+PASS N5c NEW still returns 1 for a group that does not exist (got 1)
+PASS database.xml on sik at the end (got sik )
+P19-A-NC: PASS=18 FAIL=1
+p19-a-nc exit=1
+
+=== 2 P20 SAFETY CONTROLS (O1 patterns one at a time, O2 reason text and mutant, O6d pid files) (03:00:56Z) ===
+PASS precondition: database.xml on sik (got sik )
+PASS O1 oracle_run is extracted from the driver (got yes)
+PASS O1 P19 pattern failed: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern restoreerr: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P19 pattern notrestored: OLD lib 10 / NEW lib 10 (got RC=10/RC=10)
+PASS O1 P20 pattern dropfailed: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepunrest: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 P20 pattern keepheld: OLD lib 4 (the defect) / NEW lib 10 (got RC=4/RC=10)
+PASS O1 clean log: OLD 4 / NEW 4 (got RC=4/RC=4)
+PASS O1 the NEW driver run prints ORACLE-BATCH-FAILED for STAGE-DROP-FAILED (got 1)
+PASS O1 real clean C4 oracle log (fixture, P19 chain): no match (got none)
+PASS O1 real clean C4 oracle log (real, P19 chain): no match (got none)
+PASS O1 real oracle log of the P19 chain's B4 run (a FAILED batch and STAGE-KEEP): match (got match)
+PASS O1 that log carries STAGE-KEEP, which the P19 patterns did not cover on their own (got 1)
+PASS O2 the mutant lib differs from the NEW lib and still parses (got differs/ok)
+PASS O2 NEW: rc 1, child alive, and the reason is 'ps failed while looking for group' (got 1/alive/1)
+PASS O2 MUTANT (no ga=2 branch): rc 1 again but the reason is the OTHER text, so the reason text tells the fix from its absence (got 1/0/1)
+PASS O2 ps failing after the TERM: rc 1 and 'still alive (or unknown) after KILL' (got 1/1)
+PASS O2 after-TERM: the wait loop ran its full wait (elapsed >= 8 s), not an early break on unknown (got yes)
+PASS O2 after-TERM: a TERM and then a KILL were sent to the group (got ge1/ge1)
+PASS O6d empty pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d empty pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d letters pid file: OLD rc 0 (silent skip: the defect) (got 0)
+PASS O6d letters pid file: NEW rc 1 and the message 'is empty or holds no pid' (got 1/1)
+PASS O6d a pid that names no process and no group: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS O6d no pid file at all: OLD rc 0 / NEW rc 0 (got 0/0)
+PASS database.xml on sik at the end (got sik )
+P20-A-NC: PASS=27 FAIL=0
+p20-a-nc exit=0
+
+=== 2b P22 SAFETY CONTROLS (R1 missing/empty oracle log, R2 trap restore, R3 clone check; OLD = the P20 bytes) (03:01:15Z) ===
+PASS precondition: database.xml on sik (got sik )
+PASS precondition: OLD bytes differ from NEW bytes (lib, p14, p13) (got differs/differs/differs)
+PASS R1 missing log: OLD none (the defect) / NEW match (got none/match)
+PASS R1 empty log: OLD none / NEW match (got none/match)
+PASS R1 a directory instead of a log: OLD none / NEW match (got none/match)
+PASS R1 clean log: OLD none / NEW none (no false trigger) (got none/none)
+PASS R1 failed log: OLD match / NEW match (positive control for the line above) (got match/match)
+PASS R1 the NEW helper says why on stderr for a missing log (got 1)
+PASS R1 oracle_run is extracted from the driver (got yes)
+PASS R1 oracle exits 4 with an EMPTY log: OLD 4 (accepted as an out-of-envelope run) / NEW 10 (ORACLE-BATCH-FAILED) (got RC=4/RC=10)
+PASS R1 oracle exits 4 with a clean log: OLD 4 / NEW 4 (got RC=4/RC=4)
+PASS R1 oracle exits 4 with a failed log: OLD 10 / NEW 10 (got RC=10/RC=10)
+PASS R2 p14_edge_run.sh: cleanup is extracted (got yes)
+PASS R2 p14_edge_run.sh failing restore: OLD rc 0 and no CLEANUP-RESTORE-FAILED (the defect) (got 0/0)
+PASS R2 p14_edge_run.sh failing restore: NEW rc 3 and the message (got 3/1)
+PASS R2 p14_edge_run.sh succeeding restore: OLD rc 0 / NEW rc 0, no CLEANUP-RESTORE-FAILED (got 0/0/0)
+PASS R2 p13_wide_sample.sh: cleanup is extracted (got yes)
+PASS R2 p13_wide_sample.sh failing restore: OLD rc 0 and no CLEANUP-RESTORE-FAILED (the defect) (got 0/0)
+PASS R2 p13_wide_sample.sh failing restore: NEW rc 3 and the message (got 3/1)
+PASS R2 p13_wide_sample.sh succeeding restore: OLD rc 0 / NEW rc 0, no CLEANUP-RESTORE-FAILED (got 0/0/0)
+PASS R3 failing mysql (two empty strings): OLD rc 0 'clone matches sik' (the defect) / NEW rc 1 (got 0/1/1/1)
+PASS R3 non-numeric output on both sides: OLD rc 0 (the defect) / NEW rc 1 (got 0/1)
+PASS R3 equal numbers: OLD rc 0 / NEW rc 0, NEW prints 'tables=1179 (= sik)' and 'count-equal' (got 0/0/1)
+PASS R3 a real table-count mismatch: OLD rc 1 / NEW rc 1 (positive control) (got 1/1/1)
+PASS database.xml on sik at the end (got sik )
+P22-A-NC: PASS=25 FAIL=0
+p22-a-nc exit=0
+
+=== 3 C4 FIXTURE + 300 REAL ON A FRESH CLONE (03:01:16Z) ===
+STOP RULE: <20GB free
+driver exit=3
+run starts: fixture=2026-10-31 13:34:23.641831 (/opt/dr-benchmark/p15/runs/fixture_run_start_20261031T133309Z.txt) real=2026-10-31 13:36:15.639639 (/opt/dr-benchmark/p15/runs/real_run_start_20261031T133309Z.txt)
+
+=== 3a FIXTURE (expect mode, clone ledger) (03:01:17Z) ===
+RuntimeError: mysql rc=1: ERROR 1049 (42000): Unknown database 'sik_p14e'
+fixture compare exit=1
+
+=== 3b REAL 300 (equal mode, live-pinned ledger) (03:01:17Z) ===
+RuntimeError: mysql rc=1: ERROR 1049 (42000): Unknown database 'sik_p14e'
+real compare exit=1
+
+=== 3b' UNIT GATE ASSERTS (P19 N1/AC-5: both modes) (03:01:17Z) ===
+ASSERT PASS fixture unit_keys_unchecked (got 0)
+ASSERT PASS fixture unit_keys_checked > 0 (got yes)
+ASSERT PASS real300 unit_keys_unchecked (got 0)
+ASSERT PASS real300 unit_keys_checked > 0 (got yes)
+ASSERT PASS real300 all unit_src MATCH (got 0)
+ASSERT PASS O1 helper on the chain's own clean fixture oracle log (oracle_20261031T133309Z.log) (got none)
+ASSERT PASS O1 helper on the chain's own clean real oracle log (oracle_20261031T133309Z.log) (got none)
+
+=== 3c P13 COMPARATOR (asserted and counted, P18 M10) (03:01:17Z) ===
+ASSERT FAIL p13 positive (since=run start) exit (got 1, want 0)
+    raise RuntimeError("mysql rc=%d: %s" % (p.returncode, p.stderr.strip()[:400]))
+RuntimeError: mysql rc=1: ERROR 1049 (42000): Unknown database 'sik_p14e'
+ASSERT PASS p13 no --since exit (got 2)
+ASSERT PASS p13 since in the future exit (got 1)
+ASSERT PASS p13 duplicate list exit (got 2)
+ASSERT FAIL fixture compare exit (got 1, want 0)
+ASSERT FAIL real compare exit (got 1, want 0)
+
+=== 3d P17 PREDICATE CONTROLS (history, on the P20 bytes) (03:01:17Z) ===
+p17-b-nc exit=3
+
+=== 3d' P18 PREDICATE CONTROLS (B7, B8) (03:01:17Z) ===
+p18-b-nc exit=3
+
+=== 3d'' P19 PREDICATE CONTROLS (N1 mixed plant, equal-mode unit gate, N2) (03:01:17Z) ===
+p19-b-nc exit=3
+
+=== 3d''' P20 PREDICATE COVERAGE (O4 AMBIGUOUS in both modes) (03:01:17Z) ===
+p20-b-nc exit=3
+
+=== 3e P15 LINE CONTROLS (old p15 comparator = P15 bytes) (03:01:17Z) ===
+line-nc exit=3
+
+=== 3f B6 CONTROL (old p12 = P14 bytes) (03:01:17Z) ===
+P15-B6-NC: PASS=6 FAIL=0
+b6 exit=0
+
+=== 3g TEARDOWN (03:01:18Z) ===
+clone sik_p14e does not exist - nothing to drop
+
+=== 4a FULL FRESH SUITE (03:01:18Z) ===
+PASS=39 FAIL=0 — a PASS covers only the property in its row, on fixture sik_p6f.
+evidence: /opt/dr-benchmark/p-chain/r5_p6_acceptance_20261101T030252Z.md
+suite exit=0
+
+=== 4b PRESERVATION CHECK (03:10:18Z) ===
+SNAPSHOT-BINDING suite start 20261101T031148Z; pre-op and post-failure snapshots written by this run
+PRESERVATION-CHECK PASS
+evidence: /opt/dr-benchmark/p-chain/r5_p10_preservation_20261101T031018Z.md
+preservation exit=0
+
+=== 4c RECOVERY UNIT TEST (03:12:48Z) ===
+P8/P9 recovery unit test: 44/44 cases PASS
+unit exit=0
+
+=== 4d P11 NEGATIVE CONTROLS (03:12:48Z) ===
+NC 1: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 2: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 3: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 4: with-switch=FAIL without=PASS -> DISCRIMINATING
+NC 5: with-switch=FAIL without=PASS -> DISCRIMINATING
+=== P11 NEGATIVE CONTROLS: DISCRIMINATING=5 NOT-DISCRIMINATING=0 ===
+evidence: /opt/dr-benchmark/p-chain/r5_p11_negative_controls_20261101T031248Z.md
+nc exit=0
+
+=== 3z O1 HELPER ON THE REAL ORACLE LOGS (runs in P22_SHORT mode too; P22 R4: a missing log is a failure and the positive control is an assertion) (03:28:54Z) ===
+ASSERT PASS 3z p15_oracle_batch_failed is a shell function (got function)
+ASSERT PASS 3z the newest fixture oracle log exists and is not empty (oracle_20261031T133309Z.log) (got yes)
+ASSERT PASS 3z helper on the newest fixture oracle log (a clean C4 run) finds no failed batch (got none)
+ASSERT PASS 3z the newest real oracle log exists and is not empty (oracle_20261031T133309Z.log) (got yes)
+ASSERT PASS 3z helper on the newest real oracle log (a clean C4 run) finds no failed batch (got none)
+ASSERT PASS 3z positive control file present and carries STAGE-KEEP: oracle_20261027T130408Z.log (got yes)
+ASSERT PASS 3z positive control: the real-300 oracle log of the first P20 chain (harness rc=-1, STAGE-KEEP) matches (got match)
+
+=== 4e RELEASE INVENTORY ON THE BOX (read-only, P19 N6; success path pre-flighted in P20) (03:28:54Z) ===
+files 65 ok 65 not_ok [] manifests 11
+ASSERT PASS inventory on the box: not_ok (got 0)
+
+=== 5 FINAL (the last box capture of this wave; nothing below touches the box) (03:28:54Z) ===
+frozen P22: 42/42 OK
+lsattr i-flag: 42/42
+# P14 live state: p20-chain-final 2026-11-01T03:28:54Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES sik_bench:INDEX sik_bench:ALTER sik_bench:CREATE TEMPORARY TABLES sik_bench:LOCK TABLES sik_bench:EXECUTE sik_bench:CREATE VIEW sik_bench:SHOW VIEW sik_bench:CREATE ROUTINE sik_bench:ALTER ROUTINE sik_bench:EVENT sik_bench:TRIGGER 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P23-REHEARSAL-OP2
+disk: -                20G  6.6G   13G  34% /
+consumers: events_statements_cpu=NO events_statements_current=YES events_statements_history=YES events_statements_history_long=NO 
+databases: sik sik_bench 
+harness procs: 0
+
+=== P22 CHAIN DONE (short=0): lib=0 p15-a=1 p16-a=0 p16-e=0 p17-a=1 p18-a=1 p19-a=1 p20-a=0 p22-a=0 c4=3 fixture=1 real=1 asserts-failed=3 p17-b=3 p18-b=3 p19-b=3 p20-b=3 line-nc=3 b6=0 suite=0 preservation=0 unit=0 nc=0 ===
+chain exit=0 2026-11-01T03:28:56Z

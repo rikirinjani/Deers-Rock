@@ -1,0 +1,69 @@
+## 2026-11-01T02:23:39Z [local] sudo chroot /data/noble bash -c 'cd /opt/Deers-Rock/tools; M=/srv/repo/khanza-r5/evidence/p22/r5_p22_frozen_manifest_20261031.sha256; chattr +i $(awk "{print \$2}" $M); echo "chattr rc=$?"; sha256sum -c $M | grep -c ": OK"; lsattr $(awk "{print \$2}" $M) | awk "{print \$1}" | grep -c i; diff <(lsattr $(awk "{print \$2}" $M) | awk "{print \$2, (\$1 ~ /i/ ? \"i\":\"-\")}" | sed "s#/opt/Deers-Rock/tools/##" | sort) <(grep -F -f <(awk "{print \$2}" $M) /srv/arch/Deers-Rock-tools.lsattr.txt | awk "{print \$2, (\$1 ~ /i/ ? \"i\":\"-\")}" | sed "s#/opt/Deers-Rock/tools/##" | sort) && echo "lsattr i-flags equal the source-box listing"; bash dr_runlock.sh acquire P23-REHEARSAL-OP2 "second operator rehearsal"; bash dr_runlock.sh status; ls /opt/dr-benchmark; ls -d /opt/dr-benchmark/results 2>&1; bash p14_live_state.sh preflight 2>&1 | cut -c1-200'
+chattr rc=0
+42
+42
+1a2,6
+> p11_frozen_20261019/p10_preservation_check.sh -
+> p11_frozen_20261019/p11_negative_controls.sh -
+> p11_frozen_20261019/p6_acceptance_suite.sh -
+> p11_frozen_20261019/p8_recovery_unit_test.py -
+> p11_frozen_20261019/sampled_real_form_diff_r5.py -
+RUNLOCK-ACQUIRED: session=P23-REHEARSAL-OP2 (/opt/dr-benchmark/LOCK)
+session=P23-REHEARSAL-OP2
+pid=34533
+start_utc=2026-11-01T02:23:42Z
+host=<host>
+note=second operator rehearsal
+pid_alive=yes
+DECISIONS.md
+LOCK
+PROGRESS.md
+README.md
+collect_results.sh
+decision_log_template.md
+determinism_audit_checklist.md
+evidence
+p-chain
+p14
+p15
+p16
+p17
+p18
+p19
+p20
+p22
+r4_sample
+run_all.sh
+run_all.sh.bak-20261011T044427Z
+run_all.sh.bak-20261011T050430Z
+run_all.sh.bak-20261011T053244Z
+run_all.sh.bak-20261012
+run_all.sh.bak-20261012T044902Z
+run_all.sh.bak-20261012T070701Z
+run_all.sh.bak-cleanup-083728
+run_all.sh.bak-gatefailmsg
+run_all.sh.bak-manifestfix-094334
+run_all.sh.bak-p2
+run_all.sh.bak-rungaware
+run_all.sh.bak-rungaware2
+run_console.log
+run_manifest.json
+scripts
+setup_vps.sh
+snapshots
+state
+ls: cannot access '/opt/dr-benchmark/results': No such file or directory
+# P14 live state: preflight 2026-11-01T02:23:42Z
+databases: sik sik_bench 
+database.xml: sik 
+writer markers: 0
+benchmark grants on sik/sik_bench: sik:SELECT sik:INSERT sik:UPDATE sik:DELETE sik_bench:SELECT sik_bench:INSERT sik_bench:UPDATE sik_bench:DELETE sik_bench:CREATE sik_bench:DROP sik_bench:REFERENCES 
+benchmark grants on P14 clones: 
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+fixture rows in live (reserved 2027/12/31/%): 0/0/0/0/0 (reg/proc/dpo/billing/ledger)
+live sik counts: 86676 reg, 1464593 billing, 86488 nota, 1100 dnota
+frozen P12: 9/15 OK
+frozen P13: 3/6 OK
+lock: session=P23-REHEARSAL-OP2
+disk: -                20G  6.4G   14G  33% /
+## 2026-11-01T02:23:45Z rc=0

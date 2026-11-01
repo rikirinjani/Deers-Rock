@@ -1,0 +1,43 @@
+## 2026-11-01T01:33:05Z [local] sudo chroot /data/noble bash -c 'cd /opt/Deers-Rock/tools; for d in .bak_p15_20261026 .bak_p16_20261026 .bak_p17_20261027 .bak_p18_20261027 .bak_p19_20261027 .bak_p20_20261027 .bak_p22_20261031; do n=0; for f in /srv/rebuilt/rebuilt/$d/*; do b=$(basename $f); if cmp -s $f $d/$b; then n=$((n+1)); else echo "DIFF $d/$b"; fi; done; echo "$d git-built==archive files: $n; archive has: $(ls $d | wc -l) ($(ls $d | grep -v -x -F -f <(ls /srv/rebuilt/rebuilt/$d) | tr "\n" " ") only in archive)"; done'
+.bak_p15_20261026 git-built==archive files: 10; archive has: 10 ( only in archive)
+.bak_p16_20261026 git-built==archive files: 8; archive has: 9 (SHA256SUMS  only in archive)
+.bak_p17_20261027 git-built==archive files: 9; archive has: 10 (SHA256SUMS  only in archive)
+.bak_p18_20261027 git-built==archive files: 5; archive has: 5 ( only in archive)
+.bak_p19_20261027 git-built==archive files: 3; archive has: 3 ( only in archive)
+.bak_p20_20261027 git-built==archive files: 1; archive has: 1 ( only in archive)
+.bak_p22_20261031 git-built==archive files: 4; archive has: 4 ( only in archive)
+## 2026-11-01T01:33:07Z rc=0
+## 2026-11-01T01:33:07Z [local] sudo chroot /data/noble bash -c 'cd /opt/Deers-Rock/tools; mkdir -p /srv/archive_bak; mv .bak_p15_20261026 .bak_p16_20261026 .bak_p17_20261027 .bak_p18_20261027 .bak_p19_20261027 .bak_p20_20261027 .bak_p22_20261031 /srv/archive_bak/; cp -a /srv/rebuilt/rebuilt/.bak_p* .; for d in .bak_p16_20261026 .bak_p17_20261027; do (cd /opt/Deers-Rock; sha256sum tools/$d/* > /dev/null); done; ls -d .bak_p1[5-9]* .bak_p2*; chown -R root:root .bak_p*; cd /srv/repo/khanza-r5; for l in evidence/p19/bak_equals_git.txt evidence/p20/bak_equals_git.txt evidence/p22/local_git_hashes_before.txt; do echo == $l; done; cd /opt/Deers-Rock/tools; for f in .bak_p19_20261027/* .bak_p20_20261027/* .bak_p22_20261031/*; do echo "$(sha256sum $f | cut -c1-64) $f"; done'
+.bak_p15_20261026
+.bak_p15fix2_20261026
+.bak_p16_20261026
+.bak_p16fix1_20261026
+.bak_p17_20261027
+.bak_p17fix1_20261027
+.bak_p18_20261027
+.bak_p19_20261027
+.bak_p20_20261027
+.bak_p20fix1_20261027
+.bak_p22_20261031
+== evidence/p19/bak_equals_git.txt
+== evidence/p20/bak_equals_git.txt
+== evidence/p22/local_git_hashes_before.txt
+a2e333e005a82783a967e61edd62b3c242b3680f0df54cd841b3d82d3e27218f .bak_p19_20261027/p14_edge_run.sh
+c24c05a1f3cf00167f2621495e62319f1c25dfa09999d451cfa06e2b5e0f6583 .bak_p19_20261027/p15_lib.sh
+ae2185e4f37d3b3c482391598e910deaf6b58a8ca353b677d321e706bde74ce2 .bak_p19_20261027/p15_line_identity.py
+5c1fa9837d2a49b1f1e1eb6800e6514173b12a6622f5fc3fa98fbec9d783162c .bak_p20_20261027/p15_lib.sh
+ea1c3f2811d8afe6e63b89129f1cb91f1e4f1b4f2c4295522271888658a3aea6 .bak_p22_20261031/p13_wide_sample.sh
+a6e1ae200f3d5ba1d832093824a2e9766c2f729c4fad2cdb9affc84406a7299a .bak_p22_20261031/p14_edge_run.sh
+2d93fad4f50e0e4840929eb57193c3046deb1aad013eed2522e5b55ff61ad371 .bak_p22_20261031/p15_lib.sh
+a866204dc2dd48e9690aedea006a30d6285bf4e68f081f9aac199562cec45dbe .bak_p22_20261031/p20_a_negctl.sh
+## 2026-11-01T01:33:10Z rc=0
+## 2026-11-01T01:33:19Z [local] sudo chroot /data/noble bash -c 'cd /opt/Deers-Rock/tools; sha256sum -c /srv/repo/khanza-r5/evidence/p22/r5_p22_frozen_manifest_20261031.sha256 2>&1 | grep -vc ": OK"; ls /srv/repo/khanza-r5/tools | wc -l; n=0; for f in /srv/repo/khanza-r5/tools/*; do b=$(basename $f); [ -f $b ] && ! cmp -s $f $b && echo "repo!=archive $b"; [ -f $b ] || echo "repo-only $b"; done; cat /srv/restore.log'
+0
+81
+repo-only kaggle
+repo-only p17_release_inventory.py
+repo-only p18_release_inventory.py
+repo-only p7_integer_builder_all_check.sh
+repo-only scripts
+Sun Nov  1 01:32:33 UTC 2026
+## 2026-11-01T01:33:21Z rc=0

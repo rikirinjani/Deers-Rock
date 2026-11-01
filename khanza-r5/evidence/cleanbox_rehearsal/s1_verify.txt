@@ -1,0 +1,9 @@
+## 2026-11-01T02:21:10Z [local] sudo chroot /data/noble bash -c 'cd /srv/arch && cat parts/simrs.part.* > simrs-khanza.tar.gz && rm -rf parts && ls -l simrs-khanza.tar.gz && sha256sum -c MANIFEST.sha256'
+-rw-r--r-- 1 root root 635651878 Nov  1 02:21 simrs-khanza.tar.gz
+simrs-khanza.tar.gz: OK
+dr-benchmark.tar.gz: OK
+Deers-Rock-tools.tar.gz: OK
+Deers-Rock-tools.lsattr.txt: OK
+db/sik.sql.gz: OK
+db/sik_bench.sql.gz: OK
+## 2026-11-01T02:21:14Z rc=0

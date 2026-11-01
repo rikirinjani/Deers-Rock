@@ -1,0 +1,11 @@
+## 2026-11-01T00:38:22Z [local] sudo mount -t proc proc /data/noble/proc; sudo mount --bind /dev /data/noble/dev; sudo mount --bind /sys /data/noble/sys; uname -r; nproc; free -m | head -2; df -h /data | tail -1; sudo chroot /data/noble bash -c "cat /etc/os-release | head -2; mysqld --version; java -version 2>&1 | head -1; ls /opt"
+6.18.54-instabox
+4
+               total        used        free      shared  buff/cache   available
+Mem:            7964         446        5369           0        2431        7518
+/dev/vdb         20G  2.0G   18G  11% /data
+PRETTY_NAME="Ubuntu 24.04 LTS"
+NAME="Ubuntu"
+/usr/sbin/mysqld  Ver 8.0.46-0ubuntu0.24.04.4 for Linux on x86_64 ((Ubuntu))
+openjdk version "17.0.20.1" 2026-08-18
+## 2026-11-01T00:38:28Z rc=0

@@ -1,0 +1,27 @@
+## 2026-11-01T02:22:43Z [local] sudo chroot /data/noble bash -c 'bash /srv/wire2.sh 2>&1'
+-rwxr-xr-x 1 root root 12388 Oct 23 08:07 /opt/simrs-khanza/run-env/setting/database.xml
+-rwxr-xr-x 1 root root 12388 Oct 23 08:07 /opt/simrs-khanza/setting/database.xml
+sed: -e expression #1, char 36: unknown option to `s'
+sed: -e expression #1, char 36: unknown option to `s'
+sed: -e expression #1, char 36: unknown option to `s'
+sed: -e expression #1, char 36: unknown option to `s'
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+## 2026-11-01T02:22:46Z rc=0
+## 2026-11-01T02:22:59Z [local] sudo chroot /data/noble bash -c 'bash /srv/wire2.sh 2>&1'
+OK: /opt/simrs-khanza/setting/database.xml -> USER=benchmark PAS=[AES blob]
+  round-trip USER=benchmark PAS len=32
+patch rc=0
+OK: /opt/simrs-khanza/run-env/setting/database.xml -> USER=benchmark PAS=[AES blob]
+  round-trip USER=benchmark PAS len=32
+patch rc=0
+Exception in thread "main" java.sql.SQLException: Access denied for user 'root'@'localhost'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:113)
+	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:861)
+	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:449)
+mysql: [Warning] Using a password on the command line interface can be insecure.
+benchmark@localhost	356355
+[dbxml] /opt/simrs-khanza/setting/database.xml -> sik
+[dbxml] /opt/simrs-khanza/run-env/setting/database.xml -> sik
+## 2026-11-01T02:23:02Z rc=0

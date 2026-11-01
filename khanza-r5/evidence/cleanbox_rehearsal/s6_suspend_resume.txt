@@ -1,0 +1,25 @@
+## 2026-11-01T03:32:45Z before suspend
+1
+3
+ 03:32:48 up  6:36,  4 users,  load average: 0.10, 1.77, 2.14
+Pausing <box>: queued
+  succeeded
+NAME       STATE   TEMPLATE       CREATED
+<box>  Paused  agent-browser  Oct 26 20:09
+## 2026-11-01T03:32:51Z suspended
+    "state": "suspended",
+      "processesPreserved": true
+Starting <box>: queued
+  succeeded
+NAME       STATE    TEMPLATE       CREATED
+<box>  Running  agent-browser  Oct 26 20:09
+## 2026-11-01T03:32:56Z started
+1
+3
+ 03:32:58 up  6:36,  4 users,  load average: 0.08, 1.71, 2.11
+1
+## 2026-11-01T03:33:04Z final suspend
+Pausing <box>: queued
+  succeeded
+NAME       STATE   TEMPLATE       CREATED
+<box>  Paused  agent-browser  Oct 26 20:09

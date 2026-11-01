@@ -1,0 +1,12 @@
+## 2026-11-01T01:36:18Z [local] sudo chroot /data/noble bash -c 'bash /srv/ledger.sh 2>&1 | tail -12'
+bash: /srv/ledger.sh: No such file or directory
+## 2026-11-01T01:36:21Z rc=0
+## 2026-11-01T01:36:33Z [local] sudo chroot /data/noble bash -c 'bash /srv/ledger.sh 2>&1 | tail -12'
+sik	1179
+sik_bench	23
+356355
+live ledger: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7
+comparator_summary.txt
+killtest
+live_state_final.txt
+## 2026-11-01T01:36:37Z rc=0

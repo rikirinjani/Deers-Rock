@@ -1,0 +1,145 @@
+## 2026-11-01T01:32:43Z [local] sudo chroot /data/noble bash -c 'cd /srv/arch && sha256sum -c MANIFEST.sha256 2>&1 | grep -v simrs; time tar -C /opt -xzf Deers-Rock-tools.tar.gz && time tar -C /opt -xzf dr-benchmark.tar.gz; ls /opt /opt/dr-benchmark /opt/Deers-Rock/tools | head -40; ls /opt/Deers-Rock/tools | wc -l; tar tzf Deers-Rock-tools.tar.gz | head -2; tar tzf dr-benchmark.tar.gz | head -2'
+dr-benchmark.tar.gz: OK
+Deers-Rock-tools.tar.gz: OK
+Deers-Rock-tools.lsattr.txt: OK
+db/sik.sql.gz: OK
+db/sik_bench.sql.gz: OK
+sha256sum: WARNING: 1 listed file could not be read
+/opt:
+Deers-Rock
+dr-benchmark
+
+/opt/Deers-Rock/tools:
+README.md
+__pycache__
+build_benchmark_report.py
+build_benchmark_report.py.bak-p4
+build_dr_charge_ledger.py
+build_dr_charge_ledger.py.bak_r4
+build_dr_charge_ledger_p2.py
+burst_test.py
+charge_delta_per_component.py
+charge_delta_per_component_p2.py
+collect_scale_telemetry.py
+dbutil.py
+dr_doctor_code_map.txt
+dr_perf_profile_30d.py
+dr_runlock.sh
+emit_procedure_only_encounters.py
+fix_doc2_canonical_jml.py
+fix_seed_leakage.py
+generate_scale_encounters.py
+generate_scale_encounters.py.bak-dx
+load_354_dr_visits.py
+map_dr_doctors.py
+oracle_diff_30_50.py
+oracle_diff_30_50.v1.py.bak
+p10_hash_state.py
+p10_preservation_check.sh
+p11_frozen_20261019
+p11_frozen_20261020T0739Z.sha256
+p11_frozen_20261024.sha256
+p11_frozen_20261024b.sha256
+p11_frozen_20261024c.sha256
+p11_nc_runner.sh
+p11_nc_runner.sh.disabled-2-20261019
+p11_nc_runner.sh.disabled-20261019
+p11_nc_runner.sh.disabled-205847
+132
+Deers-Rock/
+Deers-Rock/tools/
+dr-benchmark/
+dr-benchmark/run_all.sh.bak-gatefailmsg
+
+real	0m0.062s
+user	0m0.014s
+sys	0m0.033s
+
+real	0m3.672s
+user	0m1.073s
+sys	0m2.016s
+## 2026-11-01T01:32:50Z rc=0
+## 2026-11-01T01:32:50Z [local] sudo chroot /data/noble bash -c 'ls -l /opt/dr-benchmark/p15/runs/real/oracle_20261027T130408Z.log; grep -ac STAGE-KEEP /opt/dr-benchmark/p15/runs/real/oracle_20261027T130408Z.log; cat /srv/restore.log'
+-rw-r--r-- 1 root root 57042 Oct 27 13:47 /opt/dr-benchmark/p15/runs/real/oracle_20261027T130408Z.log
+1
+Sun Nov  1 01:32:33 UTC 2026
+## 2026-11-01T01:32:52Z rc=0
+## 2026-11-01T02:21:20Z [local] sudo chroot /data/noble bash -c 'cd /srv/arch && time tar -C /opt -xzf simrs-khanza.tar.gz; ls /opt; md5sum /opt/simrs-khanza/dist/SIMRSKhanza.jar; ls /opt/simrs-khanza | head -30; ls -la /opt/simrs-khanza/run-env | head -20; ls /opt/simrs-khanza/consumer /opt/simrs-khanza/run-env/harness | head -40'
+Deers-Rock
+dr-benchmark
+simrs-khanza
+25acbbbe0faa71bc16c5c9c83157451d  /opt/simrs-khanza/dist/SIMRSKhanza.jar
+DataAdmisiSkoringTOLAC.csv
+DataAdmisiSkoringTOLAC.html
+DataAdmisiSkoringTOLAC.wps
+DataChecklistKriteriaKeluarHCU.html
+DataChecklistKriteriaKeluarICU.html
+DataChecklistKriteriaKeluarIsolasi.html
+DataChecklistKriteriaMasukHCU.html
+DataChecklistKriteriaMasukICU.html
+DataChecklistPemberianFibrinolitik.html
+DataChecklistPostOperasi.html
+DataChecklistPreOperasi.html
+DataDokumentasiTindakanESWL.html
+DataEdukasiPasienKeluargaRawatJalan.html
+DataEvaluasiMPP.html
+DataHasilPemeriksaanECHO.html
+DataHasilPemeriksaanTreadmill.html
+DataHasilPemeriksaanUSG.html
+DataHasilPengujianSampelDilayani.csv
+DataHasilPengujianSampelDilayani.html
+DataHasilPengujianSampelDilayani.wps
+DataKonsultasiMedik.html
+DataKonsultasiPerawat.html
+DataKriteriaMasukIsolasi.html
+DataPelaksanaanEdukasiInformasi.html
+DataPengajuanCutiPerawatanPasien.html
+DataPenilaianAwalKeperawatanRalan.html
+DataPenilaianAwalKeperawatanRalanGeriatri.html
+DataPenilaianAwalKeperawatanRanapBayi.html
+DataPenilaianAwalMedisRalan.html
+DataPenilaianAwalMedisRalanBedahMulut.html
+total 32
+drwxr-xr-x  5 root root  4096 Oct 23 08:06 .
+drwxr-xr-x 56 root root 16384 Oct 10 13:10 ..
+lrwxrwxrwx  1 root root     8 Oct 10 13:10 cache -> ../cache
+lrwxrwxrwx  1 root root     9 Oct 10 13:10 gambar -> ../gambar
+drwxr-xr-x  2 root root  4096 Oct 10 13:11 harness
+lrwxrwxrwx  1 root root    14 Oct 10 13:12 picture -> ../src/picture
+lrwxrwxrwx  1 root root     9 Oct 10 13:10 report -> ../report
+drwxr-xr-x  2 root root  4096 Oct 31 14:23 setting
+drwxr-xr-x  3 root root  4096 Oct 10 13:10 shim
+lrwxrwxrwx  1 root root     8 Oct 10 13:10 suara -> ../suara
+lrwxrwxrwx  1 root root    10 Oct 10 13:10 webapps -> ../webapps
+/opt/simrs-khanza/consumer:
+JasperHeadless.java
+JdbcProbe.class
+JdbcProbe.java
+KhanzaBillingConsumer.class
+KhanzaBillingConsumer.class.bak_v1
+KhanzaBillingConsumer.java
+KhanzaBillingConsumer.java.bak_seedfix
+KhanzaBillingConsumer.java.bak_v1
+MiniParse.class
+MiniParse.java
+PatchDbXml.class
+PatchDbXml.java
+RetargetDbXml.class
+RetargetDbXml.java
+TestAES.class
+TestAES.java
+dr_export.py
+dr_export.sh
+dr_export.sh.bak_proc67
+dr_export.sh.bak_seedfix
+
+/opt/simrs-khanza/run-env/harness:
+BilingHarness.class
+BilingHarness.java
+EncodeAES.class
+EncodeAES.java
+
+real	0m9.362s
+user	0m5.257s
+sys	0m4.825s
+## 2026-11-01T02:21:32Z rc=0

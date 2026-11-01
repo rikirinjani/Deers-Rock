@@ -1,0 +1,10 @@
+## 2026-11-01T02:22:26Z [local] sudo chroot /data/noble bash -c 'CP="/opt/simrs-khanza/consumer:/opt/simrs-khanza/KhanzaSecurity16bit/build/classes:/opt/simrs-khanza/lib/mariadb.jar:/opt/simrs-khanza/resumepasien/lib/commons-codec-1.10.jar"; cd /opt/simrs-khanza/consumer && javac -encoding UTF-8 -cp "$CP" KhanzaBillingConsumer.java PatchDbXml.java RetargetDbXml.java TestAES.java JdbcProbe.java MiniParse.java 2>&1 | tail -5; echo "consumer javac -encoding UTF-8 rc=${PIPESTATUS[0]}"; for f in /srv/shipped_classes/consumer/*.class; do b=$(basename $f); echo "$b shipped=$(sha256sum <$f|cut -c1-12) new=$(sha256sum < $b|cut -c1-12)"; done; ls /opt/simrs-khanza/lib/*jasper* 2>&1|head -2'
+consumer javac -encoding UTF-8 rc=0
+JdbcProbe.class shipped=59e26a00f61d new=59e26a00f61d
+KhanzaBillingConsumer.class shipped=5ca7a51f99d0 new=5ca7a51f99d0
+MiniParse.class shipped=1eb7d47e3e8d new=1eb7d47e3e8d
+PatchDbXml.class shipped=eb589991d70e new=eb589991d70e
+RetargetDbXml.class shipped=30b50b8065aa new=30b50b8065aa
+TestAES.class shipped=af87532f57a3 new=af87532f57a3
+ls: cannot access '/opt/simrs-khanza/lib/*jasper*': No such file or directory
+## 2026-11-01T02:22:30Z rc=0
