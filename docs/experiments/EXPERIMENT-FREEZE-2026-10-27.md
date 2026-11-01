@@ -1,5 +1,15 @@
 # Deers Rock — Experiment Data Freeze Record (`substream-v1`)
 
+> **Superseded as the current baseline by [`EXPERIMENT-FREEZE-2026-11-01.md`](EXPERIMENT-FREEZE-2026-11-01.md) (`vitals-v1`).**
+> This record stays as history for code commit `30d441f` and is no longer reproducible on the current branch (two declared
+> seed breaks since: Jasa Raharja = traffic accidents only, and the vital-sign drift fix).
+>
+> **Erratum (2026-11-01).** Study 2, finding 1 below says the biased vitals walk also shaped *mortality*. It did not: the
+> mortality-risk score's SpO₂ < 90, SBP < 90 and HR > 120 / < 50 terms are unreachable because vitals are clamped at 90 / 90 /
+> 50–120. After the fix, mortality was 3.70 % against 3.62 % here (inside the confidence interval); only the
+> improved / deteriorated outcome classification, the AI-doctor triggers and nurse notes were affected. See finding 1 of the
+> new record.
+
 **Date:** 2026-10-27
 **Status:** FROZEN — reference baseline after the declared seed break of ADR-008 Amendment 1
 **Approved by:** owner, 2026-10-27 (re-freeze approved together with ADR-008 Amendment 1)
@@ -139,10 +149,8 @@ any of them is fixed.
 
 ---
 
-## Validity note (2026-10-31)
+## Validity note (2026-10-31, updated 2026-11-01)
 
-Both studies above are pinned to code commit `30d441f` and remain the reference for it. The owner's Jasa Raharja
-change on 2026-10-31 (traffic accidents only) moves trajectories slightly: injury patients who are no longer
-Jasa Raharja roll the normal payer mix, one extra draw in their admission handler's stream. The E1 configuration
-on the new code no longer matches `substream-v1`'s bytes. **Re-freeze pending**, planned once, after the owner's
-decision on the vital-signs drift finding (Study 2, finding 1), which also changes every outcome.
+Both studies above are pinned to code commit `30d441f`. The owner's Jasa Raharja change (traffic accidents only,
+2026-10-31) and the vital-sign drift fix (2026-10-31) are declared seed breaks, so the E1 configuration on the current code
+no longer matches `substream-v1`'s bytes. **Re-frozen on 2026-11-01 as `vitals-v1`** (`EXPERIMENT-FREEZE-2026-11-01.md`).

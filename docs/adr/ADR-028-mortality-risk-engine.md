@@ -94,6 +94,8 @@ thing that ever changed vitals, `vitalsUpdateHandler`, moved each by `floor(rng�
 (mean −0.5/min) with no pull back. Within one simulated hour the pool's mean HR fell 76 → 57, systolic BP 124 → 97 and
 SpO₂ 97.8 → 92.3 %, and patients sat on the clamps (HR 50, SBP 90, SpO₂ 90 %). Mortality risk and the AI doctor's vitals
 triggers therefore ran on an artefact, and 93.5 % of inpatients were discharged "deteriorated" (outcome-v1, finding 1).
+(Correction, 2026-11-01: the risk score's own SpO₂ < 90, SBP < 90 and HR > 120 / < 50 terms were never affected, because
+vitals are clamped at SpO₂ 90, SBP 90, HR 50–120 and the thresholds are strict; see "Open" below.)
 
 **Decision** (`src/engine/vitals-model.ts`). Each vital is a discrete Ornstein–Uhlenbeck process around the patient's own
 baseline (`Patient.baselineVitals`, a copy of the generated vitals; no extra rng draw): `next = round(x + k·(baseline − x) + u)`
@@ -108,5 +110,11 @@ byte-identical to before. `tests/vitals-model.test.ts` (12); 5 of them fail if t
 **Not modelled.** Vitals still do not respond to diagnosis, severity or treatment (a pneumonia patient keeps normal SpO₂).
 That is the next step for clinical realism and a Research OC item; this amendment only removes the artefact.
 
-**Consequence.** Declared seed break: every outcome differs from before 2026-10-31 (mortality and discharge outcome in
-particular); baselines re-frozen.
+**Consequence.** Declared seed break: every trajectory differs from before 2026-10-31. Measured effect
+(`outcome-v1` → `outcome-v2`, 10 seeds × 10 days): discharged "improved" 2.9 % → 94.5 %, "deteriorated" 93.5 % → 1.8 %;
+mortality unchanged (3.62 % → 3.70 %, inside the CI). Baselines re-frozen as `vitals-v1`.
+
+**Open (found while measuring the effect).** The risk score's SpO₂ < 90, SBP < 90 and HR > 120 / < 50 terms are structurally
+unreachable: the clamps (SpO₂ ≥ 90, SBP ≥ 90, HR 50–120) coincide with the strict thresholds, before and after this
+amendment. Only the temperature and respiratory-rate terms can fire. Widening the clamps is a separate decision; it matters
+once vitals respond to illness.
