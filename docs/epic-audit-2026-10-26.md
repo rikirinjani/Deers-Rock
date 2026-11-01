@@ -198,3 +198,5 @@ after the Jasa Raharja and vital-sign changes; the figures below are the 2026-10
 **Baseline re-freeze (2026-10-27):** `docs/experiments/EXPERIMENT-FREEZE-2026-10-27.md` (`substream-v1`), E1 configuration
 on commit `ae7b776`, byte-identical across two runs. It is a deterministic regression reference, not an outcome
 baseline: the 1,000-tick horizon sees no inpatient discharge or death (open item 3b).
+
+**Update 2026-11-01:** P-002 (clinical vitals response, `a840bfd`) is frozen as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`): pooled GDR 49.4 ‰ (95% CI 39.6-59.1), improved 85.1 % / deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %. `vitals-v1` remains the reference for `DR_CLINICAL_VITALS=0`. GDR < 45 ‰ is an unconfirmed reference; NDR = GDR until D2.
