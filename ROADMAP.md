@@ -307,7 +307,7 @@ See ADR-013 for design. Will implement only after Epic I-IX complete.
 
 Prove that DR-generated outpatient billing flows correctly into a real SIMRS Khanza install, by comparing three independent sources per encounter: A = Khanza consumer `billing`, B = Khanza's own form save (`nota_jalan`/`detail_nota_jalan`), C = DR ledger `sik_bench.dr_charge_ledger`. Everything lives in `khanza-r5/` (branch `khanza-r5-p6`); the authoritative state is the latest `khanza-r5/docs/khanza_session_handoff_*.md`, and results are in `khanza-r5/docs/khanza_benchmark_report_R5.md` (§0–§25).
 
-**Status:** 🟡 Benchmark evidence complete through P13; reproducibility rehearsal and the next external assessment are blocked (no third box, no assessment quota). External score: Astra (`gpt-6-astra`, Kaggle) 35 → 43 → 43 → 52 → 58 → 60 → 62 → **63/100** (v10, "Needs targeted rework").
+**Status:** 🟡 Benchmark evidence through P23 (2026-11-01). The export archives are off the box (local disk and an encrypted private Hugging Face dataset), a second operator rebuilt the box on an InstaBox free machine, and C4 (27/27 and 300/300) reproduces there. Open: independent re-score of P23, the P14 ledger scope decisions and C3 form-side provenance. External score: Astra (`gpt-6-astra`, Kaggle) 35 → 43 → 43 → 52 → 58 → 60 → 62 → 63 → 66 → 71 → **74/100** (v13, "Needs targeted rework").
 
 ### Milestone 11.1: Integration & first real-form evidence (R1–R4) ✅
 - [x] Khanza VPS install, DR consumer + headless form harness (`docs/KHANZA-*.md`)
@@ -328,7 +328,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] P9 recovery acceptance contract; P10 integrated recovery-preservation experiment (suite 39/39)
 - [x] P11 discriminating checks, negative controls 5/5, unit 33/33 [P18 M11: 44/44 since P15]
 
-### Milestone 11.5: Run lock, reproducibility & wide sample (P12–P13) 🟡
+### Milestone 11.5: Run lock, reproducibility & wide sample (P12–P23) 🟡
 - [x] VPS run lock + negative control; migration to mac-mini-vultr
 - [x] P12 evidence chain re-run on frozen bytes, per-encounter reconciliation, sources published
 - [x] P13 wide sample N=30/300/3000: form vs consumer vs ledger, **0/3330 differing** (95 % one-sided upper bound ≈ 0.090 %; 3.9 % of the 85,387 eligible visits)
@@ -341,13 +341,19 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] P17 (2026-10-27): safety A1-A13 (A1-A5, A7, A12 paired; A6b P15-vs-P17; A8, A9, A13 new-bytes-only) [P18 M13], predicate gates B1-B4, C4 rerun 27/27 + 300/300, suite 39/39, NC 5/5; C3 stopped at its discovery gate (the form never receives a charge code; R5 §29)
 - [x] Astra v12 = 71/100 (run 5514025, $1.72 incl. gemini validation; 2026-10-26): Needs targeted rework; next step C3 form-side charge-code provenance, after making writer death and XML restore mandatory and archiving the .bak bytes
 - [ ] Ledger scope decisions from P14 (fractional quantity, embalase/tuslah, DR-own fees); C3 form-side code provenance
-- [ ] Clean-box rebuild from repo + export on a third home — **blocked** (owner: third home waits; mac-mini-vultr ends ~2026-11-20)
-- [ ] Copy the export archives to durable off-box storage — before ~2026-11-20
+- [x] P21 (2026-10-31): independent P20 review 19/24 vs self 22/24; documents-only fixes Q1–Q3, Q6, Q7 (R5 §33)
+- [x] Astra v13 = 74/100 (run 5766429, $2.76; 2026-10-31): Needs targeted rework; next step the clean-box archive and rehearsal; findings verified against the source (`evidence/astra_v13_5766429_NOTE.md`)
+- [x] P22 (2026-10-31): helper fails closed on a missing/empty log, a failed `database.xml` restore in the trap fails the run, clone check rejects empty counts; one full chain on 42 files; self 20/24, **independent review 18/24** (R5 §34, §35); an address in the evidence was caught by the review and removed before any push
+- [x] Export archives on durable off-box storage (2026-11-01): fresh export (`docs/asset_export_20261031.md`), local disk copy, and an AES-256 encrypted copy on a private Hugging Face dataset (key held by the owner); a pull test passed for one file
+- [x] Clean-box rebuild on a third home (2026-11-01): InstaBox free machine (Debian 13 host, Ubuntu 24.04 chroot with the source package versions); a second operator rebuilt it from repo + archives (`docs/khanza_r5_cleanbox_rehearsal_report.md`): ledger pin, 42 frozen files, suite, unit, NC and inventory reproduced; C4 was blocked by the 20 GB disk rule
+- [x] P23 (2026-11-01): disk threshold parameter `P14_MIN_FREE_GB`, fresh-output guard, docs; one full chain on the Vultr box and one on the InstaBox machine, 45 files, **C4 27/27 and 300/300 reproduced on the second machine** (R5 §36); self-score 20/24, independent re-score pending
+- [ ] Independent re-score of P23
+- [ ] The InstaBox free machine is one machine (480-min runs, idle pause 30 min; five free sandboxes until 2026-12-01, then one): a durable third home is still not decided; the Vultr box ends ~2026-11-20
 - [ ] Full cohort (86k visits) — skipped by owner decision 2026-10-25
 
 ### Milestone 11.6: External assessment & publication 🟡
 - [x] Astra v5–v10 assessments (Kaggle Benchmarks)
-- [ ] Astra v11 — waits for Kaggle quota, or another provider offering `gpt-6-astra` (OpenAI API not checked yet)
+- [x] Astra v11 = 66/100, v12 = 71/100, v13 = 74/100 (Kaggle Benchmarks; the "another provider" question did not arise)
 - [ ] **Standing reminder:** any future publication must carry the query-provenance disclosure (R5 §12 item 7)
 - [ ] Commercialization strategy (Indonesia / US / EU packs) — brainstorm only, Claude Doc; feeds Epic X
 
@@ -367,7 +373,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 | **VIII** ADRs & Governance | 🟡 2/3 MS | — | ADRs 001-016 written, terminology mostly done |
 | **IX** Financial & Referral | 🟡 3/4 MS | - | Wave 2 code written (JR provenance, ambulance), **unbenchmarked**; calibrations pending |
 | **X** International Billing | 🔴 Deferred | — | Design only; commercialization brainstorm (ID/US/EU) exists as a Claude Doc |
-| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 44/44 | P1–P23 done, C4 reproduced on a second machine (P20 independent 19/24; P21 documents; Astra v13 74/100; P22 fixes + one full chain, self-score 20/24, independent 18/24, Accept rule not met) (P15: safety + source-row line identity; P16: independent-review fixes; P17: Astra v12 findings, C3 not observable), Astra 71/100 (v12); rebuild rehearsal + v11 blocked; P15 candidates open |
+| **XI** DR→Khanza E2E Benchmark | 🟡 4/6 MS | suite 39/39, NC 5/5, unit 44/44 | P1–P23 done; C4 27/27 + 300/300 reproduced on a second machine (InstaBox, Ubuntu chroot) (P23: self 20/24, re-score pending); independent reviews P15 17, P17 11/18, P18 20, P19 20, P20 19, P22 18 of 24; Astra v13 = 74/100; archives off-box (encrypted); open: P23 re-score, P14 ledger scope, C3 form-side code provenance |
 
 **Overall (HOE platform, as of 2026-10-07):** 377 tests pass / 1 skipped (48 files). CI green. Retrace clean.
-**Epic XI (as of 2026-10-25):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.
+**Epic XI (as of 2026-11-01):** state in `khanza-r5/docs/khanza_session_handoff_20261025.md`.
