@@ -47,3 +47,7 @@ A scoping note for the international version is a separate document after Phase 
 
 ## 7. Order and time
 A (1-2 days of work, mostly waiting on copies) -> B (owner) -> C (about one day of operator time plus the chain, ~1 h) -> report. If B is not ready by ~2026-11-15, do A and stop: AC-1 alone already removes the single-point-of-failure risk the box lifetime creates.
+
+## Erratum (P23, after the rehearsal)
+- §0 says the seven `.bak_*` directories "exist only on the box". The export of 2026-10-31 (`Deers-Rock-tools.tar.gz`) carries them, and the rehearsal also rebuilt them from git: 40 of 40 files equal (`evidence/cleanbox_rehearsal/bak_rebuild_git_vs_archive.txt`). Recipe in `docs/khanza_r5_reproduce.md` §5.
+- C3 assumed a machine that passes `p14_edge_run.sh:95`. It did not: see `docs/khanza_r5_cleanbox_rehearsal_report.md` (b-9) and P23.

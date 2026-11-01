@@ -1,7 +1,7 @@
 #!/bin/bash
 # Verify that the sources published in this repo are byte-identical to what runs on the box.
 #   1. repo files vs src/PUBLISHED.sha256            (local)
-#   2. each DEPLOY_MAP entry: box sha256 == repo sha256   (needs ssh; alias mac-mini-vultr or $BOX)
+#   2. each DEPLOY_MAP entry: box sha256 == repo sha256   (needs ssh; alias mac-mini-vultr or $BOX; BOX=local: the files on this machine)
 # Usage (from khanza-r5/): bash src/verify_published.sh   -> exit 0 only if everything matches.
 cd "$(dirname "$0")/.." || exit 2
 BOX=${BOX:-mac-mini-vultr}
@@ -10,7 +10,9 @@ sha256sum -c src/PUBLISHED.sha256 | grep -v ': OK$' && rc=1
 echo "local manifest: $([ $rc = 0 ] && echo OK || echo FAIL)"
 while read -r repo box; do
   case "$repo" in ''|\#*) continue;; esac
-  l=$(sha256sum "$repo" | cut -d' ' -f1); b=$(ssh -n "$BOX" "sha256sum '$box'" 2>/dev/null | cut -d' ' -f1)
+  l=$(sha256sum "$repo" | cut -d' ' -f1)
+  if [ "$BOX" = "local" ]; then b=$(sha256sum "$box" 2>/dev/null | cut -d' ' -f1)   # P23: BOX=local checks the files on this machine, no ssh
+  else b=$(ssh -n "$BOX" "sha256sum '$box'" 2>/dev/null | cut -d' ' -f1); fi
   [ "$l" = "$b" ] && echo "SAME  $repo" || { echo "DIFF  $repo (repo ${l:0:12} box ${b:0:12})"; rc=1; }
 done < src/DEPLOY_MAP.txt
 echo "verify_published: $([ $rc = 0 ] && echo ALL-MATCH || echo MISMATCH)"

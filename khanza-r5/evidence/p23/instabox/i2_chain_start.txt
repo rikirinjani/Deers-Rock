@@ -1,0 +1,6 @@
+## 2026-11-01T05:59:08Z start chain job
+55e46ace
+instabox: started job 55e46ace (pid 90501); follow it with: instabox jobs logs exp-g-box 55e46ace -f
+## 2026-11-01T06:00:00Z first start failed: MSYS rewrote /data/noble in the argument (job 55e46ace: 'chroot: cannot change root directory to C:/Program Files/Git/data/noble'); restart with MSYS_NO_PATHCONV=1
+00e8f4d1
+instabox: started job 00e8f4d1 (pid 90739); follow it with: instabox jobs logs exp-g-box 00e8f4d1 -f

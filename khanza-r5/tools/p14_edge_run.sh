@@ -92,7 +92,9 @@ FVIS=${P14_FIXTURE_VISITS:-$FXDIR/p14_edge_visits.txt}
 XML_PRE=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
 [ "$XML_PRE" = "sik" ] || { res "ABORT: database.xml not on sik ($XML_PRE) - refusing, nothing touched"; exit 3; }
 [ -n "$(SQL "SHOW DATABASES LIKE '$FX'")" ] && { res "$FX exists - refusing, nothing touched (run p14_drop_clone.sh first)"; exit 3; }
-[ "$(df --output=avail -BG / | tail -1 | tr -dc 0-9)" -ge 20 ] || { res "STOP RULE: <20GB free"; exit 3; }
+MINFREE=${P14_MIN_FREE_GB:-20}   # P23: free-disk threshold in GB; 20 as before unless a smaller machine sets it explicitly
+case "$MINFREE" in ''|*[!0-9]*) res "ABORT: P14_MIN_FREE_GB='$MINFREE' is not a whole number - refusing, nothing touched"; exit 3;; esac
+[ "$(df --output=avail -BG / | tail -1 | tr -dc 0-9)" -ge "$MINFREE" ] || { res "STOP RULE: <${MINFREE}GB free"; exit 3; }
 trap cleanup EXIT
 
 res "clone: creating $FX"

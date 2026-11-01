@@ -2052,3 +2052,31 @@ stopping tool-byte iterations for the clean-box rehearsal. I opened each finding
 
 **Self-score of this step:** none. The independent total for P22 is 18/24 and stands. **State:** P22 tool set judged sound; the next step the reviewer and Astra v13
 both name is the clean-box archive and rehearsal (the box ends ~2026-11-20), then the international version.
+
+## 36. P23: the clean-box rehearsal's findings fixed, C4 reproduced on a second machine (2026-11-01, new)
+
+Source: `docs/khanza_r5_cleanbox_rehearsal_report.md` (second operator, InstaBox free machine, Ubuntu 24.04 chroot). Findings opened before
+acting: the disk rule (`tools/p14_edge_run.sh:95`, was `-ge 20` on `/`), the vacuous passes on stale shipped files (`p22_chain.sh` only did `mkdir -p $B/chain`),
+the ssh-only `src/verify_published.sh`, the conflicting grants in `docs/asset_export_20261023.md`, the unrecorded chain argv. **A P23 task doc was not
+written before the run** (the scope was the question I put to the owner in chat and the owner's "Yes, run P23"): that departs from the pattern of P18-P22 and is
+recorded as a miss. Locks: Vultr `P23-CLAUDE-20261101` (released 07:06:25Z), InstaBox chroot `P23-CLAUDE-IB-20261101` (1 s later; machine suspended).
+
+| Fix | Control |
+|---|---|
+| `P14_MIN_FREE_GB` (whole number, default 20, otherwise refused) in `p14_edge_run.sh` | `p23_a_negctl.sh`: OLD ignores the variable (STOP RULE even at 8), NEW default unchanged, 8 passes at 14 GB free, boundary 14/15, `1e3 -5 "8 " 8GB` refused, empty = default, 70 GB free passes |
+| `p23_chain.sh`: moves an existing `$B/chain` aside, writes `argv.txt`, asserts the step-3 outputs (6 files) and the newest oracle logs are newer than the chain start | freshness helper: new fresh, old / empty / missing stale |
+| `BOX=local` for `src/verify_published.sh` | not exercised in P23 (the second operator used a stand-in; rerun on a rebuilt box would show it) |
+| Docs: grants correction (asset export), `.bak` erratum (rehearsal plan), reproduce §5 (disk, fresh outputs, compile commands, upload on Windows, `.bak` recipe) | reopened after the edit |
+
+**Result, one full chain on each machine, same 45 frozen files** (`evidence/p23/vultr/`, `evidence/p23/instabox/`; Vultr 2 vCPU / 16 GB, default threshold 20; InstaBox 4 vCPU / 8 GiB chroot, `P14_MIN_FREE_GB=8`):
+every step exit 0 on both, lib 23/23, P15 A 9/9, P16 26/26 + 20/20, P17 A 37/37 + B 31/31, P18 A 50/50 + B 33/33, P19 A 19/19 + B 28/28, P20 A 27/27 + B 10/10, P22 A 25/25,
+**C4 fixture 27/27 (57 unit keys / 0 unchecked) and real 300/300 (1,240 lines, 698 / 0) on both**, line 33/33, B6 6/6, suite PASS=39, unit 44/44, NC 5, 29 `ASSERT PASS` / 0 FAIL on both
+(including the 6 + 2 new freshness assertions: the files are `fresh`), inventory 68 files ok, 12 manifests. The P20 harness hang did not recur (3 clean C4 runs since: P22 Vultr, P23 Vultr, P23 InstaBox).
+This is the first evidence that the C4 results reproduce **on a different machine** (kernel, CPU, RAM, host userland, userland in a chroot): the InstaBox numbers equal the Vultr numbers.
+
+**What went wrong and is kept**
+- On InstaBox `p23_a_negctl.sh` failed 1 of 19 inside the chain (`p23-a=1`; the chain's other lines 0): the case "variable unset" inherited `P14_MIN_FREE_GB=8` from the chain's environment (my control did not `unset` it). A fault in my own new control, not in the driver. Fix-up cycle 1: `unset` inside the control; manifest b (45 files, one line differs); the old frozen bytes reproduce the fault on the Vultr box with the variable at 8 (18/1), the new bytes pass with it set and unset (19/19) on both machines (`evidence/p23/fix1/`, `evidence/p23/instabox/i3_fix1.txt`).
+- The first start of the InstaBox chain failed (Git Bash rewrote `/data/noble` in the command; job log kept, restarted with `MSYS_NO_PATHCONV=1`).
+- No task doc before execution (above).
+
+**Not done / stated limits:** there is no single full chain on manifest b (only `p23_a_negctl.sh` changed; chain b on Vultr is `P23_SHORT` with the final capture 07:05:45Z, on InstaBox the fix-up ran `p23_a` alone, final capture 07:06:16Z); the chain-b directory of the Vultr box was not copied (its stdout is `evidence/p23/fix1/chain_b.log`); `BOX=local` is untested; the compile commands in reproduce §5 are taken from the second operator's script, not re-run; AC-7 (44 retrace files), `.bak_p17fix1`, X2, C3 observation, the 30-minute idle pause, the P14 ledger scope gaps and the points of the P22 review (S2-S4) are not worked; the InstaBox machine is the free-plan one (one machine, 480-min runs): the results are on that machine and that chroot only. **Self-score 20/24** (R1 = 1: no task doc; R4 = 1: documents not yet independently re-read; R5 = 1: no full chain on the final manifest; R10 = 1), not the verdict; an independent re-score has not been done.

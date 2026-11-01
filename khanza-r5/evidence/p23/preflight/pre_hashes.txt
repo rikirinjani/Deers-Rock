@@ -1,0 +1,12 @@
+== deploy 2026-11-01T05:54:43Z
+04abd58ddcbccdb23a5a0e4d420acddf18360bf5bb9a9f132e3a6d68ddb40a84  p14_edge_run.sh (local)
+aafcfaecbd8d0cc1aa27c8b98df300627bba717a4661d2572260e380250e6aa2  p23_a_negctl.sh (local)
+f96aafbad51b9abf1678aa3b6599509b7fad41e13fe2c5c751ee71848c7445d9  p23_chain.sh (local)
+b22a764260daaea87f2b78d4a18581b75ac0aa57969db140a1bdab683ac06b63  p23_release_inventory.py (local)
+04abd58ddcbccdb23a5a0e4d420acddf18360bf5bb9a9f132e3a6d68ddb40a84  p14_edge_run.sh
+aafcfaecbd8d0cc1aa27c8b98df300627bba717a4661d2572260e380250e6aa2  p23_a_negctl.sh
+f96aafbad51b9abf1678aa3b6599509b7fad41e13fe2c5c751ee71848c7445d9  p23_chain.sh
+b22a764260daaea87f2b78d4a18581b75ac0aa57969db140a1bdab683ac06b63  p23_release_inventory.py
+bash -n ok p14_edge_run.sh
+bash -n ok p23_a_negctl.sh
+bash -n ok p23_chain.sh

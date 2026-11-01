@@ -1,0 +1,447 @@
+P14-VERIFY: 27 visits, 0 violations, strata {'E1': 3, 'E2': 3, 'E3': 3, 'E4': 5, 'E5a': 2, 'E5b': 2, 'E6': 3, 'E7': 3, 'E8': 3}
+clone: creating sik_p14e
+clone matches sik: tables=1179 (= sik), 6 key tables count-equal (COUNT(*) only)
+clone sik_p14e ready in 54s (1464593 billing rows)
+fixture loaded: reg=25 proc=32 dpo=23
+live untouched by the load: 0 fixture rows in sik.reg_periksa
+audit triggers: 8 (need 8)
+dr_tariff copied into sik_p14e: 685 rows (sik_bench read only)
+builder: exit=0 (16 log lines)
+[06:16:39] window=ALL cohort=dr fallback=False require-tariff=True
+[06:16:39] dr_tariff authority rows: 685
+[06:16:40] registration rows: 86480
+[06:16:40] procedure rows: 86486
+[06:16:42] drug rows: 113411
+[06:16:42] tax rows: 70075 (cohort-scoped to window=ALL)
+[06:16:42] committed transactional cohort replacement in a SINGLE mysql session (window=ALL cohort=dr; P6-3)
+ledger (non-fixture rows) sik_p14e: 356355:a66a3a546cc322d3eca31f2bc5558993e183b1c5afbf444d4a2a3781cfe7aea7 REPRODUCES-PIN
+clone ledger fixture rows: 97
+late fixture loaded after the ledger build: reg=27 (ledger rows for them: 0)
+grant: benchmark@localhost on sik_p14e (probe sees 4 privileges; positive case for P15 A7)
+harness+consumer database.xml -> sik_p14e (RETARGET-VERIFIED)
+consumer (ENC-only fixture baseline): rc=0
+consumer baseline billing rows for fixture: 450
+fixture detail_pemberian_obat before/after consumer: [25 1350 1350 757536 29] / [25 1350 1350 757536 29]
+oracle[fixture]: freeze-only (RUN_ID=p15e_fixture_20261101T061544Z, 27 visits)
+oracle[fixture]: freeze-only exit=0
+oracle[fixture]: run start (MySQL NOW(6), for fresh-B --since) = 2026-11-01 06:16:48.278608
+oracle[fixture]: real run exit=4 elapsed=86s
+[06:16:47] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[06:16:48] ALLOW-STRATA (B3): 9 provided visits OUT-OF-ENVELOPE (not eligible under the aligned cohort predicate) — carried as not-covered markers: ['2027/12/31/900001', '2027/12/31/900002', '2027/12/31/900003', '2027/
+[06:16:49] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[06:16:50] reset 27 visits (output cleared, status_bayar=Belum Bayar)
+[06:18:14] date 2027-12-31: rc=0 visits=27 sukses_true=27 -> BILLED
+[06:18:14] ORACLE_PARTIAL-NOT-COVERED: exit 4 (fail-closed, P5-1/P6-2e)
+form[fixture]: distinct visits sukses=true 27, sukses=false 0 (of 27); rate 18.84 visits/min
+fixture oracle rc=4 (4 = PARTIAL-NOT-COVERED is the only expected value for out-of-envelope strata)
+oracle[real]: freeze-only (RUN_ID=p15e_real_20261101T061544Z, 300 visits)
+oracle[real]: freeze-only exit=0
+oracle[real]: run start (MySQL NOW(6), for fresh-B --since) = 2026-11-01 06:18:31.737418
+oracle[real]: real run exit=0 elapsed=1485s
+[06:18:19] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[06:18:36] ALIGNED-PREDICATE: 300 visits from p13_stage1_300_visits.txt, all eligible (AC-6)
+[06:18:44] WRITER-DEAD-PROOF (resume, P8-C2) groups_checked=0 killed=none harness_writers=0 fence_sessions_killed=0 quiet=n/a
+[06:18:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:18:51] date 2026-10-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:18:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:18:57] date 2026-10-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:18:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:03] date 2026-10-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:03] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:08] date 2026-10-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:09] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:14] date 2026-10-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:19] date 2026-10-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:25] date 2026-10-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:31] date 2026-10-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:32] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:37] date 2026-10-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:37] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:45] date 2026-10-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:19:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:51] date 2026-10-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:19:57] date 2026-10-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:19:58] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:09] date 2026-10-19: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:20:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:15] date 2026-10-20: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:20:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:21] date 2026-10-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:20:21] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:36] date 2026-10-23: rc=0 visits=4 sukses_true=4 -> BILLED
+[06:20:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:42] date 2026-10-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:20:42] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:50] date 2026-10-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:20:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:20:56] date 2026-10-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:20:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:02] date 2026-10-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:21:02] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:11] date 2026-10-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:21:11] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:16] date 2026-10-31: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:21:17] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:22] date 2026-11-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:21:22] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:31] date 2026-11-03: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:21:31] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:39] date 2026-11-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:21:40] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:48] date 2026-11-05: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:21:49] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:54] date 2026-11-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:21:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:21:59] date 2026-11-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:22:00] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:11] date 2026-11-10: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:22:12] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:20] date 2026-11-11: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:22:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:26] date 2026-11-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:22:26] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:35] date 2026-11-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:22:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:40] date 2026-11-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:22:41] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:49] date 2026-11-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:22:50] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:22:58] date 2026-11-21: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:22:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:04] date 2026-11-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:23:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:14] date 2026-11-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:23:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:19] date 2026-12-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:23:20] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:28] date 2026-12-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:23:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:34] date 2026-12-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:23:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:40] date 2026-12-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:23:40] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:49] date 2026-12-07: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:23:49] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:23:58] date 2026-12-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:23:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:04] date 2026-12-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:09] date 2026-12-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:15] date 2026-12-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:15] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:27] date 2026-12-17: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:24:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:35] date 2026-12-18: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:24:36] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:41] date 2026-12-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:47] date 2026-12-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:47] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:53] date 2026-12-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:24:58] date 2026-12-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:24:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:04] date 2026-12-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:25:05] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:10] date 2026-12-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:25:10] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:18] date 2026-12-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:25:19] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:27] date 2027-01-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:25:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:33] date 2027-01-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:25:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:42] date 2027-01-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:25:42] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:25:54] date 2027-01-07: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:25:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:00] date 2027-01-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:05] date 2027-01-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:11] date 2027-01-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:11] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:20] date 2027-01-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:26:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:26] date 2027-01-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:26] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:38] date 2027-01-20: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:26:38] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:44] date 2027-01-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:44] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:26:49] date 2027-01-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:26:50] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:02] date 2027-01-26: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:27:02] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:07] date 2027-01-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:27:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:13] date 2027-01-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:27:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:19] date 2027-02-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:27:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:25] date 2027-02-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:27:26] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:34] date 2027-02-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:27:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:40] date 2027-02-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:27:41] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:27:52] date 2027-02-09: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:27:53] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:01] date 2027-02-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:28:02] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:07] date 2027-02-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:28:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:13] date 2027-02-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:28:14] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:25] date 2027-02-19: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:28:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:31] date 2027-02-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:28:32] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:43] date 2027-02-23: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:28:44] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:28:52] date 2027-02-24: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:28:53] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:01] date 2027-02-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:29:02] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:07] date 2027-03-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:08] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:13] date 2027-03-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:14] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:19] date 2027-03-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:24] date 2027-03-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:25] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:30] date 2027-03-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:31] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:36] date 2027-03-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:37] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:45] date 2027-03-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:29:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:51] date 2027-03-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:29:57] date 2027-03-16: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:29:57] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:03] date 2027-03-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:30:03] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:18] date 2027-03-18: rc=0 visits=4 sukses_true=4 -> BILLED
+[06:30:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:24] date 2027-03-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:30:25] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:33] date 2027-03-24: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:30:34] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:42] date 2027-03-25: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:30:43] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:51] date 2027-03-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:30:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:30:57] date 2027-03-30: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:30:58] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:06] date 2027-03-31: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:31:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:12] date 2027-04-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:18] date 2027-04-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:24] date 2027-04-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:25] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:33] date 2027-04-09: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:31:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:39] date 2027-04-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:45] date 2027-04-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:31:51] date 2027-04-13: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:31:51] reset 4 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:06] date 2027-04-14: rc=0 visits=4 sukses_true=4 -> BILLED
+[06:32:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:12] date 2027-04-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:32:13] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:21] date 2027-04-20: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:32:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:27] date 2027-04-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:32:28] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:33] date 2027-04-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:32:34] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:39] date 2027-04-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:32:40] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:51] date 2027-04-27: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:32:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:32:57] date 2027-04-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:32:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:03] date 2027-04-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:33:04] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:12] date 2027-04-30: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:33:13] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:24] date 2027-05-01: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:33:25] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:30] date 2027-05-03: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:33:31] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:36] date 2027-05-04: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:33:37] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:45] date 2027-05-05: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:33:46] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:51] date 2027-05-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:33:52] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:33:57] date 2027-05-10: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:33:58] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:03] date 2027-05-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:04] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:09] date 2027-05-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:10] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:15] date 2027-05-13: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:16] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:21] date 2027-05-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:22] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:27] date 2027-05-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:27] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:36] date 2027-05-17: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:34:36] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:45] date 2027-05-19: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:34:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:34:51] date 2027-05-25: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:34:51] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:00] date 2027-05-26: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:35:00] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:05] date 2027-05-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:35:06] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:14] date 2027-05-29: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:35:15] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:24] date 2027-06-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:35:24] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:33] date 2027-06-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:35:33] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:42] date 2027-06-03: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:35:42] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:47] date 2027-06-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:35:48] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:53] date 2027-06-08: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:35:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:35:59] date 2027-06-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:35:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:04] date 2027-06-14: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:36:05] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:13] date 2027-06-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:36:14] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:25] date 2027-06-16: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:36:25] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:30] date 2027-06-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:36:31] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:36] date 2027-06-18: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:36:36] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:45] date 2027-06-19: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:36:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:51] date 2027-06-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:36:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:36:56] date 2027-06-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:36:57] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:08] date 2027-06-25: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:37:09] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:14] date 2027-06-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:37:15] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:20] date 2027-07-01: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:37:20] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:25] date 2027-07-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:37:26] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:31] date 2027-07-06: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:37:31] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:43] date 2027-07-09: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:37:43] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:37:48] date 2027-07-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:37:49] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:00] date 2027-07-13: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:38:01] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:09] date 2027-07-15: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:38:09] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:18] date 2027-07-16: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:38:18] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:23] date 2027-07-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:38:24] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:29] date 2027-07-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:38:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:35] date 2027-07-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:38:35] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:43] date 2027-07-23: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:38:44] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:49] date 2027-07-26: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:38:49] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:38:54] date 2027-07-27: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:38:55] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:06] date 2027-07-29: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:39:07] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:12] date 2027-07-31: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:39:13] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:21] date 2027-08-02: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:39:21] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:30] date 2027-08-04: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:39:30] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:35] date 2027-08-05: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:39:36] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:44] date 2027-08-06: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:39:45] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:53] date 2027-08-09: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:39:53] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:39:59] date 2027-08-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:39:59] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:04] date 2027-08-12: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:40:04] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:13] date 2027-08-13: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:40:13] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:18] date 2027-08-19: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:40:19] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:24] date 2027-08-23: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:40:24] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:36] date 2027-08-24: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:40:36] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:45] date 2027-08-25: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:40:45] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:50] date 2027-08-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:40:51] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:40:56] date 2027-08-30: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:40:56] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:08] date 2027-08-31: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:41:08] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:16] date 2027-09-01: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:41:17] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:22] date 2027-09-02: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:41:23] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:28] date 2027-09-07: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:41:28] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:40] date 2027-09-08: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:41:40] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:45] date 2027-09-09: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:41:46] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:54] date 2027-09-10: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:41:54] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:41:59] date 2027-09-11: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:00] reset 3 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:11] date 2027-09-13: rc=0 visits=3 sukses_true=3 -> BILLED
+[06:42:12] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:17] date 2027-09-15: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:18] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:23] date 2027-09-17: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:23] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:28] date 2027-09-20: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:29] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:34] date 2027-09-21: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:35] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:40] date 2027-09-22: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:40] reset 2 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:49] date 2027-09-23: rc=0 visits=2 sukses_true=2 -> BILLED
+[06:42:49] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:42:54] date 2027-09-24: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:42:55] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:43:00] date 2027-09-28: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:43:01] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:43:06] date 2027-09-29: rc=0 visits=1 sukses_true=1 -> BILLED
+[06:43:06] reset 1 visits (output cleared, status_bayar=Belum Bayar)
+[06:43:12] date 2027-09-30: rc=0 visits=1 sukses_true=1 -> BILLED
+form[real]: distinct visits sukses=true 300, sukses=false 0 (of 300); rate 12.12 visits/min
+real oracle rc=0 (0 expected)
+database.xml restored (targets: sik)
+P15E OK fixture_rc=4 real_rc=0 clone=sik_p14e kept for comparators
+cleanup: clone sik_p14e KEPT - run p14_drop_clone.sh after the comparators
+cleanup-final: sik_dbs=sik,sik_bench,sik_p14e, dbxml_targets=sik  clone_grants=0

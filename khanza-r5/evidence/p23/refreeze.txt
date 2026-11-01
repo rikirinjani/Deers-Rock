@@ -1,0 +1,5 @@
+== re-freeze 2026-11-01T05:56:26Z manifest=p23_frozen_20261101.sha256
+prospective manifest == final: identical
+files: 45
+sha256sum -c: 45
+lsattr i: 45

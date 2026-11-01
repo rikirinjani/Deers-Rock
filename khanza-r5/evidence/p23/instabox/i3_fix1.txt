@@ -1,0 +1,13 @@
+## 2026-11-01T07:06:11Z fix-up cycle 1
+dea74fd9003b0f7a72c255a030727f0e0a23bb556196d501baa503e227ce38fa  p23_a_negctl.sh
+== fix-up cycle 1 2026-11-01T07:06:14Z
+frozen before: 45/45
+aafcfaecbd8d0cc1aa27c8b98df300627bba717a4661d2572260e380250e6aa2  .bak_p23fix1_20261101/p23_a_negctl.sh
+manifest b -c: 45/45
+-- NEW p23_a with P14_MIN_FREE_GB=8 exported (the environment of the chain)
+P23-A-NC: PASS=19 FAIL=0
+-- OLD frozen p23_a bytes with P14_MIN_FREE_GB=8 (the control fault must reproduce)
+FAIL F1 NEW, 14 GB free, variable unset: STOP RULE <20GB, rc 3 (default unchanged) (got 0/0, want 3/1)
+P23-A-NC: PASS=18 FAIL=1
+frozen b: 45/45; lsattr i: 45/45
+final capture 2026-11-01T07:06:16Z: # P14 live state: p23-ib-final 2026-11-01T07:06:16Z|databases: sik sik_bench |database.xml: sik |

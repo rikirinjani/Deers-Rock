@@ -1,0 +1,9 @@
+== [cmd] status, acquire, unfreeze 1 file 2026-11-01T05:54:33Z
+RUNLOCK-FREE
+frozen p22: 42/42; lsattr i: 42
+harness procs: 0
+RUNLOCK-ACQUIRED: session=P23-CLAUDE-20261101 (/opt/dr-benchmark/LOCK)
+== unfreeze 2026-11-01T05:54:36Z (P23: 1 file)
+8b6c1ea6a6c31d04c469d5bc87e3d790d643d092e44adced8cf4eb7fb144d774  .bak_p23_20261101/p14_edge_run.sh
+--------------e------- p14_edge_run.sh
+/dev/vda2        94G   21G   69G  24% /

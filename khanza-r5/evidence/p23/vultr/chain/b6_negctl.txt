@@ -1,0 +1,13 @@
+scratch: reg=20 billing=333 ledger=78
+PASS B6 unplanted, new bytes (got 0)
+plant: 2026/10/01/800162 billing rows deleted 18, ledger rows deleted 5
+PASS B6 plant removed exactly the 18 counted billing rows (P16 B4) (got yes)
+PASS B6 plant removed exactly the 5 counted ledger rows (P16 B4) (got yes)
+PASS B6 OLD bytes pass the uncovered encounter ({} == {}, the defect) (got 0)
+PASS B6 NEW bytes fail it (got 1)
+PASS B6 NEW bytes list it (got 2)
+/tmp/p15_b6_old.log:RESULT: ALL-EQUAL
+/tmp/p15_b6_new.log:S1 coverage: DR encounters without ledger rows 1, without billing rows 1
+/tmp/p15_b6_new.log:RESULT: DIFFERENCES
+P15-B6-NC: PASS=6 FAIL=0
+teardown: p15_b6 dropped

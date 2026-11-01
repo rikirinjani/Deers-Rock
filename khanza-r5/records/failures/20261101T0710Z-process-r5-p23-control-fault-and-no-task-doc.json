@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-11-01T07:10:00Z",
+  "category": "process",
+  "severity": "minor",
+  "title": "P23: a new control inherited the environment it was meant to test (P14_MIN_FREE_GB=8 on InstaBox), and no task doc was written before execution",
+  "what_went_wrong": [
+    "p23_a_negctl.sh built its 'variable unset' cases with a no-op line instead of unsetting the variable. On the Vultr box (variable not set) it passed 19/19 in the pre-flight and in the chain; on InstaBox, where the chain exports P14_MIN_FREE_GB=8, one case failed (18/1). The pre-flight ran only in the Vultr environment.",
+    "The scope of P23 was given in a chat question and no task doc was written before the run, unlike P18-P22."
+  ],
+  "root_cause": "The control was pre-flighted in one environment; a control about an environment variable must be run with the variable unset AND set. The task doc step was skipped because the owner's go-ahead came quickly after the report.",
+  "detection": "The InstaBox chain (p23-a=1).",
+  "impact": "None on the driver or the results; fix-up cycle 1 (manifest b); the second machine's chain is otherwise green.",
+  "correction": {
+    "applied": "unset added inside the control; old frozen bytes reproduce the fault, new bytes 19/19 with the variable at 8 and unset on both machines; R5 section 36 states the missing task doc.",
+    "result": "R5 section 36"
+  },
+  "rule": "Pre-flight a control that reads an environment variable with the variable unset and with it set; write the task doc before executing, even when the go-ahead is immediate.",
+  "agent": "claude (P23 executor)",
+  "status": "closed"
+}

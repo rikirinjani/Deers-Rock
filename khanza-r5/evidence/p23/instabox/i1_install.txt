@@ -1,0 +1,13 @@
+## 2026-11-01T05:58:55Z install
+2e4709ce8beef44e830025308dd83b1ab1608a5829b299ffcc9efe196e696953  ib23.tgz
+3
+== install 2026-11-01T05:58:58Z
+frozen p22 before: 42/42  lsattr i: 42
+8b6c1ea6a6c31d04c469d5bc87e3d790d643d092e44adced8cf4eb7fb144d774  .bak_p23_20261101/p14_edge_run.sh
+sha256sum -c p23 manifest: 45/45
+lsattr i: 45/45
+verify_published (BOX=local) is run by the operator doc; not part of this step
+disk: -                20G  5.5G   15G  28% /
+RUNLOCK-FREE
+RUNLOCK-ACQUIRED: session=P23-CLAUDE-IB-20261101 (/opt/dr-benchmark/LOCK)
+== ready 2026-11-01T05:58:59Z

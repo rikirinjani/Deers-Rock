@@ -1,0 +1,2 @@
+# P23 copy log (box commands after the final captures: Vultr chain b step 5 07:05:45Z, InstaBox fix-up 07:06:16Z)
+# only the two lock releases and the InstaBox suspend came after them; the evidence copies were taken before them

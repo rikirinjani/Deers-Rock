@@ -1,0 +1,24 @@
+== [cmd] p23_a_negctl.sh pre-flight 2026-11-01T05:54:49Z
+PASS precondition: OLD and NEW p14_edge_run.sh differ (got differs)
+## F1 the free-disk threshold
+PASS F1 the OLD line and the NEW lines are extracted (got y/3)
+PASS F1 OLD, 14 GB free, variable unset: STOP RULE <20GB, rc 3 (got 3/1)
+PASS F1 OLD, 14 GB free, variable 8: still STOP RULE (the variable is ignored: the defect) (got 3/0)
+PASS F1 NEW, 14 GB free, variable unset: STOP RULE <20GB, rc 3 (default unchanged) (got 3/1)
+PASS F1 NEW, 14 GB free, variable 8: passes (got 0/1)
+PASS F1 NEW, boundary 14 free, threshold 14: passes (got 0/1)
+PASS F1 NEW, 14 free, threshold 15: STOP RULE <15GB, rc 3 (got 3/1)
+PASS F1 NEW, 70 GB free, variable unset (the source box): passes (got 0/1)
+PASS F1 NEW, threshold '1e3' is refused (rc 3, 'not a whole number', the check is not passed) (got 3/1/0)
+PASS F1 NEW, threshold '-5' is refused (rc 3, 'not a whole number', the check is not passed) (got 3/1/0)
+PASS F1 NEW, threshold '8 ' is refused (rc 3, 'not a whole number', the check is not passed) (got 3/1/0)
+PASS F1 NEW, threshold '8GB' is refused (rc 3, 'not a whole number', the check is not passed) (got 3/1/0)
+PASS F1 NEW, variable set but empty: the default 20 applies (STOP RULE <20GB at 14 GB free) (got 3/1)
+## F2 the freshness helper of p23_chain.sh
+PASS F2 the helper is extracted from the chain (got 3)
+PASS F2 a file written after the marker is fresh (got fresh)
+PASS F2 a file older than the marker (shipped from another box) is stale (got stale)
+PASS F2 an empty file is stale (got stale)
+PASS F2 a missing file is stale (got stale)
+P23-A-NC: PASS=19 FAIL=0
+p23_a exit=0

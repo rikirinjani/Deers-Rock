@@ -1,0 +1,28 @@
+{
+  "pm1_version": 1,
+  "session_id": "r5-p23-cleanbox-fixes",
+  "timestamp": "2026-11-01T07:07:38.267245+00:00",
+  "agent": "orchestrator",
+  "outcome": "pass",
+  "duration_s": 0,
+  "tool_calls": 0,
+  "key_files": [
+    "khanza-r5/tools/p14_edge_run.sh,khanza-r5/tools/p23_chain.sh,khanza-r5/tools/p23_a_negctl.sh,khanza-r5/tools/p23_release_inventory.py,khanza-r5/src/verify_published.sh,khanza-r5/docs/khanza_r5_reproduce.md,khanza-r5/docs/khanza_benchmark_report_R5.md,khanza-r5/evidence/p23/vultr/chain.log,khanza-r5/records/qms/VER-2026-11-01-DR-KHANZA-R5-P23-001.json"
+  ],
+  "failure": {},
+  "encoding": "morse",
+  "n_states": 1,
+  "state_width": 8,
+  "failsafe": {
+    "session_id": "r5-p23-cleanbox-fixes",
+    "status": "ACTIVE",
+    "total_encodes": 1,
+    "total_errors": 0,
+    "total_corrected": 0,
+    "fallback_count": 0,
+    "error_rate_rolling": 0.0,
+    "failure_ids": []
+  },
+  "pm1": "........................................................................-.--...-........................................-.--...-",
+  "action": "R5 P23: free-disk threshold parameter, fresh-output guard, docs; one full chain on Vultr and InstaBox, C4 27/27 and 300/300 reproduced on the second machine; self-score 20/24"
+}

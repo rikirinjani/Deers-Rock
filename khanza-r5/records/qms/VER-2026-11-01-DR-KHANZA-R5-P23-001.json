@@ -1,0 +1,33 @@
+{
+  "id": "VER-2026-11-01-DR-KHANZA-R5-P23-001",
+  "title": "R5 P23: clean-box rehearsal findings fixed (free-disk threshold parameter, fresh-output guard, docs); one full chain on the Vultr box and one on the InstaBox free machine, 45 frozen files",
+  "date_utc": "2026-11-01",
+  "lock_sessions": [
+    "P23-CLAUDE-20261101 (Vultr, released 07:06:25Z)",
+    "P23-CLAUDE-IB-20261101 (InstaBox chroot, released 07:06:26Z)"
+  ],
+  "frozen_files": 45,
+  "chain": "evidence/p23/vultr/chain.log and evidence/p23/instabox/chain_stdout.log: every step exit 0 except p23-a on InstaBox (control fault, fixed in fix-up cycle 1); C4 27/27 and 300/300 on both",
+  "self_score": "20/24 (R1, R4, R5, R10 = 1); independent re-score pending",
+  "kept_failures": [
+    "p23_a_negctl.sh F1 'variable unset' case inherited P14_MIN_FREE_GB=8 on InstaBox (18/1); fixed with unset, old bytes reproduce the fault, new bytes 19/19 on both machines",
+    "first InstaBox chain start failed (MSYS path rewrite), restarted",
+    "no P23 task doc before execution"
+  ],
+  "not_done": [
+    "no single full chain on manifest b",
+    "BOX=local verify_published untested",
+    "AC-7",
+    ".bak_p17fix1 never hashed",
+    "X2",
+    "C3 code-identity observation",
+    "30-minute idle pause untested",
+    "P22 review S2-S4",
+    "Vultr chain-b directory not copied"
+  ],
+  "records": [
+    "20261101T0710Z-process-r5-p23-control-fault-and-no-task-doc"
+  ],
+  "agent": "claude (P23 executor)",
+  "status": "executed; independent re-score pending"
+}

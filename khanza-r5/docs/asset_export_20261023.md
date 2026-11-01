@@ -71,6 +71,8 @@ mysql -uroot -e "CREATE USER IF NOT EXISTS 'benchmark'@'localhost' IDENTIFIED BY
                  FLUSH PRIVILEGES;"
 ```
 
+> **P23 correction (found by the clean-box rehearsal):** the first `GRANT ALL PRIVILEGES ON sik.*` above is wrong. `benchmark@localhost` must have only `SELECT, INSERT, UPDATE, DELETE` on `sik` (the live-state baseline in `evidence/p22/chain.log` shows that set); `ALL` only on `sik_bench`. Use the grants in "Post-restore wiring" step 2 below.
+
 ## Verify after the copy
 
 ```bash
