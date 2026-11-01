@@ -3,6 +3,8 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { NurseNote, MedicationOrder } from "../patient/schema.js";
 import { generateNurseNote } from "./nursing-knowledge.js";
+import { isClinicalVitalsEnabled } from "./config.js";
+import { noteMedication } from "./treatment-effects.js";
 import { getDeteriorationRate } from "./agent-learning.js";
 
 const MAX_NOTES_PER_ENCOUNTER = 20;
@@ -13,6 +15,7 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
   let newMedOrders = new Map(state.medicationOrders);
   let newEncounters = new Map(state.encounters);
   let nurseMemory = new Map(state._nurseCaseMemory ?? []);
+  const clinical = isClinicalVitalsEnabled();
 
   const agentPool = state._agentState?.pool;
   if (!agentPool) return state;
@@ -122,6 +125,8 @@ export function aiNurseHandler(state: HospitalState, clock: Clock, _queue: Event
         administeredAt: clock.hospitalTimeMs,
       } as MedicationOrder);
       mem.medsAdministered++;
+      // P-002 C: record the treatment on the encounter when it is given.
+      if (clinical) newEncounters = noteMedication(newEncounters, state.encounters, med.encounterId, med.medication.code, clock.tick);
     }
 
     nurseMemory.set(memoryKey, mem);

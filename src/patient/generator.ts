@@ -264,6 +264,9 @@ const BLOOD_TYPES: BloodType[] = ["A", "B", "AB", "O"];
 const RHESUS: Rhesus[] = ["+", "-"];
 const ALLERGIES_POOL = ["None", "None", "None", "Penicillin", "Sulfa", "NSAIDs", "Aspirin", "Codeine", "Iodine contrast", "Latex", "Seafood", "Dust", "None", "None"];
 
+/** Every ICD-10 category the generator can assign (illness-model coverage is tested against it). */
+export const GENERATOR_ICD_CODES: string[] = Array.from(new Set(ICD10_DIAGNOSES.map(d => d.code)));
+
 let patientCounter = 0;
 export function resetPatientCounter(): void { patientCounter = 0; }
 

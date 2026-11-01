@@ -4,6 +4,8 @@ import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 import { DRUG_CATALOG } from "./drug-catalog.js";
+import { isClinicalVitalsEnabled } from "./config.js";
+import { noteMedication } from "./treatment-effects.js";
 
 /** Drug acquisition costs in IDR (Indonesian e-catalogue, flat prices, no margin) */
 export const DRUG_COSTS: Record<string, number> = Object.fromEntries(
@@ -57,6 +59,8 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
 
 export function medAdminHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const newOrders = new Map(state.medicationOrders);
+  const clinical = isClinicalVitalsEnabled();
+  let encounters = state.encounters;
   for (const [id, order] of newOrders) {
     if (order.status === "ordered" && clock.rng() > 0.6) {
       newOrders.set(id, {
@@ -64,7 +68,9 @@ export function medAdminHandler(state: HospitalState, clock: Clock, _queue: Even
         status: "administered",
         administeredAt: clock.hospitalTimeMs,
       });
+      // P-002 C: record the treatment on the encounter when it is given.
+      if (clinical) encounters = noteMedication(encounters, state.encounters, order.encounterId, order.medication.code, clock.tick);
     }
   }
-  return { ...state, medicationOrders: newOrders };
+  return encounters === state.encounters ? { ...state, medicationOrders: newOrders } : { ...state, medicationOrders: newOrders, encounters };
 }

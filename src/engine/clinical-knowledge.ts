@@ -1309,16 +1309,28 @@ export const ESCALATION_TRIGGERS: EscalationTrigger[] = [
   { condition: "GCS decline + neuro diagnosis", reason: "Neurological deterioration — urgent imaging", escalationAction: { type: "imaging", label: "CT Head without contrast", priority: 10, detail: "CT" } },
 ];
 
-export function assessMortalityRisk(age: number, vitals: Vitals, diagnoses: { code: string }[]): { score: number; risk: "low" | "moderate" | "high"; factors: string[] } {
+/**
+ * Vitals terms of the risk score that were sustained during a stay
+ * (clinical-vitals.ts sustainedFlags). When supplied, they REPLACE the
+ * instantaneous vitals terms (P-002 D1).
+ */
+export interface SustainedVitals { spo2Low: boolean; sbpLow: boolean; hrHigh: boolean; hrLow: boolean; tempHigh: boolean; rrHigh: boolean }
+
+export function assessMortalityRisk(age: number, vitals: Vitals, diagnoses: { code: string }[], sustained?: SustainedVitals): { score: number; risk: "low" | "moderate" | "high"; factors: string[] } {
   let score = 0;
   const factors: string[] = [];
   if (age > 75) { score += 2; factors.push("Age > 75"); }
   else if (age > 60) { score += 1; factors.push("Age > 60"); }
-  if (vitals.oxygenSaturation < 90) { score += 2; factors.push("SpO2 < 90%"); }
-  if (vitals.bloodPressureSystolic < 90) { score += 2; factors.push("SBP < 90 mmHg"); }
-  if (vitals.heartRate > 120 || vitals.heartRate < 50) { score += 1; factors.push("HR abnormal"); }
-  if (vitals.temperature > 39) { score += 1; factors.push("Fever > 39°C"); }
-  if (vitals.respiratoryRate > 24) { score += 1; factors.push("RR > 24"); }
+  const spo2Low = sustained ? sustained.spo2Low : vitals.oxygenSaturation < 90;
+  const sbpLow = sustained ? sustained.sbpLow : vitals.bloodPressureSystolic < 90;
+  const hrAbn = sustained ? sustained.hrHigh || sustained.hrLow : vitals.heartRate > 120 || vitals.heartRate < 50;
+  const fever = sustained ? sustained.tempHigh : vitals.temperature > 39;
+  const rrHigh = sustained ? sustained.rrHigh : vitals.respiratoryRate > 24;
+  if (spo2Low) { score += 2; factors.push("SpO2 < 90%"); }
+  if (sbpLow) { score += 2; factors.push("SBP < 90 mmHg"); }
+  if (hrAbn) { score += 1; factors.push("HR abnormal"); }
+  if (fever) { score += 1; factors.push("Fever > 39°C"); }
+  if (rrHigh) { score += 1; factors.push("RR > 24"); }
   const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84", "A91"].some(c => diagnoses.some(d => d.code === c));
   if (criticalDx) { score += 2; factors.push("Critical diagnosis"); }
   const multiMorbidity = diagnoses.length >= 3;

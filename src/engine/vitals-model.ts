@@ -41,7 +41,7 @@ interface Param {
   max: number;
 }
 
-/** Hard physiological clamps are unchanged from the original handler. */
+/** Legacy clamps, from the original handler. Used when DR_CLINICAL_VITALS=0. */
 export const VITALS_PARAMS: Record<keyof Vitals, Param> = {
   heartRate: { sd: 6, k: 1 / 30, step: 1, min: 50, max: 120 },
   bloodPressureSystolic: { sd: 8, k: 1 / 30, step: 1, min: 90, max: 180 },
@@ -52,7 +52,24 @@ export const VITALS_PARAMS: Record<keyof Vitals, Param> = {
   painLevel: { sd: 1, k: 1 / 10, step: 1, min: 0, max: 10 },
 };
 
-const KEYS = Object.keys(VITALS_PARAMS) as (keyof Vitals)[];
+/**
+ * Physiological limits (P-002 step A). The legacy clamps coincide exactly with
+ * the mortality-risk thresholds (SpO₂ < 90, SBP < 90, HR > 120 or < 50), which
+ * made those terms unreachable. These are survivable extremes, so the thresholds
+ * can be crossed.
+ */
+export const PHYSIOLOGICAL_LIMITS: Record<keyof Vitals, { min: number; max: number }> = {
+  heartRate: { min: 30, max: 180 },
+  bloodPressureSystolic: { min: 50, max: 240 },
+  bloodPressureDiastolic: { min: 30, max: 140 },
+  temperature: { min: 33, max: 42 },
+  oxygenSaturation: { min: 60, max: 100 },
+  respiratoryRate: { min: 6, max: 50 },
+  painLevel: { min: 0, max: 10 },
+};
+
+export const VITAL_KEYS = Object.keys(VITALS_PARAMS) as (keyof Vitals)[];
+const KEYS = VITAL_KEYS;
 
 /** Half-width of the per-minute uniform noise that gives each vital its stationary SD. */
 export function noiseHalfWidth(key: keyof Vitals): number {
@@ -60,11 +77,17 @@ export function noiseHalfWidth(key: keyof Vitals): number {
   return sd * Math.sqrt(2 * k) * Math.sqrt(3);
 }
 
-/** One minute of drift. Draw order is fixed: heartRate … painLevel. */
-export function driftVitals(vitals: Vitals, baseline: Vitals, rng: () => number): Vitals {
+/**
+ * One minute of drift toward `baseline` (the patient's healthy set point, or,
+ * under the clinical model, the set point the illness and treatment imply).
+ * Draw order is fixed: heartRate … painLevel. `wide` selects the physiological
+ * limits instead of the legacy clamps.
+ */
+export function driftVitals(vitals: Vitals, baseline: Vitals, rng: () => number, wide = false): Vitals {
   const next = { ...vitals };
   for (const key of KEYS) {
-    const { k, step, min, max } = VITALS_PARAMS[key];
+    const { k, step } = VITALS_PARAMS[key];
+    const { min, max } = wide ? PHYSIOLOGICAL_LIMITS[key] : VITALS_PARAMS[key];
     const a = noiseHalfWidth(key);
     const u = (rng() * 2 - 1) * a;
     const x = vitals[key];

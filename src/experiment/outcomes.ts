@@ -20,6 +20,16 @@ export interface OutcomeMetrics {
   deaths: number;
   /** deaths / inpatientDischarges, percent. */
   inHospitalMortalityPct: number;
+  /**
+   * Depkes RI hospital indicators, per 1,000 inpatient discharges (incl. deaths):
+   * GDR = all deaths; NDR = deaths 48 hours or more after admission. Deaths are rolled
+   * at discharge (3–7 days), so until deaths can occur earlier (P-002 D2) NDR equals GDR.
+   */
+  grossDeathRatePerMille: number;
+  netDeathRatePerMille: number;
+  /** Share of inpatient discharges classified improved / deteriorated, percent. */
+  improvedPct: number;
+  deterioratedPct: number;
   /** Mean / median length of stay of closed inpatient encounters, days. */
   inpatientLosMeanDays: number;
   inpatientLosMedianDays: number;
@@ -65,6 +75,11 @@ export function outcomeMetrics(world: World, seed: number): OutcomeMetrics {
     inpatientDischarges: inpatient.length,
     deaths: s.morgue.length,
     inHospitalMortalityPct: inpatient.length > 0 ? round((100 * s.morgue.length) / inpatient.length) : 0,
+    grossDeathRatePerMille: inpatient.length > 0 ? round((1000 * inpatient.filter(r => r.outcome === "deceased").length) / inpatient.length, 1) : 0,
+    netDeathRatePerMille: inpatient.length > 0
+      ? round((1000 * inpatient.filter(r => r.outcome === "deceased" && r.losTicks >= 2880).length) / inpatient.length, 1) : 0,
+    improvedPct: inpatient.length > 0 ? round((100 * inpatient.filter(r => r.outcome === "improved").length) / inpatient.length, 1) : 0,
+    deterioratedPct: inpatient.length > 0 ? round((100 * inpatient.filter(r => r.outcome === "deteriorated").length) / inpatient.length, 1) : 0,
     inpatientLosMeanDays: los.length > 0 ? round(los.reduce((a, b) => a + b, 0) / los.length) : 0,
     inpatientLosMedianDays: round(median(los)),
     outcomes: {

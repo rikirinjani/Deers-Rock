@@ -2,7 +2,7 @@ import type { HospitalState, MorgueRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
-import type { Patient } from "../patient/schema.js";
+import type { Patient, Encounter } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
@@ -15,6 +15,8 @@ import { recordDischargePlan } from "./discharge-planning.js";
 import { recordConsumption } from "./dept-consumption.js";
 import { registerBody } from "./kamar-jenazah.js";
 import { driftVitals } from "./vitals-model.js";
+import { assignIllness, stepIllness, targetFor, updateWatch, sustainedFlags } from "./clinical-vitals.js";
+import { isClinicalVitalsEnabled } from "./config.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -195,7 +197,9 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     if (!toDischarge || toDischarge.status !== "active") continue;
 
     const patient = state.patients.get(toDischarge.patientId);
-    const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses) : { score: 0, risk: "low" as const, factors: [] as string[] };
+    // P-002 D1: under the clinical model the vitals terms of the risk score use what was
+    // SUSTAINED during the stay (>= 30 min), not the vitals of the discharge minute.
+    const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses, isClinicalVitalsEnabled() ? sustainedFlags(toDischarge) : undefined) : { score: 0, risk: "low" as const, factors: [] as string[] };
     const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
     const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
@@ -276,19 +280,44 @@ export function newPatientHandler(state: HospitalState, clock: Clock, _queue: Ev
 }
 
 export function vitalsUpdateHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
+  const clinical = isClinicalVitalsEnabled();
   const newPatients = new Map(state.patients);
+  let encounters = state.encounters;
+
+  // P-002: an admitted patient's vitals are pulled toward the set point implied
+  // by their illness and treatment, not toward the healthy baseline. ED and
+  // clinic visits last minutes by design, so only inpatient admissions get an
+  // illness. DR_CLINICAL_VITALS=0 skips all of this (the vitals-v1 behaviour).
+  let admitted: Map<string, Encounter> | null = null;
+  if (clinical) {
+    admitted = new Map();
+    for (const e of state.encounters.values()) {
+      if (e.status !== "active" || e.type !== "inpatient") continue;
+      const cur = admitted.get(e.patientId);
+      if (!cur || e.startTime > cur.startTime) admitted.set(e.patientId, e);
+    }
+  }
+
   for (const [id, patient] of newPatients) {
     // Mean-reverting drift around the patient's own baseline (vitals-model.ts).
     // Patients without a baseline (older snapshots, hand-built fixtures) adopt
     // their current vitals as it.
     const baseline = patient.baselineVitals ?? patient.vitals;
-    newPatients.set(id, {
-      ...patient,
-      baselineVitals: baseline,
-      vitals: driftVitals(patient.vitals, baseline, clock.rng),
-    });
+    const enc = admitted?.get(id);
+    if (!enc) {
+      newPatients.set(id, { ...patient, baselineVitals: baseline, vitals: driftVitals(patient.vitals, baseline, clock.rng, clinical) });
+      continue;
+    }
+    let next = stepIllness(assignIllness(enc, patient, clock.rngSeed, clock.tick), clock.rngSeed, clock.tick);
+    const vitals = driftVitals(patient.vitals, targetFor(baseline, next, clock.tick), clock.rng, true);
+    next = updateWatch(next, vitals);
+    if (next !== enc) {
+      if (encounters === state.encounters) encounters = new Map(encounters);
+      encounters.set(next.id, next);
+    }
+    newPatients.set(id, { ...patient, baselineVitals: baseline, vitals });
   }
-  return { ...state, patients: newPatients };
+  return encounters === state.encounters ? { ...state, patients: newPatients } : { ...state, patients: newPatients, encounters };
 }
 
 function getLastDischargeTick(state: HospitalState, patientId: string): number {

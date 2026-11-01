@@ -28,6 +28,18 @@ export function isLearningFrozen(): boolean {
   return process.env.DR_FREEZE_LEARNING === "1";
 }
 
+/**
+ * P-002 (2026-11-01): clinical vitals model. ON by default. Set
+ * DR_CLINICAL_VITALS=0 to run the previous behaviour exactly: vitals only
+ * fluctuate around each patient's healthy baseline (ADR-028 Amendment 1), with
+ * the original narrow clamps, no illness course, no treatment effects and no
+ * sustained-vitals mortality terms. Reproduces the `vitals-v1` baseline
+ * byte for byte. Read at call time, so tests can toggle per case.
+ */
+export function isClinicalVitalsEnabled(): boolean {
+  return process.env.DR_CLINICAL_VITALS !== "0";
+}
+
 /** ADR-020: Enable runtime invariant validation (every 100 ticks) */
 export function isInvariantValidationEnabled(): boolean {
   // Production mode: force invariants ON regardless of env var

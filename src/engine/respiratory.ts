@@ -4,6 +4,8 @@ import { EventQueue } from "./event-queue.js";
 import type { Charge, RespiratoryOrder } from "../patient/schema.js";
 import { appendCharge } from "./charge-generator.js";
 import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
+import { isClinicalVitalsEnabled } from "./config.js";
+import { noteRespiratory } from "./treatment-effects.js";
 
 export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: string[] }[] = [
   { type: "oxygen", settings: ["2L NC", "3L NC", "4L NC", "Face mask 40%", "NRB 15L"] },
@@ -17,6 +19,7 @@ export const THERAPIES: { type: RespiratoryOrder["therapyType"]; settings: strin
 export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   let newOrders = new Map(state.respiratoryOrders);
   let newCharges = new Map(state.charges);
+  let encounters = state.encounters;
 
   // Fulfillment: discontinue orders >2 ticks old, or for discharged encounters
   for (const [id, order] of newOrders) {
@@ -33,13 +36,16 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
   if (activeEncounters.length > 0 && clock.tick % 8 === 0) {
     const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
     const therapy = THERAPIES[Math.floor(clock.rng() * THERAPIES.length)]!;
+    const settings = therapy.settings[Math.floor(clock.rng() * therapy.settings.length)]!;
+    // P-002 C: support (oxygen, CPAP, ventilator, nebulizer) starts a treatment on the encounter.
+    if (isClinicalVitalsEnabled()) encounters = noteRespiratory(encounters, state.encounters, encounter.id, therapy.type, settings, clock.tick);
     newOrders.set(`RT-${clock.tick}-${encounter.patientId}`, {
       id: `RT-${clock.tick}-${encounter.patientId}`,
       encounterId: encounter.id,
       patientId: encounter.patientId,
       therapyType: therapy.type,
       status: "ordered",
-      settings: therapy.settings[Math.floor(clock.rng() * therapy.settings.length)]!,
+      settings,
       orderedAt: clock.hospitalTimeMs,
       notes: null,
     });
@@ -50,7 +56,9 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
       { code: therapy.type, unitPrice: RESPIRATORY_ACTIVATION_FEE, quantity: 1 });
   }
 
-  return { ...state, respiratoryOrders: newOrders, charges: newCharges };
+  return encounters === state.encounters
+    ? { ...state, respiratoryOrders: newOrders, charges: newCharges }
+    : { ...state, respiratoryOrders: newOrders, charges: newCharges, encounters };
 }
 
 function ticksFromMs(hospitalTimeMs: number, clock: Clock): number {

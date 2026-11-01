@@ -28,6 +28,41 @@ export interface Patient {
   injuryMechanism?: "traffic" | "other";
 }
 
+/** Illness course on an encounter (illness-model.ts). Ticks are sim-minutes. */
+export interface IllnessState {
+  group: string;
+  grade: "mild" | "moderate" | "severe";
+  /** Tick the course started (encounter start). */
+  t0: number;
+  /** Current course level, 0..1.5 (1 = full acuity for the group at this grade). */
+  level: number;
+  /** Highest level of the current phase (1, or up to 1.5 after a complication). */
+  peak: number;
+  /** The course holds at `peak` until this tick, then decays. */
+  holdUntil: number;
+  /** Tick of the last course update (it advances every 10 ticks). */
+  at: number;
+  /** Last whole day (since t0) checked for a complication. */
+  day: number;
+  complications: number;
+}
+
+/** Treatments recorded at administration (treatment-effects.ts). */
+export interface TreatmentLedger {
+  /** Drug category → first dose tick and the tick its regimen ends. */
+  fx?: Record<string, { from: number; until: number }>;
+  /** Oxygen / CPAP / ventilator support, for the rest of the stay. */
+  o2?: { from: number; frac: number; rrFrac: number };
+}
+
+/** Minutes each risk-score vital has been continuously beyond its threshold. */
+export interface VitalsWatch {
+  /** [SpO2<90, SBP<90, HR>120, HR<50, temp>39, RR>24] */
+  run: number[];
+  /** Bit i set once run[i] has reached the sustained threshold. */
+  flags: number;
+}
+
 export type BloodType = "A" | "B" | "AB" | "O";
 export type Rhesus = "+" | "-";
 
@@ -80,6 +115,18 @@ export interface Encounter {
    *    reason for the visit, not the chronic problem list.
    */
   primaryDiagnosis?: string;
+  /**
+   * P-002 clinical vitals model (engine-internal; absent when DR_CLINICAL_VITALS=0
+   * and on encounters from older snapshots, in which case vitals simply
+   * fluctuate around the patient's baseline). Optional and additive: consumers
+   * that ignore them see no change in any existing field.
+   *  - `_illness`: diagnosis group, grade and the course level (illness-model.ts)
+   *  - `_treat`: treatments recorded when they were administered (treatment-effects.ts)
+   *  - `_watch`: minutes of sustained abnormal vitals, for the mortality-risk score
+   */
+  _illness?: IllnessState;
+  _treat?: TreatmentLedger;
+  _watch?: VitalsWatch;
   /**
    * Issue #5 (Oracle rework, F1): discharge-time severity snapshot, written
    * ONCE by the engine at the moment the encounter closes (markov.ts /

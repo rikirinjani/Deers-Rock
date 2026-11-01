@@ -12,6 +12,8 @@ import { RAD_STUDIES } from "./radiology.js";
 import { DRUG_CATALOG } from "./drug-catalog.js";
 import { appendCharge } from "./charge-generator.js";
 import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
+import { isClinicalVitalsEnabled } from "./config.js";
+import { noteRespiratory } from "./treatment-effects.js";
 
 /**
  * Alias mapping: protocol action labels → drug codes.
@@ -38,6 +40,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
   let newDietOrders = new Map(state.dietOrders);
   let newSpecOrders = new Map(state.specialtyOrders);
   let newEncounters = new Map(state.encounters);
+  const clinical = isClinicalVitalsEnabled();
   let caseMemory = new Map(state._doctorCaseMemory ?? []);
   // ADR-015 D7: charges map copied lazily on first respiratory order created
   // here (activation fee) — same pattern as ai-pharmacy.ts. No rng added.
@@ -276,6 +279,8 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
               orderedAt: clock.hospitalTimeMs, notes: null,
             };
             newRespOrders.set(order.id, order);
+            // P-002 C: oxygen / CPAP / ventilator support starts a treatment on the encounter.
+            if (clinical) newEncounters = noteRespiratory(newEncounters, state.encounters, enc.id, therapyType, ca.action.label, clock.tick);
             // ADR-015 D7: per-order activation fee (mirrors respiratory.ts).
             if (chargesMut === null) chargesMut = new Map(state.charges);
             appendCharge(chargesMut, clock, enc.id, enc.patientId, "respiratory",
