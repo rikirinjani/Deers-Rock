@@ -53,6 +53,8 @@ export interface PayerPatientFacts {
   id?: string;
   diagnoses: { code: string; active: boolean }[];
   nationality?: string;
+  /** Age in years (US Medicare eligibility is age-driven). */
+  age?: number;
   /** Explicit injury mechanism when known (e.g. from a police report). */
   injuryMechanism?: "traffic" | "other";
 }

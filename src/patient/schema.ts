@@ -91,7 +91,9 @@ export interface Medication {
   route: string;
 }
 
-export type PayerType = "BPJS Kesehatan" | "BPJS Ketenagakerjaan" | "Jasa Raharja" | "Private Insurance" | "Self-pay";
+export type PayerType = "BPJS Kesehatan" | "BPJS Ketenagakerjaan" | "Jasa Raharja" | "Private Insurance" | "Self-pay"
+  // Epic X M10.3 (US adapter)
+  | "Medicare" | "Medicaid" | "TRICARE" | "VA";
 
 export interface Encounter {
   id: string;
@@ -329,7 +331,9 @@ export interface Charge {
   quantity?: number;
 }
 
-export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | "invalid_principal_dx" | "procedure_not_documented" | null;
+export type ClaimDenialReason = "incomplete_coding" | "missing_documents" | "mismatched_icd_cbg" | "invalid_sep" | "coverage_expired" | "invalid_principal_dx" | "procedure_not_documented"
+  // Epic X M10.3 (US adapter)
+  | "prior_auth_missing" | "medical_necessity" | "out_of_network" | "coverage_inactive" | null;
 
 /**
  * ADR-015 D3 (Epic IX Phase 2): private-insurance tier data table.

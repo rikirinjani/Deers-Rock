@@ -25,12 +25,12 @@ const TICKS_PER_SIM_DAY = 1440;
  * from the injected `rngDraw` (clock.rng from the calling handler).
  */
 export function assignPayer(
-  patient: { id?: string; diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string }; injuryMechanism?: "traffic" | "other" },
+  patient: { id?: string; diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string }; injuryMechanism?: "traffic" | "other"; age?: number },
   rngDraw?: () => number,
   worldSeed?: number,
 ): PayerType {
   return getPayerAssigner().assign(
-    { id: patient.id, diagnoses: patient.diagnoses, nationality: patient.identity?.nationality, injuryMechanism: patient.injuryMechanism },
+    { id: patient.id, diagnoses: patient.diagnoses, nationality: patient.identity?.nationality, injuryMechanism: patient.injuryMechanism, age: patient.age },
     rngDraw, worldSeed,
   );
 }
