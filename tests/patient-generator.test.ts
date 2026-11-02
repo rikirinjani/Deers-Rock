@@ -52,4 +52,15 @@ describe("patient names pool", () => {
     const b = generatePatientPool(50, createRng(5).next).map(p => p.name);
     expect(a).toEqual(b);
   });
+
+  it("derives age from the generated birth date (DD/MM/YYYY), not a fallback year", () => {
+    const pool = generatePatientPool(200, createRng(11).next);
+    const ages = new Set(pool.map(p => p.age));
+    // Regression: a "-" vs "/" mismatch once gave every patient the same age.
+    expect(ages.size).toBeGreaterThan(20);
+    for (const p of pool) {
+      const year = parseInt(p.identity.birthDate.split("/")[2]!);
+      expect(p.age).toBe(new Date().getFullYear() - year);
+    }
+  });
 });

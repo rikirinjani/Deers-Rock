@@ -275,7 +275,7 @@ export function generatePatient(rng?: () => number): Patient {
   patientCounter++;
   const gender: Gender = rand() > 0.5 ? "male" : "female";
   const identity = generateIdentity(gender, rng);
-  const age = new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
+  const age = new Date().getFullYear() - parseInt(identity.birthDate.split("/")[2] ?? "1990");
 
   const bloodType = pickRandom(BLOOD_TYPES, rng);
   const rhesus = pickRandom(RHESUS, rng);
