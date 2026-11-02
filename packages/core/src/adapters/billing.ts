@@ -10,9 +10,12 @@
  * Determinism contract (ADR-008 / ADR-015 D8): implementations MUST NOT call
  * Math.random or read the wall clock. Randomness comes only from the `rng`
  * passed in, and the number of draws must be a pure function of the inputs
- * (declared via `rngDrawsPerVerification`) so a given seed replays identically.
+ * (declared via `rngDrawsPerBuild` / `rngDrawsPerVerification`) so a given
+ * seed replays identically.
  */
 import type { IAdapterConfig, PayerType } from "./interfaces.js";
+
+// ---- contract body (mirrored in src/engine/billing/contracts.ts; tests/billing-contract-drift.test.ts) ----
 
 /** Lifecycle states shared by every country (superset of ADR-015 D3). */
 export type ClaimStatus =
@@ -46,19 +49,37 @@ export interface IChargePolicy {
   drugMarkup(payerType: PayerType): number;
 }
 
-/** What the adapter needs to price and route one discharged encounter. */
+/** One chart diagnosis as the coder recorded it. */
+export interface ChartDiagnosis {
+  code: string;
+  type: "primary" | "secondary" | string;
+}
+
+/** What the adapter needs to price, route and verify one encounter's claim. */
 export interface ClaimContext {
+  claimId: string;
   encounterId: string;
   patientId: string;
   payerType: PayerType;
+  /** Sim tick at the moment of the call (used for payer reference numbers). */
+  tick: number;
   /** Sum of charges billed to the encounter, major currency units. */
   totalCharges: number;
-  /** Primary + secondary diagnosis codes from the coded chart (ICD-10 flavour per adapter). */
-  diagnosisCodes: string[];
-  procedureCodes: string[];
+  /** Primary active diagnosis on the patient problem list (tariff source), if any. */
+  patientPrimaryDxCode: string | null;
+  /** Diagnoses on the coded chart (grouping truth source for severity). */
+  chartDiagnoses: ChartDiagnosis[];
+  /** Number of procedures documented on the chart. */
+  chartProcedureCount: number;
+  /** Number of billed procedure-type charges (surgery, dialysis, radiotherapy). */
+  billedProcedureChargeCount: number;
   chartCoded: boolean;
-  /** Admission length in sim-days, for per-diem caps. */
-  lengthOfStayDays: number;
+  /** Encounter duration in sim-minutes (ticks), for per-diem caps; 0 if unknown. */
+  encounterDurationTicks: number;
+  /** Denial already attached to the claim (e.g. deferred at creation), else null. */
+  existingDenialCode: string | null;
+  /** Amount covered, as set at claim creation (known at verification time). */
+  coveredAmount: number;
 }
 
 /** Result of building a claim from a ClaimContext. */
@@ -73,13 +94,15 @@ export interface ClaimDraft {
   deferredDenial: DenialCode | null;
   /** Initial status; most payers start "submitted", some settle immediately. */
   initialStatus: ClaimStatus;
+  /** True when the payer settles at creation (no verification stage). */
+  settledAtCreation: boolean;
+  /** Adapter-specific tier index (e.g. private-insurance tier), if any. */
+  tierIndex?: number;
 }
 
 export interface VerificationOutcome {
   status: Extract<ClaimStatus, "paid" | "denied" | "returned">;
   denial: DenialCode | null;
-  /** Amount actually paid (may differ from covered after adjudication). */
-  paidAmount: number;
 }
 
 /**
@@ -92,21 +115,21 @@ export interface IClaimLifecycle {
   /** Whether a claim may be created yet (e.g. BPJS requires a coded chart). */
   canSubmit(ctx: ClaimContext): boolean;
 
-  /** Price and route the claim. Must not draw from rng. */
-  buildClaim(ctx: ClaimContext): ClaimDraft;
+  /** Draws consumed by `buildClaim` (pure function of ctx; e.g. a reference number). */
+  rngDrawsPerBuild(ctx: ClaimContext): number;
 
-  /** Engine cadence: run verification every N ticks, at most `batchSize` claims. */
+  /** Price and route the claim. May draw from `rng` only as declared above. */
+  buildClaim(ctx: ClaimContext, rng: () => number): ClaimDraft;
+
+  /** Engine cadence: run verification every N ticks, at most `batchSize` claims per stage. */
   readonly verifyEveryTicks: number;
   readonly batchSize: number;
 
-  /**
-   * Draws consumed by `verify` for one claim (pure function of ctx/draft).
-   * Zero for deterministic payers. Lets the engine and tests assert draw counts.
-   */
-  rngDrawsPerVerification(ctx: ClaimContext, draft: ClaimDraft): number;
+  /** Draws consumed by `verify` for one claim (pure function of ctx). Zero for deterministic payers. */
+  rngDrawsPerVerification(ctx: ClaimContext): number;
 
   /** Decide the outcome of one claim in "verifying". */
-  verify(ctx: ClaimContext, draft: ClaimDraft, rng: () => number): VerificationOutcome;
+  verify(ctx: ClaimContext, rng: () => number): VerificationOutcome;
 
   /** The country's full denial taxonomy, for reports and validation. */
   denialTaxonomy(): DenialCode[];
