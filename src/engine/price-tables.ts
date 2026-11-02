@@ -19,7 +19,8 @@ import { CHARGE_RATES } from "./charge-generator.js";
 // ─── Pharmacy (D1): price computed at module load ───────────────────────────
 
 /** Uniform pharmacy markup over acquisition cost (e-catalogue). */
-export const PHARMACY_MARKUP = 1.25;
+import { PHARMACY_MARKUP } from "./billing/indonesia-charges.js";
+export { PHARMACY_MARKUP };
 
 /** Fallback when a medication order's drug code misses the catalog. */
 export const PHARMACY_FALLBACK_PRICE = CHARGE_RATES.pharmacy;

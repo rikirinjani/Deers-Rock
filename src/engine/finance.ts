@@ -2,8 +2,8 @@ import type { HospitalState } from "./state-store.js";
 import { subStreamRng, streamId, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Charge, Encounter, InsuranceClaim, Payment, RoomClass, PayerType, ClaimDenialReason } from "../patient/schema.js";
-import { appendCharge, ROOM_CLASS_MULTIPLIER, CHARGE_RATES } from "./charge-generator.js";
-import { getClaimLifecycle } from "./billing/registry.js";
+import { appendCharge } from "./charge-generator.js";
+import { getClaimLifecycle, getChargePolicy, getPayerAssigner } from "./billing/registry.js";
 import type { ClaimContext } from "./billing/contracts.js";
 import { selectPrivateTier } from "./billing/indonesia-claims.js";
 import { isBoundedStateEnabled } from "./config.js";
@@ -11,49 +11,8 @@ import { PRIVATE_TIERS } from "../patient/schema.js";
 import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 import { getIncidentForEncounter } from "../referral/jr-provenance.js";
 
-/**
- * Jasa Raharja eligibility — traffic accidents only (owner decision 2026-10-31,
- * supersedes ADR-025's all-S/T-chapter rule and M9.3-BLOCKER-DECISIONS §5).
- * Jasa Raharja covers road-traffic victims and public-transport passengers
- * (UU 33 & 34/1964); a police traffic-accident report backs every claim.
- *
- * The simulation records injuries, not their cause, so a trauma injury gets
- * a mechanism: traffic with P_TRAFFIC_GIVEN_INJURY, drawn ONCE per patient
- * from a dedicated sub-stream keyed on (world seed, patient id). The same
- * accident therefore stays traffic across re-presentations, and no existing
- * rng stream moves. Burns, poisonings and complications of care (T15–T98)
- * are not traffic injuries.
- */
-const TRANSPORT_ACCIDENT = /^V\d\d/;           // ICD-10 V01–V99: transport accidents
-const TRAUMA_INJURY = /^(S\d\d|T0\d|T1[0-4])/; // S00–S99, T00–T14
-/**
- * Share of trauma injuries caused by traffic. Riskesdas: motorcycle crashes
- * 40.6 % of all injuries (falls 40.9 %), plus other road users; hospital
- * series run higher (70 % of traumatic brain injury). Calibration target.
- */
-export const P_TRAFFIC_GIVEN_INJURY = 0.45;
-
-export type InjuryMechanism = "traffic" | "other";
-
-interface PayerPatient {
-  id?: string;
-  diagnoses: { code: string; active: boolean }[];
-  identity?: { nationality?: string };
-  injuryMechanism?: InjuryMechanism;
-}
-
-/**
- * Mechanism of a patient's injury, or null when the code is not an injury.
- * An explicit `patient.injuryMechanism` wins; V codes are traffic by
- * definition; trauma codes draw once per (world seed, patient).
- */
-export function injuryMechanism(patient: PayerPatient, code: string, worldSeed?: number): InjuryMechanism | null {
-  if (TRANSPORT_ACCIDENT.test(code)) return "traffic";
-  if (!TRAUMA_INJURY.test(code)) return null;
-  if (patient.injuryMechanism) return patient.injuryMechanism;
-  if (worldSeed === undefined || patient.id === undefined) return "other";
-  return subStreamRng(worldSeed, 0, streamId(`injury-mechanism:${patient.id}`))() < P_TRAFFIC_GIVEN_INJURY ? "traffic" : "other";
-}
+export { P_TRAFFIC_GIVEN_INJURY, injuryMechanism, PAYER_MIX } from "./billing/indonesia-payer.js";
+export type { InjuryMechanism } from "./billing/indonesia-payer.js";
 
 const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks / minutes)
 
@@ -61,61 +20,19 @@ const JR_TICK_CAP = 30 * 24 * 60; // 30-day Jasa Raharja treatment cap (in ticks
 const TICKS_PER_SIM_DAY = 1440;
 
 /**
- * ADR-015 D5 (Epic IX Phase 2): payer mix table.
- * One PAYER_MIX draw at encounter creation (injected rng source), stored on
- * the encounter — never re-derived per-tick (D8 entity-creation rule).
- *
- * - Non-WNI patients → Self-pay (override, no roll)
- * - Traffic-accident injuries → Jasa Raharja (override, no roll); other
- *   injuries roll the mix like any other case (see injuryMechanism)
- * - Everyone else rolls against PAYER_MIX:
- *     BPJS Kesehatan 82%, BPJS Ketenagakerjaan 8% (CBG-like path, billed
- *     identically to BPJS Kesehatan in wave 1 — JKK accident workflow is
- *     deferred, D10), Private Insurance 7%, Self-pay 3%.
- *
- * The dead PAYERS array from the original design (containing invalid values
- * like "Private Insurance A/B") is deleted.
- */
-export const PAYER_MIX: [PayerType, number][] = [
-  ["BPJS Kesehatan", 0.82],
-  ["BPJS Ketenagakerjaan", 0.08],
-  ["Private Insurance", 0.07],
-  ["Self-pay", 0.03],
-];
-
-function rollPayerMix(rng: number): PayerType {
-  // Bound check: last entry takes the remainder (guards float drift).
-  for (const [payer, share] of PAYER_MIX) {
-    if (rng < share) return payer;
-    rng -= share;
-  }
-  return PAYER_MIX[PAYER_MIX.length - 1][0];
-}
-
-/**
- * Assign payer at encounter start.
- * ADR-015 D5: `rngDraw` is an OPTIONAL one-shot rng source (inject
- * clock.rng from the calling handler). Without it the function is
- * deterministic and roll-free — existing callers that haven't been updated
- * still get the legacy default (BPJS Kesehatan for WNI non-accidents).
- * With it, the PAYER_MIX table is rolled ONCE at encounter creation.
+ * Assign payer at encounter start (ADR-015 D5). Epic X M10.2: the rules live in
+ * the active IPayerAssigner (Indonesia by default); at most ONE rng draw, taken
+ * from the injected `rngDraw` (clock.rng from the calling handler).
  */
 export function assignPayer(
-  patient: PayerPatient,
+  patient: { id?: string; diagnoses: { code: string; active: boolean }[]; identity?: { nationality?: string }; injuryMechanism?: "traffic" | "other" },
   rngDraw?: () => number,
   worldSeed?: number,
 ): PayerType {
-  if (patient.identity?.nationality && patient.identity.nationality !== "WNI") {
-    return "Self-pay";
-  }
-  const primaryDiag = getPrimaryDiagnosis(patient);
-  if (primaryDiag && injuryMechanism(patient, primaryDiag.code, worldSeed) === "traffic") {
-    return "Jasa Raharja";
-  }
-  if (rngDraw) {
-    return rollPayerMix(rngDraw());
-  }
-  return "BPJS Kesehatan";
+  return getPayerAssigner().assign(
+    { id: patient.id, diagnoses: patient.diagnoses, nationality: patient.identity?.nationality, injuryMechanism: patient.injuryMechanism },
+    rngDraw, worldSeed,
+  );
 }
 
 /** Re-exported: moved to billing/indonesia-claims.ts (Epic X M10.2). */
@@ -176,7 +93,7 @@ export function billingHandler(state: HospitalState, clock: Clock, _queue: Event
       }
       const lastBilled = enc.lastRoomDayBilled ?? 0;
       if (targetDays <= lastBilled) continue;
-      const rate = Math.round(CHARGE_RATES.room * (ROOM_CLASS_MULTIPLIER[rc] ?? 1));
+      const rate = Math.round(getChargePolicy().baseRate("room") * getChargePolicy().roomClassMultiplier(rc));
       for (let day = lastBilled + 1; day <= targetDays; day++) {
         newCharges = appendCharge(newCharges, clock, enc.id, enc.patientId, "room",
           `Room (${rc}) - day ${day}`, rate, { code: rc, unitPrice: rate, quantity: 1 });

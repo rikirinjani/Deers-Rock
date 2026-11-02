@@ -49,6 +49,26 @@ export interface IChargePolicy {
   drugMarkup(payerType: PayerType): number;
 }
 
+/** Facts about a patient that payer assignment may use. */
+export interface PayerPatientFacts {
+  id?: string;
+  diagnoses: { code: string; active: boolean }[];
+  nationality?: string;
+  /** Explicit injury mechanism when known (e.g. from a police report). */
+  injuryMechanism?: "traffic" | "other";
+}
+
+/**
+ * Payer assignment at encounter creation. ONE draw from `rngDraw` at most
+ * (ADR-015 D5/D8): the draw count must be a pure function of the patient.
+ */
+export interface IPayerAssigner {
+  config: IAdapterConfig;
+  /** The payer mix table this adapter rolls against, as [payer, share] pairs. */
+  payerMix(): [PayerType, number][];
+  assign(patient: PayerPatientFacts, rngDraw?: () => number, worldSeed?: number): PayerType;
+}
+
 /** One chart diagnosis as the coder recorded it. */
 export interface ChartDiagnosis {
   code: string;

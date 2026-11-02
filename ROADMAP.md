@@ -333,9 +333,10 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 ### Milestone 10.1: Contract hardening ✅ (S)
 - [x] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
 
-### Milestone 10.2: Core on adapters — Indonesia parity 🟡 (L)
+### Milestone 10.2: Core on adapters — Indonesia parity 🟡 (L, rules done; package move deferred to 10.6)
 - [x] Claim lifecycle behind `IClaimLifecycle` (2026-11-02): coded-chart gate, INA-CBG/JR/private/self-pay pricing, verification + denial taxonomy moved to `src/engine/billing/indonesia-claims.ts`; `billingHandler` calls the active lifecycle (`billing/registry.ts`). Byte-identical on 3 seeds (`scripts/_finance_golden.ts`), 605 tests green
-- [ ] Payer assignment + `PAYER_MIX` (`assignPayer`), charge rates (`charge-generator.ts`), tariff/formulary lookups still hard-wired — move behind `IPayerSystem`/`IChargePolicy`/`ITariffSystem`
+- [x] Payer assignment + `PAYER_MIX` + injury mechanism behind `IPayerAssigner` (`billing/indonesia-payer.ts`); flat charge rates, room-class multipliers and pharmacy markup behind `IChargePolicy` (`billing/indonesia-charges.ts`); registries in `billing/registry.ts`. Byte-identical on 3 seeds, 605 tests green
+- [ ] Remaining hard-wired Indonesian data: `ina-cbg.ts` tariffs, `price-tables.ts` (lab/radiology/surgery/dialysis prices), 205-drug e-catalogue — a pricing/chargemaster abstraction is scoped into 10.4
 - [ ] Relocate Indonesian implementation into `packages/adapter-indonesia` (blocked: root `rootDir=src` cannot import workspace packages; contract mirrored in `src/engine/billing/contracts.ts` with a drift test until M10.6 packaging)
 
 ### Milestone 10.3: US payer & claims 🔴 (M)
