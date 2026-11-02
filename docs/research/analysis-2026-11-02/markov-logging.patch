@@ -1,0 +1,13 @@
+--- src/engine/markov.ts	2026-11-01 03:21:58.197075604 +0000
++++ b/src/engine/markov.ts	2026-11-02 09:49:03.988780898 +0000
+@@ -203,6 +203,10 @@
+     const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
+     const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
+     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
++    ((globalThis as any).__drlog ??= []).push({ enc: toDischarge.id, pid: toDischarge.patientId, tick: clock.tick,
++      age: patient?.age ?? null, icd: patient ? (getPrimaryDiagnosis(patient)?.code ?? null) : null,
++      ndx: patient?.diagnoses.length ?? 0, dxs: patient ? patient.diagnoses.map(d => d.code) : [],
++      score: mortality.score, risk: mortality.risk, factors: mortality.factors, dies, startTime: toDischarge.startTime, endTime: toDischarge.endTime ?? null });
+ 
+     if (dies && patient) {
+       const primaryDiag = getPrimaryDiagnosis(patient);

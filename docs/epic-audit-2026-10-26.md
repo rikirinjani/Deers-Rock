@@ -200,3 +200,5 @@ on commit `ae7b776`, byte-identical across two runs. It is a deterministic regre
 baseline: the 1,000-tick horizon sees no inpatient discharge or death (open item 3b).
 
 **Update 2026-11-01:** P-002 (clinical vitals response, `a840bfd`) is frozen as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`): pooled GDR 49.4 ‰ (95% CI 39.6-59.1), improved 85.1 % / deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %. `vitals-v1` remains the reference for `DR_CLINICAL_VITALS=0`. GDR < 45 ‰ is an unconfirmed reference; NDR = GDR until D2.
+
+**Update 2026-11-02 (Research OC):** external-evidence critique of `clinical-v1` in `docs/research/calibration-evidence-2026-11-02.md`. New defect F1: every patient and staff member has age 36 (`patient/generator.ts:278`, `agent/generator.ts:78` split `DD/MM/YYYY` on `-`, so the 1990 fallback is used; age also depends on the wall-clock year). Also: ~60 % of deaths come from the flat 2 % low-tier roll, dengue lands in the high tier (13/20), BOR 99.8 % vs 70 % example target. Nothing changed in the model; fixes need owner decision and a re-freeze.
