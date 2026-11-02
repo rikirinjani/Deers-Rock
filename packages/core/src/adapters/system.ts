@@ -9,6 +9,8 @@ import type {
   TariffEntry, DrugRecord, AdjudicationResult, FinancialBreakdown,
   IAdapterConfig,
 } from "./interfaces.js";
+import { NullProcedureCodeProvider } from "./procedure-codes.js";
+import type { IProcedureCodeProvider } from "./procedure-codes.js";
 
 /**
  * Payer System — determines insurance type and coverage
@@ -141,5 +143,23 @@ export class AdapterRegistry {
 
   static has(key: string): boolean {
     return AdapterRegistry.instances.has(key);
+  }
+
+  static readonly PROCEDURE_CODES_DEFAULT = "procedureCodes.default";
+  static readonly PROCEDURE_CODES_CPT = "procedureCodes.cpt";
+
+  /**
+   * Resolve the procedure-code provider. CPT is used only when explicitly
+   * enabled AND a provider is registered; otherwise the registered public
+   * default, otherwise a provider that maps nothing. Never throws, so removing
+   * the CPT package needs no core change.
+   */
+  static procedureCodes(opts: { cptEnabled?: boolean } = {}): IProcedureCodeProvider {
+    if (opts.cptEnabled) {
+      const cpt = AdapterRegistry.get<IProcedureCodeProvider>(AdapterRegistry.PROCEDURE_CODES_CPT);
+      if (cpt) return cpt;
+    }
+    return AdapterRegistry.get<IProcedureCodeProvider>(AdapterRegistry.PROCEDURE_CODES_DEFAULT)
+      ?? new NullProcedureCodeProvider();
   }
 }

@@ -176,3 +176,20 @@ export interface IIdentityGenerator {
 - ICD-10-CM: https://www.cdc.gov/nchs/icd/icd10cm.htm
 - CPT Codes: https://www.ama-assn.org/practice-management/cpt
 - Medicare Payment Advisory Commission (MedPAC) reports
+
+## Amendment 1 — Billing lifecycle contracts and pluggable procedure codes (2026-11-02, Epic X M10.1)
+
+**Status:** Accepted (owner approved Epic X scope 2026-11-02: full US hospital simulation, single repo)
+
+**Why:** The original `IPayerSystem.submitClaim → adjudicate` is a single step. The engine's Epic IX billing (`src/engine/finance.ts`) is a multi-stage lifecycle with a chart-coded gate, batch verification and a causal denial taxonomy. Interfaces must cover that before 10.2 can move the Indonesian rules behind them without behaviour change.
+
+**Added (types only, `packages/core/src/adapters/`):**
+- `billing.ts`: `ClaimStatus`, `DenialCode` (+ category, recoverable), `IChargePolicy` (rates, room-class multiplier, drug markup), `ClaimContext`, `ClaimDraft`, `VerificationOutcome`, `IClaimLifecycle` (`canSubmit`, `buildClaim`, `verify`, `denialTaxonomy`, cadence `verifyEveryTicks`/`batchSize`, `rngDrawsPerVerification`).
+- `IAdapterConfig.currencyMinorUnits?` (IDR 0, USD 2).
+- `procedure-codes.ts`: `IProcedureCodeProvider`, `NullProcedureCodeProvider`; `AdapterRegistry.procedureCodes({cptEnabled})` resolves CPT only if enabled and registered, else the public default (ICD-10-PCS + HCPCS II), else a null provider. CPT lives in a separate private package `@deers-rock/codes-cpt`, enabled only on client demand; no CPT data in this repo.
+
+**Determinism rules:** adapters never use `Math.random` or the wall clock; RNG only via the supplied `rng`, with a draw count that is a pure function of inputs. 10.2 must keep frozen baselines (`vitals-v1`, `clinical-v1`) byte-identical.
+
+**Unchanged:** existing `IPayerSystem`/`ITariffSystem` signatures (the skeleton adapters still compile against them); they are reconciled in 10.2.
+
+**Also fixed:** `packages/core/src/index.ts` re-exported from a non-existent `./src/adapters/` path, so core did not compile; now `./adapters/`.

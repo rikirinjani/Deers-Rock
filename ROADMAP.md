@@ -328,10 +328,10 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 
 ## Epic X — International Billing & Commercial Productization
 
-**Status:** Scoped 2026-11-02 — milestones proposed in `docs/epic-x-scoping.md`; awaiting owner approval, no implementation started. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
+**Status:** In progress — owner approved 2026-11-02 (full US sim, single repo, branch `epic-x-international`); 10.1 done, 10.2 next. Scoping: `docs/epic-x-scoping.md`. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
 
-### Milestone 10.1: Contract hardening 🔴 (S)
-- [ ] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
+### Milestone 10.1: Contract hardening ✅ (S)
+- [x] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
 
 ### Milestone 10.2: Core on adapters — Indonesia parity 🔴 (L)
 - [ ] Move INA-CBG/BPJS/JR/payer mix into `adapter-indonesia`; `finance.ts` via `AdapterRegistry`; byte-identical frozen-baseline seeds, 531 tests green
@@ -367,6 +367,6 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-1
 | **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
 | **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
 | **IX** Financial & Referral | ✅ 4/4 MS | 47 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; 2026-10-31 JR limited to traffic accidents (owner) |
-| **X** International Billing | 🔴 Scoped, awaiting approval | — | 6 milestones defined (`docs/epic-x-scoping.md`); no code yet |
+| **X** International Billing | 🟡 M10.1 ✅ | 4 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.2 next |
 
 **Overall (2026-10-27, branch `epic-audit-vi-ix`):** 531 tests pass / 3 skipped / 0 failed (67 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen 2026-11-01 as `vitals-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01.md`; E1 regression reference plus outcome baseline, 10 seeds × 10 sim-days: mortality 3.70 %, ALOS 4.80 d, BOR 99.8 %, 94.5 % discharged improved); earlier `substream-v1`/`outcome-v1` kept as history; 2026-09-10 JAMIA freeze untouched. P-002 clinical vitals frozen 2026-11-01 as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`; default config: pooled GDR 49.4 ‰, improved 85.1 %, deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %). Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.

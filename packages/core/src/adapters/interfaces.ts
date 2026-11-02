@@ -136,4 +136,6 @@ export interface IAdapterConfig {
   currency: string;
   /** Display name for UI */
   displayName: string;
+  /** Smallest currency unit as a power of ten: IDR 0, USD 2 (ADR-027 Amendment 1). Optional for back-compat. */
+  currencyMinorUnits?: number;
 }
