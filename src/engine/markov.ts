@@ -67,6 +67,15 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   if (occupancyRate >= 0.85 && !surge && clock.rng() > 0.3) {
     return state;
   }
+  // clinical-v2 (V4): inpatient arrivals are a per-minute Bernoulli process instead of "at least one
+  // admission every tick", which pinned occupancy near 100%. 0.0033 x mean batch 4 = ~19 admissions/day,
+  // i.e. ~70% occupancy for 131 beds at a 4.8 d stay (Kemenkes example BOR 70%). Surges bypass the gate.
+  // DR_ADMISSION_PROB overrides it; DR_ADMISSION_PROB=1 restores the old always-admit behaviour.
+  if (!surge) {
+    const envProb = process.env.DR_ADMISSION_PROB;
+    const p = envProb !== undefined && envProb !== "" && Number.isFinite(Number(envProb)) ? Number(envProb) : 0.0033;
+    if (p < 1 && clock.rng() >= p) return state;
+  }
   if (surge) {
     const extraBeds = Math.floor(availableBeds.length * (scenarioEff.surgeMultiplier > 2 ? 0.2 : 0.1));
     if (extraBeds <= 0) {
@@ -183,6 +192,19 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   return { ...state, beds: newBeds, encounters: newEncounters };
 }
 
+/**
+ * Probability that an inpatient discharge is a death, by risk tier (clinical-v2).
+ * The old flat 0.02 for the low tier produced ~60% of all deaths regardless of illness and a
+ * ~20 permille floor. The low tier now scales with age and comorbidity; the upper tiers are lower.
+ * These are model parameters calibrated toward the (unconfirmed) 25-45 permille reference range,
+ * NOT measured values; see docs/research/calibration-evidence-2026-11-02.md.
+ */
+export function inpatientDeathProbability(risk: "low" | "moderate" | "high", age: number, nDiagnoses: number): number {
+  if (risk === "high") return 0.25;
+  if (risk === "moderate") return 0.06;
+  return 0.004 + (age > 75 ? 0.006 : age > 60 ? 0.003 : 0) + (nDiagnoses >= 2 ? 0.002 : 0);
+}
+
 export function dischargeScheduledPatients(state: HospitalState, clock: Clock, scheduled: { patientId?: string; encounterId?: string }[]): HospitalState {
   if (scheduled.length === 0) return state;
   let newEncounters = new Map(state.encounters);
@@ -201,7 +223,7 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     // SUSTAINED during the stay (>= 30 min), not the vitals of the discharge minute.
     const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses, isClinicalVitalsEnabled() ? sustainedFlags(toDischarge) : undefined) : { score: 0, risk: "low" as const, factors: [] as string[] };
     const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
-    const deathRoll = mortality.risk === "high" ? 0.35 : mortality.risk === "moderate" ? 0.1 : 0.02;
+    const deathRoll = inpatientDeathProbability(mortality.risk, patient?.age ?? 0, patient?.diagnoses.length ?? 0);
     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
 
     if (dies && patient) {

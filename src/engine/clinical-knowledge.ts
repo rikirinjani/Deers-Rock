@@ -1331,7 +1331,8 @@ export function assessMortalityRisk(age: number, vitals: Vitals, diagnoses: { co
   if (hrAbn) { score += 1; factors.push("HR abnormal"); }
   if (fever) { score += 1; factors.push("Fever > 39°C"); }
   if (rrHigh) { score += 1; factors.push("RR > 24"); }
-  const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84", "A91"].some(c => diagnoses.some(d => d.code === c));
+  // A91 (dengue) is NOT listed: most dengue is non-severe (2.3% DHF III-IV, INA-RESPOND 2019); severity shows through the vitals terms.
+  const criticalDx = ["I21", "I50", "R57", "A41", "I63", "J84"].some(c => diagnoses.some(d => d.code === c));
   if (criticalDx) { score += 2; factors.push("Critical diagnosis"); }
   const multiMorbidity = diagnoses.length >= 3;
   if (multiMorbidity) { score += 1; factors.push("≥ 3 comorbidities"); }
