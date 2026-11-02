@@ -342,13 +342,15 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 ### Milestone 10.4: US tariff 🔴 (L)
 - [ ] MS-DRG weight × base rate, MCC/CC, ICD-10-CM mapping, chargemaster, USD formulary (public codes only unless CPT licensed)
 
-### Milestone 10.5: US identity, locale & calibration 🔴 (M)
-- [ ] MRN, US locale, calibration targets (CMS/HCUP/MedPAC), frozen US baseline
+### Milestone 10.5: US hospital content & calibration 🔴 (XL)
+- [ ] (a) MRN, US locale/geography, US referral/ED model
+- [ ] (b) US epidemiology/case mix, ICD-10-CM disease set, protocols, FDA formulary + USD prices
+- [ ] (c) Calibration targets (CMS/HCUP/MedPAC/CDC), frozen US baseline
 
 ### Milestone 10.6: Productization 🔴 (M)
 - [ ] Publish `@deers-rock/*`, config-driven country selection in app/API, docs, demo
 
-Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Open owner decisions: see scoping doc §4.
+Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-11-02: full US hospital simulation; CPT only on client demand. Remaining open: see scoping doc §4.
 
 ---
 

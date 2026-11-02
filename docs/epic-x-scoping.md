@@ -1,6 +1,6 @@
 # Epic X Scoping — International Billing & Commercial Productization
 
-**Date:** 2026-11-02 · **Status:** Proposed — awaiting owner approval (no implementation started)
+**Date:** 2026-11-02 · **Status:** Proposed — owner decisions 1–2 recorded 2026-11-02 (full US hospital simulation; CPT only on client demand); milestone list awaiting approval, no implementation started
 **Inputs:** ADR-027, ROADMAP Epic X/IX, `src/engine/finance.ts`, `packages/{core,adapter-us,adapter-indonesia}`
 
 ## 1. What exists
@@ -20,10 +20,10 @@
 | 10.2 | **Core on adapters (Indonesia parity)**: move INA-CBG/BPJS/JR/PAYER_MIX into `adapter-indonesia`, `finance.ts` calls `AdapterRegistry`; DI wiring | L | 10.1 | 531 tests green; frozen-baseline seeds byte-identical (no RNG draw change) |
 | 10.3 | **US payer + claims**: Medicare/Medicaid/Private/TRICARE/Self-pay, deductible→copay→coinsurance, prior auth, clearinghouse step, US denial taxonomy | M | 10.2 | adapter tests + simulated 10-seed run with plausible payer mix |
 | 10.4 | **US tariff**: MS-DRG weights × base rate, MCC/CC severity, ICD-10-CM mapping, chargemaster (hospital-specific prices); USD formulary | L | 10.2 | DRG coverage for the ICD set the sim generates; unmapped-code report |
-| 10.5 | **US identity, locale & calibration**: MRN, US names/addresses/geography, referral/ED model for a US hospital, Research-OC calibration targets (CMS/HCUP) | M | 10.3, 10.4 | calibration doc with sourced targets; US 10-seed baseline frozen |
+| 10.5 | **US hospital content & calibration (XL, split a–c)**: (a) MRN, US locale/geography, US referral/ED model; (b) US epidemiology/case mix, ICD-10-CM disease set, clinical protocols, FDA formulary + USD prices; (c) Research-OC calibration targets (CMS/HCUP/MedPAC/CDC), US baseline freeze | XL | 10.3, 10.4 | each sub-part has its own tests and sourced calibration doc; US 10-seed baseline frozen |
 | 10.6 | **Productization**: publish packages (`@deers-rock/*`), config-driven country selection in app/API/dashboard, docs, demo, licence/packaging | M | 10.5 | `npm pack` installs clean; one-command US and ID runs |
 
-Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 2L + 3M + S; ADR's ~10 days is optimistic given 10.2 (its Phase 3) was assumed small.
+Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 1XL + 2L + 2M + S; ADR's ~10 days is optimistic given 10.2 (its Phase 3) was assumed small.
 
 ## 2a. CPT as a pluggable layer (design)
 
@@ -33,6 +33,11 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 2L + 3M + 
 - **Plug in/out:** `AdapterRegistry` loads the CPT provider only if the package is installed and `codes.cpt.enabled` is set; otherwise it falls back to the default. Removing the package changes no core code; results differ only in the procedure code column.
 - **Determinism:** providers must not draw RNG; code choice is a pure function of the procedure, so toggling CPT never moves a seed.
 - **Test:** the suite runs with the default provider and a small fake provider to prove swapping works.
+
+## 2b. Owner decisions recorded (2026-11-02)
+
+1. **Scope = full US hospital simulation** (billing and clinical content), not a billing swap. 10.5 grows to XL; clinical content (b) is the largest new piece and should be sized in detail before it starts.
+2. **CPT only when a client asks** — stays the optional plug-in (2a); no licence purchase now.
 
 ## 3. Risks
 
@@ -45,8 +50,8 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 2L + 3M + 
 
 ## 4. Open owner decisions
 
-1. **Goal of "international":** billing-layer swap only (cheaper, 10.1–10.4, 10.6) or full US hospital simulation incl. epidemiology/clinical content (adds 10.5 scope, likely XL)?
-2. **CPT licensing:** default public codes; CPT is the optional plug-in (2a). Acquire a licence now or only on client demand?
-3. **Target client/date and deliverable form:** npm packages, hosted demo, or consulting-style report?
-4. **Calibration owner:** assign Research OC to US targets in 10.5?
-5. **Approve** the milestone list and order above so implementation can start at 10.1.
+1. ~~Goal of "international"~~ — decided: full US hospital simulation.
+2. ~~CPT licensing~~ — decided: on client demand only.
+3. Target client/date and deliverable form: npm packages, hosted demo, or consulting-style report?
+4. Calibration owner: assign Research OC to US targets in 10.5c?
+5. **Approve** the milestone list and order so implementation can start at 10.1.
