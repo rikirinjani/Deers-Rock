@@ -16,7 +16,7 @@
 
 | # | Milestone | Size | Depends | Done when |
 |---|---|---|---|---|
-| 10.1 | **Contract hardening**: extend interfaces to cover the full claim lifecycle, charge generation hooks, denial taxonomy, currency; ADR-027 Amendment 1 | S | — | interfaces cover everything `finance.ts` does; ADR amended |
+| 10.1 | **Contract hardening** (incl. `IProcedureCodeProvider`): extend interfaces to cover the full claim lifecycle, charge generation hooks, denial taxonomy, currency; ADR-027 Amendment 1 | S | — | interfaces cover everything `finance.ts` does; ADR amended |
 | 10.2 | **Core on adapters (Indonesia parity)**: move INA-CBG/BPJS/JR/PAYER_MIX into `adapter-indonesia`, `finance.ts` calls `AdapterRegistry`; DI wiring | L | 10.1 | 531 tests green; frozen-baseline seeds byte-identical (no RNG draw change) |
 | 10.3 | **US payer + claims**: Medicare/Medicaid/Private/TRICARE/Self-pay, deductible→copay→coinsurance, prior auth, clearinghouse step, US denial taxonomy | M | 10.2 | adapter tests + simulated 10-seed run with plausible payer mix |
 | 10.4 | **US tariff**: MS-DRG weights × base rate, MCC/CC severity, ICD-10-CM mapping, chargemaster (hospital-specific prices); USD formulary | L | 10.2 | DRG coverage for the ICD set the sim generates; unmapped-code report |
@@ -24,6 +24,15 @@
 | 10.6 | **Productization**: publish packages (`@deers-rock/*`), config-driven country selection in app/API/dashboard, docs, demo, licence/packaging | M | 10.5 | `npm pack` installs clean; one-command US and ID runs |
 
 Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 2L + 3M + S; ADR's ~10 days is optimistic given 10.2 (its Phase 3) was assumed small.
+
+## 2a. CPT as a pluggable layer (design)
+
+- **Core interface** `IProcedureCodeProvider` (in `packages/core/src/adapters/`): `lookup(code)`, `mapProcedure(internalProcedureId) -> code[]`, `describe(code)`, `licenseNotice()`. Added in 10.1; `ITariffSystem` calls it, never CPT directly.
+- **Default provider (public, in repo):** ICD-10-PCS + HCPCS Level II. Always available, no licence.
+- **Optional provider `@deers-rock/codes-cpt`:** separate package, kept out of the public repo and not published to public npm. It reads the owner's own AMA-licensed data file (path via config); the repo ships no CPT codes or descriptors.
+- **Plug in/out:** `AdapterRegistry` loads the CPT provider only if the package is installed and `codes.cpt.enabled` is set; otherwise it falls back to the default. Removing the package changes no core code; results differ only in the procedure code column.
+- **Determinism:** providers must not draw RNG; code choice is a pure function of the procedure, so toggling CPT never moves a seed.
+- **Test:** the suite runs with the default provider and a small fake provider to prove swapping works.
 
 ## 3. Risks
 
@@ -37,7 +46,7 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Total ≈ 2L + 3M + 
 ## 4. Open owner decisions
 
 1. **Goal of "international":** billing-layer swap only (cheaper, 10.1–10.4, 10.6) or full US hospital simulation incl. epidemiology/clinical content (adds 10.5 scope, likely XL)?
-2. **CPT licensing:** public codes only (MS-DRG + HCPCS II), or acquire CPT?
+2. **CPT licensing:** default public codes; CPT is the optional plug-in (2a). Acquire a licence now or only on client demand?
 3. **Target client/date and deliverable form:** npm packages, hosted demo, or consulting-style report?
 4. **Calibration owner:** assign Research OC to US targets in 10.5?
 5. **Approve** the milestone list and order above so implementation can start at 10.1.

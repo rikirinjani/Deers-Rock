@@ -331,7 +331,7 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 **Status:** Scoped 2026-11-02 — milestones proposed in `docs/epic-x-scoping.md`; awaiting owner approval, no implementation started. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
 
 ### Milestone 10.1: Contract hardening 🔴 (S)
-- [ ] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency; ADR-027 Amendment 1
+- [ ] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
 
 ### Milestone 10.2: Core on adapters — Indonesia parity 🔴 (L)
 - [ ] Move INA-CBG/BPJS/JR/payer mix into `adapter-indonesia`; `finance.ts` via `AdapterRegistry`; byte-identical frozen-baseline seeds, 531 tests green
