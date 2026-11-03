@@ -69,11 +69,15 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
   }
   // clinical-v2 (V4): inpatient arrivals are a per-minute Bernoulli process instead of "at least one
   // admission every tick", which pinned occupancy near 100%. 0.0033 x mean batch 4 = ~19 admissions/day,
-  // i.e. ~70% occupancy for 131 beds at a 4.8 d stay (Kemenkes example BOR 70%). Surges bypass the gate.
-  // DR_ADMISSION_PROB overrides it; DR_ADMISSION_PROB=1 restores the old always-admit behaviour.
-  if (!surge) {
+  // i.e. ~70% occupancy for 131 beds at a 4.8 d stay (Kemenkes example BOR 70%).
+  // Surges scale the arrival probability by the surge multiplier instead of bypassing the gate: the bypass
+  // admitted every minute on 11-17% of ticks and produced ~30 admissions/day (BOR ~90%).
+  // DR_ADMISSION_PROB overrides the base probability; DR_ADMISSION_PROB=1 restores the old always-admit behaviour.
+  {
     const envProb = process.env.DR_ADMISSION_PROB;
-    const p = envProb !== undefined && envProb !== "" && Number.isFinite(Number(envProb)) ? Number(envProb) : 0.0033;
+    const base = envProb !== undefined && envProb !== "" && Number.isFinite(Number(envProb)) ? Number(envProb) : 0.0033;
+    const surgeFactor = surge ? Math.max(1, eventCtx.totalMultiplier, scenarioEff.surgeMultiplier) : 1;
+    const p = Math.min(1, base * surgeFactor);
     if (p < 1 && clock.rng() >= p) return state;
   }
   if (surge) {

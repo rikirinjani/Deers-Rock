@@ -63,4 +63,13 @@ describe("patient names pool", () => {
       expect(p.age).toBe(new Date().getFullYear() - year);
     }
   });
+
+  it("dengue patients are young (cohort mean age ~19, not the general-population age)", () => {
+    const pool = generatePatientPool(6000, createRng(3).next);
+    const ages = pool.filter(p => p.diagnoses.some(d => d.code === "A91")).map(p => p.age);
+    expect(ages.length).toBeGreaterThan(100);
+    const mean = ages.reduce((a, b) => a + b, 0) / ages.length;
+    expect(mean).toBeGreaterThan(14);
+    expect(mean).toBeLessThan(26);
+  });
 });

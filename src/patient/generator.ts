@@ -242,9 +242,23 @@ function generateVitals(age: number, gender: Gender, rng?: () => number): Vitals
   };
 }
 
+/**
+ * Dengue is a disease of children and young adults: the INA-RESPOND inpatient cohort (8 Indonesian
+ * referral hospitals, Utama et al. 2019) had mean age 19 +- 12.4. The population age draw is broad, so
+ * the A91 selection weight is scaled by age (clinical-v2). Factors are model parameters, not measured.
+ */
+export function dengueAgeFactor(age: number): number {
+  if (age <= 15) return 3.0;
+  if (age <= 30) return 2.0;
+  if (age <= 45) return 0.5;
+  return 0.1;
+}
+
 function generateDiagnoses(age: number, gender: Gender, rng?: () => number): Diagnosis[] {
   const rand = rng ?? Math.random;
-  const eligible = ICD10_DIAGNOSES.filter(d => age >= d.minAge && age <= d.maxAge && d.genders.includes(gender));
+  const eligible = ICD10_DIAGNOSES
+    .filter(d => age >= d.minAge && age <= d.maxAge && d.genders.includes(gender))
+    .map(d => d.code === "A91" ? { ...d, weight: d.weight * dengueAgeFactor(age) } : d);
   if (eligible.length === 0) return [{ code: "Z00", name: "Encounter for general examination", active: true }];
 
   const numDiagnoses = 1 + Math.floor(rand() * 3);
