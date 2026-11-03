@@ -1,0 +1,591 @@
+{
+  "config": {
+    "seedCount": 10,
+    "ticks": 14400,
+    "patientCount": 50
+  },
+  "outcomes": [
+    {
+      "seed": 0,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 192,
+      "deaths": 10,
+      "inHospitalMortalityPct": 5.21,
+      "grossDeathRatePerMille": 52.1,
+      "netDeathRatePerMille": 52.1,
+      "improvedPct": 67.7,
+      "deterioratedPct": 27.1,
+      "inpatientLosMeanDays": 4.71,
+      "inpatientLosMedianDays": 4.64,
+      "outcomes": {
+        "improved": 130,
+        "deteriorated": 52,
+        "deceased": 10
+      },
+      "deathsByIcd": {
+        "U07": 1,
+        "A91": 2,
+        "I63": 1,
+        "E11": 1,
+        "C61": 1,
+        "A27": 1,
+        "R31": 1,
+        "J11": 1,
+        "K21": 1
+      },
+      "edEncounters": 3623,
+      "outpatientEncounters": 1,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 0,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 303,
+        "completed": 303,
+        "returned": 0,
+        "ambulanceDispatches": 80,
+        "ambulanceChargedIdr": 78000000
+      },
+      "kontrol": {
+        "booked": 165,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 25,
+        "claims": 17,
+        "claimsWithIncident": 17
+      }
+    },
+    {
+      "seed": 1,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 184,
+      "deaths": 17,
+      "inHospitalMortalityPct": 9.24,
+      "grossDeathRatePerMille": 92.4,
+      "netDeathRatePerMille": 92.4,
+      "improvedPct": 73.9,
+      "deterioratedPct": 16.8,
+      "inpatientLosMeanDays": 4.82,
+      "inpatientLosMedianDays": 4.79,
+      "outcomes": {
+        "improved": 136,
+        "deteriorated": 31,
+        "deceased": 17
+      },
+      "deathsByIcd": {
+        "A95": 1,
+        "J15": 2,
+        "I10": 1,
+        "I25": 1,
+        "N10": 1,
+        "J96": 1,
+        "E11": 1,
+        "I50": 1,
+        "A09": 1,
+        "S72": 1,
+        "I11": 1,
+        "I33": 1,
+        "J45": 2,
+        "K21": 1,
+        "E04": 1
+      },
+      "edEncounters": 3678,
+      "outpatientEncounters": 0,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 2,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 316,
+        "completed": 314,
+        "returned": 0,
+        "ambulanceDispatches": 85,
+        "ambulanceChargedIdr": 69300000
+      },
+      "kontrol": {
+        "booked": 151,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 27,
+        "claims": 15,
+        "claimsWithIncident": 15
+      }
+    },
+    {
+      "seed": 2,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 190,
+      "deaths": 10,
+      "inHospitalMortalityPct": 5.26,
+      "grossDeathRatePerMille": 52.6,
+      "netDeathRatePerMille": 52.6,
+      "improvedPct": 66.3,
+      "deterioratedPct": 28.4,
+      "inpatientLosMeanDays": 4.82,
+      "inpatientLosMedianDays": 4.77,
+      "outcomes": {
+        "improved": 126,
+        "deteriorated": 54,
+        "deceased": 10
+      },
+      "deathsByIcd": {
+        "A91": 1,
+        "K35": 1,
+        "I49": 1,
+        "A09": 2,
+        "I26": 1,
+        "I05": 1,
+        "J96": 1,
+        "A01": 1,
+        "U07": 1
+      },
+      "edEncounters": 3649,
+      "outpatientEncounters": 0,
+      "bedOccupancyEnd": 130,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 1,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 280,
+        "completed": 278,
+        "returned": 0,
+        "ambulanceDispatches": 67,
+        "ambulanceChargedIdr": 54000000
+      },
+      "kontrol": {
+        "booked": 163,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 22,
+        "claims": 11,
+        "claimsWithIncident": 11
+      }
+    },
+    {
+      "seed": 3,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 190,
+      "deaths": 12,
+      "inHospitalMortalityPct": 6.32,
+      "grossDeathRatePerMille": 63.2,
+      "netDeathRatePerMille": 63.2,
+      "improvedPct": 66.8,
+      "deterioratedPct": 26.8,
+      "inpatientLosMeanDays": 4.83,
+      "inpatientLosMedianDays": 4.82,
+      "outcomes": {
+        "improved": 127,
+        "deteriorated": 51,
+        "deceased": 12
+      },
+      "deathsByIcd": {
+        "I12": 1,
+        "I10": 1,
+        "A09": 1,
+        "I21": 1,
+        "I50": 1,
+        "F32": 1,
+        "I11": 1,
+        "K64": 1,
+        "E11": 1,
+        "A91": 2,
+        "N17": 1
+      },
+      "edEncounters": 3624,
+      "outpatientEncounters": 1,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 0,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 305,
+        "completed": 304,
+        "returned": 0,
+        "ambulanceDispatches": 78,
+        "ambulanceChargedIdr": 53600000
+      },
+      "kontrol": {
+        "booked": 161,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 25,
+        "claims": 14,
+        "claimsWithIncident": 14
+      }
+    },
+    {
+      "seed": 4,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 207,
+      "deaths": 9,
+      "inHospitalMortalityPct": 4.35,
+      "grossDeathRatePerMille": 43.5,
+      "netDeathRatePerMille": 43.5,
+      "improvedPct": 64.7,
+      "deterioratedPct": 30.9,
+      "inpatientLosMeanDays": 4.65,
+      "inpatientLosMedianDays": 4.62,
+      "outcomes": {
+        "improved": 134,
+        "deteriorated": 64,
+        "deceased": 9
+      },
+      "deathsByIcd": {
+        "I49": 1,
+        "N18": 1,
+        "K64": 1,
+        "I10": 1,
+        "A91": 2,
+        "I63": 1,
+        "J44": 1,
+        "E78": 1
+      },
+      "edEncounters": 3623,
+      "outpatientEncounters": 2,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 1,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 282,
+        "completed": 281,
+        "returned": 0,
+        "ambulanceDispatches": 62,
+        "ambulanceChargedIdr": 45350000
+      },
+      "kontrol": {
+        "booked": 178,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 18,
+        "claims": 13,
+        "claimsWithIncident": 13
+      }
+    },
+    {
+      "seed": 5,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 191,
+      "deaths": 17,
+      "inHospitalMortalityPct": 8.9,
+      "grossDeathRatePerMille": 89,
+      "netDeathRatePerMille": 89,
+      "improvedPct": 62.8,
+      "deterioratedPct": 28.3,
+      "inpatientLosMeanDays": 4.71,
+      "inpatientLosMedianDays": 4.58,
+      "outcomes": {
+        "improved": 120,
+        "deteriorated": 54,
+        "deceased": 17
+      },
+      "deathsByIcd": {
+        "R10": 1,
+        "N39": 2,
+        "M17": 1,
+        "A91": 2,
+        "R07": 1,
+        "A09": 1,
+        "E11": 1,
+        "J15": 2,
+        "E78": 1,
+        "E20": 1,
+        "A49": 1,
+        "J18": 1,
+        "I10": 1,
+        "E04": 1
+      },
+      "edEncounters": 3635,
+      "outpatientEncounters": 0,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 1,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 315,
+        "completed": 313,
+        "returned": 0,
+        "ambulanceDispatches": 82,
+        "ambulanceChargedIdr": 82450000
+      },
+      "kontrol": {
+        "booked": 159,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 24,
+        "claims": 17,
+        "claimsWithIncident": 17
+      }
+    },
+    {
+      "seed": 6,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 188,
+      "deaths": 14,
+      "inHospitalMortalityPct": 7.45,
+      "grossDeathRatePerMille": 74.5,
+      "netDeathRatePerMille": 74.5,
+      "improvedPct": 69.1,
+      "deterioratedPct": 23.4,
+      "inpatientLosMeanDays": 4.83,
+      "inpatientLosMedianDays": 4.68,
+      "outcomes": {
+        "improved": 130,
+        "deteriorated": 44,
+        "deceased": 14
+      },
+      "deathsByIcd": {
+        "D64": 1,
+        "A91": 2,
+        "E03": 1,
+        "U07": 2,
+        "J10": 1,
+        "I50": 1,
+        "A49": 1,
+        "R50": 1,
+        "E78": 1,
+        "J15": 1,
+        "R10": 1,
+        "I11": 1
+      },
+      "edEncounters": 3624,
+      "outpatientEncounters": 1,
+      "bedOccupancyEnd": 129,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 2,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 280,
+        "completed": 279,
+        "returned": 0,
+        "ambulanceDispatches": 67,
+        "ambulanceChargedIdr": 59350000
+      },
+      "kontrol": {
+        "booked": 154,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 32,
+        "claims": 17,
+        "claimsWithIncident": 17
+      }
+    },
+    {
+      "seed": 7,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 185,
+      "deaths": 15,
+      "inHospitalMortalityPct": 8.11,
+      "grossDeathRatePerMille": 81.1,
+      "netDeathRatePerMille": 81.1,
+      "improvedPct": 63.8,
+      "deterioratedPct": 28.1,
+      "inpatientLosMeanDays": 4.88,
+      "inpatientLosMedianDays": 4.88,
+      "outcomes": {
+        "improved": 118,
+        "deteriorated": 52,
+        "deceased": 15
+      },
+      "deathsByIcd": {
+        "J15": 5,
+        "A09": 2,
+        "J18": 1,
+        "I42": 1,
+        "C61": 1,
+        "J06": 1,
+        "A49": 1,
+        "S72": 1,
+        "K35": 1,
+        "E11": 1
+      },
+      "edEncounters": 3653,
+      "outpatientEncounters": 0,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 0,
+        "staffOnDutyEnd": 23,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 276,
+        "completed": 276,
+        "returned": 0,
+        "ambulanceDispatches": 66,
+        "ambulanceChargedIdr": 62700000
+      },
+      "kontrol": {
+        "booked": 151,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 18,
+        "claims": 12,
+        "claimsWithIncident": 12
+      }
+    },
+    {
+      "seed": 8,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 194,
+      "deaths": 17,
+      "inHospitalMortalityPct": 8.76,
+      "grossDeathRatePerMille": 87.6,
+      "netDeathRatePerMille": 87.6,
+      "improvedPct": 64.4,
+      "deterioratedPct": 26.8,
+      "inpatientLosMeanDays": 4.79,
+      "inpatientLosMedianDays": 4.69,
+      "outcomes": {
+        "improved": 125,
+        "deteriorated": 52,
+        "deceased": 17
+      },
+      "deathsByIcd": {
+        "I82": 1,
+        "A91": 3,
+        "T63": 1,
+        "I10": 3,
+        "R31": 1,
+        "I80": 1,
+        "J11": 1,
+        "S72": 1,
+        "I50": 1,
+        "I21": 1,
+        "C18": 1,
+        "F20": 1,
+        "E11": 1
+      },
+      "edEncounters": 3572,
+      "outpatientEncounters": 0,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 1,
+        "staffOnDutyEnd": 23,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 279,
+        "completed": 277,
+        "returned": 0,
+        "ambulanceDispatches": 64,
+        "ambulanceChargedIdr": 47650000
+      },
+      "kontrol": {
+        "booked": 159,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 28,
+        "claims": 14,
+        "claimsWithIncident": 14
+      }
+    },
+    {
+      "seed": 9,
+      "ticks": 14400,
+      "simDays": 10,
+      "inpatientDischarges": 188,
+      "deaths": 11,
+      "inHospitalMortalityPct": 5.85,
+      "grossDeathRatePerMille": 58.5,
+      "netDeathRatePerMille": 58.5,
+      "improvedPct": 75.5,
+      "deterioratedPct": 18.6,
+      "inpatientLosMeanDays": 4.93,
+      "inpatientLosMedianDays": 4.94,
+      "outcomes": {
+        "improved": 142,
+        "deteriorated": 35,
+        "deceased": 11
+      },
+      "deathsByIcd": {
+        "I10": 1,
+        "J15": 1,
+        "U07": 1,
+        "E03": 1,
+        "I50": 1,
+        "N10": 1,
+        "B19": 1,
+        "J06": 1,
+        "G43": 1,
+        "A91": 1,
+        "S72": 1
+      },
+      "edEncounters": 3658,
+      "outpatientEncounters": 1,
+      "bedOccupancyEnd": 131,
+      "totalBeds": 131,
+      "workforce": {
+        "sickLeaveEpisodes": 0,
+        "staffOnDutyEnd": 24,
+        "staffTotal": 122
+      },
+      "referral": {
+        "letters": 293,
+        "completed": 291,
+        "returned": 0,
+        "ambulanceDispatches": 78,
+        "ambulanceChargedIdr": 68650000
+      },
+      "kontrol": {
+        "booked": 162,
+        "completed": 0,
+        "noShow": 0
+      },
+      "jasaRaharja": {
+        "incidents": 27,
+        "claims": 16,
+        "claimsWithIncident": 16
+      }
+    }
+  ]
+}
