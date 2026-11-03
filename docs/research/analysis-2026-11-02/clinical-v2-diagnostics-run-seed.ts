@@ -1,0 +1,10 @@
+import { writeFileSync } from "node:fs";
+import { runSeedWorld } from "./src/experiment/runner.js";
+import { outcomeMetrics } from "./src/experiment/outcomes.js";
+const seed = Number(process.argv[2]);
+const t0 = Date.now();
+const world = runSeedWorld(seed, 14400, 50);
+const om = outcomeMetrics(world, seed);
+const g: any = globalThis;
+writeFileSync(`/tmp/clinical-v2-diag/diag-seed-${seed}.json`, JSON.stringify({ seed, deaths: om.deaths, discharges: om.inpatientDischarges, wall: Math.round((Date.now()-t0)/1000), log: g.__drlog ?? [], adm: g.__adm ?? null, outcomes: world.state._outcomeRecords ?? [] }));
+console.log("done", seed, om.deaths, om.inpatientDischarges);

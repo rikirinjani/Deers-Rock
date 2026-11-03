@@ -76,7 +76,9 @@ export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgen
   const gender: "male" | "female" = isFemale ? "female" : "male";
   const locale = getIdentityLocale();
   const identity = locale.identity(gender, rng);
-  const age = locale.ageOf(identity);
+  // Staff are working-age (22-65). The identity draws a general-population age (1-87), so fold it
+  // deterministically into the working range instead of drawing again (no extra rng use).
+  const age = 22 + locale.ageOf(identity) % 44;
 
   const rd = ROLE_DEPARTMENT[role];
   const namePool = role === "dokter_umum" || role === "dokter_spesialis" || role === "dokter_gigi"

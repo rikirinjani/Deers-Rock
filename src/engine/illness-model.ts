@@ -419,7 +419,8 @@ export function groupForIcd(code: string | undefined): string | null {
 
 // ── Grade ─────────────────────────────────────────────────────────────────
 export const GRADE_SCALE: Record<Grade, number> = { mild: 0.5, moderate: 1, severe: 1.5 };
-const CRITICAL_DX = ["I21", "I50", "R57", "A41", "I63", "J84", "A91"];
+// Mirrors assessMortalityRisk: dengue (A91) is not a blanket critical diagnosis.
+const CRITICAL_DX = ["I21", "I50", "R57", "A41", "I63", "J84"];
 
 /** Risk points from factors already in the mortality-risk score (age, comorbidity, critical diagnosis). */
 export function gradePoints(age: number, diagnosisCodes: string[]): number {

@@ -1,0 +1,50 @@
+seeds 0,1,2,3
+seed 0: deaths 7 (frozen 7) discharges 193 (frozen 193) log 193 wall 2577s
+seed 1: deaths 12 (frozen 12) discharges 183 (frozen 183) log 183 wall 3926s
+seed 2: deaths 10 (frozen 10) discharges 190 (frozen 190) log 190 wall 2794s
+seed 3: deaths 6 (frozen 6) discharges 190 (frozen 190) log 190 wall 2244s
+
+discharge decisions 756 deaths 35 GDR/1000 46.3
+
+RISK TIER  n  share  deaths  rate
+low       664 87.8% 21 3.2% share of deaths 60%
+moderate  66 8.7% 7 10.6% share of deaths 20%
+high      26 3.4% 7 26.9% share of deaths 20%
+expected deaths from tiers (no scenario boost): 29.0
+
+AUROC(score -> death): 0.656 (n pos 35 )
+AUROC bootstrap 95% CI 0.560 0.751
+
+age all discharges: mean 36.0 median 36
+age deaths: mean 36.0 median 36
+
+TOP DIAGNOSES by discharges (icd n share deaths rate)
+E11      55   7.3%   1   1.8%
+I10      53   7.0%   3   5.7%
+J15      36   4.8%   2   5.6%
+E78      33   4.4%   1   3.0%
+N39      26   3.4%   1   3.8%
+J45      22   2.9%   0   0.0%
+A91      20   2.6%   3  15.0%
+A01      20   2.6%   1   5.0%
+K29      19   2.5%   1   5.3%
+A09      18   2.4%   0   0.0%
+B50      17   2.2%   1   5.9%
+S72      17   2.2%   0   0.0%
+R10      16   2.1%   2  12.5%
+J06      15   2.0%   0   0.0%
+J10      14   1.9%   0   0.0%
+deaths by icd: ["A91:3/20","I10:3/53","J15:2/36","R10:2/16","I26:2/9","K21:2/12","B50:1/17","N10:1/7"]
+
+DENGUE (A90/A91): discharges 20 share 2.6% deaths 3 CFR 15.0%
+dengue age mean 36.0 median 36 share<18 0% share>=60 0%
+dengue deaths ages: 36,36,36 ndx: 2,2,3
+dengue risk tiers: low:4 moderate:3 high:13
+
+mean #diagnoses: all 2.01 deaths 2.11 survivors 2.00 dengue 2.05
+
+LOS days: deaths mean 4.92 min 3.2 max 6.8 | survivors mean 4.79 | deaths before 2 d: 0
+
+risk factors firing (count of discharges): {"Critical diagnosis":48,"≥ 3 comorbidities":238,"RR > 24":271,"SBP < 90 mmHg":42,"HR abnormal":34,"Fever > 39°C":64,"SpO2 < 90%":11}
+risk factors among deaths: {"SBP < 90 mmHg":8,"RR > 24":18,"HR abnormal":3,"Fever > 39°C":7,"Critical diagnosis":9,"≥ 3 comorbidities":14,"SpO2 < 90%":1}
+score histogram: {"0":319,"1":251,"2":94,"3":44,"4":22,"5":14,"6":7,"7":2,"8":3}
