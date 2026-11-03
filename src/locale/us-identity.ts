@@ -17,9 +17,10 @@
 import type { Address, Gender, Identity, MaritalStatus, Religion } from "../identity/types.js";
 import type { IIdentityLocale } from "./contracts.js";
 import { pickState, US_STATE_BY_FIPS } from "./us-geography.js";
+import { SIM_REFERENCE_YEAR } from "../identity/reference-year.js";
 
-/** Fixed simulation reference year for ages (no wall clock). */
-export const US_REFERENCE_YEAR = 2025;
+/** Fixed simulation reference year for ages (no wall clock); shared with the Indonesian locale. */
+export const US_REFERENCE_YEAR = SIM_REFERENCE_YEAR;
 
 /** Draws consumed per identity() call. */
 export const IDENTITY_DRAWS = 10;

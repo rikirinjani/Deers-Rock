@@ -25,7 +25,7 @@ function patientToFhir(patient: Patient): FhirResource {
     name: [{ use: "official", given: [nameParts[0]], family: nameParts.slice(1).join(" ") }],
     telecom: id ? [{ system: "phone", value: patient.phone }] : [],
     gender: patient.gender as "male" | "female",
-    birthDate: id?.locale === "US" ? id.birthDate : id ? id.birthDate.split("-").reverse().join("-") : `${new Date().getFullYear() - patient.age}-01-01`,
+    birthDate: id?.locale === "US" ? id.birthDate : id ? (id.birthDate.includes("/") ? id.birthDate.split("/").reverse().join("-") : id.birthDate.split("-").reverse().join("-")) : `${new Date().getFullYear() - patient.age}-01-01`,
     address: id ? [{
       use: "home", line: [id.addressKtp.street],
       city: id.addressKtp.kabupatenKota, district: id.addressKtp.kecamatan,

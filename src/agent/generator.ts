@@ -76,7 +76,7 @@ export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgen
   const gender: "male" | "female" = isFemale ? "female" : "male";
   const locale = getIdentityLocale();
   const identity = locale.identity(gender, rng);
-  const age = locale.ageOf ? locale.ageOf(identity) : new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
+  const age = locale.ageOf(identity);
 
   const rd = ROLE_DEPARTMENT[role];
   const namePool = role === "dokter_umum" || role === "dokter_spesialis" || role === "dokter_gigi"

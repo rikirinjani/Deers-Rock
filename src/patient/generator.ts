@@ -276,8 +276,7 @@ export function generatePatient(rng?: () => number): Patient {
   const gender: Gender = rand() > 0.5 ? "male" : "female";
   const locale = getIdentityLocale();
   const identity = locale.identity(gender, rng);
-  // Locale hooks are optional: absent = the built-in Indonesian derivations (frozen baselines).
-  const age = locale.ageOf ? locale.ageOf(identity) : new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
+  const age = locale.ageOf(identity);
 
   const bloodType = pickRandom(BLOOD_TYPES, rng);
   const rhesus = pickRandom(RHESUS, rng);

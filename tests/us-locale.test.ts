@@ -164,3 +164,16 @@ describe("US world (locale + billing)", () => {
     }
   });
 });
+
+describe("age derivation (clinical-v2 fix)", () => {
+  it("Indonesian patients get their real age from the birth year, not a constant", async () => {
+    const { ageFromBirthDate, SIM_REFERENCE_YEAR } = await import("../src/identity/reference-year.js");
+    expect(ageFromBirthDate("12/01/1959")).toBe(SIM_REFERENCE_YEAR - 1959);
+    expect(ageFromBirthDate("1959-01-12")).toBe(SIM_REFERENCE_YEAR - 1959);
+    const r = lcg(4);
+    const ages = Array.from({ length: 300 }, () => generatePatient(r).age);
+    expect(new Set(ages).size).toBeGreaterThan(20);
+    expect(Math.min(...ages)).toBeLessThan(18);
+    expect(Math.max(...ages)).toBeGreaterThan(60);
+  });
+});

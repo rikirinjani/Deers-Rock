@@ -20,14 +20,14 @@ export interface IIdentityLocale {
   identity(gender: Gender, rng?: () => number): Identity;
   /** Reset per-world counters (NIK serial, MRN). */
   resetCounters(): void;
+  /** Age in whole years of a generated identity (fixed reference year, no wall clock). */
+  ageOf(identity: Identity): number;
   /**
    * Optional hooks. When absent the patient generator uses its built-in
-   * Indonesian name list, phone format and age derivation (kept for the
-   * frozen baselines).
+   * Indonesian name list and phone format (kept for the frozen baselines).
    */
   patientName?(gender: Gender, rng?: () => number): string;
   phone?(rng?: () => number): string;
-  ageOf?(identity: Identity): number;
 }
 
 export interface IReferralNetwork {

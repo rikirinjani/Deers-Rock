@@ -1,11 +1,12 @@
 /**
  * Indonesian locale: wraps the existing identity generator and referral
- * geography unchanged (Epic X M10.5a). Optional identity hooks are left out on
- * purpose: the patient generator's built-in Indonesian path stays authoritative.
+ * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
+ * patient generator's built-in Indonesian lists stay authoritative.
  */
 import type { IIdentityLocale, IReferralNetwork } from "./contracts.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
+import { ageFromBirthDate } from "../identity/reference-year.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { facilityTier, isEligibleSender, distanceKm } from "../referral/geo.js";
 
@@ -13,6 +14,7 @@ export class IndonesiaIdentityLocale implements IIdentityLocale {
   config = { countryCode: "ID", displayName: "Indonesia" };
   identity(gender: Gender, rng?: () => number): Identity { return generateIdentity(gender, rng); }
   resetCounters(): void { resetNikCounter(); }
+  ageOf(identity: Identity): number { return ageFromBirthDate(identity.birthDate); }
 }
 
 /**

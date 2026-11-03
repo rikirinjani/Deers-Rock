@@ -7,7 +7,8 @@ describe("Patient Generator", () => {
     const p = generatePatient();
     expect(p.id).toMatch(/^PAT-/);
     expect(p.name).toBeTruthy();
-    expect(p.age).toBeGreaterThanOrEqual(18);
+    expect(p.age).toBeGreaterThanOrEqual(1); // real ages since clinical-v2 (10% are children)
+    expect(p.age).toBeLessThanOrEqual(90);
     expect(["male", "female"]).toContain(p.gender);
     expect(p.diagnoses.length).toBeGreaterThanOrEqual(1);
   });

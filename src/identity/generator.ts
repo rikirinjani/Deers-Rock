@@ -1,5 +1,6 @@
 import type { Identity, NIK, Address, Gender, Religion, MaritalStatus } from "./types.js";
 import { PROVINCES, STREET_NAMES, getRandomPostalCode } from "./data.js";
+import { SIM_REFERENCE_YEAR } from "./reference-year.js";
 
 let nikCounter = 0;
 export function resetNikCounter(): void { nikCounter = 0; }
@@ -15,8 +16,7 @@ function generateBirthDate(gender: Gender, rng?: () => number): { dateStr: strin
   const age = rand() < 0.1
     ? Math.floor(rand() * 17) + 1
     : Math.floor(rand() * 70) + 18;
-  const now = new Date();
-  const year = now.getFullYear() - age;
+  const year = SIM_REFERENCE_YEAR - age;
   const month = 1 + Math.floor(rand() * 12);
   const maxDay = new Date(year, month, 0).getDate();
   const day = 1 + Math.floor(rand() * maxDay);
