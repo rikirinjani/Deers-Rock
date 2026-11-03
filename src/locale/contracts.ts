@@ -1,0 +1,53 @@
+/**
+ * Locale contracts (Epic X M10.5a): the country-specific parts of patient
+ * identity and of the referral/transfer network, behind interfaces so the
+ * engine does not hard-code Indonesian geography. Engine-side for now; they
+ * move into packages/core with the rest of the adapter packaging in M10.6.
+ *
+ * Determinism: implementations draw only from the rng they are given and use
+ * no wall clock. Draw counts are a pure function of inputs.
+ */
+import type { Identity, Gender, ReferralFacility } from "../identity/types.js";
+
+export interface ILocaleConfig {
+  countryCode: string;
+  displayName: string;
+}
+
+export interface IIdentityLocale {
+  config: ILocaleConfig;
+  /** Build a patient/staff identity (national ID slot, address, demographics). */
+  identity(gender: Gender, rng?: () => number): Identity;
+  /** Reset per-world counters (NIK serial, MRN). */
+  resetCounters(): void;
+  /**
+   * Optional hooks. When absent the patient generator uses its built-in
+   * Indonesian name list, phone format and age derivation (kept for the
+   * frozen baselines).
+   */
+  patientName?(gender: Gender, rng?: () => number): string;
+  phone?(rng?: () => number): string;
+  ageOf?(identity: Identity): number;
+}
+
+export interface IReferralNetwork {
+  config: ILocaleConfig;
+  facilities: readonly ReferralFacility[];
+  /** Hierarchy level of a facility type (1 = lowest; the home hospital is the receiving tier). */
+  tier(type: string): number;
+  /** Whether letters may originate from this region code. */
+  isEligibleSender(regionCode: string): boolean;
+  /** Distance in km from the home hospital to a region. */
+  distanceKm(regionCode: string): number;
+  /** Whether a road ambulance can reach the home hospital from this region. */
+  reachableByRoad(regionCode: string): boolean;
+  /** Region code of the home hospital (numeric, as used by dispatch records). */
+  homeRegionCode: number;
+  /** Receiving facility used when no higher-tier target exists. */
+  fallbackTarget: string;
+  /** Reasons for referral/transfer (one is chosen per letter). */
+  reasons: readonly string[];
+  /** Diagnoses (ICD-10 categories) a letter can carry. */
+  diagnoses: readonly string[];
+  letterNote(from: ReferralFacility, toFacility: string): string;
+}

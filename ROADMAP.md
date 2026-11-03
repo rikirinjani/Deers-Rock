@@ -328,7 +328,7 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 
 ## Epic X — International Billing & Commercial Productization
 
-**Status:** In progress — owner approved 2026-11-02 (full US sim, single repo, branch `epic-x-international`); 10.1, 10.3 and 10.4 done (US numbers placeholder), 10.2 rules done (package move deferred), 10.5 next. Scoping: `docs/epic-x-scoping.md`. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
+**Status:** In progress — owner approved 2026-11-02 (full US sim, single repo, branch `epic-x-international`); 10.1, 10.3, 10.4 and 10.5a done (US numbers placeholder), 10.2 rules done (package move deferred), 10.5b next. Scoping: `docs/epic-x-scoping.md`. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
 
 ### Milestone 10.1: Contract hardening ✅ (S)
 - [x] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
@@ -350,7 +350,8 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 - [ ] DRG numbers/weights, base rate, payer multipliers, chargemaster and drug prices are unverified placeholders → sourced in 10.5c (CMS Table 5, IPPS rule, price-transparency files); real FDA formulary with US protocols in 10.5b
 
 ### Milestone 10.5: US hospital content & calibration 🔴 (XL)
-- [ ] (a) MRN, US locale/geography, US referral/ED model
+- [x] (a) **done (placeholder demographics):** `src/locale/` contracts + registry (`IIdentityLocale`, `IReferralNetwork`), Indonesian default unchanged, US pack via `useUSLocale()`: MRN (8-digit, no SSN), US names/addresses/ZIP/FIPS for 50 states + DC (population-weighted), fictional 555-01xx phones, ages from a fixed reference year (no wall clock), synthetic EMTALA-style transfer network (clinic/CAH/community → regional medical center, English letters). `tests/us-locale.test.ts` (12). Not localized yet (→ 10.5b): ED calendar events (Indonesian holidays/outbreaks), staff roster roles/names/licences, locale contracts into `packages/core` (→ 10.6)
+- **Finding (pre-existing, not fixed):** Indonesian patient/agent age is derived from `identity.birthDate.split("-")[2]` but the date uses `/`, so every patient's `age` is 36. Fixing it changes the frozen vitals/clinical baselines; needs an owner decision. The US locale computes age correctly (`ageOf`).
 - [ ] (b) US epidemiology/case mix, ICD-10-CM disease set, protocols, FDA formulary + USD prices
 - [ ] (c) Calibration targets (CMS/HCUP/MedPAC/CDC), frozen US baseline
 
@@ -374,6 +375,6 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-1
 | **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
 | **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
 | **IX** Financial & Referral | ✅ 4/4 MS | 47 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; 2026-10-31 JR limited to traffic accidents (owner) |
-| **X** International Billing | 🟡 M10.1 ✅ M10.2 🟡 M10.3 ✅ M10.4 ✅ | 30 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.5 next |
+| **X** International Billing | 🟡 M10.1 ✅ M10.2 🟡 M10.3 ✅ M10.4 ✅ M10.5a ✅ | 30 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.5b next |
 
 **Overall (2026-10-27, branch `epic-audit-vi-ix`):** 531 tests pass / 3 skipped / 0 failed (67 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen 2026-11-01 as `vitals-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01.md`; E1 regression reference plus outcome baseline, 10 seeds × 10 sim-days: mortality 3.70 %, ALOS 4.80 d, BOR 99.8 %, 94.5 % discharged improved); earlier `substream-v1`/`outcome-v1` kept as history; 2026-09-10 JAMIA freeze untouched. P-002 clinical vitals frozen 2026-11-01 as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`; default config: pooled GDR 49.4 ‰, improved 85.1 %, deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %). Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.

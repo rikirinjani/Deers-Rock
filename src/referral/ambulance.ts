@@ -157,14 +157,9 @@ export function transportNeed(icd: string): TransportNeed {
   return ALS_DX.has(cat) ? "ALS" : BLS_DX.has(cat) ? "BLS" : "none";
 }
 
-/**
- * Sulawesi provinces linked to Makassar by the Trans-Sulawesi road. Senders
- * elsewhere (Kalimantan, Nusa Tenggara, Maluku, Papua) need a sea or air
- * transfer, which is not modelled: no road ambulance is sent.
- */
-const ROAD_PROVINCES = new Set(["71", "72", "73", "74", "75", "76"]);
+/** Road access to the home hospital from a region (Epic X M10.5a: from the active referral network). */
 export function reachableByRoad(provinceCode: string): boolean {
-  return ROAD_PROVINCES.has(provinceCode);
+  return getReferralNetwork().reachableByRoad(provinceCode);
 }
 
 /**
@@ -178,10 +173,8 @@ import type { Clock } from "../engine/clock.js";
 import type { EventQueue } from "../engine/event-queue.js";
 import type { ReferralLetter } from "../identity/types.js";
 import type { ReferralState } from "./system.js";
-import { distanceKm } from "./geo.js";
+import { getReferralNetwork } from "../locale/registry.js";
 import { appendCharge } from "../engine/charge-generator.js";
-
-const DEERS_ROCK_PROVINCE = 73;
 
 export function ambulanceHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
   const ambState = (state as unknown as { _ambulanceState?: AmbulanceState })._ambulanceState;
@@ -197,14 +190,15 @@ export function ambulanceHandler(state: HospitalState, clock: Clock, _queue: Eve
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     for (const letter of pending) {
       const need = transportNeed(letter.diagnosis);
-      const prov = refState.facilities.get(letter.fromFacility)?.provinceCode ?? "73";
+      const net = getReferralNetwork();
+      const prov = refState.facilities.get(letter.fromFacility)?.provinceCode ?? String(net.homeRegionCode);
       let decided: Partial<ReferralLetter> | null;
       if (need === "none") {
         decided = { transport: "self", arrivalTick: clock.tick };
       } else if (!reachableByRoad(prov)) {
         decided = { transport: "sea_air", arrivalTick: clock.tick };
       } else {
-        const id = dispatchAmbulance(amb, Number(prov), DEERS_ROCK_PROVINCE, distanceKm(prov), letter.id, clock.tick, need);
+        const id = dispatchAmbulance(amb, Number(prov), net.homeRegionCode, net.distanceKm(prov), letter.id, clock.tick, need);
         // Fleet all out: leave the letter undecided and retry on the next pass.
         decided = id ? { transport: "ambulance", dispatchId: id, arrivalTick: amb.dispatches.get(id)!.etaTick } : null;
       }

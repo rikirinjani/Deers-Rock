@@ -1,5 +1,5 @@
 import type { Patient, Gender, Vitals, Diagnosis, BloodType, Rhesus } from "./schema.js";
-import { generateIdentity } from "../identity/generator.js";
+import { getIdentityLocale } from "../locale/registry.js";
 
 const firstNames: Record<Gender, string[]> = {
   male: ["Agus", "Bambang", "Cahyono", "Dwi", "Eko", "Hendra", "Joko", "Ketut", "Made", "Nyoman", "Putu", "Slamet", "Sigit", "Tri", "Wahyu", "Ahmad", "Burhan", "Daniel", "Edi", "Faisal", "Gatot", "Hasan", "Irwan", "Kusno", "Lukman", "Marwan", "Nurdin", "Pardi", "Rahmat", "Supardi", "Taufik", "Usman", "Wawan", "Yusuf", "Zainal", "Adi", "Bayan", "Cendekia", "Dhika", "Farhan", "Gilang", "Haryo", "Irfan", "Jayadi", "Kurniawan", "Luthfi", "Maulana", "Naufal", "Octavian", "Putra", "Rizky", "Sandi", "Temmy", "Umar", "Vino", "Widodo", "Xavier", "Yonathan", "Zulkarnain", "Arif", "Bayu", "Darmawan", "Ellis", "Frankie", "Guntur", "Hafiz", "Indra", "Jajang", "Kholid", "Laksmana", "Mulyadi", "Nanda", "Oman", "Prabowo", "Rian", "Surya", "Teguh", "Urip", "Vincent", "Wisnu", "Yoga", "Zain", "Aldi", "Bima", "Cahya", "Dimas", "Elang", "Ferry", "Galih", "Hadi", "Ilham", "Jaya", "Kevin", "Lucky", "Muhammad", "Nabil", "Oscar", "Primo", "Rendi", "Salman", "Tomi", "Virgil", "Wira", "Yanto", "Zidan", "Andi", "Baso", "Mappa", "Sangkala", "Upa", "Ambo", "Lolo", "Syamsul", "Arifuddin", "Muhlis", "Ridwan", "Fadli", "Akbar", "Syahrir", "Nasaruddin", "Jusman", "Hamzah", "Kaharuddin", "Amiruddin", "Yohanis", "Markus", "Petrus", "Lukas", "Stefanus", "Yakobus", "Paulus", "Frans", "Ruben", "Obed", "Asep", "Ujang", "Dadang", "Cecep", "Iwan", "Endang", "Rudi", "Sutrisno", "Gede", "Komang", "Wayan", "Kadek", "Bonar", "Togar", "Parlindungan", "Hotman", "Ronny", "Jefri", "Steven", "Rocky"],
@@ -274,19 +274,21 @@ export function generatePatient(rng?: () => number): Patient {
   const rand = rng ?? Math.random;
   patientCounter++;
   const gender: Gender = rand() > 0.5 ? "male" : "female";
-  const identity = generateIdentity(gender, rng);
-  const age = new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
+  const locale = getIdentityLocale();
+  const identity = locale.identity(gender, rng);
+  // Locale hooks are optional: absent = the built-in Indonesian derivations (frozen baselines).
+  const age = locale.ageOf ? locale.ageOf(identity) : new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
 
   const bloodType = pickRandom(BLOOD_TYPES, rng);
   const rhesus = pickRandom(RHESUS, rng);
 
   const patient: Patient = {
     id: `PAT-${String(patientCounter).padStart(4, "0")}`,
-    name: `${pickRandom(firstNames[gender], rng)} ${pickRandom(lastNames, rng)}`,
+    name: locale.patientName ? locale.patientName(gender, rng) : `${pickRandom(firstNames[gender], rng)} ${pickRandom(lastNames, rng)}`,
     age,
     gender,
     identity,
-    phone: `08${String(Math.floor(rand() * 1000000000)).padStart(10, "0")}`,
+    phone: locale.phone ? locale.phone(rng) : `08${String(Math.floor(rand() * 1000000000)).padStart(10, "0")}`,
     bloodType: bloodType as BloodType,
     rhesus: rhesus as Rhesus,
     allergies: [pickRandom(ALLERGIES_POOL, rng)].filter(a => a !== "None"),

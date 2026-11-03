@@ -51,7 +51,7 @@ import { aiCoderHandler, resetCoderProfiles } from "./ai-coder.js";
 import { generateAgentPool, resetAgentCounter } from "../agent/generator.js";
 import { REFERRAL_FACILITIES } from "../identity/data.js";
 import { resetPatientCounter } from "../patient/generator.js";
-import { resetNikCounter } from "../identity/generator.js";
+import { getIdentityLocale } from "../locale/registry.js";
 import { resetChargeCounter } from "./charge-generator.js";
 import { resetCssdCounters } from "./cssd.js";
 import { resetDialysisCounters } from "./dialysis.js";
@@ -77,7 +77,7 @@ export interface World {
 
 export function createWorld(patientCount: number = 100, journalPath?: string, seed?: number): World {
   // Phase B: reset all module-global ID counters for same-process determinism
-  resetPatientCounter(); resetNikCounter(); resetAgentCounter();
+  resetPatientCounter(); getIdentityLocale().resetCounters(); resetAgentCounter();
   resetChargeCounter(); resetCssdCounters(); resetDialysisCounters();
   resetScenarioCounter(); resetBloodBankCounters(); resetClinicalNutritionCounters();
   resetIpcCounter(); resetMicrobiologyCounter(); resetPathologyCounter();

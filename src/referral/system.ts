@@ -2,8 +2,7 @@ import type { HospitalState } from "../engine/state-store.js";
 import type { Clock } from "../engine/clock.js";
 import { EventQueue } from "../engine/event-queue.js";
 import type { ReferralLetter, ReferralFacility } from "../identity/types.js";
-import { REFERRAL_FACILITIES } from "../identity/data.js";
-import { facilityTier, catchmentBand, isEligibleSender, distanceKm } from "./geo.js";
+import { getReferralNetwork } from "../locale/registry.js";
 
 /** ADR-016 D3: daily slot budget — max letters processed per %5 fire. */
 const REFERRAL_DAILY_SLOT_BUDGET = 5;
@@ -22,7 +21,7 @@ export interface ReferralState {
 
 export function initReferralState(): ReferralState {
   const facilities = new Map<string, ReferralFacility>();
-  for (const f of REFERRAL_FACILITIES) {
+  for (const f of getReferralNetwork().facilities) {
     facilities.set(f.id, f);
   }
   return { facilities, letters: new Map(), incomingQueue: [], letterCounter: 0, patientCounter: 0 };
@@ -49,35 +48,24 @@ export function referralHandler(state: HospitalState, clock: Clock, queue: Event
     const targetTierDraw = clock.rng();
     const targetDistDraw = clock.rng();
 
-    const lowerFacilities = Array.from(REFERRAL_FACILITIES)
-      .filter(f => (facilityTier(f.type) <= 2) && isEligibleSender(f.provinceCode));
-    // RS C (tier 3) is now eligible as sender per ADR-016 (roadmap: RS C→RS B).
-    const allEligible = Array.from(REFERRAL_FACILITIES)
-      .filter(f => (facilityTier(f.type) <= 3) && isEligibleSender(f.provinceCode));
+    // Epic X M10.5a: tiers, geography and wording come from the active referral network.
+    const net = getReferralNetwork();
+    const lowerFacilities = Array.from(net.facilities)
+      .filter(f => (net.tier(f.type) <= 2) && net.isEligibleSender(f.provinceCode));
 
     if (lowerFacilities.length > 0 && gateDraw <= 0.3) {
       const facility = lowerFacilities[Math.floor(facilityDraw * lowerFacilities.length)]!;
-      const reason = [
-        "Kasus memerlukan penanganan spesialis",
-        "Diagnosis masih belum jelas, diperlukan pemeriksaan lanjutan",
-        "Membutuhkan tindakan bedah",
-        "Perawatan intensif diperlukan",
-        "Keterbatasan fasilitas penunjang diagnostik",
-        "Pasien dengan komplikasi",
-        "Rujukan berdasarkan Sistem Rujukan Berjenjang",
-        "Kasus kegawatdaruratan yang memerlukan penanganan lebih lanjut",
-      ][Math.floor(reasonDraw * 8)]!;
-      const diagnoses = ["I10", "E11", "J15", "N39", "I50", "J44", "M54", "K35", "S72", "I21"];
-      const diagnosis = diagnoses[Math.floor(diagnosisDraw * diagnoses.length)]!;
+      const reason = net.reasons[Math.floor(reasonDraw * net.reasons.length)]!;
+      const diagnosis = net.diagnoses[Math.floor(diagnosisDraw * net.diagnoses.length)]!;
 
       // Target: nearest higher-tier facility within catchment (ADR-016 D1).
-      const targetTier = facilityTier(facility.type) + 1;
-      const targets = Array.from(REFERRAL_FACILITIES).filter(
-        f => facilityTier(f.type) === targetTier && isEligibleSender(f.provinceCode)
-      ).sort((a, b) => distanceKm(a.provinceCode) - distanceKm(b.provinceCode));
+      const targetTier = net.tier(facility.type) + 1;
+      const targets = Array.from(net.facilities).filter(
+        f => net.tier(f.type) === targetTier && net.isEligibleSender(f.provinceCode)
+      ).sort((a, b) => net.distanceKm(a.provinceCode) - net.distanceKm(b.provinceCode));
       const toFacility = targets.length > 0
         ? targets[Math.floor(targetDistDraw * targets.length)]!.id
-        : "RSC-001"; // fallback to nearest RS C
+        : net.fallbackTarget;
 
       const letterId = `RJL-${String(letterCounter).padStart(4, "0")}`;
       letterCounter++;
@@ -94,7 +82,7 @@ export function referralHandler(state: HospitalState, clock: Clock, queue: Event
         diagnosis,
         referralDate: clock.hospitalTimeMs,
         status: "active" as const,
-        notes: `Dirujuk dari ${facility.name} (${facility.type}) ke ${toFacility}`,
+        notes: net.letterNote(facility, toFacility),
       };
       letters.set(letter.id, letter);
       incoming.push({ letterId: letter.id, patientId: letter.patientId, fromFacility: letter.fromFacility, tickArrived: clock.tick });

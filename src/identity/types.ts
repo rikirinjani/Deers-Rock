@@ -35,11 +35,19 @@ export interface Identity {
   nationality: string;
   addressKtp: Address;
   addressDomisili: Address;
+  /** Epic X M10.5a: set by non-Indonesian locales (absent = Indonesian). */
+  locale?: "ID" | "US";
+  /** US medical record number (also stored in nik.value, the national-ID slot). */
+  mrn?: string;
 }
 
-export type Religion = "Islam" | "Kristen Protestan" | "Katolik" | "Hindu" | "Buddha" | "Khonghucu";
+export type Religion = "Islam" | "Kristen Protestan" | "Katolik" | "Hindu" | "Buddha" | "Khonghucu"
+  // Epic X M10.5a (US locale)
+  | "Christian" | "Jewish" | "Muslim" | "Unaffiliated" | "Other";
 
-export type MaritalStatus = "Belum Kawin" | "Kawin" | "Cerai Hidup" | "Cerai Mati";
+export type MaritalStatus = "Belum Kawin" | "Kawin" | "Cerai Hidup" | "Cerai Mati"
+  // Epic X M10.5a (US locale)
+  | "Single" | "Married" | "Divorced" | "Widowed";
 
 export interface ProvinceData {
   code: string;
@@ -64,7 +72,10 @@ export interface DistrictData {
 export interface ReferralFacility {
   id: string;
   name: string;
-  type: "Puskesmas" | "Klinik" | "RS Tipe D" | "RS Tipe C";
+  type: "Puskesmas" | "Klinik" | "RS Tipe D" | "RS Tipe C"
+    // Epic X M10.5a (US transfer network)
+    | "Rural Health Clinic" | "Urgent Care" | "Critical Access Hospital" | "Community Hospital"
+    | "Regional Medical Center" | "Tertiary Referral Center" | "Level I Trauma Center";
   provinceCode: string;
   regencyCode: string;
   capacity: number;

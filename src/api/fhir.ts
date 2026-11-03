@@ -16,18 +16,20 @@ function patientToFhir(patient: Patient): FhirResource {
   return {
     resourceType: "Patient",
     id: patient.id,
-    identifier: id ? [
+    identifier: id?.locale === "US" ? [
+      { system: "http://rs-deers-rock.go.id/mrn", value: id.mrn ?? patient.id },
+    ] : id ? [
       { system: "http://www.dinkes.go.id/nik", value: id.nik.value },
       { system: "http://rs-deers-rock.go.id/mrn", value: patient.id },
     ] : [{ system: "http://rs-deers-rock.go.id/mrn", value: patient.id }],
     name: [{ use: "official", given: [nameParts[0]], family: nameParts.slice(1).join(" ") }],
     telecom: id ? [{ system: "phone", value: patient.phone }] : [],
     gender: patient.gender as "male" | "female",
-    birthDate: id ? id.birthDate.split("-").reverse().join("-") : `${new Date().getFullYear() - patient.age}-01-01`,
+    birthDate: id?.locale === "US" ? id.birthDate : id ? id.birthDate.split("-").reverse().join("-") : `${new Date().getFullYear() - patient.age}-01-01`,
     address: id ? [{
       use: "home", line: [id.addressKtp.street],
       city: id.addressKtp.kabupatenKota, district: id.addressKtp.kecamatan,
-      state: id.addressKtp.provinsi, postalCode: id.addressKtp.postalCode, country: "ID",
+      state: id.addressKtp.provinsi, postalCode: id.addressKtp.postalCode, country: id.locale === "US" ? "US" : "ID",
     }] : undefined,
     maritalStatus: id ? { text: id.maritalStatus } : undefined,
     extension: [

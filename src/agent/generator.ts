@@ -1,5 +1,5 @@
 import type { HospitalAgent, AgentRole, DepartmentCode, Spesialisasi, AgentPool } from "./types.js";
-import { generateIdentity } from "../identity/generator.js";
+import { getIdentityLocale } from "../locale/registry.js";
 import { PROVINCES, STREET_NAMES, getRandomPostalCode } from "../identity/data.js";
 import { assignRoster } from "./roster.js";
 
@@ -74,8 +74,9 @@ export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgen
   agentCounter++;
   const isFemale = role === "bidan" || (["perawat", "apoteker", "nutrisionis", "psikolog", "pekerja_sosial"].includes(role) && rand() > 0.5) || rand() > 0.6;
   const gender: "male" | "female" = isFemale ? "female" : "male";
-  const identity = generateIdentity(gender, rng);
-  const age = new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
+  const locale = getIdentityLocale();
+  const identity = locale.identity(gender, rng);
+  const age = locale.ageOf ? locale.ageOf(identity) : new Date().getFullYear() - parseInt(identity.birthDate.split("-")[2] ?? "1990");
 
   const rd = ROLE_DEPARTMENT[role];
   const namePool = role === "dokter_umum" || role === "dokter_spesialis" || role === "dokter_gigi"
