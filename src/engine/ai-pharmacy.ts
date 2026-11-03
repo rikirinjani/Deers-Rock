@@ -5,7 +5,7 @@ import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder, Charge } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
 import { appendCharge } from "./charge-generator.js";
-import { DRUG_PRICES, PHARMACY_FALLBACK_PRICE } from "./price-tables.js";
+import { drugPrice } from "./price-tables.js";
 import { checkDrugAllergy, checkDiagnosisContraindication, checkDrugInteraction, getDoseRange } from "./pharmacy-knowledge.js";
 import { getDeteriorationRate } from "./agent-learning.js";
 
@@ -128,7 +128,7 @@ function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpati
       // ADR-015 D1: billed price = acquisition cost × PHARMACY_MARKUP (1.25),
       // computed at module load in price-tables.ts; flat fallback when the
       // drug code misses the catalog. amount = unitPrice × 1 (canonical).
-      const unitPrice = DRUG_PRICES.get(drugCode) ?? PHARMACY_FALLBACK_PRICE;
+      const unitPrice = drugPrice(drugCode);
       appendCharge(chargesMut, clock, order.encounterId, order.patientId, "pharmacy",
         `Dispensed: ${order.medication.name}`, undefined, { code: drugCode, unitPrice, quantity: 1 });
       stateMut = { ...stateMut, charges: chargesMut };

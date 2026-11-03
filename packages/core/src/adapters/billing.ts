@@ -49,6 +49,27 @@ export interface IChargePolicy {
   drugMarkup(payerType: PayerType): number;
 }
 
+/**
+ * Item-level price list (lab, imaging, procedures, drugs, fees) in major
+ * currency units. Each lookup returns undefined on a miss; the caller then
+ * falls back to IChargePolicy.baseRate for the category.
+ */
+export interface IPriceBook {
+  config: IAdapterConfig;
+  lab(testCode: string): number | undefined;
+  radiology(studyType: string): number | undefined;
+  surgery(procedureCode: string): number | undefined;
+  dialysis(sessionType: string): number | undefined;
+  radiotherapy(modality: string): number | undefined;
+  edFee(acuity: number): number | undefined;
+  specialtyConsult(specialty: string): number | undefined;
+  respiratoryActivation(): number;
+  /** Ambulance transfer fee for a tier ("BLS" | "ALS") and distance in km. */
+  ambulance(tier: string, distanceKm: number): number;
+  /** Billed unit price (acquisition cost x markup); undefined when the drug is not in the formulary. */
+  drug(drugCode: string): number | undefined;
+}
+
 /** Facts about a patient that payer assignment may use. */
 export interface PayerPatientFacts {
   id?: string;

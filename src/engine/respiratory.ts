@@ -3,7 +3,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { Charge, RespiratoryOrder } from "../patient/schema.js";
 import { appendCharge } from "./charge-generator.js";
-import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
+import { respiratoryActivationFee } from "./price-tables.js";
 import { isClinicalVitalsEnabled } from "./config.js";
 import { noteRespiratory } from "./treatment-effects.js";
 
@@ -53,7 +53,7 @@ export function respiratoryHandler(state: HospitalState, clock: Clock, _queue: E
     // orders to "active" — creation is the activation). No rng draws added.
     newCharges = appendCharge(newCharges, clock, encounter.id, encounter.patientId, "respiratory",
       `Respiratory therapy: ${therapy.type}`, undefined,
-      { code: therapy.type, unitPrice: RESPIRATORY_ACTIVATION_FEE, quantity: 1 });
+      { code: therapy.type, unitPrice: respiratoryActivationFee(), quantity: 1 });
   }
 
   return encounters === state.encounters

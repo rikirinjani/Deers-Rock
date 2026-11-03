@@ -7,10 +7,13 @@
  * returned (recoverable denial -> corrected/appealed claim, resubmitted by the
  * engine once the chart is coded).
  *
+ * The allowed amount is the MS-DRG payment (us-drg.ts) x a per-payer multiplier,
+ * capped at billed charges; a diagnosis with no DRG falls back to a fraction of
+ * charges.
+ *
  * CALIBRATION PENDING: every number below is a placeholder to be replaced by
- * sourced targets in M10.5c (CMS, HCUP, MedPAC, KFF), and the allowed amount
- * becomes MS-DRG weight x base rate in M10.4. Until then amounts are
- * fraction-of-charges, so US output is structurally valid but NOT validated.
+ * sourced targets in M10.5c (CMS, HCUP, MedPAC, KFF), so US output is
+ * structurally valid but NOT validated.
  *
  * Determinism: build draws nothing (control number is a hash); verify draws
  * exactly once for insured payers and never for self-pay.
@@ -18,6 +21,8 @@
 import type {
   ClaimContext, ClaimDraft, DenialCode, IClaimLifecycle, VerificationOutcome,
 } from "./contracts.js";
+import { assignMsDrg, drgPayment } from "./us-drg.js";
+import type { DrgAssignment } from "./us-drg.js";
 
 export const US_DENIALS: Record<string, DenialCode> = {
   incomplete_coding: { code: "incomplete_coding", description: "Coding incomplete or unspecific; corrected claim required", category: "coding", recoverable: true },
@@ -29,8 +34,10 @@ export const US_DENIALS: Record<string, DenialCode> = {
 };
 
 export interface USPayerTerms {
-  /** Allowed amount as a fraction of billed charges (replaced by MS-DRG in M10.4). */
+  /** Allowed amount as a fraction of billed charges; used only when the diagnosis has no MS-DRG. */
   allowedRatio: number;
+  /** Payment as a multiple of the Medicare MS-DRG amount (commercial pays well above Medicare, Medicaid below). */
+  drgRateMultiplier: number;
   /** Per-admission deductible, USD. */
   deductible: number;
   /** Patient share of the allowed amount after the deductible. */
@@ -48,11 +55,11 @@ export interface USPayerTerms {
 
 /** Placeholders (approximate 2024-25 public figures, unverified); see header. */
 export const US_TERMS: Record<string, USPayerTerms> = {
-  Medicare:            { allowedRatio: 0.30, deductible: 1676, coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0,    pMedicalNecessity: 0.03, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
-  "Private Insurance": { allowedRatio: 0.45, deductible: 1787, coinsurance: 0.20, oopMax: 9200,     pPriorAuth: 0.04, pMedicalNecessity: 0.03, pOutOfNetwork: 0.02, pMissingDocs: 0.01, pCoding: 0.04 },
-  Medicaid:            { allowedRatio: 0.22, deductible: 0,    coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0.03, pMedicalNecessity: 0.03, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
-  TRICARE:             { allowedRatio: 0.30, deductible: 0,    coinsurance: 0.05, oopMax: 3000,     pPriorAuth: 0,    pMedicalNecessity: 0.02, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
-  VA:                  { allowedRatio: 0.30, deductible: 0,    coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0,    pMedicalNecessity: 0.02, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
+  Medicare:            { allowedRatio: 0.30, drgRateMultiplier: 1.0, deductible: 1676, coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0,    pMedicalNecessity: 0.03, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
+  "Private Insurance": { allowedRatio: 0.45, drgRateMultiplier: 2.0, deductible: 1787, coinsurance: 0.20, oopMax: 9200,     pPriorAuth: 0.04, pMedicalNecessity: 0.03, pOutOfNetwork: 0.02, pMissingDocs: 0.01, pCoding: 0.04 },
+  Medicaid:            { allowedRatio: 0.22, drgRateMultiplier: 0.85, deductible: 0,    coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0.03, pMedicalNecessity: 0.03, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
+  TRICARE:             { allowedRatio: 0.30, drgRateMultiplier: 1.0, deductible: 0,    coinsurance: 0.05, oopMax: 3000,     pPriorAuth: 0,    pMedicalNecessity: 0.02, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
+  VA:                  { allowedRatio: 0.30, drgRateMultiplier: 1.0, deductible: 0,    coinsurance: 0,    oopMax: Infinity, pPriorAuth: 0,    pMedicalNecessity: 0.02, pOutOfNetwork: 0,    pMissingDocs: 0.01, pCoding: 0.04 },
 };
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -69,6 +76,14 @@ export class USClaimLifecycle implements IClaimLifecycle {
   readonly batchSize = 8;
 
   private terms(ctx: ClaimContext): USPayerTerms | undefined { return US_TERMS[ctx.payerType]; }
+
+  /** MS-DRG for the claim: chart diagnoses (principal first), else the problem-list primary. */
+  drgFor(ctx: ClaimContext): DrgAssignment | undefined {
+    const principal = ctx.chartDiagnoses.find(d => d.type === "primary")?.code ?? ctx.patientPrimaryDxCode;
+    if (!principal) return undefined;
+    const secondary = ctx.chartDiagnoses.filter(d => d.type !== "primary").map(d => d.code);
+    return assignMsDrg([principal, ...secondary], ctx.chartProcedureCount > 0);
+  }
 
   /** Insured claims need a coded chart before the clearinghouse accepts them. */
   canSubmit(ctx: ClaimContext): boolean {
@@ -87,7 +102,12 @@ export class USClaimLifecycle implements IClaimLifecycle {
         payerReference: null, deferredDenial: null, initialStatus: "submitted", settledAtCreation: false,
       };
     }
-    const allowed = round2(total * t.allowedRatio);
+    // MS-DRG payment when the principal diagnosis groups; otherwise the
+    // fraction-of-charges placeholder. A payer never pays more than billed.
+    const drg = this.drgFor(ctx);
+    const allowed = drg
+      ? round2(Math.min(total, drgPayment(drg) * t.drgRateMultiplier))
+      : round2(total * t.allowedRatio);
     // Deductible first, then coinsurance on the remainder, capped at the OOP max.
     const deductiblePart = Math.min(allowed, t.deductible);
     const coinsurancePart = (allowed - deductiblePart) * t.coinsurance;

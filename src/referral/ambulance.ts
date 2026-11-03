@@ -4,7 +4,7 @@
  * Minimal dispatch state machine:
  * - Fleet of BLS/ALS ambulances
  * - Dispatch on incoming referral letters (by distance band) or ED transfers
- * - Cost calculation: BLS = 200k base + 2k/km; ALS = 500k base + 5k/km
+ * - Cost calculation: price book ambulance(tier, km); Indonesian default BLS = 200k base + 2k/km; ALS = 500k base + 5k/km
  * - ETA based on speed: BLS 60 km/h, ALS 80 km/h
  * - Derived arrivalMode: "ambulance" iff dispatch exists
  *
@@ -13,6 +13,8 @@
  * tier, sets the letter's arrivalTick, and posts the dispatch cost as an
  * "ambulance" charge once the arrived patient has an encounter.
  */
+import { ambulanceFee } from "../engine/price-tables.js";
+
 export type AmbulanceTier = "BLS" | "ALS";
 export type AmbulanceStatus = "available" | "dispatched" | "at-hospital";
 export type DispatchStatus = "en-route" | "arrived" | "cancelled";
@@ -50,10 +52,6 @@ export interface AmbulanceState {
 }
 
 // Domain constants from M9.3-BLOCKER-DECISIONS.md
-const BLS_BASE_COST = 200000;
-const BLS_PER_KM = 2000;
-const ALS_BASE_COST = 500000;
-const ALS_PER_KM = 5000;
 const BLS_SPEED_KMH = 60;
 const ALS_SPEED_KMH = 80;
 const TICKS_PER_HOUR = 60; // 1 tick = 1 min
@@ -88,9 +86,8 @@ export function dispatchAmbulance(
   const available = (preferTier ? free.find(a => a.tier === preferTier) : undefined) ?? free[0];
   if (!available) return null;
 
-  const costIdr = available.tier === "BLS"
-    ? BLS_BASE_COST + BLS_PER_KM * distanceKm
-    : ALS_BASE_COST + ALS_PER_KM * distanceKm;
+  // Fee comes from the active price book (IDR by default; see billing/registry.ts).
+  const costIdr = ambulanceFee(available.tier, distanceKm);
 
   // ETA in ticks: distance / speed * 60 ticks/hour
   const etaTicks = Math.ceil((distanceKm / available.speedKmh) * TICKS_PER_HOUR);

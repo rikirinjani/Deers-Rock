@@ -328,7 +328,7 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 
 ## Epic X — International Billing & Commercial Productization
 
-**Status:** In progress — owner approved 2026-11-02 (full US sim, single repo, branch `epic-x-international`); 10.1 and 10.3 done, 10.2 rules done (package move deferred), 10.4 next. Scoping: `docs/epic-x-scoping.md`. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
+**Status:** In progress — owner approved 2026-11-02 (full US sim, single repo, branch `epic-x-international`); 10.1, 10.3 and 10.4 done (US numbers placeholder), 10.2 rules done (package move deferred), 10.5 next. Scoping: `docs/epic-x-scoping.md`. ADR-027 accepted; `packages/{core,adapter-us,adapter-indonesia}` are skeletons not yet wired into `src/engine/finance.ts`.
 
 ### Milestone 10.1: Contract hardening ✅ (S)
 - [x] Extend adapter interfaces to the full claim lifecycle, denial taxonomy, charge hooks, currency, pluggable `IProcedureCodeProvider` (public ICD-10-PCS/HCPCS II default; CPT as optional licensed plug-in package); ADR-027 Amendment 1
@@ -343,8 +343,11 @@ Build out the business and logistics layer to match a real Indonesian Tier C hos
 - [x] `USPayerAssigner` (Medicare at 65+ no draw; under-65 mix Private 60/Medicaid 25/Self-pay 9/TRICARE 4/VA 2, one draw) and `USClaimLifecycle` (deductible → coinsurance → OOP cap, prior-auth/medical-necessity/out-of-network/coding/documents denials, recoverable → returned) in `src/engine/billing/us-*.ts`; `PayerType`/`ClaimDenialReason` widened. `tests/us-billing.test.ts` (12)
 - [ ] All US rates, deductibles, denial probabilities and allowed-ratio are unsourced placeholders → sourced in 10.5c; allowed amount becomes MS-DRG in 10.4
 
-### Milestone 10.4: US tariff 🔴 (L)
-- [ ] MS-DRG weight × base rate, MCC/CC, ICD-10-CM mapping, chargemaster, USD formulary (public codes only unless CPT licensed)
+### Milestone 10.4: US tariff ✅ (L, structure done; numbers placeholder)
+- [x] `IPriceBook` seam (`billing/registry.ts`): all item prices (lab, radiology, surgery, dialysis, radiotherapy, ED, consult, respiratory, ambulance, drugs) go through the active book; Indonesian values moved unchanged to `billing/indonesia-prices.ts` (golden hashes byte-identical)
+- [x] `USPriceBook` + `USChargePolicy` (USD chargemaster, `billing/us-prices.ts`); `useUSAdapter()` / `resetBillingAdapter()` select payer, claims, charges and prices together
+- [x] MS-DRG grouper (`billing/us-drg.ts`): principal ICD-10 category + MCC/CC + procedure flag → DRG, weight, payment = weight × base rate; US claims pay the DRG amount × payer multiplier, capped at charges; `drgCoverage()` unmapped-code report (sim ICD set fully mapped). `tests/us-tariff.test.ts`
+- [ ] DRG numbers/weights, base rate, payer multipliers, chargemaster and drug prices are unverified placeholders → sourced in 10.5c (CMS Table 5, IPPS rule, price-transparency files); real FDA formulary with US protocols in 10.5b
 
 ### Milestone 10.5: US hospital content & calibration 🔴 (XL)
 - [ ] (a) MRN, US locale/geography, US referral/ED model
@@ -371,6 +374,6 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-1
 | **VII** Polish & Infra | 🟡 M7.1 ✅ M7.3 ✅, M7.2 🟡 | 9 | Names pool, action-ranking API, learning double-count fixed; `HospitalState` split open (L) |
 | **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
 | **IX** Financial & Referral | ✅ 4/4 MS | 47 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; 2026-10-31 JR limited to traffic accidents (owner) |
-| **X** International Billing | 🟡 M10.1 ✅ M10.2 🟡 M10.3 ✅ | 30 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.4 next |
+| **X** International Billing | 🟡 M10.1 ✅ M10.2 🟡 M10.3 ✅ M10.4 ✅ | 30 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.5 next |
 
 **Overall (2026-10-27, branch `epic-audit-vi-ix`):** 531 tests pass / 3 skipped / 0 failed (67 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen 2026-11-01 as `vitals-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01.md`; E1 regression reference plus outcome baseline, 10 seeds × 10 sim-days: mortality 3.70 %, ALOS 4.80 d, BOR 99.8 %, 94.5 % discharged improved); earlier `substream-v1`/`outcome-v1` kept as history; 2026-09-10 JAMIA freeze untouched. P-002 clinical vitals frozen 2026-11-01 as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`; default config: pooled GDR 49.4 ‰, improved 85.1 %, deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %). Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.

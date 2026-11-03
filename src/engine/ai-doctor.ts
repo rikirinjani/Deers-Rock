@@ -11,7 +11,7 @@ import { MEDICATIONS } from "./pharmacy.js";
 import { RAD_STUDIES } from "./radiology.js";
 import { DRUG_CATALOG } from "./drug-catalog.js";
 import { appendCharge } from "./charge-generator.js";
-import { RESPIRATORY_ACTIVATION_FEE } from "./price-tables.js";
+import { respiratoryActivationFee } from "./price-tables.js";
 import { isClinicalVitalsEnabled } from "./config.js";
 import { noteRespiratory } from "./treatment-effects.js";
 
@@ -285,7 +285,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
             if (chargesMut === null) chargesMut = new Map(state.charges);
             appendCharge(chargesMut, clock, enc.id, enc.patientId, "respiratory",
               `Respiratory therapy: ${therapyType}`, undefined,
-              { code: therapyType, unitPrice: RESPIRATORY_ACTIVATION_FEE, quantity: 1 });
+              { code: therapyType, unitPrice: respiratoryActivationFee(), quantity: 1 });
             taken.push(orderKey);
           }
           break;

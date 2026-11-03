@@ -17,6 +17,8 @@ const lcg = (seed: number) => { let s = seed >>> 0; return () => ((s = (Math.imu
 const counting = (v: number) => { let n = 0; return { rng: () => { n++; return v; }, count: () => n }; };
 
 const L = new USClaimLifecycle();
+// A diagnosis with no MS-DRG: claims fall back to the fraction-of-charges path.
+const UNMAPPED: Partial<ClaimContext> = { patientPrimaryDxCode: "Z99.9", chartDiagnoses: [{ code: "Z99.9", type: "primary" }] };
 const ctx = (o: Partial<ClaimContext>): ClaimContext => ({
   claimId: "CLM-X", encounterId: "E", patientId: "P", payerType: "Private Insurance", tick: 5,
   totalCharges: 100_000, patientPrimaryDxCode: "J18.9",
@@ -52,7 +54,7 @@ describe("USClaimLifecycle", () => {
 
   it("private: deductible first, then coinsurance, within the allowed amount", () => {
     const t = US_TERMS["Private Insurance"]!;
-    const d = L.buildClaim(ctx({ totalCharges: 20_000 }));
+    const d = L.buildClaim(ctx({ ...UNMAPPED, totalCharges: 20_000 }));
     const allowed = 20_000 * t.allowedRatio; // 9000
     const expected = Math.min(allowed, t.deductible) + (allowed - Math.min(allowed, t.deductible)) * t.coinsurance;
     expect(d.patientResponsibility).toBeCloseTo(expected, 2);
@@ -61,18 +63,18 @@ describe("USClaimLifecycle", () => {
 
   it("private: out-of-pocket max caps patient responsibility", () => {
     const t = US_TERMS["Private Insurance"]!;
-    const d = L.buildClaim(ctx({ totalCharges: 1_000_000 }));
+    const d = L.buildClaim(ctx({ ...UNMAPPED, totalCharges: 1_000_000 }));
     expect(d.patientResponsibility).toBe(t.oopMax);
   });
 
   it("small claims fall entirely inside the deductible", () => {
-    const d = L.buildClaim(ctx({ payerType: "Medicare", totalCharges: 1_000 }));
+    const d = L.buildClaim(ctx({ ...UNMAPPED, payerType: "Medicare", totalCharges: 1_000 }));
     expect(d.coveredAmount).toBe(0);
     expect(d.patientResponsibility).toBeCloseTo(300, 2);
   });
 
   it("Medicaid has no patient share; self-pay owes everything", () => {
-    expect(L.buildClaim(ctx({ payerType: "Medicaid" })).patientResponsibility).toBe(0);
+    expect(L.buildClaim(ctx({ ...UNMAPPED, payerType: "Medicaid" })).patientResponsibility).toBe(0);
     const sp = L.buildClaim(ctx({ payerType: "Self-pay" }));
     expect(sp.coveredAmount).toBe(0);
     expect(sp.patientResponsibility).toBe(100_000);

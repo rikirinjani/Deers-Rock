@@ -4,10 +4,11 @@
  * Process-global like other engine registries: set it before createWorld and
  * reset it afterwards, never mid-run.
  */
-import type { IChargePolicy, IClaimLifecycle, IPayerAssigner } from "./contracts.js";
+import type { IChargePolicy, IClaimLifecycle, IPayerAssigner, IPriceBook } from "./contracts.js";
 import { IndonesiaClaimLifecycle } from "./indonesia-claims.js";
 import { IndonesiaChargePolicy } from "./indonesia-charges.js";
 import { IndonesiaPayerAssigner } from "./indonesia-payer.js";
+import { IndonesiaPriceBook } from "./indonesia-prices.js";
 
 const DEFAULT: IClaimLifecycle = new IndonesiaClaimLifecycle();
 let active: IClaimLifecycle = DEFAULT;
@@ -27,3 +28,9 @@ let payer: IPayerAssigner = DEFAULT_PAYER;
 export function getPayerAssigner(): IPayerAssigner { return payer; }
 export function usePayerAssigner(a: IPayerAssigner): void { payer = a; }
 export function resetPayerAssigner(): void { payer = DEFAULT_PAYER; }
+
+const DEFAULT_PRICES: IPriceBook = new IndonesiaPriceBook();
+let prices: IPriceBook = DEFAULT_PRICES;
+export function getPriceBook(): IPriceBook { return prices; }
+export function usePriceBook(b: IPriceBook): void { prices = b; }
+export function resetPriceBook(): void { prices = DEFAULT_PRICES; }
