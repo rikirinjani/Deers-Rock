@@ -7,6 +7,8 @@ export interface ClinicalAction {
   label: string;
   priority: number;
   detail?: string;
+  /** Medication only: order this instead when the patient is allergic to the drug (US order sets). */
+  ifAllergic?: { label: string; detail?: string };
 }
 
 export interface IcdProtocol {

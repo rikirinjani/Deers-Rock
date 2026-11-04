@@ -1,5 +1,6 @@
 import type { Medication, Diagnosis } from "../patient/schema.js";
 import { DRUG_CATALOG, getDrug, findDrug } from "./drug-catalog.js";
+import { getFormulary } from "../locale/registry.js";
 
 /** Allergen groups per drug code. Extended from 22 to 50 drugs. */
 export const MED_ALLERGEN_MAP: Record<string, string[]> = {
@@ -488,7 +489,8 @@ export function checkDrugAllergy(drugCode: string, patientAllergies: string[]): 
 
 export function checkDiagnosisContraindication(drugCode: string, diagnoses: Diagnosis[]): { contraindicated: boolean; warnings: string[] } {
   const warnings: string[] = [];
-  for (const contra of DRUG_DIAGNOSIS_CONTRA) {
+  const extraContra = getFormulary().extraContraindications;
+  for (const contra of extraContra.length ? DRUG_DIAGNOSIS_CONTRA.concat(extraContra) : DRUG_DIAGNOSIS_CONTRA) {
     if (contra.drugCode !== drugCode) continue;
     for (const dx of diagnoses) {
       if (contra.diagCodes.some(code => dx.code.startsWith(code))) {
@@ -735,10 +737,11 @@ export function checkDrugInteraction(
     },
   };
 
-  if (!INTERACTIONS[newDrug.code]) return { severity: "none", description: null };
+  const extra = getFormulary().extraInteractions[newDrug.code];   // locale extension drugs (US)
+  if (!INTERACTIONS[newDrug.code] && !extra) return { severity: "none", description: null };
 
   for (const existing of existingMedications) {
-    const interaction = INTERACTIONS[newDrug.code]?.[existing.code];
+    const interaction = INTERACTIONS[newDrug.code]?.[existing.code] ?? extra?.[existing.code];
     if (interaction) return { severity: interaction.severity, description: interaction.desc };
   }
   return { severity: "none", description: null };

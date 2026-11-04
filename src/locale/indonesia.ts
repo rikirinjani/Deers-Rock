@@ -77,6 +77,8 @@ export class IndonesiaFormulary implements IFormulary {
   displayName(_code: string, innName: string): string { return innName; }
   extraDrugs: readonly DrugEntry[] = [];
   substitute(_code: string): string | undefined { return undefined; }
+  extraInteractions = {};
+  extraContraindications = [];
 }
 
 /** Indonesian protocol set: the shared protocols, no overrides. */
@@ -91,6 +93,7 @@ export class IndonesiaShiftSchedule implements IShiftSchedule {
   fatigueCriticalTicks = 720;
   fatigueWarnTicks = 420;
   officeMinutes = 420;
+  officeOffDays: readonly number[] = [6];
   shiftAt(tick: number): ShiftSlot { return indonesiaShiftAt(tick); }
   rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift {
     return indonesiaRosteredShift(pattern, team, rosterDay, dayOfWeek);

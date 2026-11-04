@@ -67,10 +67,10 @@ describe("US rotation", () => {
     }
   });
 
-  it("rotating4 gives one day, one night and two days off in four; day roles are unchanged", () => {
+  it("rotating4 gives one day, one night and two days off in four; day roles work Monday-Friday", () => {
     const w = week("rotating4", 2, 8);
     expect(w.filter(s => s === "libur")).toHaveLength(4);
-    for (let d = 0; d < 7; d++) expect(usRosteredShift("day", 0, d, d)).toBe(d === 6 ? "libur" : "pagi");
+    for (let d = 0; d < 7; d++) expect(usRosteredShift("day", 0, d, d)).toBe(d >= 5 ? "libur" : "pagi");   // Monday-Friday
   });
 });
 

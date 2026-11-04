@@ -9,7 +9,8 @@
  * community-acquired pneumonia, GOLD COPD exacerbation, ADA diabetes
  * standards of care). They are NOT clinical decision support: the engine
  * orders by diagnosis alone, so conditional steps (e.g. thrombolysis
- * eligibility, antibiotic choice by severity or allergy) are left out.
+ * eligibility, antibiotic choice by severity) are left out; allergy-conditional
+ * alternatives are declared per action (ifAllergic) where US practice has one.
  * Clinical review of each order set belongs to Research OC (M10.5c).
  *
  * Labels resolve against the engine's catalogue or the US drug extension
@@ -22,7 +23,7 @@ import type { IProtocolSet } from "./contracts.js";
 const SEPSIS_BUNDLE: ClinicalAction[] = [
   { type: "lab", label: "Blood culture", priority: 10, detail: "blood_culture" },
   { type: "lab", label: "Lactate", priority: 10, detail: "lactate" },
-  { type: "medication", label: "Piperacillin-tazobactam 4.5g", priority: 10, detail: "Broad-spectrum antibiotic within 1 hour" },
+  { type: "medication", label: "Piperacillin-tazobactam 4.5g", priority: 10, detail: "Broad-spectrum antibiotic within 1 hour", ifAllergic: { label: "Meropenem 500mg", detail: "Carbapenem for penicillin allergy" } },
   { type: "medication", label: "Vancomycin 500mg", priority: 9, detail: "MRSA coverage" },
   { type: "medication", label: "Ringer's Lactate IV", priority: 10, detail: "Crystalloid 30 mL/kg for hypotension or lactate >= 4" },
   { type: "lab", label: "Complete Blood Count", priority: 9, detail: "CBC" },
@@ -38,7 +39,7 @@ export const US_PROTOCOL_OVERRIDES: Readonly<Record<string, readonly ClinicalAct
   I21: [
     { type: "imaging", label: "ECG", priority: 10, detail: "ecg" },
     { type: "lab", label: "Troponin I", priority: 10, detail: "TROP" },
-    { type: "medication", label: "Aspirin 80mg", priority: 10, detail: "Antiplatelet" },
+    { type: "medication", label: "Aspirin 80mg", priority: 10, detail: "Antiplatelet", ifAllergic: { label: "Clopidogrel 75mg", detail: "P2Y12 inhibitor for aspirin allergy" } },
     { type: "medication", label: "Clopidogrel 75mg", priority: 9, detail: "P2Y12 inhibitor" },
     { type: "medication", label: "Heparin 5000IU/ml", priority: 9, detail: "Anticoagulant" },
     { type: "medication", label: "Metoprolol 50mg", priority: 8, detail: "Beta-blocker" },
@@ -51,14 +52,14 @@ export const US_PROTOCOL_OVERRIDES: Readonly<Record<string, readonly ClinicalAct
   I63: [
     { type: "imaging", label: "CT Head without contrast", priority: 10, detail: "CT" },
     { type: "lab", label: "Basic Metabolic Panel", priority: 9, detail: "BMP (glucose)" },
-    { type: "medication", label: "Aspirin 80mg", priority: 8, detail: "Antiplatelet" },
+    { type: "medication", label: "Aspirin 80mg", priority: 8, detail: "Antiplatelet", ifAllergic: { label: "Clopidogrel 75mg", detail: "P2Y12 inhibitor for aspirin allergy" } },
     { type: "medication", label: "Atorvastatin 20mg", priority: 7, detail: "High-intensity statin" },
     { type: "consult", label: "Saraf", priority: 10, detail: "neurology (stroke team)" },
     { type: "consult", label: "Rehabilitasi Medik", priority: 6, detail: "rehab_medik" },
   ],
   // Community-acquired pneumonia, inpatient: beta-lactam plus macrolide
   J15: [
-    { type: "medication", label: "Ceftriaxone 1g", priority: 9, detail: "Beta-lactam" },
+    { type: "medication", label: "Ceftriaxone 1g", priority: 9, detail: "Beta-lactam", ifAllergic: { label: "Levofloxacin 500mg", detail: "Respiratory fluoroquinolone for cephalosporin allergy" } },
     { type: "medication", label: "Azithromycin 250mg", priority: 9, detail: "Macrolide (atypical coverage)" },
     { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
     { type: "lab", label: "C-Reactive Protein", priority: 7, detail: "CRP" },
@@ -66,7 +67,7 @@ export const US_PROTOCOL_OVERRIDES: Readonly<Record<string, readonly ClinicalAct
     { type: "respiratory", label: "Oxygen therapy", priority: 6, detail: "oxygen" },
   ],
   J18: [
-    { type: "medication", label: "Ceftriaxone 1g", priority: 9, detail: "Beta-lactam" },
+    { type: "medication", label: "Ceftriaxone 1g", priority: 9, detail: "Beta-lactam", ifAllergic: { label: "Levofloxacin 500mg", detail: "Respiratory fluoroquinolone for cephalosporin allergy" } },
     { type: "medication", label: "Azithromycin 250mg", priority: 9, detail: "Macrolide (atypical coverage)" },
     { type: "lab", label: "Complete Blood Count", priority: 8, detail: "CBC" },
     { type: "imaging", label: "Chest X-ray PA & Lateral", priority: 9, detail: "X-ray" },
@@ -104,7 +105,7 @@ export const US_PROTOCOL_OVERRIDES: Readonly<Record<string, readonly ClinicalAct
   // UTI: fluoroquinolones are no longer first line for uncomplicated infection
   N39: [
     { type: "lab", label: "Urinalysis", priority: 9, detail: "UA" },
-    { type: "medication", label: "Ceftriaxone 1g", priority: 8, detail: "Antibiotic for UTI" },
+    { type: "medication", label: "Ceftriaxone 1g", priority: 8, detail: "Antibiotic for UTI", ifAllergic: { label: "Ciprofloxacin 500mg", detail: "Fluoroquinolone for cephalosporin allergy" } },
     { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
   ],
   // Type 2 diabetes: metformin plus an SGLT2 inhibitor, statin

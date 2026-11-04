@@ -17,6 +17,7 @@ import type { EventQueue } from "./event-queue.js";
 import type { Encounter } from "../patient/schema.js";
 import { assignPayer } from "./finance.js";
 import { shiftAt } from "../agent/roster.js";
+import { getShiftSchedule } from "../locale/registry.js";
 
 export type AppointmentStatus = "scheduled" | "checked_in" | "in_consultation" | "completed" | "no_show" | "cancelled";
 
@@ -65,7 +66,7 @@ export function clinicSlotTick(notBefore: number, slotIndex: number): number {
   const offset = CLINIC_OPEN_MINUTE + (slotIndex % CLINIC_SLOTS) * 10;
   let t = dayStart + offset;
   if (t < notBefore) { dayStart += 1440; t = dayStart + offset; }
-  if (shiftAt(t).dayOfWeek === 6) t += 1440; // clinics closed on Sunday
+  while (getShiftSchedule().officeOffDays.includes(shiftAt(t).dayOfWeek)) t += 1440; // clinics closed (Sunday; US also Saturday)
   return t;
 }
 

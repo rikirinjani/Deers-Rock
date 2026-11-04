@@ -36,3 +36,81 @@ export const US_SUBSTITUTES: Readonly<Record<string, string>> = {
   RAN: "FAM",   // ranitidine (withdrawn 2020) -> famotidine
   HYS: "DIC",   // hyoscine butylbromide (not US-marketed) -> dicyclomine
 };
+
+type Sev = "minor" | "moderate" | "major" | "contraindicated";
+const ix = (severity: Sev, desc: string) => ({ severity, desc });
+
+/** Interactions for the extension drugs, listed in both directions (the base table is keyed by the new drug). */
+export const US_DRUG_INTERACTIONS: Readonly<Record<string, Readonly<Record<string, { severity: Sev; desc: string }>>>> = {
+  APX: {
+    WAF: ix("major", "Apixaban + Warfarin: do not combine, additive anticoagulation"),
+    HEP: ix("major", "Apixaban + Enoxaparin: increased bleeding risk"),
+    HEP5: ix("major", "Apixaban + Heparin: increased bleeding risk"),
+    HEP10: ix("major", "Apixaban + Heparin: increased bleeding risk"),
+    RIV: ix("major", "Apixaban + Rivaroxaban: duplicate anticoagulant"),
+    ASP: ix("major", "Apixaban + Aspirin: increased bleeding risk"),
+    CLO: ix("major", "Apixaban + Clopidogrel: increased bleeding risk"),
+    IBU: ix("major", "Apixaban + Ibuprofen: increased bleeding risk"),
+    NEC: ix("major", "Apixaban + Diclofenac: increased bleeding risk"),
+    TNK: ix("major", "Apixaban + Tenecteplase: severe hemorrhage risk"),
+  },
+  PIP: {
+    VAN: ix("moderate", "Piperacillin-tazobactam + Vancomycin: increased risk of acute kidney injury"),
+    WAF: ix("moderate", "Piperacillin-tazobactam + Warfarin: INR may rise, monitor"),
+    MTX: ix("major", "Piperacillin-tazobactam + Methotrexate: reduced methotrexate clearance, toxicity"),
+  },
+  CFZ: { WAF: ix("moderate", "Cefazolin + Warfarin: INR may rise, monitor") },
+  NTX: {
+    MOR: ix("major", "Naltrexone + Morphine: opioid blockade, precipitated withdrawal"),
+    MOR5: ix("major", "Naltrexone + Morphine: opioid blockade, precipitated withdrawal"),
+    TRM: ix("major", "Naltrexone + Tramadol: opioid blockade, precipitated withdrawal"),
+    TRA: ix("major", "Naltrexone + Tramadol: opioid blockade, precipitated withdrawal"),
+    PET: ix("major", "Naltrexone + Pethidine: opioid blockade, precipitated withdrawal"),
+    FNT: ix("major", "Naltrexone + Fentanyl: opioid blockade, precipitated withdrawal"),
+    FAS: ix("major", "Naltrexone + Fentanyl patch: opioid blockade, precipitated withdrawal"),
+    BUP: ix("major", "Naltrexone + Buprenorphine: antagonist blocks the agonist, precipitated withdrawal"),
+  },
+  EMP: {
+    FUR: ix("moderate", "Empagliflozin + Furosemide: volume depletion and hypotension"),
+    INS: ix("moderate", "Empagliflozin + Insulin: hypoglycemia, consider lowering the insulin dose"),
+    GLP: ix("moderate", "Empagliflozin + Glipizide: hypoglycemia"),
+  },
+  MEC: {
+    DIA: ix("moderate", "Meclizine + Diazepam: additive sedation"),
+    MOR: ix("moderate", "Meclizine + Morphine: additive sedation"),
+  },
+  // Base drug as the new drug, extension drug already on the chart
+  WAF: { APX: ix("major", "Warfarin + Apixaban: do not combine, additive anticoagulation"), PIP: ix("moderate", "Warfarin + Piperacillin-tazobactam: INR may rise, monitor"), CFZ: ix("moderate", "Warfarin + Cefazolin: INR may rise, monitor") },
+  HEP: { APX: ix("major", "Enoxaparin + Apixaban: increased bleeding risk") },
+  HEP5: { APX: ix("major", "Heparin + Apixaban: increased bleeding risk") },
+  HEP10: { APX: ix("major", "Heparin + Apixaban: increased bleeding risk") },
+  RIV: { APX: ix("major", "Rivaroxaban + Apixaban: duplicate anticoagulant") },
+  ASP: { APX: ix("major", "Aspirin + Apixaban: increased bleeding risk") },
+  CLO: { APX: ix("major", "Clopidogrel + Apixaban: increased bleeding risk") },
+  IBU: { APX: ix("major", "Ibuprofen + Apixaban: increased bleeding risk") },
+  NEC: { APX: ix("major", "Diclofenac + Apixaban: increased bleeding risk") },
+  TNK: { APX: ix("major", "Tenecteplase + Apixaban: severe hemorrhage risk") },
+  VAN: { PIP: ix("moderate", "Vancomycin + Piperacillin-tazobactam: increased risk of acute kidney injury") },
+  MTX: { PIP: ix("major", "Methotrexate + Piperacillin-tazobactam: reduced methotrexate clearance, toxicity") },
+  MOR: { NTX: ix("major", "Morphine + Naltrexone: opioid blockade, precipitated withdrawal"), MEC: ix("moderate", "Morphine + Meclizine: additive sedation") },
+  MOR5: { NTX: ix("major", "Morphine + Naltrexone: opioid blockade, precipitated withdrawal") },
+  TRM: { NTX: ix("major", "Tramadol + Naltrexone: opioid blockade, precipitated withdrawal") },
+  TRA: { NTX: ix("major", "Tramadol + Naltrexone: opioid blockade, precipitated withdrawal") },
+  PET: { NTX: ix("major", "Pethidine + Naltrexone: opioid blockade, precipitated withdrawal") },
+  FNT: { NTX: ix("major", "Fentanyl + Naltrexone: opioid blockade, precipitated withdrawal") },
+  FAS: { NTX: ix("major", "Fentanyl patch + Naltrexone: opioid blockade, precipitated withdrawal") },
+  BUP: { NTX: ix("major", "Buprenorphine + Naltrexone: antagonist blocks the agonist, precipitated withdrawal") },
+  FUR: { EMP: ix("moderate", "Furosemide + Empagliflozin: volume depletion and hypotension") },
+  INS: { EMP: ix("moderate", "Insulin + Empagliflozin: hypoglycemia, consider lowering the insulin dose") },
+  GLP: { EMP: ix("moderate", "Glipizide + Empagliflozin: hypoglycemia") },
+  DIA: { MEC: ix("moderate", "Diazepam + Meclizine: additive sedation") },
+};
+
+export const US_DRUG_CONTRAINDICATIONS: readonly { drugCode: string; diagCodes: string[]; rationale: string }[] = [
+  { drugCode: "APX", diagCodes: ["I60", "S06"], rationale: "Apixaban: contraindicated with intracranial hemorrhage or injury" },
+  { drugCode: "APX", diagCodes: ["K25", "K26"], rationale: "Apixaban: peptic ulcer bleeding risk, review before anticoagulation" },
+  { drugCode: "NTX", diagCodes: ["K70", "K71", "K72", "K73", "K74"], rationale: "Naltrexone: hepatotoxic at high doses, caution in liver disease" },
+  { drugCode: "EMP", diagCodes: ["N17", "N18", "N19"], rationale: "Empagliflozin: avoid in acute kidney injury, limited effect with reduced eGFR" },
+  { drugCode: "DIC", diagCodes: ["K56", "N40"], rationale: "Dicyclomine: avoid in intestinal obstruction and urinary retention (anticholinergic)" },
+  { drugCode: "PIP", diagCodes: ["N17"], rationale: "Piperacillin-tazobactam: dose adjustment in acute kidney injury" },
+];

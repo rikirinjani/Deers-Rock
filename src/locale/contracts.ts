@@ -100,6 +100,10 @@ export interface IFormulary {
   extraDrugs: readonly DrugEntry[];
   /** Substitute (a code in the base catalogue or extraDrugs) for an unavailable drug, if any. */
   substitute(code: string): string | undefined;
+  /** Interactions involving extraDrugs: newDrug -> existing drug -> severity (list both directions). */
+  extraInteractions: Readonly<Record<string, Readonly<Record<string, { severity: "minor" | "moderate" | "major" | "contraindicated"; desc: string }>>>>;
+  /** Diagnosis contraindications for extraDrugs. */
+  extraContraindications: readonly { drugCode: string; diagCodes: string[]; rationale: string }[];
 }
 
 /**
@@ -125,6 +129,8 @@ export interface IShiftSchedule {
   fatigueWarnTicks: number;
   /** Length of the office (day-role) workday in minutes, at most the day shift. */
   officeMinutes: number;
+  /** Days of the week (0 = Monday ... 6 = Sunday) office roles are off and clinics are closed. */
+  officeOffDays: readonly number[];
   shiftAt(tick: number): ShiftSlot;
   rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift;
 }

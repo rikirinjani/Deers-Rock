@@ -10,7 +10,7 @@
  *    followed by two days off before the next day shift.
  *  - rotating3: slot (d + t) % 3: day, night, off, so every shift stays
  *    covered with three staff; night is followed by a day off.
- *  - oncall is unchanged. Day (office) roles work Monday-Saturday, 07:00-15:00:
+ *  - oncall is unchanged. Day (office) roles work Monday-Friday, 07:00-15:00:
  *    8 hours inside the 12-hour day shift (officeMinutes).
  *
  * CALIBRATION PENDING: US nurses typically work three 12-hour shifts per
@@ -36,7 +36,7 @@ export function usShiftAt(tick: number): ShiftSlot {
 }
 
 export function usRosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift {
-  if (pattern === "day") return dayOfWeek === 6 ? "libur" : "pagi";
+  if (pattern === "day") return dayOfWeek >= 5 ? "libur" : "pagi";
   if (pattern === "rotating3") {
     const slot = (((rosterDay + team) % 3) + 3) % 3;
     return slot === 0 ? "pagi" : slot === 1 ? "malam" : "libur";
@@ -53,6 +53,8 @@ export class USShiftSchedule implements IShiftSchedule {
   fatigueWarnTicks = 600;
   /** Office roles work an 8-hour day (07:00-15:00), not the full 12-hour day shift. */
   officeMinutes = 480;
+  /** US clinics and office roles: Monday-Friday. */
+  officeOffDays: readonly number[] = [5, 6];
   shiftAt(tick: number): ShiftSlot { return usShiftAt(tick); }
   rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift {
     return usRosteredShift(pattern, team, rosterDay, dayOfWeek);

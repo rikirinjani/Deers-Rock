@@ -20,7 +20,7 @@
  */
 import type { IFormulary } from "./contracts.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
-import { US_EXTRA_DRUGS, US_SUBSTITUTES } from "./us-drugs.js";
+import { US_EXTRA_DRUGS, US_SUBSTITUTES, US_DRUG_INTERACTIONS, US_DRUG_CONTRAINDICATIONS } from "./us-drugs.js";
 
 export const US_UNAVAILABLE_DRUGS: readonly string[] = ["BET", "HYS", "RAN"];
 
@@ -47,4 +47,6 @@ export class USFormulary implements IFormulary {
   displayName(_code: string, innName: string): string { return usanName(innName); }
   extraDrugs: readonly DrugEntry[] = US_EXTRA_DRUGS;
   substitute(code: string): string | undefined { return US_SUBSTITUTES[code]; }
+  extraInteractions = US_DRUG_INTERACTIONS;
+  extraContraindications = US_DRUG_CONTRAINDICATIONS;
 }

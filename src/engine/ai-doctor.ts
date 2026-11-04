@@ -8,6 +8,7 @@ import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers, a
 import { getActionRanking } from "./agent-learning.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
+import { checkDrugAllergy } from "./pharmacy-knowledge.js";
 import { getFormulary } from "../locale/registry.js";
 import { RAD_STUDIES } from "./radiology.js";
 import { activeCatalog, DRUG_BY_CODE as DRUG_BY_CODE_BASE } from "./drug-catalog.js";
@@ -51,6 +52,20 @@ export function resolveOrderableMed(label: string, detail?: string): { med: { co
     if (sub) med = { code: sub.code, name: sub.innName, dose: sub.dose, route: sub.route };
   }
   return med ? { med, displayName: formulary.displayName(med.code, med.name ?? med.code) } : undefined;
+}
+
+/**
+ * Resolve a medication action for a patient: the allergy-conditional alternative
+ * replaces the drug when the patient is allergic to it (only actions that declare
+ * one, i.e. US order sets), else the action's own drug.
+ */
+export function resolveActionMed(action: { label: string; detail?: string; ifAllergic?: { label: string; detail?: string } }, allergies: string[]): ReturnType<typeof resolveOrderableMed> {
+  const resolved = resolveOrderableMed(action.label, action.detail);
+  const alt = action.ifAllergic;
+  if (resolved && alt && checkDrugAllergy(resolved.med.code, allergies)) {
+    return resolveOrderableMed(alt.label, alt.detail) ?? resolved;
+  }
+  return resolved;
 }
 
 const ROUND_INTERVAL = 4;
@@ -131,7 +146,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
     const doctorId = enc.attendingDoctorId;
     const doctor = doctorId ? agentPool.agents.get(doctorId) : undefined;
 
-    const clinicalActions: { action: { type: string; label: string; priority: number; detail?: string }; reason: string }[] = [];
+    const clinicalActions: { action: { type: string; label: string; priority: number; detail?: string; ifAllergic?: { label: string; detail?: string } }; reason: string }[] = [];
 
     for (const dx of patient.diagnoses) {
       if (!dx.active) continue;
@@ -240,7 +255,7 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
           break;
         }
         case "medication": {
-          const resolved = resolveOrderableMed(ca.action.label, ca.action.detail);
+          const resolved = resolveActionMed(ca.action, patient.allergies);
           const med = resolved?.med;
           const medName = resolved ? resolved.displayName : ca.action.label;
           if (med && !existingOrderKeys.has(`med:${medName}`)) {
