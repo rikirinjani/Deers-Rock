@@ -33,8 +33,8 @@ Access notes: HCUP's record-level files (NIS, NEDS) need a data-use agreement an
 ## 4. Likely engine work (this is the main scope risk)
 
 Locale data alone may not reach the targets. Three shared-engine behaviours look Indonesian and need a decision before calibration:
-- **Length of stay:** the Indonesian runs show a mean of 4.80 days in every configuration (v1, v1b, clinical and vitals), which suggests LOS comes from shared discharge logic, not from case mix. I have not yet checked this in a US world. If true, DRG-level LOS targets (HCUP) cannot be met by data alone.
-- **Capacity regime:** the runs end at 99.8 % bed occupancy (131 beds, constant arrivals). US hospital occupancy is far lower; matching it means scaling arrivals or beds, which is a model change, not a data change.
+- **Length of stay (code-verified):** discharge is scheduled at admission as a uniform 3 to 7 day draw (`markov.ts`, `4320 + rng * 5760` minutes), independent of diagnosis and locale. That is why every Indonesian run shows a mean near 4.8 days. DRG-level length-of-stay targets (HCUP) therefore cannot be met by data alone; they need a diagnosis-dependent length-of-stay model (engine change, step E).
+- **Capacity regime:** the `clinical-v1b` runs ended at 99.8 % occupancy, but they predate the merge of the audit branch, whose arrival gate (about 19 admissions a day) targets roughly 70 % occupancy for 131 beds. Whether the merged tree reaches that, in the Indonesian and the US world, is part of step A.
 - **Mortality:** gross death rate is net of other causes until physiological death exists (existing caveat); US in-hospital mortality by diagnosis (HCUP) is the natural validation target but depends on the same model.
 
 Proposal: spend the first day on a feasibility check of these three in a US world, then decide whether 10.5c includes the engine changes or stops at "calibrated demographics, payment and drug data, with clinical outcomes explicitly uncalibrated".
@@ -60,3 +60,13 @@ Proposal: spend the first day on a feasibility check of these three in a US worl
 ## 7. Definition of done
 
 Every US constant is sourced or explicitly listed as still placeholder; the targets file has citations; a US 10-seed baseline is frozen with a model-vs-target table; the Indonesian default stays byte-identical throughout; nothing claims US validity beyond the validation targets actually held out.
+
+## 8. Step A findings (feasibility, merged tree, 2 seeds each, 14,400 ticks, 50 patients)
+
+- **Occupancy:** US and Indonesian trajectories are nearly identical (ramp 15-26 % to 72-97 % by day 10): capacity is set by the shared arrival gate, not by locale. No engine change needed for the regime; steady state needs a longer run to confirm.
+- **Length of stay:** mean 4.7-4.9 d, median 4.5-4.9, range 3.0-7.0, SD about 1.1 in both locales: flat uniform draw confirmed. Diagnosis-level LOS targets need the engine change (step E).
+- **Mortality:** 2.3-7.7 % in-hospital over about 130 discharges per run; seed noise dominates. More seeds needed before comparing with any target.
+- **ED volume:** US 2,951-3,001 vs Indonesia 3,622-3,678 encounters (case mix and arrival effects not yet separated).
+- **Payer mix (open bug, not US-specific):** the first 100 claims are 96-99 % Self-pay in the US runs; the Indonesian runs show Private 50 %, BPJS 1 %. Claim count is exactly 100 in all four runs, so claims are capped or sampled early. Cause not yet investigated; fix before any payer calibration.
+- **Indonesian residue in the US world:** ambulance charges still in IDR; kontrol follow-ups booked but 0 completed (both locales).
+- Mean patient age: US 40, Indonesia 47-48.
