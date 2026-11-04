@@ -3,11 +3,14 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
 import type { ClinicalAction } from "../engine/clinical-knowledge.js";
+import type { RosterPattern, ShiftSlot } from "../agent/roster.js";
+import type { Shift } from "../agent/types.js";
+import { indonesiaShiftAt, indonesiaRosteredShift } from "./indonesia-shifts.js";
 import { indonesiaEvents } from "./indonesia-calendar.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
@@ -80,4 +83,16 @@ export class IndonesiaFormulary implements IFormulary {
 export class IndonesiaProtocolSet implements IProtocolSet {
   config = { countryCode: "ID", displayName: "Indonesia" };
   overrides(_code: string): readonly ClinicalAction[] | undefined { return undefined; }
+}
+
+/** Indonesian schedule: pagi/siang/malam (7/7/10 h). */
+export class IndonesiaShiftSchedule implements IShiftSchedule {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  fatigueCriticalTicks = 720;
+  fatigueWarnTicks = 420;
+  officeMinutes = 420;
+  shiftAt(tick: number): ShiftSlot { return indonesiaShiftAt(tick); }
+  rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift {
+    return indonesiaRosteredShift(pattern, team, rosterDay, dayOfWeek);
+  }
 }

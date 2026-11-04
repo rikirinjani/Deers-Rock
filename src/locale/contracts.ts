@@ -12,6 +12,8 @@ import type { ICDMapping } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
 import type { ClinicalAction } from "../engine/clinical-knowledge.js";
+import type { RosterPattern, ShiftSlot } from "../agent/roster.js";
+import type { Shift } from "../agent/types.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -108,4 +110,21 @@ export interface IProtocolSet {
   config: ILocaleConfig;
   /** The order set replacing the shared protocol for this ICD-10 category, or undefined to keep it. */
   overrides(code: string): readonly ClinicalAction[] | undefined;
+}
+
+/**
+ * Shift schedule (Epic X M10.5b slice 6): which shift runs at a tick and who
+ * is rostered when. The Shift identifiers are engine-wide ("pagi" = day,
+ * "malam" = night, "siang" = the Indonesian middle shift).
+ */
+export interface IShiftSchedule {
+  config: ILocaleConfig;
+  /** Consecutive on-duty ticks past which a tired agent can fall ill (beyond the longest shift). */
+  fatigueCriticalTicks: number;
+  /** Consecutive on-duty ticks after which an agent counts as tired ("lelah"). */
+  fatigueWarnTicks: number;
+  /** Length of the office (day-role) workday in minutes, at most the day shift. */
+  officeMinutes: number;
+  shiftAt(tick: number): ShiftSlot;
+  rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift;
 }

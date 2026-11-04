@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -42,3 +42,9 @@ let protocolSet: IProtocolSet = DEFAULT_PROTOCOLS;
 export function getProtocolSet(): IProtocolSet { return protocolSet; }
 export function useProtocolSet(p: IProtocolSet): void { protocolSet = p; }
 export function resetProtocolSet(): void { protocolSet = DEFAULT_PROTOCOLS; }
+
+const DEFAULT_SHIFTS: IShiftSchedule = new IndonesiaShiftSchedule();
+let shiftSchedule: IShiftSchedule = DEFAULT_SHIFTS;
+export function getShiftSchedule(): IShiftSchedule { return shiftSchedule; }
+export function useShiftSchedule(s: IShiftSchedule): void { shiftSchedule = s; }
+export function resetShiftSchedule(): void { shiftSchedule = DEFAULT_SHIFTS; }

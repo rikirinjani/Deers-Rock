@@ -3,6 +3,7 @@ import type { Clock } from "../engine/clock.js";
 import { EventQueue } from "../engine/event-queue.js";
 import type { HospitalAgent, AgentPool, KeadaanKesehatan } from "./types.js";
 import { rosterStatus } from "./roster.js";
+import { getShiftSchedule } from "../locale/registry.js";
 
 export interface AgentState {
   pool: AgentPool;
@@ -65,10 +66,11 @@ export function agentHandler(state: HospitalState, clock: Clock, _queue: EventQu
     const consecutiveTicks = working ? st.consecutiveTicks + 1 : Math.max(0, st.consecutiveTicks - FATIGUE_RECOVERY_PER_TICK);
     const fatigue = consecutiveTicks;
 
-    if (kesehatan === "sehat" && fatigue >= FATIGUE_WARN) kesehatan = "lelah";
-    else if (kesehatan === "lelah" && fatigue < FATIGUE_WARN) kesehatan = "sehat";
+    const warn = getShiftSchedule().fatigueWarnTicks;
+    if (kesehatan === "sehat" && fatigue >= warn) kesehatan = "lelah";
+    else if (kesehatan === "lelah" && fatigue < warn) kesehatan = "sehat";
     // Overtime beyond FATIGUE_CRITICAL (a double shift) can tip a tired agent into illness.
-    if (kesehatan === "lelah" && fatigue >= FATIGUE_CRITICAL) { kesehatan = "sakit_ringan"; sakitTerhitung = 0; }
+    if (kesehatan === "lelah" && fatigue >= getShiftSchedule().fatigueCriticalTicks) { kesehatan = "sakit_ringan"; sakitTerhitung = 0; }
 
     let isHaids = st.isHaids;
     let haidCycleDay = st.haidCycleDay;
