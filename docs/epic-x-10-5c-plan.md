@@ -50,12 +50,12 @@ Proposal: spend the first day on a feasibility check of these three in a US worl
 | E. Engine changes if approved (LOS, arrivals/capacity) | tests, default byte-identical | L, optional |
 | F. Run, compare, tune, freeze `us-v1` | freeze record, model-vs-target tables | M |
 
-## 6. Decisions needed from the owner
+## 6. Decisions (owner, 2026-11-04)
 
-1. **Calibration owner:** Research OC for B and F? (open decision 4 in the scoping doc)
-2. **Data access:** public summary sources only, or is a paid or DUA source (HCUP NIS/NEDS) acceptable?
-3. **Scope of calibration:** stop at demographics, payment and drug data, or include the engine changes in step E?
-4. **Target client or date:** does a deadline decide how much of B is done by hand? (open decision 3)
+1. **Calibration owner:** Research OC owns steps B and F (targets file, model-vs-target comparison); Platform OC reviews format and does any code.
+2. **Data access:** public summary sources now; a paid or DUA source (HCUP NIS/NEDS) is acceptable later if a target cannot be met otherwise, each purchase confirmed with the owner first.
+3. **Scope of calibration:** open (engine change for length of stay, step E; see the owner discussion of levels 1 and 2).
+4. **Target client or date:** none, no deadline; aim for completeness over speed.
 
 ## 7. Definition of done
 
