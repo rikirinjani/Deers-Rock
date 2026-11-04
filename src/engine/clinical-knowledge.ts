@@ -1,5 +1,6 @@
 import type { SpecialtyType } from "./specialty.js";
 import type { Vitals } from "../patient/schema.js";
+import { getProtocolSet } from "../locale/registry.js";
 
 export interface ClinicalAction {
   type: "lab" | "imaging" | "medication" | "consult" | "respiratory" | "diet" | "surgery" | "discharge";
@@ -1247,6 +1248,8 @@ export function mapIcdToSpecialty(code: string): SpecialtyType {
 }
 
 export function mapIcdToActions(code: string): ClinicalAction[] {
+  const over = getProtocolSet().overrides(code);
+  if (over) return over as ClinicalAction[];
   const p = ICD_PROTOCOLS.find(p => p.code === code);
   return p?.actions ?? [];
 }

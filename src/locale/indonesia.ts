@@ -3,10 +3,11 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
+import type { ClinicalAction } from "../engine/clinical-knowledge.js";
 import { indonesiaEvents } from "./indonesia-calendar.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
@@ -73,4 +74,10 @@ export class IndonesiaFormulary implements IFormulary {
   displayName(_code: string, innName: string): string { return innName; }
   extraDrugs: readonly DrugEntry[] = [];
   substitute(_code: string): string | undefined { return undefined; }
+}
+
+/** Indonesian protocol set: the shared protocols, no overrides. */
+export class IndonesiaProtocolSet implements IProtocolSet {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  overrides(_code: string): readonly ClinicalAction[] | undefined { return undefined; }
 }

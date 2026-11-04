@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -36,3 +36,9 @@ let formulary: IFormulary = DEFAULT_FORMULARY;
 export function getFormulary(): IFormulary { return formulary; }
 export function useFormulary(f: IFormulary): void { formulary = f; }
 export function resetFormulary(): void { formulary = DEFAULT_FORMULARY; }
+
+const DEFAULT_PROTOCOLS: IProtocolSet = new IndonesiaProtocolSet();
+let protocolSet: IProtocolSet = DEFAULT_PROTOCOLS;
+export function getProtocolSet(): IProtocolSet { return protocolSet; }
+export function useProtocolSet(p: IProtocolSet): void { protocolSet = p; }
+export function resetProtocolSet(): void { protocolSet = DEFAULT_PROTOCOLS; }

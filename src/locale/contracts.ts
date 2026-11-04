@@ -11,6 +11,7 @@ import type { Identity, Gender, ReferralFacility } from "../identity/types.js";
 import type { ICDMapping } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
+import type { ClinicalAction } from "../engine/clinical-knowledge.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -97,4 +98,14 @@ export interface IFormulary {
   extraDrugs: readonly DrugEntry[];
   /** Substitute (a code in the base catalogue or extraDrugs) for an unavailable drug, if any. */
   substitute(code: string): string | undefined;
+}
+
+/**
+ * Clinical protocol set (Epic X M10.5b slice 5): per-category order-set
+ * overrides. A category with no override uses the shared protocol.
+ */
+export interface IProtocolSet {
+  config: ILocaleConfig;
+  /** The order set replacing the shared protocol for this ICD-10 category, or undefined to keep it. */
+  overrides(code: string): readonly ClinicalAction[] | undefined;
 }
