@@ -54,7 +54,7 @@ Proposal: spend the first day on a feasibility check of these three in a US worl
 
 1. **Calibration owner:** Research OC owns steps B and F (targets file, model-vs-target comparison); Platform OC reviews format and does any code.
 2. **Data access:** public summary sources now; a paid or DUA source (HCUP NIS/NEDS) is acceptable later if a target cannot be met otherwise, each purchase confirmed with the owner first.
-3. **Scope of calibration:** open (engine change for length of stay, step E; see the owner discussion of levels 1 and 2).
+3. **Scope of calibration (decided):** step E = a length-of-stay locale seam (diagnosis-dependent, mean from CMS IPPS Table 5, one rng draw so the Indonesian default stays byte-identical) plus M-A mortality parameters through a locale seam (per-diagnosis baselines and tier probabilities, calibrated on many seeds in the cloud). M-B (deaths during the stay) and M-C (physiological death with recovery-driven discharge) are deferred; M-C is to be built US-only behind a mortality-model seam so no Indonesian baseline is unfrozen. The `us-v1` freeze record must state that deaths occur only at discharge. Before M-A, measure risk-tier distribution by diagnosis in a US world (cloud run) to see how far parameters alone can reach.
 4. **Target client or date:** none, no deadline; aim for completeness over speed.
 
 ## 7. Definition of done
