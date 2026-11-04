@@ -4,7 +4,7 @@ import { EventQueue } from "./event-queue.js";
 import type { Encounter, LabOrder, MedicationOrder } from "../patient/schema.js";
 import type { ReferralLetter } from "../identity/types.js";
 import { LAB_TESTS } from "./lab.js";
-import { MEDICATIONS } from "./pharmacy.js";
+import { formularyMedications } from "./pharmacy.js";
 import { assignPayer } from "./finance.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 import { generatePatient } from "../patient/generator.js";
@@ -199,7 +199,8 @@ export function outpatientHandler(state: HospitalState, clock: Clock, _queue: Ev
     }
 
     if (dx && rng() > 0.5) {
-      const med = MEDICATIONS[Math.floor(rng() * MEDICATIONS.length)]!;
+      const meds = formularyMedications();
+      const med = meds[Math.floor(rng() * meds.length)]!;
       const medOrder: MedicationOrder = {
         id: `POLI-MED-${clock.tick}-${visit.patientId}-${med.code}`,
         encounterId: visit.encounterId, patientId: visit.patientId,

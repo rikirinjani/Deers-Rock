@@ -3,7 +3,7 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import { indonesiaEvents } from "./indonesia-calendar.js";
@@ -63,4 +63,11 @@ export class IndonesiaCalendar implements ICalendar {
   config = { countryCode: "ID", displayName: "Indonesia" };
   timeZoneLabel = "WITA";
   events(date: CalendarDate): CalendarEvent[] { return indonesiaEvents(date); }
+}
+
+/** Indonesian formulary: the whole catalogue, INN names as-is. */
+export class IndonesiaFormulary implements IFormulary {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  isAvailable(_code: string): boolean { return true; }
+  displayName(_code: string, innName: string): string { return innName; }
 }

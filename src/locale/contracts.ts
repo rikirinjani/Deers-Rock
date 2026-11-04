@@ -79,3 +79,17 @@ export interface ICalendar {
   /** Active events for a date; element 0 is always the "regular" baseline. */
   events(date: CalendarDate): CalendarEvent[];
 }
+
+/**
+ * Drug formulary (Epic X M10.5b slice 3): which catalogue drugs a hospital
+ * stocks and how they are named on orders. Protocols still reference the
+ * engine's drug codes and Indonesian INN labels for matching; the formulary
+ * only gates availability and changes the display name stored on the order.
+ */
+export interface IFormulary {
+  config: ILocaleConfig;
+  /** Whether the drug is on this hospital's formulary (regulatory availability). */
+  isAvailable(code: string): boolean;
+  /** Name shown on the order (e.g. USAN "Acetaminophen" for INN "Paracetamol"). */
+  displayName(code: string, innName: string): string;
+}

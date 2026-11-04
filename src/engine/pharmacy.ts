@@ -1,3 +1,4 @@
+import { getFormulary } from "../locale/registry.js";
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
@@ -23,6 +24,25 @@ export const MEDICATIONS = DRUG_CATALOG.map(d => ({
   route: d.route,
 }));
 
+type Medication = (typeof MEDICATIONS)[number];
+const FORMULARY_VIEWS = new WeakMap<object, Medication[]>();
+
+/**
+ * The medications this hospital can order: the catalogue filtered by the
+ * active formulary's availability, with its display names. MEDICATIONS (INN
+ * names) stays the matching key for protocol labels. For the Indonesian
+ * formulary the content equals MEDICATIONS, so random picks are unchanged.
+ */
+export function formularyMedications(): readonly Medication[] {
+  const f = getFormulary();
+  let v = FORMULARY_VIEWS.get(f);
+  if (!v) {
+    v = MEDICATIONS.filter(m => f.isAvailable(m.code)).map(m => ({ ...m, name: f.displayName(m.code, m.name) }));
+    FORMULARY_VIEWS.set(f, v);
+  }
+  return v;
+}
+
 const FREQUENCIES = ["QD", "BID", "TID", "QID", "PRN", "STAT"];
 
 export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
@@ -30,7 +50,8 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
   if (activeEncounters.length === 0 || clock.tick % 5 !== 0) return state;
 
   const encounter = activeEncounters[Math.floor(clock.rng() * activeEncounters.length)]!;
-  const med = MEDICATIONS[Math.floor(clock.rng() * MEDICATIONS.length)]!;
+  const meds = formularyMedications();
+  const med = meds[Math.floor(clock.rng() * meds.length)]!;
 
   const order: MedicationOrder = {
     id: `MED-${clock.tick}-${encounter.patientId}-${med.code}`,

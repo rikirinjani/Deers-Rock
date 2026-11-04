@@ -8,6 +8,7 @@ import { ICD_PROTOCOLS, mapIcdToActions, mapIcdToSpecialty, getVitalsTriggers, a
 import { getActionRanking } from "./agent-learning.js";
 import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
+import { getFormulary } from "../locale/registry.js";
 import { RAD_STUDIES } from "./radiology.js";
 import { DRUG_CATALOG } from "./drug-catalog.js";
 import { appendCharge } from "./charge-generator.js";
@@ -20,7 +21,7 @@ import { noteRespiratory } from "./treatment-effects.js";
  * Covers cases where protocol uses a descriptive label that doesn't exactly
  * match the catalog INN name (e.g. "Artemisinin-combination therapy" → "ART").
  */
-const LABEL_TO_CODE: Record<string, string> = {
+export const LABEL_TO_CODE: Record<string, string> = {
   "Artemisinin-combination therapy": "ART",
   "N-acetylcysteine 100mg/kg": "NAC",
   "N-acetylcysteine 600mg": "NAC",
@@ -221,8 +222,10 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
           const aliasDrug = aliasCode !== ca.action.detail
             ? DRUG_CATALOG.find(d => d.code === aliasCode)
             : undefined;
-          const med = directMed ?? (aliasDrug ? { code: aliasDrug.code, name: aliasDrug.innName, dose: aliasDrug.dose, route: aliasDrug.route } : undefined);
-          const medName = med?.name ?? med?.code ?? ca.action.label;
+          const catalogMed = directMed ?? (aliasDrug ? { code: aliasDrug.code, name: aliasDrug.innName, dose: aliasDrug.dose, route: aliasDrug.route } : undefined);
+          const formulary = getFormulary();
+          const med = catalogMed && formulary.isAvailable(catalogMed.code) ? catalogMed : undefined;
+          const medName = med ? formulary.displayName(med.code, med.name ?? med.code) : ca.action.label;
           if (med && !existingOrderKeys.has(`med:${medName}`)) {
             const order: MedicationOrder = {
               id: `${keyPrefix}-${med.code}`,
