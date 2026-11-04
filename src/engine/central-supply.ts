@@ -2,6 +2,7 @@ import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { InventoryItem, StockTransaction } from "../patient/schema.js";
+import { getFormulary } from "../locale/registry.js";
 
 const CATALOG: { code: string; name: string; category: InventoryItem["category"]; unit: string; min: number; max: number }[] = [
   // Medications (central pharmacy serves all wards/ED) — 173 drugs
@@ -209,6 +210,16 @@ export function centralSupplyInit(): Map<string, InventoryItem> {
       minStock: c.min,
       maxStock: c.max,
       departmentId: "central-pharmacy",
+    });
+  }
+  // Locale extension drugs (US-only products, substitutes): stocked like the base medications.
+  for (const x of getFormulary().extraDrugs) {
+    const oral = x.route === "PO";
+    const min = oral ? 200 : 100, max = oral ? 2000 : 1000;
+    items.set(x.supplyCode, {
+      itemCode: x.supplyCode, itemName: x.innName, category: "medication",
+      unit: oral ? "tab" : x.route === "SC" ? "syringe" : "vial",
+      stock: Math.floor((min + max) / 2), minStock: min, maxStock: max, departmentId: "central-pharmacy",
     });
   }
   return items;

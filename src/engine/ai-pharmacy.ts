@@ -1,4 +1,4 @@
-import { DRUG_CATALOG } from "./drug-catalog.js";
+import { DRUG_CATALOG, findDrug } from "./drug-catalog.js";
 import type { HospitalState } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
@@ -101,7 +101,7 @@ function processPharmacyOrders(state: HospitalState, clock: Clock, mode: "inpati
       warnings.push(`Learning: ${primaryDx!.name} has ${(deteriorationRate * 100).toFixed(0)}% historical deterioration — verify therapy appropriateness`);
     }
 
-    const supplyCode = MED_TO_SUPPLY[drugCode];
+    const supplyCode = MED_TO_SUPPLY[drugCode] ?? findDrug(drugCode)?.supplyCode;
     const stockAvailable = supplyCode ? getStock(stateMut, supplyCode) > 0 : true;
     if (!stockAvailable) {
       warnings.push(`Insufficient stock for ${order.medication.name} (${supplyCode})`);

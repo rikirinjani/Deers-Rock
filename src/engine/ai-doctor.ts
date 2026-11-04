@@ -10,7 +10,7 @@ import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { getFormulary } from "../locale/registry.js";
 import { RAD_STUDIES } from "./radiology.js";
-import { DRUG_CATALOG } from "./drug-catalog.js";
+import { activeCatalog } from "./drug-catalog.js";
 import { appendCharge } from "./charge-generator.js";
 import { respiratoryActivationFee } from "./price-tables.js";
 import { isClinicalVitalsEnabled } from "./config.js";
@@ -28,6 +28,29 @@ export const LABEL_TO_CODE: Record<string, string> = {
   "Metoprolol 50mg": "METO",
   "Morphine 5mg": "MOR5",
 };
+
+/**
+ * Resolve a protocol medication action to an orderable drug under the active
+ * formulary: direct match by name or code, then alias; an off-formulary drug is
+ * replaced by the formulary's substitute, or dropped when it has none.
+ */
+export function resolveOrderableMed(label: string, detail?: string): { med: { code: string; name: string; dose: string; route: string }; displayName: string } | undefined {
+  const directMed = MEDICATIONS.find(m => m.name === label || m.code === detail);
+  const aliasCode = LABEL_TO_CODE[label] ?? detail;
+  const aliasDrug = aliasCode !== detail
+    ? activeCatalog().find(d => d.code === aliasCode)
+    : undefined;
+  const catalogMed = directMed ?? (aliasDrug ? { code: aliasDrug.code, name: aliasDrug.innName, dose: aliasDrug.dose, route: aliasDrug.route } : undefined);
+  if (!catalogMed) return undefined;
+  const formulary = getFormulary();
+  let med: typeof catalogMed | undefined = formulary.isAvailable(catalogMed.code) ? catalogMed : undefined;
+  if (!med) {
+    const subCode = formulary.substitute(catalogMed.code);
+    const sub = subCode ? activeCatalog().find(d => d.code === subCode) : undefined;
+    if (sub) med = { code: sub.code, name: sub.innName, dose: sub.dose, route: sub.route };
+  }
+  return med ? { med, displayName: formulary.displayName(med.code, med.name ?? med.code) } : undefined;
+}
 
 const ROUND_INTERVAL = 4;
 
@@ -216,16 +239,9 @@ export function aiDoctorHandler(state: HospitalState, clock: Clock, queue: Event
           break;
         }
         case "medication": {
-          // Direct match by name or code, then alias fallback
-          const directMed = MEDICATIONS.find(m => m.name === ca.action.label || m.code === ca.action.detail);
-          const aliasCode = LABEL_TO_CODE[ca.action.label] ?? ca.action.detail;
-          const aliasDrug = aliasCode !== ca.action.detail
-            ? DRUG_CATALOG.find(d => d.code === aliasCode)
-            : undefined;
-          const catalogMed = directMed ?? (aliasDrug ? { code: aliasDrug.code, name: aliasDrug.innName, dose: aliasDrug.dose, route: aliasDrug.route } : undefined);
-          const formulary = getFormulary();
-          const med = catalogMed && formulary.isAvailable(catalogMed.code) ? catalogMed : undefined;
-          const medName = med ? formulary.displayName(med.code, med.name ?? med.code) : ca.action.label;
+          const resolved = resolveOrderableMed(ca.action.label, ca.action.detail);
+          const med = resolved?.med;
+          const medName = resolved ? resolved.displayName : ca.action.label;
           if (med && !existingOrderKeys.has(`med:${medName}`)) {
             const order: MedicationOrder = {
               id: `${keyPrefix}-${med.code}`,

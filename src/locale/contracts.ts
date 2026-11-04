@@ -10,6 +10,7 @@
 import type { Identity, Gender, ReferralFacility } from "../identity/types.js";
 import type { ICDMapping } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
+import type { DrugEntry } from "../engine/drug-catalog.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -92,4 +93,8 @@ export interface IFormulary {
   isAvailable(code: string): boolean;
   /** Name shown on the order (e.g. USAN "Acetaminophen" for INN "Paracetamol"). */
   displayName(code: string, innName: string): string;
+  /** Drugs this formulary adds to the base catalogue (US-only products, substitutes). */
+  extraDrugs: readonly DrugEntry[];
+  /** Substitute (a code in the base catalogue or extraDrugs) for an unavailable drug, if any. */
+  substitute(code: string): string | undefined;
 }

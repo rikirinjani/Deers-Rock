@@ -14,7 +14,7 @@
  * the US clinical content in M10.5b.
  */
 import type { ChargeCategory, RoomClass } from "../../patient/schema.js";
-import { DRUG_CATALOG } from "../drug-catalog.js";
+import { DRUG_CATALOG, findDrug } from "../drug-catalog.js";
 import type { IChargePolicy, IPriceBook } from "./contracts.js";
 
 const CONFIG = { countryCode: "US", currency: "USD", displayName: "United States (Medicare/MS-DRG)", currencyMinorUnits: 2 };
@@ -106,5 +106,10 @@ export class USPriceBook implements IPriceBook {
     const f = tier === "ALS" ? US_AMBULANCE_FEES.ALS : US_AMBULANCE_FEES.BLS;
     return round2(f.base + f.perKm * distanceKm);
   }
-  drug(drugCode: string) { return US_DRUG_PRICES.get(drugCode); }
+  drug(drugCode: string) {
+    const base = US_DRUG_PRICES.get(drugCode);
+    if (base !== undefined) return base;
+    const cost = findDrug(drugCode)?.costUsd;   // US-only extension drugs price from USD acquisition cost
+    return cost === undefined ? undefined : round2(cost * US_PHARMACY_MARKUP);
+  }
 }

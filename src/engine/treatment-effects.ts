@@ -20,7 +20,7 @@
  * nothing. Magnitudes are estimates unless noted (docs/research/vitals-clinical-model.md).
  */
 import type { Encounter, TreatmentLedger, Vitals } from "../patient/schema.js";
-import { DRUG_BY_CODE, type DrugCategory } from "./drug-catalog.js";
+import { findDrug, type DrugCategory } from "./drug-catalog.js";
 import type { GroupDef } from "./illness-model.js";
 
 const DAY = 1440;
@@ -102,7 +102,7 @@ export function noteMedication(
 ): Map<string, Encounter> {
   const enc = encounters.get(encounterId);
   if (!enc || enc.status !== "active" || enc.type !== "inpatient") return encounters;
-  const category = DRUG_BY_CODE.get(drugCode)?.category;
+  const category = findDrug(drugCode)?.category;
   if (!category) return encounters;
   const next = recordMedication(enc, category, tick);
   if (next === enc) return encounters;

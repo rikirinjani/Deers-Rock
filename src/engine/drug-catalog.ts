@@ -11,6 +11,8 @@
  * ADR-012 additions: 82 BPOM-registered generic drugs for RSUD coverage.
  */
 
+import { getFormulary } from "../locale/registry.js";
+
 export type DrugCategory =
   | "antihypertensive" | "antidiabetic" | "antibiotic" | "antiviral"
   | "antifungal" | "anticoagulant" | "antiplatelet" | "statin"
@@ -44,6 +46,8 @@ export interface DrugEntry {
   maxDailyMg?: number;
   /** Clinical notes for contraindication engine */
   classTag?: string;
+  /** US acquisition cost per unit in USD (US-only extension drugs; costIdr is 0 for them). */
+  costUsd?: number;
 }
 
 export const DRUG_CATALOG: DrugEntry[] = [
@@ -376,4 +380,24 @@ export const ALL_SUPPLY_CODES = DRUG_CATALOG.map(d => d.supplyCode);
 /** Total unique supply codes = 50 */
 export function getDrug(code: string): DrugEntry | undefined {
   return DRUG_BY_CODE.get(code);
+}
+
+// ── Locale extension (Epic X M10.5b slice 3b) ────────────────────────────────
+// The base catalogue above is the Indonesian one and never changes. A locale's
+// formulary can add drugs (US-only products, substitutes); lookups that must
+// see them go through findDrug / activeCatalog.
+const ACTIVE_VIEWS = new WeakMap<object, readonly DrugEntry[]>();
+
+/** Base catalogue plus the active formulary's extra drugs (the base array itself when there are none). */
+export function activeCatalog(): readonly DrugEntry[] {
+  const f = getFormulary();
+  if (f.extraDrugs.length === 0) return DRUG_CATALOG;
+  let v = ACTIVE_VIEWS.get(f);
+  if (!v) { v = DRUG_CATALOG.concat(f.extraDrugs); ACTIVE_VIEWS.set(f, v); }
+  return v;
+}
+
+/** Lookup in the base catalogue first, then the active formulary's extra drugs. */
+export function findDrug(code: string): DrugEntry | undefined {
+  return DRUG_BY_CODE.get(code) ?? getFormulary().extraDrugs.find(d => d.code === code);
 }

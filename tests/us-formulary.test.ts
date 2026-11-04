@@ -5,13 +5,18 @@
  */
 import { describe, it, expect, afterEach } from "vitest";
 import { USFormulary, US_UNAVAILABLE_DRUGS, usanName } from "../src/locale/us-formulary.js";
+import { US_EXTRA_DRUGS, US_SUBSTITUTES } from "../src/locale/us-drugs.js";
+import { activeCatalog, findDrug } from "../src/engine/drug-catalog.js";
+import { centralSupplyInit } from "../src/engine/central-supply.js";
+import { getDoseRange, checkDrugAllergy } from "../src/engine/pharmacy-knowledge.js";
+import { USPriceBook } from "../src/engine/billing/us-prices.js";
 import { IndonesiaFormulary } from "../src/locale/indonesia.js";
 import { getFormulary } from "../src/locale/registry.js";
 import { useUSLocale, resetLocale } from "../src/locale/us-locale.js";
 import { useUSAdapter, resetBillingAdapter } from "../src/engine/billing/us-adapter.js";
 import { DRUG_CATALOG } from "../src/engine/drug-catalog.js";
 import { MEDICATIONS, formularyMedications } from "../src/engine/pharmacy.js";
-import { LABEL_TO_CODE } from "../src/engine/ai-doctor.js";
+import { LABEL_TO_CODE, resolveOrderableMed } from "../src/engine/ai-doctor.js";
 import { ICD_PROTOCOLS, VITALS_RULES } from "../src/engine/clinical-knowledge.js";
 import { createWorld, runWorld } from "../src/engine/world.js";
 
@@ -50,9 +55,10 @@ describe("US formulary", () => {
     const meds = actions.filter(a => a.type === "medication");
     expect(meds.length).toBeGreaterThan(50);
     const blocked = meds.filter(a => { const c = resolve(a.label, a.detail); return c !== undefined && !us.isAvailable(c); }).map(a => a.label);
-    // Known gap: the Meniere's protocol prescribes betahistine (not FDA-approved). Under the US
-    // formulary that action is skipped until a US substitute (e.g. meclizine) joins a US drug catalogue.
-    // Any NEW blocked protocol drug fails this test.
+    // Betahistine (Meniere's protocol) is off-formulary; it must have a US substitute. Any other
+    // blocked protocol drug without a substitute fails this test.
+    const uncovered = Array.from(new Set(blocked)).filter(l => { const c = resolve(l, ""); return !c || !US_SUBSTITUTES[c] || !US_EXTRA_DRUGS.some(d => d.code === US_SUBSTITUTES[c]); });
+    expect(uncovered).toEqual([]);
     expect(Array.from(new Set(blocked))).toEqual(["Betahistine 16mg"]);
   });
 
@@ -64,10 +70,56 @@ describe("US formulary", () => {
     useUSLocale();
     expect(getFormulary().config.countryCode).toBe("US");
     const view = formularyMedications();
-    expect(view.length).toBe(MEDICATIONS.length - US_UNAVAILABLE_DRUGS.length);
+    expect(view.length).toBe(MEDICATIONS.length - US_UNAVAILABLE_DRUGS.length + US_EXTRA_DRUGS.length);
     expect(view.find(m => m.code === "PRC")!.name).toBe("Acetaminophen 500mg");
     resetLocale();
     expect(formularyMedications().length).toBe(MEDICATIONS.length);
+  });
+
+  it("US extension drugs exist only while the US formulary is active", () => {
+    expect(activeCatalog()).toBe(DRUG_CATALOG);
+    expect(findDrug("APX")).toBeUndefined();
+    expect(centralSupplyInit().has("MED-APX")).toBe(false);
+    useUSLocale();
+    expect(activeCatalog().length).toBe(DRUG_CATALOG.length + US_EXTRA_DRUGS.length);
+    expect(findDrug("APX")?.innName).toBe("Apixaban 5mg");
+    expect(centralSupplyInit().has("MED-APX")).toBe(true);
+    resetLocale();
+    expect(findDrug("APX")).toBeUndefined();
+  });
+
+  it("extension drugs are well formed: unique codes, stocked, priced, dosed, allergen-aware", () => {
+    useUSLocale();
+    const base = new Set(DRUG_CATALOG.map(d => d.code));
+    const supply = centralSupplyInit();
+    const price = new USPriceBook();
+    for (const d of US_EXTRA_DRUGS) {
+      expect(base.has(d.code)).toBe(false);
+      expect(supply.get(d.supplyCode)?.stock).toBeGreaterThan(0);
+      expect(price.drug(d.code)).toBeGreaterThan(0);
+      expect(getDoseRange(d.code)?.maxMg).toBe(d.maxMg);
+    }
+    expect(checkDrugAllergy("PIP", ["Penicillin"])).toContain("penicillin");
+    expect(checkDrugAllergy("CFZ", ["Penicillin"])).toBeNull();
+  });
+
+  it("every substitute is a US extension drug and replaces exactly an off-formulary drug", () => {
+    for (const [off, sub] of Object.entries(US_SUBSTITUTES)) {
+      expect(US_UNAVAILABLE_DRUGS).toContain(off);
+      expect(US_EXTRA_DRUGS.some(d => d.code === sub)).toBe(true);
+    }
+    expect(Object.keys(US_SUBSTITUTES).sort()).toEqual([...US_UNAVAILABLE_DRUGS].sort());
+  });
+
+  it("order resolution: Indonesian unchanged; US substitutes betahistine, renames, drops drugs with no substitute", () => {
+    expect(resolveOrderableMed("Betahistine 16mg", "x")?.med.code).toBe("BET");
+    expect(resolveOrderableMed("Paracetamol 500mg", "x")?.displayName).toBe("Paracetamol 500mg");
+    useUSLocale();
+    const r = resolveOrderableMed("Betahistine 16mg", "x")!;
+    expect(r.med.code).toBe("MEC");
+    expect(r.displayName).toBe("Meclizine 25mg");
+    expect(resolveOrderableMed("Paracetamol 500mg", "x")?.displayName).toBe("Acetaminophen 500mg");
+    expect(resolveOrderableMed("No such drug", "NOPE")).toBeUndefined();
   });
 
   it("a US world orders only US-named, FDA-available drugs", () => {

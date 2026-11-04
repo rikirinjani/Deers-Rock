@@ -1,5 +1,5 @@
 import type { Medication, Diagnosis } from "../patient/schema.js";
-import { DRUG_CATALOG, getDrug } from "./drug-catalog.js";
+import { DRUG_CATALOG, getDrug, findDrug } from "./drug-catalog.js";
 
 /** Allergen groups per drug code. Extended from 22 to 50 drugs. */
 export const MED_ALLERGEN_MAP: Record<string, string[]> = {
@@ -468,11 +468,15 @@ export function getDoseRange(drugCode: string): { minMg: number; maxMg: number; 
     "HYS": { minMg: 10, maxMg: 20, maxDailyMg: 60, unit: "mg" },
     "CLC": { minMg: 0.5, maxMg: 1, maxDailyMg: 3, unit: "mg" },
   };
-  return all[drugCode] ?? null;
+  const known = all[drugCode];
+  if (known) return known;
+  const ext = findDrug(drugCode);   // locale extension drugs carry their own range
+  return ext && ext.minMg !== undefined && ext.maxMg !== undefined && ext.maxDailyMg !== undefined
+    ? { minMg: ext.minMg, maxMg: ext.maxMg, maxDailyMg: ext.maxDailyMg, unit: "mg" } : null;
 }
 
 export function checkDrugAllergy(drugCode: string, patientAllergies: string[]): string | null {
-  const allergens = MED_ALLERGEN_MAP[drugCode];
+  const allergens = MED_ALLERGEN_MAP[drugCode] ?? findDrug(drugCode)?.allergens;
   if (!allergens || allergens.length === 0) return null;
   for (const a of allergens) {
     if (patientAllergies.some(pa => pa.toLowerCase().includes(a.toLowerCase()))) {

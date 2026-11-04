@@ -4,7 +4,7 @@ import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import type { MedicationOrder } from "../patient/schema.js";
 import { dispenseItem, getStock } from "./central-supply.js";
-import { DRUG_CATALOG } from "./drug-catalog.js";
+import { DRUG_CATALOG, activeCatalog, findDrug } from "./drug-catalog.js";
 import { isClinicalVitalsEnabled } from "./config.js";
 import { noteMedication } from "./treatment-effects.js";
 
@@ -37,7 +37,10 @@ export function formularyMedications(): readonly Medication[] {
   const f = getFormulary();
   let v = FORMULARY_VIEWS.get(f);
   if (!v) {
-    v = MEDICATIONS.filter(m => f.isAvailable(m.code)).map(m => ({ ...m, name: f.displayName(m.code, m.name) }));
+    v = activeCatalog()
+      .map(d => ({ code: d.code, name: d.innName, dose: d.dose, route: d.route }))
+      .filter(m => f.isAvailable(m.code))
+      .map(m => ({ ...m, name: f.displayName(m.code, m.name) }));
     FORMULARY_VIEWS.set(f, v);
   }
   return v;
@@ -70,7 +73,7 @@ export function pharmacyHandler(state: HospitalState, clock: Clock, _queue: Even
   newOrders.set(order.id, order);
 
   // Dispense from central pharmacy stock
-  const supplyCode = MED_MAP[med.code];
+  const supplyCode = MED_MAP[med.code] ?? findDrug(med.code)?.supplyCode;
   if (supplyCode && getStock(state, supplyCode) > 0) {
     state = dispenseItem(state, supplyCode, 1, clock, order.id);
   }

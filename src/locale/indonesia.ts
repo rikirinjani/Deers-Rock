@@ -6,6 +6,7 @@
 import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
+import type { DrugEntry } from "../engine/drug-catalog.js";
 import { indonesiaEvents } from "./indonesia-calendar.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
@@ -70,4 +71,6 @@ export class IndonesiaFormulary implements IFormulary {
   config = { countryCode: "ID", displayName: "Indonesia" };
   isAvailable(_code: string): boolean { return true; }
   displayName(_code: string, innName: string): string { return innName; }
+  extraDrugs: readonly DrugEntry[] = [];
+  substitute(_code: string): string | undefined { return undefined; }
 }
