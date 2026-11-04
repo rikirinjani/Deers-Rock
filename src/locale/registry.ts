@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -18,3 +18,9 @@ let network: IReferralNetwork = DEFAULT_NETWORK;
 export function getReferralNetwork(): IReferralNetwork { return network; }
 export function useReferralNetwork(n: IReferralNetwork): void { network = n; }
 export function resetReferralNetwork(): void { network = DEFAULT_NETWORK; }
+
+const DEFAULT_CASE_MIX: ICaseMix = new IndonesiaCaseMix();
+let caseMix: ICaseMix = DEFAULT_CASE_MIX;
+export function getCaseMix(): ICaseMix { return caseMix; }
+export function useCaseMix(m: ICaseMix): void { caseMix = m; }
+export function resetCaseMix(): void { caseMix = DEFAULT_CASE_MIX; }

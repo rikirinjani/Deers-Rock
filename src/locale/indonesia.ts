@@ -3,7 +3,8 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix } from "./contracts.js";
+import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
 import { ageFromBirthDate } from "../identity/reference-year.js";
@@ -47,4 +48,11 @@ export class IndonesiaReferralNetwork implements IReferralNetwork {
   letterNote(from: ReferralFacility, toFacility: string): string {
     return `Dirujuk dari ${from.name} (${from.type}) ke ${toFacility}`;
   }
+}
+
+/** Indonesian case mix: the original pool; only dengue (A91) is age-weighted. */
+export class IndonesiaCaseMix implements ICaseMix {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  diagnoses = ICD10_DIAGNOSES;
+  ageWeight(code: string, age: number): number { return code === "A91" ? dengueAgeFactor(age) : 1; }
 }

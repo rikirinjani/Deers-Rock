@@ -8,6 +8,7 @@
  * no wall clock. Draw counts are a pure function of inputs.
  */
 import type { Identity, Gender, ReferralFacility } from "../identity/types.js";
+import type { ICDMapping } from "../patient/icd-pool.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -50,4 +51,17 @@ export interface IReferralNetwork {
   /** Diagnoses (ICD-10 categories) a letter can carry. */
   diagnoses: readonly string[];
   letterNote(from: ReferralFacility, toFacility: string): string;
+}
+
+/**
+ * Case mix (Epic X M10.5b): which diagnoses a generated patient can carry, how
+ * often, and how selection weight scales with age. Every code must be one the
+ * illness model and clinical knowledge can handle (tests enforce it).
+ */
+export interface ICaseMix {
+  config: ILocaleConfig;
+  /** Disease pool (ICD-10 categories) with age/sex eligibility and base selection weight. */
+  diagnoses: readonly ICDMapping[];
+  /** Multiplier on a diagnosis' base weight for a patient of this age (1 = none). */
+  ageWeight(code: string, age: number): number;
 }
