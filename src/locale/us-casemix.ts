@@ -12,9 +12,10 @@
  *   (hypertension, diabetes, heart failure, COPD, CKD, AF, MI, stroke,
  *   sepsis, chest/abdominal pain) are weighted up; hip fracture is
  *   age-weighted towards the elderly.
- * - Categories absent from the pool but central to US practice (opioid
- *   overdose, alcohol use disorder, obesity, firearm injury) need illness
- *   groups and protocols first: deferred to the next 10.5b slice.
+ * - US-central categories the engine's pool lacks (alcohol and opioid use
+ *   disorder, opioid overdose, obesity, alcoholic liver disease) are added
+ *   below with illness groups, DRG families and protocols. Firearm injury
+ *   is deferred (an external cause, not a diagnosis category).
  *
  * CALIBRATION PENDING: every weight is an unsourced placeholder. Calibrating
  * to HCUP / CDC NHAMCS volumes is M10.5c.
@@ -33,9 +34,24 @@ const US_WEIGHT: Record<string, number> = {
   I05: 1, I09: 1, I00: 1, A15: 1, T63: 1,
 };
 
+/**
+ * US-central categories the Indonesian pool lacks. Each has an illness group
+ * (or a no-acute-signature entry), an MS-DRG family and a protocol. Firearm
+ * injury is not here: it is an external cause on top of an injury diagnosis,
+ * which the engine cannot model yet.
+ */
+export const US_EXTRA_DIAGNOSES: readonly ICDMapping[] = [
+  { code: "F10", name: "Alcohol use disorder", minAge: 18, maxAge: 80, genders: ["male", "female"], weight: 6 },
+  { code: "F11", name: "Opioid use disorder", minAge: 15, maxAge: 70, genders: ["male", "female"], weight: 3 },
+  { code: "T40", name: "Opioid overdose", minAge: 15, maxAge: 70, genders: ["male", "female"], weight: 2 },
+  { code: "E66", name: "Obesity", minAge: 18, maxAge: 80, genders: ["male", "female"], weight: 6 },
+  { code: "K70", name: "Alcoholic liver disease", minAge: 25, maxAge: 80, genders: ["male", "female"], weight: 2 },
+];
+
 export const US_DIAGNOSES: readonly ICDMapping[] = ICD10_DIAGNOSES
   .filter(d => !US_EXCLUDED_CODES.includes(d.code))
-  .map(d => (US_WEIGHT[d.code] !== undefined ? { ...d, weight: US_WEIGHT[d.code]! } : d));
+  .map(d => (US_WEIGHT[d.code] !== undefined ? { ...d, weight: US_WEIGHT[d.code]! } : d))
+  .concat(US_EXTRA_DIAGNOSES);
 
 export class USCaseMix implements ICaseMix {
   config = { countryCode: "US", displayName: "United States" };

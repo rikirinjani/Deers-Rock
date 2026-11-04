@@ -10,7 +10,7 @@ import { LAB_TESTS } from "./lab.js";
 import { MEDICATIONS } from "./pharmacy.js";
 import { getFormulary } from "../locale/registry.js";
 import { RAD_STUDIES } from "./radiology.js";
-import { activeCatalog } from "./drug-catalog.js";
+import { activeCatalog, DRUG_BY_CODE as DRUG_BY_CODE_BASE } from "./drug-catalog.js";
 import { appendCharge } from "./charge-generator.js";
 import { respiratoryActivationFee } from "./price-tables.js";
 import { isClinicalVitalsEnabled } from "./config.js";
@@ -35,7 +35,8 @@ export const LABEL_TO_CODE: Record<string, string> = {
  * replaced by the formulary's substitute, or dropped when it has none.
  */
 export function resolveOrderableMed(label: string, detail?: string): { med: { code: string; name: string; dose: string; route: string }; displayName: string } | undefined {
-  const directMed = MEDICATIONS.find(m => m.name === label || m.code === detail);
+  const directMed = MEDICATIONS.find(m => m.name === label || m.code === detail)
+    ?? activeCatalog().filter(d => !DRUG_BY_CODE_BASE.has(d.code)).map(d => ({ code: d.code, name: d.innName, dose: d.dose, route: d.route })).find(m => m.name === label || m.code === detail);
   const aliasCode = LABEL_TO_CODE[label] ?? detail;
   const aliasDrug = aliasCode !== detail
     ? activeCatalog().find(d => d.code === aliasCode)

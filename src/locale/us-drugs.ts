@@ -25,6 +25,9 @@ export const US_EXTRA_DRUGS: readonly DrugEntry[] = [
   { code: "PIP", innName: "Piperacillin-tazobactam 4.5g", category: "antibiotic", dose: "4.5 g", route: "IV", supplyCode: "MED-PIP", costIdr: 0, costUsd: 12, allergens: ["penicillin"], classTag: "penicillin", minMg: 2250, maxMg: 4500, maxDailyMg: 18000 },
   { code: "CFZ", innName: "Cefazolin 2g", category: "antibiotic", dose: "2 g", route: "IV", supplyCode: "MED-CFZ", costIdr: 0, costUsd: 3, allergens: ["cephalosporin"], classTag: "cephalosporin", minMg: 1000, maxMg: 2000, maxDailyMg: 6000 },
   { code: "EMP", innName: "Empagliflozin 10mg", category: "antidiabetic", dose: "10 mg", route: "PO", supplyCode: "MED-EMP", costIdr: 0, costUsd: 20, allergens: [], classTag: "sglt2", minMg: 10, maxMg: 25, maxDailyMg: 25 },
+  // Addiction medicine / alcohol use disorder
+  { code: "THI", innName: "Thiamine 100mg", category: "other", dose: "100 mg", route: "IV", supplyCode: "MED-THI", costIdr: 0, costUsd: 1.5, allergens: [], classTag: "vitamin_b1", minMg: 100, maxMg: 500, maxDailyMg: 500 },
+  { code: "NTX", innName: "Naltrexone 50mg", category: "other", dose: "50 mg", route: "PO", supplyCode: "MED-NTX", costIdr: 0, costUsd: 1, allergens: [], classTag: "opioid_antagonist", minMg: 25, maxMg: 50, maxDailyMg: 100 },
 ];
 
 /** Off-formulary drug -> US substitute (all substitutes are in US_EXTRA_DRUGS). */

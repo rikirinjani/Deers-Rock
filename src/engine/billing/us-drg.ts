@@ -122,7 +122,9 @@ const FAMILIES: Family[] = [
   med(88, "3", [1.30, 0.85, 0.60], "Concussion", ["S06"]),
   med(604, "2m", [1.10, 0.75], "Trauma to the skin, subcutaneous tissue and breast", ["T14"]),
   med(933, "2m", [1.50, 0.90], "Nonextensive burns", ["T20"]),
-  med(917, "2m", [1.50, 0.80], "Poisoning and toxic effects of drugs", ["T63", "T39"]),
+  med(917, "2m", [1.50, 0.80], "Poisoning and toxic effects of drugs", ["T63", "T39", "T40"]),
+  med(896, "2m", [1.45, 0.75], "Alcohol, drug abuse or dependence", ["F10", "F11"]),
+  med(432, "3", [1.85, 0.95, 0.70], "Cirrhosis and alcoholic hepatitis", ["K70"]),
   med(919, "3", [1.40, 0.90, 0.65], "Complications of treatment", ["T81"]),
   // Genitourinary
   med(689, "2m", [1.15, 0.80], "Kidney and urinary tract infections", ["N10", "N39"]),

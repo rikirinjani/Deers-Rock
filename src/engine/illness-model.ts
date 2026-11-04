@@ -249,6 +249,21 @@ export const GROUPS: Record<string, GroupDef> = {
     offsets: o({ hr: 10, sbp: -4, t: 0.3, rr: 2, pain: 1 }),
     definitive: ["other"], basis: "estimate",
   },
+  opioid_overdose: {
+    label: "Opioid overdose",
+    codes: ["T40"],
+    // Respiratory depression (RR ~6, SpO2 < 90) with bradycardia and hypotension; naloxone reverses it within
+    // minutes, so a short hold and a fast treated decay. Offsets are estimates, not a published fit (M10.5c).
+    offsets: o({ hr: -8, sbp: -12, dbp: -6, t: -0.3, o2: -10, rr: -8 }),
+    definitive: ["other"], tags: ["airway"], holdMin: 180, halfLifeMin: 240, basis: "estimate",
+  },
+  alcohol_withdrawal: {
+    label: "Alcohol use disorder with withdrawal",
+    codes: ["F10"],
+    // Autonomic hyperactivity (CIWA-Ar: tachycardia, hypertension, tremor, mild fever); benzodiazepines are first line.
+    offsets: o({ hr: 20, sbp: 20, dbp: 10, t: 0.6, rr: 4, pain: 1 }),
+    definitive: ["anxiolytic"], basis: "estimate",
+  },
   post_procedure: {
     label: "Complication following a procedure",
     codes: ["T81"],
@@ -365,8 +380,8 @@ export const GROUPS: Record<string, GroupDef> = {
     definitive: ["antiviral"], infection: true, basis: "estimate",
   },
   cirrhosis: {
-    label: "Cirrhosis",
-    codes: ["K74"],
+    label: "Cirrhosis (incl. alcoholic liver disease)",
+    codes: ["K74", "K70"],
     offsets: o({ hr: 8, sbp: -8, rr: 2, pain: 1 }), persistent: true,
     definitive: ["diuretic"], tags: ["cardiac"], basis: "estimate",
   },
@@ -399,7 +414,7 @@ export const NO_ACUTE_SIGNATURE: string[] = [
   "I10", "E11", "E78", "E03", "E04", "E20", "E21", "E24", "M17", "M81", "M75", "G56", "G58", "G61",
   "F32", "F31", "F20", "F90", "F43", "F42", "F00", "H25", "H10", "B86", "A30", "A82", "D25", "D69",
   "N40", "K64", "Q36", "Q37", "R23", "R70", "R31", "I00", "I70", "I25", "I77", "P07", "P10", "P58",
-  "Z00",
+  "E66", "F11", "Z00",
 ];
 
 const GROUP_BY_ICD: Map<string, string> = (() => {

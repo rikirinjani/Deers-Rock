@@ -1164,6 +1164,46 @@ export const ICD_PROTOCOLS: IcdProtocol[] = [
       { type: "medication", label: "Calcitriol 0.25mcg", priority: 9, detail: "Vitamin D activation" },
       { type: "consult", label: "Endokrinologi", priority: 8, detail: "endocrinology" },
     ] },
+  // ── US-central categories (Epic X M10.5b slice 4): reached only through the US case mix ──
+  { code: "T40", name: "Opioid overdose", specialty: "emergency",
+    actions: [
+      { type: "medication", label: "Naloxone 0.4mg", priority: 10, detail: "Antidote" },
+      { type: "respiratory", label: "Oxygen therapy", priority: 10, detail: "oxygen" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 8, detail: "BMP" },
+      { type: "lab", label: "Complete Blood Count", priority: 7, detail: "CBC" },
+      { type: "consult", label: "Jiwa", priority: 8, detail: "addiction" },
+    ] },
+  { code: "F10", name: "Alcohol use disorder", specialty: "psychiatry",
+    actions: [
+      { type: "medication", label: "Diazepam 5mg", priority: 10, detail: "Withdrawal (benzodiazepine)" },
+      { type: "medication", label: "Thiamine 100mg", priority: 9, detail: "Wernicke prophylaxis" },
+      { type: "medication", label: "Folic acid 1mg", priority: 7, detail: "Supplement" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 9, detail: "BMP" },
+      { type: "lab", label: "Liver Function Test", priority: 8, detail: "LFT" },
+      { type: "consult", label: "Jiwa", priority: 8, detail: "addiction" },
+    ] },
+  { code: "F11", name: "Opioid use disorder", specialty: "psychiatry",
+    actions: [
+      { type: "medication", label: "Buprenorphine 2mg", priority: 9, detail: "Medication for opioid use disorder" },
+      { type: "medication", label: "Naloxone 0.4mg", priority: 7, detail: "Overdose rescue" },
+      { type: "lab", label: "Complete Blood Count", priority: 6, detail: "CBC" },
+      { type: "consult", label: "Jiwa", priority: 9, detail: "addiction" },
+    ] },
+  { code: "E66", name: "Obesity", specialty: "internal_medicine",
+    actions: [
+      { type: "lab", label: "Hemoglobin A1C", priority: 8, detail: "HbA1c" },
+      { type: "lab", label: "Basic Metabolic Panel", priority: 7, detail: "BMP" },
+      { type: "diet", label: "Weight-management diet", priority: 6, detail: "weight_management" },
+      { type: "consult", label: "Gizi Klinik", priority: 7, detail: "nutrition" },
+    ] },
+  { code: "K70", name: "Alcoholic liver disease", specialty: "internal_medicine",
+    actions: [
+      { type: "lab", label: "Liver Function Test", priority: 10, detail: "LFT" },
+      { type: "lab", label: "Prothrombin Time / INR", priority: 9, detail: "coagulation" },
+      { type: "medication", label: "Thiamine 100mg", priority: 8, detail: "Nutritional support" },
+      { type: "medication", label: "Folic acid 1mg", priority: 7, detail: "Supplement" },
+      { type: "consult", label: "Penyakit Dalam", priority: 9, detail: "hepatology" },
+    ] },
 ];
 
 export const VITALS_RULES: VitalsRule[] = [
