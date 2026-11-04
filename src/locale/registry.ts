@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -24,3 +24,9 @@ let caseMix: ICaseMix = DEFAULT_CASE_MIX;
 export function getCaseMix(): ICaseMix { return caseMix; }
 export function useCaseMix(m: ICaseMix): void { caseMix = m; }
 export function resetCaseMix(): void { caseMix = DEFAULT_CASE_MIX; }
+
+const DEFAULT_CALENDAR: ICalendar = new IndonesiaCalendar();
+let calendar: ICalendar = DEFAULT_CALENDAR;
+export function getCalendar(): ICalendar { return calendar; }
+export function useCalendar(c: ICalendar): void { calendar = c; }
+export function resetCalendar(): void { calendar = DEFAULT_CALENDAR; }

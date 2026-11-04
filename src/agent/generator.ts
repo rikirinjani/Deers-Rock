@@ -97,7 +97,7 @@ export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgen
 
   const actualDept = spesialisasi ? SPESIALIS_MAP[spesialisasi] : rd.dept;
 
-  const lisensi = role.startsWith("dokter")
+  const lisensi = locale.staffLicence ? locale.staffLicence(role, rng) : role.startsWith("dokter")
     ? `STR-${String(Math.floor(rand() * 1000000)).padStart(6, "0")}`
     : role === "perawat" || role === "perawat_anestesi" || role === "bidan"
     ? `SIP-${String(Math.floor(rand() * 1000000)).padStart(6, "0")}`
@@ -105,7 +105,7 @@ export function generateAgent(role: AgentRole, rng?: () => number): HospitalAgen
 
   return {
     id: `${role.toUpperCase().slice(0, 4)}-${String(agentCounter).padStart(4, "0")}`,
-    nama: pickRandom(namePool, rng) + " " + pickRandom(LAST_NAMES, rng),
+    nama: locale.staffName ? locale.staffName(role, gender, rng) : pickRandom(namePool, rng) + " " + pickRandom(LAST_NAMES, rng),
     identity,
     role,
     spesialisasi: spesialisasi ?? null,

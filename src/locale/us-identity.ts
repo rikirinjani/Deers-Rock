@@ -25,12 +25,12 @@ export const US_REFERENCE_YEAR = SIM_REFERENCE_YEAR;
 /** Draws consumed per identity() call. */
 export const IDENTITY_DRAWS = 10;
 
-const FIRST_NAMES: Record<Gender, string[]> = {
+export const FIRST_NAMES: Record<Gender, string[]> = {
   male: ["James", "Robert", "John", "Michael", "David", "William", "Richard", "Joseph", "Thomas", "Christopher", "Charles", "Daniel", "Matthew", "Anthony", "Mark", "Steven", "Paul", "Andrew", "Joshua", "Kenneth", "Kevin", "Brian", "George", "Edward", "Ronald", "Timothy", "Jason", "Jeffrey", "Ryan", "Jacob", "Gary", "Nicholas", "Eric", "Jonathan", "Stephen", "Larry", "Justin", "Scott", "Brandon", "Benjamin"],
   female: ["Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen", "Lisa", "Nancy", "Betty", "Margaret", "Sandra", "Ashley", "Kimberly", "Emily", "Donna", "Michelle", "Carol", "Amanda", "Dorothy", "Melissa", "Deborah", "Stephanie", "Rebecca", "Sharon", "Laura", "Cynthia", "Kathleen", "Amy", "Angela", "Shirley", "Anna", "Brenda", "Pamela", "Emma", "Nicole", "Helen"],
 };
 
-const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts"];
+export const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter", "Roberts"];
 
 const STREETS = ["Main St", "Oak St", "Maple Ave", "Cedar Ln", "Pine St", "Elm St", "Washington Ave", "Lake Dr", "Hill Rd", "Park Ave", "Sunset Blvd", "Church St", "Highland Ave", "River Rd", "Walnut St"];
 
@@ -51,6 +51,22 @@ const RELIGIONS: [number, Religion][] = [
 const AREA_CODES = ["212", "305", "312", "404", "415", "512", "614", "617", "713", "818"];
 
 const pad = (n: number, w: number) => String(n).padStart(w, "0");
+
+/** US credential suffix per engine role (roles keep their engine identifiers). */
+const STAFF_CREDENTIAL: Record<string, string> = {
+  dokter_spesialis: "MD", dokter_umum: "MD", dokter_gigi: "DDS",
+  perawat: "RN", perawat_anestesi: "CRNA", bidan: "CNM", perawat_ppi: "RN",
+  apoteker: "PharmD", asisten_apoteker: "CPhT", radiografer: "RT(R)", analis_lab: "MLS",
+  nutrisionis: "RD", fisioterapis: "PT", okupasi_terapis: "OTR", psikolog: "PhD",
+  pekerja_sosial: "LCSW", koder: "CCS", ahli_mikrobiologi: "PhD", ahli_patologi: "MD",
+};
+
+function staffLicencePrefix(role: string): string {
+  if (role.startsWith("dokter") || role === "ahli_patologi") return "MD";
+  if (role === "perawat" || role === "perawat_anestesi" || role === "bidan" || role === "perawat_ppi") return "RN";
+  if (role === "apoteker" || role === "asisten_apoteker") return "RPH";
+  return "LIC";
+}
 
 let mrnCounter = 0;
 export function resetMrnCounter(): void { mrnCounter = 0; }
@@ -131,6 +147,24 @@ export class USIdentityLocale implements IIdentityLocale {
   phone(rng?: () => number): string {
     const n = Math.floor((rng ?? Math.random)() * AREA_CODES.length * 100);
     return `${AREA_CODES[Math.floor(n / 100)]}-555-01${pad(n % 100, 2)}`;
+  }
+
+  /**
+   * Staff licence: one draw. "SIM-" marks it synthetic so it cannot be mistaken
+   * for (or collide with) a real state licence.
+   */
+  staffLicence(role: string, rng?: () => number): string {
+    const n = String(Math.floor((rng ?? Math.random)() * 1_000_000)).padStart(6, "0");
+    return `SIM-${staffLicencePrefix(role)}-${n}`;
+  }
+
+  /** Staff name with US credential suffix: two draws (first, last). */
+  staffName(role: string, gender: Gender, rng?: () => number): string {
+    const rand = rng ?? Math.random;
+    const first = FIRST_NAMES[gender];
+    const name = `${first[Math.floor(rand() * first.length)]} ${LAST_NAMES[Math.floor(rand() * LAST_NAMES.length)]}`;
+    const cred = STAFF_CREDENTIAL[role];
+    return cred ? `${name}, ${cred}` : name;
   }
 
   ageOf(identity: Identity): number {

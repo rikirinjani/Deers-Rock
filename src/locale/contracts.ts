@@ -9,6 +9,7 @@
  */
 import type { Identity, Gender, ReferralFacility } from "../identity/types.js";
 import type { ICDMapping } from "../patient/icd-pool.js";
+import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -29,6 +30,10 @@ export interface IIdentityLocale {
    */
   patientName?(gender: Gender, rng?: () => number): string;
   phone?(rng?: () => number): string;
+  /** Staff licence number (one rng draw, taken before the name to keep the Indonesian draw order). */
+  staffLicence?(role: string, rng?: () => number): string;
+  /** Staff display name incl. title/credentials (two rng draws). */
+  staffName?(role: string, gender: Gender, rng?: () => number): string;
 }
 
 export interface IReferralNetwork {
@@ -64,4 +69,13 @@ export interface ICaseMix {
   diagnoses: readonly ICDMapping[];
   /** Multiplier on a diagnosis' base weight for a patient of this age (1 = none). */
   ageWeight(code: string, age: number): number;
+}
+
+/** Event calendar (Epic X M10.5b): holidays and seasons that move ED volume and case mix. */
+export interface ICalendar {
+  config: ILocaleConfig;
+  /** Suffix of the formatted clock time (WITA, ET). */
+  timeZoneLabel: string;
+  /** Active events for a date; element 0 is always the "regular" baseline. */
+  events(date: CalendarDate): CalendarEvent[];
 }

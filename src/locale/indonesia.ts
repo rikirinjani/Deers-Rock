@@ -3,8 +3,10 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
+import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
+import { indonesiaEvents } from "./indonesia-calendar.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
 import { generateIdentity, resetNikCounter } from "../identity/generator.js";
 import { ageFromBirthDate } from "../identity/reference-year.js";
@@ -55,4 +57,10 @@ export class IndonesiaCaseMix implements ICaseMix {
   config = { countryCode: "ID", displayName: "Indonesia" };
   diagnoses = ICD10_DIAGNOSES;
   ageWeight(code: string, age: number): number { return code === "A91" ? dengueAgeFactor(age) : 1; }
+}
+
+export class IndonesiaCalendar implements ICalendar {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  timeZoneLabel = "WITA";
+  events(date: CalendarDate): CalendarEvent[] { return indonesiaEvents(date); }
 }
