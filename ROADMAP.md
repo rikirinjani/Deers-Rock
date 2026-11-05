@@ -348,7 +348,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] Clean-box rebuild on a third home (2026-11-01): InstaBox free machine (Debian 13 host, Ubuntu 24.04 chroot with the source package versions); a second operator rebuilt it from repo + archives (`docs/khanza_r5_cleanbox_rehearsal_report.md`): ledger pin, 42 frozen files, suite, unit, NC and inventory reproduced; C4 was blocked by the 20 GB disk rule
 - [x] P23 (2026-11-01): disk threshold parameter `P14_MIN_FREE_GB`, fresh-output guard, docs; one full chain on the Vultr box and one on the InstaBox machine, 45 files, **C4 27/27 and 300/300 reproduced on the second machine** (R5 §36); self-score 20/24, independent re-score pending
 - [ ] Independent re-score of P23
-- [ ] The InstaBox free machine is one machine (480-min runs, idle pause 30 min; five free sandboxes until 2026-12-01, then one): a durable third home is still not decided; the Vultr box ends ~2026-11-20
+- [x] Durable home decided (2026-11-05, owner): InstaBox free machine `exp-g-box` (always free plan); probed read-only, `BOX=local verify_published.sh` ALL-MATCH, snapshot `p23-final-20261105`; `mac-mini-vultr` stays a second copy until ~2026-11-20. Limits: one machine, 480-min runs, 30-min idle pause (mysqld effect untested), disk rule `P14_MIN_FREE_GB=8`; backups = local archive + encrypted Hugging Face copy
 - [ ] Full cohort (86k visits) — skipped by owner decision 2026-10-25
 
 ### Milestone 11.6: External assessment & publication 🟡

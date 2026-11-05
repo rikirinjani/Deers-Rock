@@ -1,4 +1,5 @@
 # repo path (relative to khanza-r5/)  ->  path on the benchmark box
+# on the InstaBox home these box paths are inside the chroot /data/noble: run BOX=local verify_published.sh via sudo chroot (docs/khanza_r5_reproduce.md section 6)
 src/consumer/JasperHeadless.java /opt/simrs-khanza/consumer/JasperHeadless.java
 src/consumer/JdbcProbe.java /opt/simrs-khanza/consumer/JdbcProbe.java
 src/consumer/KhanzaBillingConsumer.java /opt/simrs-khanza/consumer/KhanzaBillingConsumer.java

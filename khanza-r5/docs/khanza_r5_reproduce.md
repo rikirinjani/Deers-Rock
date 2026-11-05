@@ -25,7 +25,7 @@ appending one line to a published file makes it print `DIFF` and exit 1.
 | Khanza SIMRS tree incl. `dist/SIMRSKhanza.jar` (md5 `25acbbbe0faa71bc16c5c9c83157451d`), `KhanzaSecurity16bit`, `lib/` | third-party application, 607 MB | export `simrs-khanza.tar.gz` (`docs/asset_export_20261023.md`) |
 | `sik` and `sik_bench` dumps | clinical-style data, 25 MB each | export `db/*.sql.gz`; ledger hash after restore must be `356355:a66a3a54…` |
 | DB password, Khanza AES key/IV | secrets | generated per box; the AES key is inside the Khanza jar (`EnkripsiAES`) and must never be committed |
-| Export archives themselves | not in git | **owner to confirm durable storage before ~2026-11-20** (the box that holds the only copy ends then) |
+| Export archives themselves | not in git | **off-box since 2026-11-01**: local disk copy and an AES-256 copy on a private Hugging Face dataset (key held by the owner, `KEY_20261031.key`); the durable box is InstaBox `exp-g-box` (2026-11-05) |
 
 ## 3. Rebuild order on a clean box
 
@@ -54,3 +54,10 @@ works on a clean box (not rehearsed).
 6. **Uploading archives to an InstaBox machine from Git Bash:** set `MSYS_NO_PATHCONV=1` (otherwise `/data/...` becomes `C:/Program Files/Git/data/...` and the CLI reports `missing_parent` only after uploading everything), create the parent directory first, and split files above about 100 MB into parts (about 0.25 MB/s per stream; parts upload in parallel and a single 635 MB push has no resume), then reassemble and check `MANIFEST.sha256` on the machine.
 7. **`JdbcProbe`** connects as `root` with an empty password and fails on a rebuilt box; the credential path is exercised by the suite instead. Not fixed.
 8. **Grants:** see the correction in `docs/asset_export_20261023.md` (first `GRANT ALL ... sik` is wrong).
+
+## 6. InstaBox as the home (2026-11-05)
+1. `instabox exec exp-g-box --stdin -- bash -s` takes a script on stdin (write it with LF and no BOM; PowerShell `Get-Content` adds a BOM, read with `[IO.File]::ReadAllText`). Quotes inside `-- bash -c "..."` are stripped by PowerShell 5.1: use a script on stdin.
+2. The exec user is `think`, not root: use `sudo -n /usr/sbin/chroot /data/noble ...`.
+3. `snapshot save` works only on a running machine (`operation_conflict` when suspended); a snapshot contains the credentials under HOME and does not keep running processes. Resume, save, then `suspend`.
+4. `BOX=local bash src/verify_published.sh` needs LF bytes: the repo blobs are CRLF, `PUBLISHED.sha256` is LF. Extract `git archive HEAD:khanza-r5 src tools/stagea_common.py evidence/p6/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql`, strip `\r` with `tr -d '\r'`, then run it inside the chroot: ALL-MATCH (`evidence/instabox_home/verify_published_local_20261105.txt`).
+5. Worktree note: the Epic X session left the shared checkout on branch `epic-x-international`, where `khanza-r5/` is empty. Khanza work now runs from the worktree `Deers-Rock-khanza` on `khanza-r5-p6`.

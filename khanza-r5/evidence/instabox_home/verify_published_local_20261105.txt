@@ -1,0 +1,17 @@
+# BOX=local verify_published.sh inside the InstaBox chroot, 2026-11-05T04:45:05Z; repo files from git archive f488560 with CR stripped (tr -d '\r'), box files = /opt/simrs-khanza/* in the chroot
+local manifest: OK
+SAME  src/consumer/JasperHeadless.java
+SAME  src/consumer/JdbcProbe.java
+SAME  src/consumer/KhanzaBillingConsumer.java
+SAME  src/consumer/MiniParse.java
+SAME  src/consumer/PatchDbXml.java
+SAME  src/consumer/RetargetDbXml.java
+SAME  src/consumer/TestAES.java
+SAME  src/consumer/dr_export.py
+SAME  src/consumer/dr_export.sh
+SAME  src/harness/BilingHarness.java
+SAME  src/harness/EncodeAES.java
+SAME  tools/stagea_common.py
+SAME  evidence/p6/sik_p6f_build_20261016T042629Z/strata_reg_rows.sql
+verify_published: ALL-MATCH
+rc=0
