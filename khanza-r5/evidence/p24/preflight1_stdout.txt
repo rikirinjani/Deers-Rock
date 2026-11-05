@@ -1,0 +1,29 @@
+== pre-flight on UNFROZEN bytes 2026-11-05T05:29:42Z
+05c5e1fb73f66757bdb04f7b87e7e6eefc2ce9c8dbc4b27faf6ebc4e93acbafa  p14_edge_run.sh
+d90a5e01d5a6e9c6995fad66cc54e5a979cdbdc5c71229f6e9fc980bb5471eff  p24_chain.sh
+24d3e8bea326c90bb4a897ee4e1005c246d4195c7bffcb8f8377ac6ce85b9982  p24_a_negctl.sh
+ad0f7bcd29c54f5158ea20b6cef48188b96c553baa2188661de18773cd09aa7e  p24_release_inventory.py
+-- p24_a, P14_MIN_FREE_GB unset
+rc=1
+FAIL G4 NEW chain asserts the start marker exists and aborts if it cannot be created (got 2/1, want 1/1)
+P24-A-NC: PASS=28 FAIL=1
+-- p24_a, P14_MIN_FREE_GB=8 exported
+rc=1
+FAIL G4 NEW chain asserts the start marker exists and aborts if it cannot be created (got 2/1, want 1/1)
+P24-A-NC: PASS=28 FAIL=1
+-- p23_a on the NEW p14_edge_run.sh (its F1 extraction must still work), unset and 8
+rc=0
+P23-A-NC: PASS=19 FAIL=0
+rc=0
+P23-A-NC: PASS=19 FAIL=0
+-- P24_SHORT chain on unfrozen bytes
+short chain rc=1
+frozen P24: 48/48 OK
+PASS G4 NEW chain asserts both run-start files fresh (got 2)
+p24-a-nc exit=1
+files 71 ok 71 not_ok [] manifests 14
+ASSERT PASS inventory on the box: not_ok (got 0)
+frozen P24: 48/48 OK
+=== P24 CHAIN DONE (short=1): lib=0 p15-a=skip p16-a=skip p16-e=skip p17-a=skip p18-a=skip p19-a=skip p20-a=0 p22-a=0 p23-a=0 p24-a=1 c4=skip fixture=skip real=skip asserts-failed=0 p17-b=skip p18-b=skip p19-b=skip p20-b=skip line-nc=skip b6=skip suite=skip pr
+chain verdict: STEP-FAILED (asserts-failed=0)   # P24 S3: the exit code below is this verdict, not the last command
+== pre-flight done 2026-11-05T05:30:35Z

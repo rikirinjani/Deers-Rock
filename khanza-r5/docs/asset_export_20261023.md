@@ -66,12 +66,12 @@ install -m 600 /dev/null /opt/simrs-khanza/run-env/benchmark_pw
 openssl rand -base64 24 | tr -d '\n' > /opt/simrs-khanza/run-env/benchmark_pw
 PW=$(cat /opt/simrs-khanza/run-env/benchmark_pw)
 mysql -uroot -e "CREATE USER IF NOT EXISTS 'benchmark'@'localhost' IDENTIFIED BY '$PW';
-                 GRANT ALL PRIVILEGES ON sik.* TO 'benchmark'@'localhost';
+                 GRANT SELECT, INSERT, UPDATE, DELETE ON sik.* TO 'benchmark'@'localhost';
                  GRANT ALL PRIVILEGES ON sik_bench.* TO 'benchmark'@'localhost';
                  FLUSH PRIVILEGES;"
 ```
 
-> **P23 correction (found by the clean-box rehearsal):** the first `GRANT ALL PRIVILEGES ON sik.*` above is wrong. `benchmark@localhost` must have only `SELECT, INSERT, UPDATE, DELETE` on `sik` (the live-state baseline in `evidence/p22/chain.log` shows that set); `ALL` only on `sik_bench`. Use the grants in "Post-restore wiring" step 2 below.
+> **P23 correction (found by the clean-box rehearsal), applied to the block in P24:** the block above used to read `GRANT ALL PRIVILEGES ON sik.*`, which is wrong; it now has the four-privilege grant. (P23 only added this note below the wrong command.) `benchmark@localhost` must have only `SELECT, INSERT, UPDATE, DELETE` on `sik` (the live-state baseline in `evidence/p22/chain.log` shows that set); `ALL` only on `sik_bench`. Use the grants in "Post-restore wiring" step 2 below.
 
 ## Verify after the copy
 

@@ -349,6 +349,7 @@ Prove that DR-generated outpatient billing flows correctly into a real SIMRS Kha
 - [x] P23 (2026-11-01): disk threshold parameter `P14_MIN_FREE_GB`, fresh-output guard, docs; one full chain on the Vultr box and one on the InstaBox machine, 45 files, **C4 27/27 and 300/300 reproduced on the second machine** (R5 §36); self-score 20/24, independent re-score pending
 - [ ] Independent re-score of P23
 - [x] Durable home decided (2026-11-05, owner): InstaBox free machine `exp-g-box` (always free plan); probed read-only, `BOX=local verify_published.sh` ALL-MATCH, snapshot `p23-final-20261105`; `mac-mini-vultr` stays a second copy until ~2026-11-20. Limits: one machine, 480-min runs, 30-min idle pause (mysqld effect untested), disk rule `P14_MIN_FREE_GB=8`; backups = local archive + encrypted Hugging Face copy
+- [x] P24 (2026-11-05): independent P23 review 11/24 vs self 20/24; findings S1-S10 verified, task doc before execution, docs corrected in place, tools (floor, log line, verdict line, inventory, freshness) and one chain on the InstaBox home: all steps 0 except NC5 (harness hang, `nc=1`), step 4d re-run 5/5 and the final capture after it (R5 §37); AC-4 not met as written; independent re-score of P24 pending
 - [ ] Full cohort (86k visits) — skipped by owner decision 2026-10-25
 
 ### Milestone 11.6: External assessment & publication 🟡

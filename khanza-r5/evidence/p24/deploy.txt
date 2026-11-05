@@ -1,0 +1,16 @@
+# P24 deploy, 2026-11-05T05:28:56Z
+== P24 deploy 2026-11-05T05:28:57Z: lock FIRST
+RUNLOCK-FREE
+RUNLOCK-ACQUIRED: session=P24-CLAUDE-IB-20261105 (/opt/dr-benchmark/LOCK)
+frozen p23 manifest b before: 45/45; lsattr i: 45/45
+== unfreeze p14_edge_run.sh only
+bak_p24 (P23 bytes):
+04abd58ddcbccdb23a5a0e4d420acddf18360bf5bb9a9f132e3a6d68ddb40a84  .bak_p24_20261105/p14_edge_run.sh
+staged:
+05c5e1fb73f66757bdb04f7b87e7e6eefc2ce9c8dbc4b27faf6ebc4e93acbafa  p14_edge_run.sh
+24d3e8bea326c90bb4a897ee4e1005c246d4195c7bffcb8f8377ac6ce85b9982  p24_a_negctl.sh
+d90a5e01d5a6e9c6995fad66cc54e5a979cdbdc5c71229f6e9fc980bb5471eff  p24_chain.sh
+d3af841683c600a56f40cf7543c5e017c560f87ca7e5d0a5a1f6c36d4f59816d  p24_frozen_20261105.sha256
+ad0f7bcd29c54f5158ea20b6cef48188b96c553baa2188661de18773cd09aa7e  p24_release_inventory.py
+deployed vs manifest (prospective): 48/48
+== deploy done 2026-11-05T05:28:58Z

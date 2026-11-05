@@ -7,10 +7,10 @@
     "P23-CLAUDE-IB-20261101 (InstaBox chroot, released 07:06:26Z)"
   ],
   "frozen_files": 45,
-  "chain": "evidence/p23/vultr/chain.log and evidence/p23/instabox/chain_stdout.log: every step exit 0 except p23-a on InstaBox (control fault, fixed in fix-up cycle 1); C4 27/27 and 300/300 on both",
+  "chain": "evidence/p23/vultr/chain.log and evidence/p23/instabox/chain_stdout.log: every step exit 0 except p23-a on InstaBox (control fault, fixed in fix-up cycle 1); C4 27/27 and 300/300 on both [P24 S3: 'chain exit=0' on InstaBox is the exit of the last command; p23-a=1 is the step that failed]",
   "self_score": "20/24 (R1, R4, R5, R10 = 1); independent re-score pending",
   "kept_failures": [
-    "p23_a_negctl.sh F1 'variable unset' case inherited P14_MIN_FREE_GB=8 on InstaBox (18/1); fixed with unset, old bytes reproduce the fault, new bytes 19/19 on both machines",
+    "p23_a_negctl.sh F1 'variable unset' case inherited P14_MIN_FREE_GB=8 on InstaBox (18/1); fixed with unset, old bytes reproduce the fault, new bytes 19/19 with the variable at 8 on both machines, unset only on Vultr [corrected in P24 S1]",
     "first InstaBox chain start failed (MSYS path rewrite), restarted",
     "no P23 task doc before execution"
   ],

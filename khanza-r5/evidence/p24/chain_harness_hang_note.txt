@@ -1,0 +1,3 @@
+# harness hang in chain step 4d NC5, found 2026-11-05T06:50:14Z: java pid 336737 (child of sampled_real_form_diff_r5.py --stage B3 --visits-file r6_two.txt) in futex_wait for ~16 min, load average 0.00, mysql processlist idle; thread dump via kill -3 went to the driver pipe (not captured). Action: TERM to the java process only (under the held lock), the chain continues to its end.
+    PID STAT     ELAPSED
+06:50:20

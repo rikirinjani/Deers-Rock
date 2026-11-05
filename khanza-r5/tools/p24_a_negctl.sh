@@ -75,7 +75,7 @@ echo "## G4 the asserted list and the chain additions"
 chk "G4 NEW chain asserts fixture_lines.csv and fixture_lines_encounters.json fresh" "$(grep -c 'fixture_lines.csv fixture_lines_encounters.json' p24_chain.sh)" 1
 chk "G4 OLD p23_chain.sh does not" "$(grep -c 'fixture_lines.csv fixture_lines_encounters.json' p23_chain.sh)" 0
 chk "G4 NEW chain asserts both run-start files fresh" "$(grep -c 'run-start file is newer than the chain start' p24_chain.sh)" 2
-chk "G4 NEW chain asserts the start marker exists and aborts if it cannot be created" "$(grep -c 'the start marker exists' p24_chain.sh)/$(grep -c 'cannot create' p24_chain.sh)" 1/1
+chk "G4 NEW chain asserts the start marker exists and aborts if it cannot be created" "$(grep -c 'start marker exists"' p24_chain.sh)/$(grep -c 'cannot create' p24_chain.sh)" 1/1
 chk "G4 NEW chain ends with a verdict line and exits with it" "$(grep -c '^echo "chain verdict:' p24_chain.sh)/$(tail -1 p24_chain.sh)" "1/exit \$RC"
 chk "G4 NEW chain runs the df sampler during step 3 and stops it at the teardown" "$(grep -c 'df_samples.txt' p24_chain.sh)" 2
 

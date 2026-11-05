@@ -1,0 +1,7 @@
+== P24 re-freeze 2026-11-05T05:33:14Z
+frozen p24: 48/48; lsattr i: 48/48
+----i---------e------- p24_frozen_20261105.sha256
+== p24_a on the FROZEN bytes, variable unset
+rc=0
+P24-A-NC: PASS=29 FAIL=0
+== done 2026-11-05T05:33:16Z
