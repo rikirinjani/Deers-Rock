@@ -95,6 +95,8 @@ XML_PRE=$($DBXML probe 2>&1 | grep '^\[dbxml\]' | awk '{print $NF}' | sort -u)
 MINFREE=${P14_MIN_FREE_GB:-20}   # P23: free-disk threshold in GB; 20 as before unless a smaller machine sets it explicitly
 case "$MINFREE" in ''|*[!0-9]*) res "ABORT: P14_MIN_FREE_GB='$MINFREE' is not a whole number - refusing, nothing touched"; exit 3;; esac
 [ "$(df --output=avail -BG / | tail -1 | tr -dc 0-9)" -ge "$MINFREE" ] || { res "STOP RULE: <${MINFREE}GB free"; exit 3; }
+[ "$MINFREE" -ge 3 ] || { res "ABORT: P14_MIN_FREE_GB=$MINFREE is below the floor 3 - refusing, nothing touched"; exit 3; }   # P24 S6: 0 disabled the stop rule
+res "free-disk check: threshold ${MINFREE}GB, $(df --output=avail -BG / | tail -1 | tr -dc 0-9)GB free on /"   # P24 S6: the threshold in use is in the transcript
 trap cleanup EXIT
 
 res "clone: creating $FX"
