@@ -5,7 +5,7 @@
   "lock_session": "P24-CLAUDE-IB-20261105 (acquired 05:28:57Z before the install, released 07:01:28Z)",
   "frozen_files": 48,
   "chain": "evidence/p24/box/p24/chain_stdout.log: every step exit 0 except nc=1 (NC5 harness hang, terminated); chain verdict STEP-FAILED; step 4d re-run DISCRIMINATING=5; final capture 07:00:13Z",
-  "self_score": "none given (independent re-score pending)",
+  "self_score": "none given",
   "kept_failures": [
     "p24_a G4 pattern matched a comment (pre-flight 1, 28/1)",
     "NC5 harness hang in chain 1 (java futex_wait ~16 min; cause not found)",
@@ -28,5 +28,11 @@
     "30-minute idle pause"
   ],
   "agent": "claude (P24 executor)",
-  "status": "executed; independent re-score pending"
+  "status": "executed; independent review 16/24 (R5 section 38); Accept rule not met",
+  "independent_review": {
+    "file": "docs/khanza_r5_p24_review.md",
+    "score": "16/24",
+    "previous": "P23 11/24",
+    "recommendation": "close the Khanza waves after a documents-only commit"
+  }
 }

@@ -52,4 +52,4 @@ Also from the review: the grants block in `docs/asset_export_20261023.md:69` sti
 R1-R12 as in `docs/khanza_r5_task_p22_astra_v13_and_p20_review.md` §5. Self-score is written after the independent review, not before; the executor's scores have been 3 to 9 points high every time.
 
 ## 7. Result
-(filled after execution)
+See `docs/khanza_benchmark_report_R5.md` section 37 (result) and section 38 (the independent review of this wave, 16/24, and the dispositions).

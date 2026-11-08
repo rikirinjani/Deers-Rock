@@ -11,7 +11,7 @@
   "detection": "The InstaBox chain (p23-a=1).",
   "impact": "None on the driver or the results; fix-up cycle 1 (manifest b); the second machine's chain is otherwise green.",
   "correction": {
-    "applied": "unset added inside the control; old frozen bytes reproduce the fault, new bytes 19/19 with the variable at 8 on both machines and unset on Vultr; unset on InstaBox first ran on the P24 frozen bytes [corrected in P24 S1]; R5 section 36 states the missing task doc.",
+    "applied": "unset added inside the control; old frozen bytes reproduce the fault, new bytes 19/19 with the variable at 8 on both machines and unset on Vultr; p23_a (fixed bytes) first ran unset on InstaBox in P24 pre-flight 1 and 2, against the P24 driver; the P23 driver unset was never run there [P24 review T1: the earlier text cited a p24_a run]; R5 section 36 states the missing task doc.",
     "result": "R5 section 36"
   },
   "rule": "Pre-flight a control that reads an environment variable with the variable unset and with it set; write the task doc before executing, even when the go-ahead is immediate.",

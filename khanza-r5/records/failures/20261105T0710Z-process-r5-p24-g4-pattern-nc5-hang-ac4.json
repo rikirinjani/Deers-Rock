@@ -8,8 +8,8 @@
     "In the full chain the NC5 step of p11_negative_controls.sh started a form harness (java) that sat in futex_wait for about 16 minutes at load 0.00; I terminated that process under the lock, the chain ended with nc=1 and the new verdict line said STEP-FAILED.",
     "Step 4d was re-run alone (5 of 5 discriminating) and the final capture followed it; the acceptance criterion 'one chain with every step exit 0' was therefore not met as written."
   ],
-  "root_cause": "G4: a pattern chosen without looking at all lines that contain it. Hang: not found (second case after the P20 C4 hang); the harness has no wall-clock limit under the NC runner.",
-  "detection": "pre-flight 1; the process list during step 4d.",
+  "root_cause": "G4: a pattern chosen without looking at all lines that contain it. Hang: not found (second case after the P20 C4 hang); a harness timeout exists (R5_HARNESS_TIMEOUT_S, default 1800 s, tools/sampled_real_form_diff_r5.py:1609, not overridden by the NC runner); the hung java was terminated by hand at about 16 minutes, before it could fire [corrected after the P24 review, T2].",
+  "detection": "pre-flight 1; the process list during step 4d. (the process list is not in the repo: the note's ps output was taken after the kill) [P24 review T2]",
   "impact": "none on the results that ran; the chain result is split into chain 1 + a re-run of one step.",
   "correction": {
     "applied": "G4 pattern anchored on the assert line; the re-run and the capture after it are recorded; R5 section 37 states AC-4 as not met.",
@@ -17,5 +17,6 @@
   },
   "rule": "A count-based control must be checked against every line that contains its pattern; a hung child process is terminated under the lock only after the process state is written to the evidence; say 'not met as written' instead of widening the criterion.",
   "agent": "claude (P24 executor)",
-  "status": "closed"
+  "status": "closed",
+  "review_correction": "The rule 'write the process state to the evidence before terminating' was not followed: futex_wait, load and processlist are prose only. Next time capture ps -o pid,stat,wchan,etime, /proc/<pid>/stack and jstack to a file before any signal."
 }
