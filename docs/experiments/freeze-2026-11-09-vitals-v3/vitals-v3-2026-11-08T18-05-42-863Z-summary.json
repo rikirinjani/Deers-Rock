@@ -1,0 +1,281 @@
+{
+  "config": {
+    "seedCount": 10,
+    "ticks": 14400,
+    "patientCount": 50
+  },
+  "results": [
+    {
+      "seed": 0,
+      "ticks": 14400,
+      "totalPatients": 2253,
+      "totalEncounters": 3742,
+      "totalDeaths": 5,
+      "deathsByIcd": {
+        "R55": 1,
+        "A91": 1,
+        "A09": 1,
+        "B86": 1,
+        "A27": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 119,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 68509,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3742,
+      "activeAvgLosTicks": 7113,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 1,
+      "ticks": 14400,
+      "totalPatients": 2287,
+      "totalEncounters": 3774,
+      "totalDeaths": 1,
+      "deathsByIcd": {
+        "B50": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 96,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 72653,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3774,
+      "activeAvgLosTicks": 7134,
+      "activeMaxLosTicks": 14391
+    },
+    {
+      "seed": 2,
+      "ticks": 14400,
+      "totalPatients": 2226,
+      "totalEncounters": 3771,
+      "totalDeaths": 3,
+      "deathsByIcd": {
+        "R50": 1,
+        "J44": 1,
+        "H25": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 114,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 76055,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3771,
+      "activeAvgLosTicks": 7071,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 3,
+      "ticks": 14400,
+      "totalPatients": 2284,
+      "totalEncounters": 3737,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "K35": 1,
+        "I10": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 112,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 75137,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3737,
+      "activeAvgLosTicks": 7061,
+      "activeMaxLosTicks": 14394
+    },
+    {
+      "seed": 4,
+      "ticks": 14400,
+      "totalPatients": 2267,
+      "totalEncounters": 3713,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "K35": 1,
+        "N39": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 91,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 66162,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3713,
+      "activeAvgLosTicks": 7142,
+      "activeMaxLosTicks": 14394
+    },
+    {
+      "seed": 5,
+      "ticks": 14400,
+      "totalPatients": 2292,
+      "totalEncounters": 3733,
+      "totalDeaths": 3,
+      "deathsByIcd": {
+        "U07": 1,
+        "J10": 1,
+        "K29": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 98,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 62112,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3733,
+      "activeAvgLosTicks": 7092,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 6,
+      "ticks": 14400,
+      "totalPatients": 2259,
+      "totalEncounters": 3739,
+      "totalDeaths": 3,
+      "deathsByIcd": {
+        "R10": 1,
+        "N19": 1,
+        "J10": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 114,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 68653,
+      "disasterType": "tsunami",
+      "disasterTriggered": true,
+      "activeEncounters": 3739,
+      "activeAvgLosTicks": 7189,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 7,
+      "ticks": 14400,
+      "totalPatients": 2261,
+      "totalEncounters": 3756,
+      "totalDeaths": 9,
+      "deathsByIcd": {
+        "E11": 2,
+        "J10": 1,
+        "A01": 1,
+        "F31": 1,
+        "I50": 1,
+        "S72": 1,
+        "B50": 1,
+        "F20": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 100,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 60536,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3756,
+      "activeAvgLosTicks": 7116,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 8,
+      "ticks": 14400,
+      "totalPatients": 2260,
+      "totalEncounters": 3678,
+      "totalDeaths": 4,
+      "deathsByIcd": {
+        "J44": 1,
+        "S22": 1,
+        "A91": 1,
+        "E03": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 107,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 71877,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3678,
+      "activeAvgLosTicks": 7115,
+      "activeMaxLosTicks": 14397
+    },
+    {
+      "seed": 9,
+      "ticks": 14400,
+      "totalPatients": 2213,
+      "totalEncounters": 3750,
+      "totalDeaths": 2,
+      "deathsByIcd": {
+        "E11": 1,
+        "E78": 1
+      },
+      "avgLosTicks": 0,
+      "maxLosTicks": 0,
+      "peakBedOccupancy": 91,
+      "totalLabOrders": 500,
+      "totalMedOrders": 500,
+      "totalSurgeryOrders": 100,
+      "totalCharges": 74673,
+      "disasterType": null,
+      "disasterTriggered": false,
+      "activeEncounters": 3750,
+      "activeAvgLosTicks": 7098,
+      "activeMaxLosTicks": 14397
+    }
+  ],
+  "statistics": {
+    "deaths": {
+      "mean": 3.4,
+      "sd": 2.3,
+      "ci95": 1.4,
+      "min": 1,
+      "max": 9
+    },
+    "los": {
+      "mean": 0,
+      "sd": 0,
+      "ci95": 0,
+      "min": 0,
+      "max": 0
+    },
+    "activeLos": {
+      "mean": 7113.1,
+      "sd": 36.8,
+      "min": 7061,
+      "max": 7189
+    },
+    "bedOccupancy": {
+      "mean": 104.2,
+      "sd": 10.3,
+      "ci95": 6.4,
+      "min": 91,
+      "max": 119
+    }
+  }
+}

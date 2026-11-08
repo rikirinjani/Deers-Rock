@@ -1,0 +1,11 @@
+seed,ticks,totalPatients,totalEncounters,totalDeaths,deathsByIcd,avgLosTicks,maxLosTicks,activeEncounters,activeAvgLosTicks,activeMaxLosTicks,peakBedOccupancy,totalLabOrders,totalMedOrders,totalSurgeryOrders,totalCharges,disasterType,disasterTriggered
+0,1000,202,452,0,{},5,33,286,493,997,18,447,258,38,2173,,false
+1,1000,196,463,0,{},5,36,297,482,991,32,424,272,41,2389,,false
+2,1000,189,482,0,{},5,33,270,476,997,28,451,242,40,2356,,false
+3,1000,208,455,0,{},5,54,270,505,994,18,456,250,37,2375,sunken_ship,true
+4,1000,185,423,0,{},5,21,249,493,994,6,387,188,37,2172,,false
+5,1000,196,457,0,{},4,27,267,500,997,24,441,263,43,2227,,false
+6,1000,198,441,0,{},5,30,262,492,997,6,420,248,34,2069,,false
+7,1000,209,445,0,{},4,21,278,493,997,20,428,234,41,2175,,false
+8,1000,194,435,0,{},5,30,253,504,997,12,416,255,41,2341,,false
+9,1000,209,442,0,{},5,39,265,495,997,6,417,239,44,2275,,false
