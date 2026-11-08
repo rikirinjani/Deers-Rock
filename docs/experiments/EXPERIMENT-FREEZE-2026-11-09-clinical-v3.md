@@ -49,7 +49,7 @@ Per-seed GDR (‰): 40.7, 7.6, 22.4, 17.4, 14.8, 25.0, 26.8, 60.4, 35.4, 16.5. H
 
 ## Limits
 
-- **No cross-machine seed re-run** was done for this freeze (no single seed repeated on a second machine). The only reproducibility checks are the E1 pair and the finance golden above. Add one seed re-run before using this record as evidence of cross-machine determinism.
+- **Seed re-run (2026-11-09):** seed 0 of both studies was run again in a second, separate Kaggle session (private kernel `hoe-freeze-v3-rerun`, same source dataset). The result files are identical to the original ones except the wall-clock field `wallSeconds`. This shows repeatability across two Kaggle sessions, not local-versus-Kaggle determinism (no seed was run locally at 14,400 ticks).
 - Deaths occur only at discharge (a single roll) and are net of other causes; length of stay is a flat 3-7 day draw. The 45 per-mille mortality and 70 % occupancy figures are unconfirmed example targets.
 - 10 days at 50 initial patients: occupancy is still ramping up in this horizon; per-seed death counts are small (SD of GDR about half the mean).
 - Staff ages are bounded to working age 22-65 (merge `9645a28`); patient ages come from the fixed reference year 2026.
