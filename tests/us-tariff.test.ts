@@ -227,9 +227,9 @@ describe("CMS NADAC pilot drug prices (docs/us-calibration-targets.md T-DRUG-1)"
     for (const n of US_NADAC) {
       expect(codes.has(n.code), n.code).toBe(true);
       expect(n.asOf).toBe("2026-11-04");
-      expect(US_DRUG_PRICES.get(n.code), n.code).toBe(Math.round(n.perUnitUsd * 3 * 100) / 100);
+      expect(US_DRUG_PRICES.get(n.code), n.code).toBe(Math.round(n.perUnitUsd * (1 / 0.177) * 100) / 100);
     }
     // a non-pilot drug keeps the derived placeholder
-    expect(US_DRUG_PRICES.get("CTR")).toBe(11.25);
+    expect(US_DRUG_PRICES.get("CTR")).toBe(Math.round((15_000 / 16_000) * 4 * (1 / 0.177) * 100) / 100);
   });
 });

@@ -35,8 +35,15 @@ export const US_ROOM_CLASS_MULTIPLIER: Record<RoomClass, number> = {
   icu: 2.5, hcu: 1.6, nicu: 3, picu: 3,
 };
 
-/** Billed drug price = acquisition cost x chargemaster markup (typically 3-4x). */
-export const US_PHARMACY_MARKUP = 3;
+/**
+ * National average cost-to-charge ratio of the "Drugs and Cellular Therapies" cost center, FY 2026 IPPS final rule
+ * (CMS-1833-F, 19 national average CCRs from the March 2025 update of FY 2023 HCRIS cost reports; docs/us-calibration-targets.md
+ * T-PRICE-1). CCR = cost / charges, so charges are cost / CCR. Cost here is the pharmacy department's total cost, which is
+ * at least the acquisition cost, so the markup over acquisition is a lower bound on the real chargemaster markup.
+ */
+export const US_DRUGS_CCR = 0.177;
+/** Billed drug price = acquisition cost x chargemaster markup (1 / CCR, about 5.65). */
+export const US_PHARMACY_MARKUP = 1 / US_DRUGS_CCR;
 /** Placeholder: US acquisition cost as a multiple of the Indonesian e-catalogue cost. */
 export const US_ACQUISITION_FACTOR = 4;
 export const IDR_PER_USD = 16_000;
