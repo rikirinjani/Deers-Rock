@@ -44,6 +44,14 @@ describe("USPayerAssigner", () => {
     for (const [payer, share] of US_PAYER_MIX_UNDER_65) expect((counts[payer] ?? 0) / N).toBeCloseTo(share, 1);
     expect(counts.Medicare).toBeUndefined();
   });
+  it("under-65 mix is the Census 2024 primary-payer partition (T-PAY-3)", () => {
+    const mix = Object.fromEntries(US_PAYER_MIX_UNDER_65);
+    expect(mix["Private Insurance"]).toBeCloseTo(0.681, 6);
+    expect(mix["Medicaid"]).toBeCloseTo(0.183, 6);
+    expect(mix["Self-pay"]).toBeCloseTo(0.096, 6);
+    expect(mix["TRICARE"]).toBeCloseTo(0.028, 6);
+    expect(mix["VA"]).toBeCloseTo(0.012, 6);
+  });
 });
 
 describe("USClaimLifecycle", () => {
