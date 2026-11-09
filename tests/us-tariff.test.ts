@@ -219,11 +219,11 @@ describe("DRG weights follow CMS FY 2026 Table 5 (docs/us-drg-table5-comparison.
 });
 
 describe("CMS NADAC pilot drug prices (docs/us-calibration-targets.md T-DRUG-1)", () => {
-  it("ten oral solids use the NADAC rate times the pharmacy markup; every NADAC code exists in the catalogue", async () => {
+  it("94 oral solids use the NADAC rate times the pharmacy markup; every NADAC code exists in the catalogue", async () => {
     const { US_NADAC } = await import("../src/locale/us-nadac.js");
     const { DRUG_CATALOG } = await import("../src/engine/drug-catalog.js");
     const codes = new Set(DRUG_CATALOG.map(d => d.code));
-    expect(US_NADAC.length).toBe(10);
+    expect(US_NADAC.length).toBe(94);
     for (const n of US_NADAC) {
       expect(codes.has(n.code), n.code).toBe(true);
       expect(n.asOf).toBe("2026-11-04");
