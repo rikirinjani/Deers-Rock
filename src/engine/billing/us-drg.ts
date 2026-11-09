@@ -11,9 +11,9 @@
  * DSH/IME or wage-index adjustments; surgical DRGs only for the few
  * diagnoses where the engine generates a matching procedure.
  *
- * CALIBRATION PENDING: DRG numbers and weights are approximate recollections
- * of the FY2024-25 tables and are UNVERIFIED. M10.5c replaces them with CMS
- * Table 5 values and the base rate with the IPPS final-rule figure.
+ * CALIBRATION PARTIAL (M10.5c): the base rate is the FY 2026 CMS figure (see below). DRG numbers
+ * and weights are approximate recollections of earlier tables, UNVERIFIED against Table 5 except
+ * as compared in docs/us-drg-table5-comparison.csv (212 of 220 DRGs exist in FY 2026 Table 5).
  *
  * Deterministic: pure functions, no RNG.
  */
@@ -220,8 +220,16 @@ export function assignMsDrg(diagnoses: string[], hasProcedure: boolean): DrgAssi
   };
 }
 
-/** Placeholder national base payment (operating + capital), USD per unit weight. */
-export const MEDICARE_BASE_RATE = 7_000;
+/**
+ * FY 2026 national standard amounts, USD per unit relative weight (CMS-1833-F; docs/us-calibration-targets.md T-DRG-2 and T-DRG-3).
+ * Operating: Table 1A/1B, full update, quality data submitted, meaningful EHR user (labor + nonlabor, 6,752.61 for both wage-index cases).
+ * Capital: Table 1D, national standard federal payment rate.
+ */
+export const MEDICARE_OPERATING_RATE = 6_752.61;
+export const MEDICARE_CAPITAL_RATE = 524.15;
+
+/** National base payment (operating + capital), USD per unit weight. No wage-index, DSH, IME or outlier adjustment. */
+export const MEDICARE_BASE_RATE = Math.round((MEDICARE_OPERATING_RATE + MEDICARE_CAPITAL_RATE) * 100) / 100;
 
 export function drgPayment(a: DrgAssignment, baseRate: number = MEDICARE_BASE_RATE): number {
   return Math.round(a.weight * baseRate * 100) / 100;

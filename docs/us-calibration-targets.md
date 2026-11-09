@@ -55,3 +55,8 @@ Retrieved 2026-11-09 unless stated.
 - HCUP statistical briefs report **in-hospital mortality per 100 stays**; the simulator's `grossDeathRatePerMille` is per 1,000 discharges (multiply by 10 to compare).
 - Sepsis was chosen first because it has an HCUP brief with a payer split, length of stay, mortality and cost, all from one table set. It is also the first condition where the engine's flat length of stay is far off.
 - Held-out rule: T-SEP-* are validation rows. When length of stay is tuned by DRG (step E), sepsis length of stay cannot also stay held out; the validation set must then move to a different diagnosis.
+
+## Applied to the simulator
+
+- **2026-11-09, base rate:** `MEDICARE_BASE_RATE` in `src/engine/billing/us-drg.ts` changed from the placeholder 7,000 to 7,276.76 = operating 6,752.61 (T-DRG-2) + capital 524.15 (T-DRG-3). Two exported constants carry the cited values, and `tests/us-tariff.test.ts` pins them. US payments fall about 4 % for the same DRG. Indonesian default unaffected (US-only file); full suite 705 passed, 3 skipped.
+- **Not applied:** the 8 simulator DRGs absent from FY 2026 Table 5 (778, 131, 132, 341, 342, 343, 247, 248) and the per-DRG weights. Correct replacements need the MS-DRG Definitions Manual (grouper logic); Table 5 titles alone do not say which DRG the retired ones moved to, and I did not guess. Weights stay as placeholders until that mapping is verified.

@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, afterEach } from "vitest";
 import {
-  assignMsDrg, drgPayment, drgCoverage, usSeverity, icdCategory, MEDICARE_BASE_RATE,
+  assignMsDrg, drgPayment, drgCoverage, usSeverity, icdCategory, MEDICARE_BASE_RATE, MEDICARE_OPERATING_RATE, MEDICARE_CAPITAL_RATE,
 } from "../src/engine/billing/us-drg.js";
 import { USClaimLifecycle, US_TERMS } from "../src/engine/billing/us-claims.js";
 import { USPriceBook, USChargePolicy, US_DRUG_PRICES } from "../src/engine/billing/us-prices.js";
@@ -192,5 +192,13 @@ describe("US adapter in a running world", () => {
     for (const c of labs) expect(c.unitPrice).toBe(60);
     expect(claims.some(c => c.status === "paid")).toBe(true);
     for (const c of claims) expect(c.coveredAmount + (c.patientResponsibility)).toBeLessThanOrEqual(c.totalCharges + 0.01);
+  });
+});
+
+describe("CMS FY 2026 standard amounts (docs/us-calibration-targets.md T-DRG-2, T-DRG-3)", () => {
+  it("base rate is the cited operating plus capital amounts", () => {
+    expect(MEDICARE_OPERATING_RATE).toBe(6752.61);
+    expect(MEDICARE_CAPITAL_RATE).toBe(524.15);
+    expect(MEDICARE_BASE_RATE).toBeCloseTo(7276.76, 2);
   });
 });
