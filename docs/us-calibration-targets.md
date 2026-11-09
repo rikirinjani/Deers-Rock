@@ -19,6 +19,9 @@ Retrieved 2026-11-09 unless stated.
 | T-SEP-4 | Sepsis, in-hospital mortality by age | 65+ nonmaternal 16.1; 18-64 nonmaternal 11.5 (per 100 stays) | 2022 | same, Figure 2 (values read from the chart labels, not a table) | V |
 | T-PAY-1 | Share of aggregate hospital costs, all inpatient stays, by expected primary payer | Medicare 46.9 %, Medicaid 19.4 %, private 27.2 %, self-pay/no charge 3.4 %, other 3.1 % | 2016-2019 average, all stays | same brief, Figure 5 (row "All stays, 2016-2019"). **Share of costs, not of stays.** | C (payer mix, converted with care) |
 | T-PAY-2 | Sepsis, share of aggregate cost by payer | Medicare 58.5 %, Medicaid 18.7 %, private 17.2 %, self-pay 2.9 %, other 2.7 % | 2022 | same, Figure 5 | V |
+| T-DRG-1 | MS-DRG relative weight, geometric mean LOS, arithmetic mean LOS per DRG (772 DRGs) | e.g. DRG 871 (sepsis w MCC): weight 1.9425, GMLOS 4.8, AMLOS 6.4; DRG 872: 1.0233, 3.4, 4.2; DRG 193 (pneumonia w MCC): 1.3144, 3.9, 4.9 | FY 2026 (discharges 2025-10-01 to 2026-09-30), Medicare | CMS-1833-F Table 5 (file `CMS-1833-F Table 5.txt`, from https://www.cms.gov/files/zip/fy2026-ipps-fr-table-5.zip, zip SHA-256 `14dba6b8f06ab819...` (prefix)). Full comparison with the simulator: `docs/us-drg-table5-comparison.csv` | C (weights, DRG-level LOS) |
+| T-DRG-2 | National adjusted operating standardized amount (full update, quality data submitted, meaningful EHR user) | labor $4,456.72 + nonlabor $2,295.89 = $6,752.61 (wage index > 1, 66.0 % labor); $4,186.62 + $2,565.99 = $6,752.61 (wage index <= 1, 62 % labor) | FY 2026 | CMS-1833-F Tables 1A and 1B (https://www.cms.gov/files/zip/fy2026-ipps-fr-table-1a-1e.zip, zip SHA-256 `3ef3177ea313e505...` (prefix)) | C (base rate) |
+| T-DRG-3 | National capital standard federal payment rate | $524.15 | FY 2026 | CMS-1833-F Table 1D (same file) | C |
 
 ## What this first slice already shows against the 10-day simulator (Indonesian default, `clinical-v3`; the US feasibility runs gave the same length-of-stay and mortality shape)
 
@@ -26,13 +29,19 @@ Retrieved 2026-11-09 unless stated.
 - **Sepsis in-hospital mortality:** target 14.2 %; the simulator's all-cause rate is 4.9 % pooled (per-diagnosis rates are too sparse to read at 130 discharges per run). M-A needs the tier-distribution measurement first.
 - **Beds:** the simulator has 131 beds (hospital-scale); T-CAP rows give national totals for context only and are not directly tunable.
 
+## Result of the first DRG comparison (CMS Table 5 vs the simulator's `us-drg.ts`)
+
+- 212 of the 220 simulator DRGs match a FY 2026 Table 5 entry; 8 do not (778, 131, 132, 341, 342, 343, 247, 248), which need review or removal.
+- The placeholder weights are close to CMS: median ratio simulator/CMS weight 0.94 (10th to 90th percentile 0.74 to 1.11); mean 1.17 vs 1.31 across these DRGs (unweighted).
+- The placeholder base rate is $7,000 against the $6,752.61 operating standardized amount (T-DRG-2); capital ($524.15) is paid separately, and real Medicare payment adds wage index, DSH, IME and outlier terms that the simulator does not model.
+- Mean length of stay by DRG (unweighted over the simulator's DRGs): geometric 3.37 d, arithmetic 4.42 d; the simulator draws a flat mean of 4.8 d. Per-DRG values range widely (sepsis w MCC 4.8 / 6.4; heart failure w/o CC/MCC 2.1 / 2.5), which is what the length-of-stay seam must reproduce.
+- Medicare AMLOS for sepsis w MCC (6.4 d) differs from the all-payer HCUP sepsis mean (9.0 d, T-SEP-2): HCUP includes the mechanical-ventilation DRGs and non-Medicare stays. Use both and state which one a tolerance refers to.
+
 ## TODO: sources identified, values not yet read
 
 | ID | Target | Source | Why not yet |
 |---|---|---|---|
-| T-DRG-1 | MS-DRG relative weights, geometric and arithmetic mean length of stay per DRG | CMS FY 2026 IPPS final rule, Table 5 (ZIP of Excel). https://www.cms.gov/medicare/payment/prospective-payment-systems/acute-inpatient-pps/fy-2026-ipps-final-rule-home-page | Needs a file download; ask owner |
-| T-DRG-2 | National operating and capital standardized amounts (replaces the placeholder base rate) | same page, Tables 1A-1E | Needs a file download; the Federal Register HTML addendum was not in the part of the page that I could read |
-| T-DRG-3 | Average covered charges and payments by DRG | CMS Medicare Inpatient Hospitals by Provider and Service (data.cms.gov) | Not yet fetched |
+| T-DRG-4 | Average covered charges and payments by DRG | CMS Medicare Inpatient Hospitals by Provider and Service (data.cms.gov) | Not yet fetched |
 | T-LOS-1 | All-stay mean length of stay and in-hospital mortality, by principal diagnosis (top 20) | HCUPnet / HCUP Fast Stats (free, interactive) | Interactive; needs a browser session |
 | T-DEM-1 | Age distribution (under 5, under 18, 65+) | US Census Bureau QuickFacts / population estimates | QuickFacts returned HTTP 403; use the Census API or a data file |
 | T-PAY-3 | Insured population mix (Medicare, Medicaid, private, uninsured) by age | KFF or Census ACS health insurance tables | Not yet fetched |
