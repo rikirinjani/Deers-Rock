@@ -5,6 +5,7 @@
  * behaviour, Indonesian byte-parity), not financial validity.
  */
 import { describe, it, expect, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   assignMsDrg, drgPayment, drgCoverage, usSeverity, icdCategory, MEDICARE_BASE_RATE, MEDICARE_OPERATING_RATE, MEDICARE_CAPITAL_RATE,
 } from "../src/engine/billing/us-drg.js";
@@ -200,5 +201,19 @@ describe("CMS FY 2026 standard amounts (docs/us-calibration-targets.md T-DRG-2, 
     expect(MEDICARE_OPERATING_RATE).toBe(6752.61);
     expect(MEDICARE_CAPITAL_RATE).toBe(524.15);
     expect(MEDICARE_BASE_RATE).toBeCloseTo(7276.76, 2);
+  });
+});
+
+describe("DRG weights follow CMS FY 2026 Table 5 (docs/us-drg-table5-comparison.csv)", () => {
+  const fields = (line: string): string[] => Array.from(line.matchAll(/("([^"]*)"|[^,]*)(,|$)/g)).slice(0, 7).map(m => m[2] ?? m[1]!);
+  it("every simulator DRG that exists in Table 5 carries the Table 5 weight, and only the cleft family is unmatched", () => {
+    const rows = readFileSync(new URL("../docs/us-drg-table5-comparison.csv", import.meta.url), "utf8").split(/\r?\n/).filter(l => l.length > 0).slice(1);
+    const unmatched: string[] = [];
+    for (const r of rows) {
+      const [drg, , simW, cmsW] = fields(r);
+      if (!cmsW) { unmatched.push(drg!); continue; }
+      expect(Number(simW), `DRG ${drg}`).toBeCloseTo(Number(cmsW), 4);
+    }
+    expect(unmatched.sort()).toEqual(["131", "132"]);
   });
 });
