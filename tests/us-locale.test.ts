@@ -177,3 +177,12 @@ describe("age derivation (clinical-v2 fix)", () => {
     expect(Math.max(...ages)).toBeGreaterThan(60);
   });
 });
+
+describe("US age mix is the Census 2025 population by band (T-DEM-1)", () => {
+  it("cumulative shares match the published counts", async () => {
+    const { AGE_BANDS, CENSUS_2025_POP_BY_AGE_BAND } = await import("../src/locale/us-identity.js");
+    const total = Object.values(CENSUS_2025_POP_BY_AGE_BAND).reduce((a, b) => a + b, 0);
+    expect(total).toBe(341_784_857);
+    expect(AGE_BANDS.map(b => Math.round(b[0] * 10_000) / 10_000)).toEqual([0.2107, 0.5730, 0.8109, 1]);
+  });
+});

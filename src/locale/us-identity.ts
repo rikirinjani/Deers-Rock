@@ -9,10 +9,9 @@
  * - Ages come from a fixed reference year, never the wall clock.
  * - Fixed draw count: every identity consumes exactly IDENTITY_DRAWS draws.
  *
- * CALIBRATION PENDING: the age mix is the general US population (Census
- * 2020 scale, rounded), name lists are common public-record names, and
- * religion/occupation weights are rough; hospital-patient demographics and a
- * catchment-area population arrive with M10.5c.
+ * CALIBRATION PARTIAL (M10.5c): the age mix is the Census 2025 population estimate by band (below). Name lists
+ * are common public-record names, and religion/occupation weights are rough placeholders; a catchment-area
+ * population is not modelled.
  */
 import type { Address, Gender, Identity, MaritalStatus, Religion } from "../identity/types.js";
 import type { IIdentityLocale } from "./contracts.js";
@@ -36,12 +35,24 @@ const STREETS = ["Main St", "Oak St", "Maple Ave", "Cedar Ln", "Pine St", "Elm S
 
 const OCCUPATIONS = ["Retail Worker", "Office Administrator", "Teacher", "Registered Nurse", "Truck Driver", "Construction Worker", "Software Developer", "Server", "Manager", "Accountant", "Mechanic", "Farmer", "Retired", "Homemaker", "Unemployed", "Warehouse Worker"];
 
-/** [upper-bound-exclusive cumulative weight, min age, max age]. */
-const AGE_BANDS: [number, number, number][] = [
-  [0.22, 0, 17],
-  [0.58, 18, 44],
-  [0.83, 45, 64],
-  [1.0, 65, 95],
+/**
+ * US resident population by age band, July 1 2025 estimate, both sexes (docs/us-calibration-targets.md T-DEM-1).
+ * Source: Census Bureau, National Population by Characteristics: 2020-2025, file nc-est2025-agesex-res.csv
+ * (https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/national/asrh/nc-est2025-agesex-res.csv),
+ * column POPESTIMATE2025, SEX = 0, summed over single years of age (total 341,784,857). The 65+ band reaches
+ * 100+ in the source; the simulator draws 65-95.
+ */
+export const CENSUS_2025_POP_BY_AGE_BAND = { "0-17": 72_021_348, "18-44": 123_821_921, "45-64": 81_324_500, "65+": 64_617_088 } as const;
+
+const POP = CENSUS_2025_POP_BY_AGE_BAND;
+const POP_TOTAL = POP["0-17"] + POP["18-44"] + POP["45-64"] + POP["65+"];
+
+/** [upper-bound-exclusive cumulative share, min age, max age], derived from the Census counts above. */
+export const AGE_BANDS: [number, number, number][] = [
+  [POP["0-17"] / POP_TOTAL, 0, 17],
+  [(POP["0-17"] + POP["18-44"]) / POP_TOTAL, 18, 44],
+  [(POP["0-17"] + POP["18-44"] + POP["45-64"]) / POP_TOTAL, 45, 64],
+  [1, 65, 95],
 ];
 
 const RELIGIONS: [number, Religion][] = [
