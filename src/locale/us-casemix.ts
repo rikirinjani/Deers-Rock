@@ -17,8 +17,8 @@
  *   below with illness groups, DRG families and protocols. Firearm injury
  *   is deferred (an external cause, not a diagnosis category).
  *
- * CALIBRATION PENDING: every weight is an unsourced placeholder. Calibrating
- * to HCUP / CDC NHAMCS volumes is M10.5c.
+ * CALIBRATION: 18 HCUP groups fitted (see US_WEIGHT); the rest are unsourced placeholders. Calibrating
+ * the remainder to HCUP / CDC NHAMCS volumes continues in M10.5c.
  */
 import type { ICaseMix } from "./contracts.js";
 import { ICD10_DIAGNOSES, type ICDMapping } from "../patient/icd-pool.js";
@@ -26,12 +26,20 @@ import { ICD10_DIAGNOSES, type ICDMapping } from "../patient/icd-pool.js";
 /** Endemic-only in the US: removed from the pool. */
 export const US_EXCLUDED_CODES: readonly string[] = ["A91", "A01", "B50", "A27", "A82", "A95", "A30", "B86", "D55"];
 
-/** Weight overrides (absent codes keep the engine weight). */
+/**
+ * Weight overrides (absent codes keep the engine weight). Codes of the 18 modelled HCUP groups are FITTED (M10.5c):
+ * `scripts/us-casemix-fit.ts` iterates one multiplier per group until the share of principal diagnoses in a
+ * 40,000-patient US sample matches HCUP SB#277 (2018, docs/us-calibration-targets.md T-CASE-1); the fitted values
+ * are rounded to 0.5. The other overrides below stay unsourced placeholders.
+ */
 const US_WEIGHT: Record<string, number> = {
-  I10: 16, E11: 14, I50: 7, J44: 6, N18: 5, I48: 5, I21: 4, I63: 4,
-  J18: 6, J15: 6, N39: 7, A40: 3, A49: 3, K85: 3, S72: 4, R07: 8, R10: 8,
-  F32: 5, U07: 3, J10: 4, J11: 3,
+  // placeholders (not in a fitted group)
+  I10: 16, K85: 3, S72: 4, R07: 8, R10: 8, U07: 3, J10: 4, J11: 3,
   I05: 1, I09: 1, I00: 1, A15: 1, T63: 1,
+  // fitted to HCUP 2018 principal-diagnosis shares
+  A40: 7.5, A49: 7.5, I50: 22.5, M17: 22.5, J14: 1.5, J15: 4, J18: 4, E11: 9, I21: 14.5, I48: 8, I49: 5,
+  J44: 9.5, J47: 3, N17: 3.5, N19: 3.5, I63: 12.5, L03: 5.5, F32: 7.5, N39: 5, J96: 5, F20: 6, I25: 7.5,
+  K80: 7.5, E86: 4.5, N18: 5,
 };
 
 /**
