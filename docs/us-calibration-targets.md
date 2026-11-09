@@ -93,3 +93,36 @@ Retrieved 2026-11-09 unless stated.
 - **Dated candidates, not yet read (found through search summaries, verify in the brief before use):** HCUP Statistical Brief #81 (end-of-life hospitalizations, 2007 NIS: death rate by principal diagnosis, septicemia about 17 %); Brief #26 (circulatory conditions, older data: in-hospital death rate acute MI 7.2 %, cerebrovascular 10.7 %, heart failure 4.0 %); Brief #38 (mortality trends, older). These are 15 or more years old and predate large mortality improvements, so they would serve as bounds, not targets.
 - **HCUP Fast Stats and HCUPnet** are the free sources for current diagnosis-level length of stay and mortality, but both were unreachable for the fetch tool (403). If the owner can export the HCUPnet table for the top 20 principal diagnoses (national, all payers, latest year: stays, mean length of stay, in-hospital mortality), it can be dropped into this file as T-LOS-1.
 - **Case-mix comparison deferred to the US baseline run:** T-CASE-1 shares need the simulator's inpatient principal-diagnosis distribution from a US world run (cloud, 10 seeds). The ICD-10-CM to CCSR grouping (septicemia = A40/A41; pneumonia = J12-J18, etc.) is mapped by me and must be reviewed by Research OC before the comparison counts.
+
+## US baseline run: case mix versus T-CASE-1 (2026-11-09)
+
+Run: commit `3e78cdd`, US locale and US billing adapter, seeds 0-9, 50 initial patients, 14,400 ticks (10 days), Kaggle kernels `hoe-usbase-k0..k2` (dataset `hoe-src-3e78cdd`), worker `src/experiment/us-baseline.ts`. Source: append-only outcome records of closed inpatient stays.
+
+- **Totals:** 1,261 inpatient stays (126.1 per run), 57 deaths (gross death rate 45.2 per mille), mean length of stay 4.80 days, end-of-run occupancy 80 %, 2,962 ED encounters per run, 134 distinct principal ICD codes. These match the Indonesian legacy reference (125.4 stays, 49.4 per mille, 4.79 days, 79.5 %), as expected: admission volume, length of stay and death rolls do not depend on locale.
+- **Case mix (validation, V):** the 19 listed HCUP groups cover 30.3 % of simulator stays versus about 47 % in HCUP; ICD-to-group mapping is mine and needs Research OC review. Small sample (1,261 stays), so shares under about 1 % are noisy.
+
+| Group (ICD-10 prefixes, my mapping) | Simulator share % | HCUP 2018 share % |
+|---|---|---|
+| Septicemia (A40, A41) | 2.1 | 8.0 |
+| Heart failure (I50) | 1.2 | 4.1 |
+| Osteoarthritis (M15-M19) | 0.2 | 4.1 |
+| Pneumonia (J12-J18) | 5.6 | 2.7 |
+| Diabetes (E10, E11, E13) | 3.7 | 2.4 |
+| Acute MI (I21, I22) | 1.7 | 2.4 |
+| Cardiac dysrhythmias (I47-I49) | 1.3 | 2.2 |
+| COPD (J41-J44, J47) | 2.5 | 2.0 |
+| Renal failure (N17, N19) | 1.5 | 2.0 |
+| Cerebral infarction (I63) | 0.6 | 1.9 |
+| Skin infections (L02, L03, L08) | 0.8 | 1.9 |
+| Depressive disorders (F32, F33) | 1.0 | 1.9 |
+| Spondylopathies (M45-M51) | 0.0 | 1.9 |
+| Urinary tract infection (N30, N39) | 4.2 | 1.8 |
+| Respiratory failure (J96) | 1.4 | 1.8 |
+| Schizophrenia (F20, F25) | 0.4 | 1.4 |
+| Coronary atherosclerosis (I25) | 0.2 | 1.3 |
+| Biliary tract disease (K80-K83) | 0.9 | 1.3 |
+| Fluid and electrolyte (E86, E87) | 1.0 | 1.3 |
+
+- **Reading:** over-represented: pneumonia (5.6 vs 2.7), urinary tract infection (4.2 vs 1.8), diabetes (3.7 vs 2.4). Under-represented: septicemia (2.1 vs 8.0), heart failure (1.2 vs 4.1), osteoarthritis (0.2 vs 4.1), spondylopathies (0 vs 1.9), cerebral infarction, coronary atherosclerosis, schizophrenia. The largest HCUP categories are elective orthopaedic and chronic cardiac stays that the disease list barely covers; the simulator is rich in acute and infectious conditions (gastroenteritis, upper respiratory infection, chest or abdominal pain, conjunctivitis).
+- **Not tuned.** Per the discipline above this is a finding, not a fit. Next: case-mix weights are a Research OC decision (the disease weights file is shared with the Indonesian pack, so a US-only weight table sits behind the case-mix seam).
+- **Length of stay and mortality per diagnosis** are flat across diagnoses in the simulator (4.1-5.6 days, all codes), so T-LOS-1 (owner export pending) will show the gap directly.
