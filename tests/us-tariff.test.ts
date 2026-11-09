@@ -217,3 +217,19 @@ describe("DRG weights follow CMS FY 2026 Table 5 (docs/us-drg-table5-comparison.
     expect(unmatched.sort()).toEqual(["131", "132"]);
   });
 });
+
+describe("CMS NADAC pilot drug prices (docs/us-calibration-targets.md T-DRUG-1)", () => {
+  it("ten oral solids use the NADAC rate times the pharmacy markup; every NADAC code exists in the catalogue", async () => {
+    const { US_NADAC } = await import("../src/locale/us-nadac.js");
+    const { DRUG_CATALOG } = await import("../src/engine/drug-catalog.js");
+    const codes = new Set(DRUG_CATALOG.map(d => d.code));
+    expect(US_NADAC.length).toBe(10);
+    for (const n of US_NADAC) {
+      expect(codes.has(n.code), n.code).toBe(true);
+      expect(n.asOf).toBe("2026-11-04");
+      expect(US_DRUG_PRICES.get(n.code), n.code).toBe(Math.round(n.perUnitUsd * 3 * 100) / 100);
+    }
+    // a non-pilot drug keeps the derived placeholder
+    expect(US_DRUG_PRICES.get("CTR")).toBe(11.25);
+  });
+});

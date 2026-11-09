@@ -15,6 +15,7 @@
  */
 import type { ChargeCategory, RoomClass } from "../../patient/schema.js";
 import { DRUG_CATALOG, findDrug } from "../drug-catalog.js";
+import { US_NADAC_BY_CODE } from "../../locale/us-nadac.js";
 import type { IChargePolicy, IPriceBook } from "./contracts.js";
 
 const CONFIG = { countryCode: "US", currency: "USD", displayName: "United States (Medicare/MS-DRG)", currencyMinorUnits: 2 };
@@ -88,8 +89,19 @@ export const US_RESPIRATORY_ACTIVATION_FEE = 250;
 export const US_AMBULANCE_FEES = { BLS: { base: 1_200, perKm: 15 }, ALS: { base: 2_000, perKm: 20 } } as const;
 
 /** code -> USD billed price, computed once at module load. */
+/**
+ * Billed unit price. Drugs with a CMS NADAC rate (locale/us-nadac.ts, M10.5c pilot) use the real acquisition cost
+ * x US_PHARMACY_MARKUP (the markup itself is still an unsourced placeholder); the rest keep the placeholder derived
+ * from the Indonesian cost. Prices stay in whole cents (the price-book invariant), so a one-tablet generic bills at
+ * a few cents; the 3x markup is the unsourced part (US chargemaster markups on generics are far higher).
+ */
 export const US_DRUG_PRICES: ReadonlyMap<string, number> = new Map(
-  DRUG_CATALOG.map(d => [d.code, round2((d.costIdr / IDR_PER_USD) * US_ACQUISITION_FACTOR * US_PHARMACY_MARKUP)]),
+  DRUG_CATALOG.map(d => {
+    const nadac = US_NADAC_BY_CODE.get(d.code);
+    return [d.code, nadac
+      ? round2(nadac.perUnitUsd * US_PHARMACY_MARKUP)
+      : round2((d.costIdr / IDR_PER_USD) * US_ACQUISITION_FACTOR * US_PHARMACY_MARKUP)] as [string, number];
+  }),
 );
 
 export class USPriceBook implements IPriceBook {
