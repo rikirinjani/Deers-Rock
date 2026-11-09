@@ -115,7 +115,7 @@ describe("US-central categories (slice 4)", () => {
 describe("US case mix: HCUP fit (M10.5c)", () => {
   it("fitted codes carry the fitted weights and the Indonesian pool is untouched", () => {
     const w = (c: string) => US_DIAGNOSES.find(d => d.code === c)!.weight;
-    expect([w("A40"), w("A49"), w("I50"), w("M17"), w("I21"), w("N39")]).toEqual([7.5, 7.5, 22.5, 22.5, 14.5, 5]);
+    expect([w("A40"), w("A49"), w("I50"), w("M17"), w("I21"), w("N39")]).toEqual([9.5, 9.5, 25.5, 43, 13.5, 3.5]);
     expect(ICD10_DIAGNOSES.find(d => d.code === "A40")!.weight).toBe(2);
     expect(ICD10_DIAGNOSES.find(d => d.code === "M17")!.weight).toBe(5);
   });

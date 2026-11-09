@@ -30,16 +30,17 @@ export const US_EXCLUDED_CODES: readonly string[] = ["A91", "A01", "B50", "A27",
  * Weight overrides (absent codes keep the engine weight). Codes of the 18 modelled HCUP groups are FITTED (M10.5c):
  * `scripts/us-casemix-fit.ts` iterates one multiplier per group until the share of principal diagnoses in a
  * 40,000-patient US sample matches HCUP SB#277 (2018, docs/us-calibration-targets.md T-CASE-1); the fitted values
- * are rounded to 0.5. The other overrides below stay unsourced placeholders.
+ * are rounded to 0.5, then corrected once on simulated stays (seeds 10-19: multiplier = (HCUP share / simulated stay
+ * share)^0.6 per group, docs/us-calibration-targets.md). The other overrides below stay unsourced placeholders.
  */
 const US_WEIGHT: Record<string, number> = {
   // placeholders (not in a fitted group)
   I10: 16, K85: 3, S72: 4, R07: 8, R10: 8, U07: 3, J10: 4, J11: 3,
   I05: 1, I09: 1, I00: 1, A15: 1, T63: 1,
   // fitted to HCUP 2018 principal-diagnosis shares
-  A40: 7.5, A49: 7.5, I50: 22.5, M17: 22.5, J14: 1.5, J15: 4, J18: 4, E11: 9, I21: 14.5, I48: 8, I49: 5,
-  J44: 9.5, J47: 3, N17: 3.5, N19: 3.5, I63: 12.5, L03: 5.5, F32: 7.5, N39: 5, J96: 5, F20: 6, I25: 7.5,
-  K80: 7.5, E86: 4.5, N18: 5,
+  A40: 9.5, A49: 9.5, I50: 25.5, M17: 43, J14: 1, J15: 3, J18: 3, E11: 9, I21: 13.5, I48: 8.5, I49: 5.5,
+  J44: 8.5, J47: 2.5, N17: 2.5, N19: 2.5, I63: 17.5, L03: 8, F32: 11, N39: 3.5, J96: 7, F20: 7, I25: 7.5,
+  K80: 10, E86: 4.5, N18: 5,
 };
 
 /**
