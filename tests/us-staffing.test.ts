@@ -32,8 +32,13 @@ describe("staffing seam", () => {
     expect(by.apoteker).toBe(15);
     expect(by.radiografer).toBe(20);
     expect(by.dokter_spesialis! + by.dokter_umum!).toBe(31);
-    expect(by.bidan).toBe(4);
-    expect(by.admin).toBe(7);
+    expect(by.bidan).toBe(1);
+    expect(by.admin).toBe(39);
+    expect(by.analis_lab).toBe(22);
+    expect(by.petugas_keamanan).toBe(8);
+    expect(by.petugas_kebersihan).toBe(14);
+    expect(by.fisioterapis).toBe(10);
+    expect((by.rekam_medis ?? 0) + (by.koder ?? 0)).toBe(8);
   });
 
   it("scales with bed count, never below one, and is deterministic", () => {

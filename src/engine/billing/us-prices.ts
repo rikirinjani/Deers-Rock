@@ -106,7 +106,7 @@ export const US_DRUG_PRICES: ReadonlyMap<string, number> = new Map(
   DRUG_CATALOG.map(d => {
     const nadac = US_NADAC_BY_CODE.get(d.code);
     return [d.code, nadac
-      ? round2(nadac.perUnitUsd * US_PHARMACY_MARKUP)
+      ? round2(nadac.perUnitUsd * (nadac.qty ?? 1) * US_PHARMACY_MARKUP)
       : round2((d.costIdr / IDR_PER_USD) * US_ACQUISITION_FACTOR * US_PHARMACY_MARKUP)] as [string, number];
   }),
 );
@@ -126,6 +126,9 @@ export class USPriceBook implements IPriceBook {
     return round2(f.base + f.perKm * distanceKm);
   }
   drug(drugCode: string) {
+    // US-only extension drugs (not in DRUG_CATALOG) can also carry a NADAC rate
+    const nadac = US_NADAC_BY_CODE.get(drugCode);
+    if (nadac) return round2(nadac.perUnitUsd * (nadac.qty ?? 1) * US_PHARMACY_MARKUP);
     const base = US_DRUG_PRICES.get(drugCode);
     if (base !== undefined) return base;
     const cost = findDrug(drugCode)?.costUsd;   // US-only extension drugs price from USD acquisition cost

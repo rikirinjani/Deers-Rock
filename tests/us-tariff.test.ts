@@ -229,7 +229,24 @@ describe("CMS NADAC pilot drug prices (docs/us-calibration-targets.md T-DRUG-1)"
       expect(n.asOf).toBe("2026-11-04");
       expect(US_DRUG_PRICES.get(n.code), n.code).toBe(Math.round(n.perUnitUsd * (1 / 0.177) * 100) / 100);
     }
-    // a non-pilot drug keeps the derived placeholder
-    expect(US_DRUG_PRICES.get("CTR")).toBe(Math.round((15_000 / 16_000) * 4 * (1 / 0.177) * 100) / 100);
+    // a drug without a NADAC match keeps the derived placeholder
+    const { DRUG_BY_CODE } = await import("../src/engine/drug-catalog.js");
+    expect(US_DRUG_PRICES.get("MEM")).toBe(Math.round((DRUG_BY_CODE.get("MEM")!.costIdr / 16_000) * 4 * (1 / 0.177) * 100) / 100);
+  });
+
+  it("36 dose-priced entries (vials, mL doses, orals) price as rate x quantity x markup", async () => {
+    const { US_NADAC_DOSES, US_NADAC } = await import("../src/locale/us-nadac.js");
+    const { DRUG_CATALOG } = await import("../src/engine/drug-catalog.js");
+    const { US_EXTRA_DRUGS } = await import("../src/locale/us-drugs.js");
+    const extra = new Set(US_EXTRA_DRUGS.map(d => d.code));
+    const codes = new Set(DRUG_CATALOG.map(d => d.code));
+    expect(US_NADAC_DOSES.length).toBe(36);
+    const old = new Set(US_NADAC.map(e => e.code));
+    for (const n of US_NADAC_DOSES) {
+      expect(codes.has(n.code) || extra.has(n.code), n.code).toBe(true);
+      expect(old.has(n.code), "no overlap with the 94 " + n.code).toBe(false);
+      expect(new USPriceBook().drug(n.code), n.code).toBe(Math.round(n.perUnitUsd * (n.qty ?? 1) * (1 / 0.177) * 100) / 100);
+    }
+    expect(US_DRUG_PRICES.get("FUR")).toBe(Math.round(0.26455 * 4 * (1 / 0.177) * 100) / 100);
   });
 });
