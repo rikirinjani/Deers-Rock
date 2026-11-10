@@ -196,3 +196,20 @@ US per staffed bed = T-WORK-3 (NAICS 622000, all hospitals, 2025) divided by T-C
 - **Regression gates (Indonesian default):** E1 CSV `084024be6e8b9661...` and summary `068b07b2238ecd55...` unchanged; finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f` unchanged; full suite 713 passed, 3 skipped. A test pins the legacy headcounts (122 staff) and the US counts.
 - **Cost:** a US world of 2,000 ticks runs in about 21 s locally with 439 agents. Earlier US baselines (seeds 0-29) used the old 122-staff roster, so their stay-level numbers predate this change; the next US run re-measures occupancy, deaths and sick leave.
 - **Not yet done:** US staffing does not yet change behaviour that depends on staff load (waiting times, burnout) beyond what the engine already models with more nurses; whether it changes admissions, deaths or ED handling must come from the next run, not from assumption.
+
+
+## US baseline with staffing seam (2026-11-10)
+
+Run: commit `77ed070` (US locale, US billing adapter, US staffing: 439 agents instead of 122), seeds 30-39, 14,400 ticks, 50 initial patients, Kaggle kernels `hoe-usstaff-k0..k2` (dataset `hoe-src-77ed070`).
+
+| Metric | Seeds 20-29 (122 agents) | Seeds 30-39 (439 agents) |
+|---|---|---|
+| Inpatient stays | 1,277 (127.7 per run) | 1,229 (122.9 per run) |
+| Deaths per 1,000 stays | 61.1 | 56.1 (69 deaths) |
+| Mean length of stay (days) | 4.82 | 4.81 |
+| End-of-run occupancy | 77 % | 81 % |
+| HCUP group coverage | 41.9 % of 44.5 % | 40.6 % |
+
+- **Reading:** the staffing change has no measurable effect on stays, length of stay or deaths. Differences are inside seed noise (10 runs, about 70 deaths). Expected: admission, length of stay and the death roll do not depend on headcount; staff only affect task throughput. Seeds differ between the two runs, so this is not a paired comparison.
+- **Runtime:** 3,700-9,100 s per seed (about 3x slower than with 122 agents), so a 10-seed US run costs about 3x more Kaggle time.
+- **Finding:** more staff does not change patient outcomes in the current engine. Staffing is calibrated to headcount only, not to effect, until the length-of-stay and mortality seams (step E) let staffing matter.
