@@ -3,7 +3,7 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing, IEdDemand } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
@@ -118,4 +118,10 @@ export class IndonesiaStaffing implements IStaffing {
     const [ratio, min] = INDONESIA_STAFF_RULES[role] ?? [1000, 0];
     return Math.max(min, Math.round(totalBeds / ratio));
   }
+}
+
+/** Original fixed ED cadence: one arrival every 3 ticks, regardless of hospital size. */
+export class IndonesiaEdDemand implements IEdDemand {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  arrivalIntervalTicks(_totalBeds: number): number { return 3; }
 }

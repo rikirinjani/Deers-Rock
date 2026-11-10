@@ -56,7 +56,7 @@ Retrieved 2026-11-09 unless stated.
 | T-LOS-1 | All-stay mean length of stay and in-hospital mortality, by principal diagnosis (top 20) | HCUPnet / HCUP Fast Stats (free, interactive) | HCUP Fast Stats returned HTTP 403 to the fetch tool and HCUPnet is an interactive tool; no static table found with LOS and mortality for the top diagnoses. See the dated candidates below |
 | T-PAY-3 | Insured population mix (Medicare, Medicaid, private, uninsured) by age | KFF or Census ACS health insurance tables | Not yet fetched |
 | T-OCC-1 | Occupancy rate | AHA (not in the Fast Facts page); CMS Hospital Cost Report | Not yet found |
-| T-ED-4 | ED visits per hospital (volume per staffed bed, by hospital size) | AHA Hospital Statistics 2026 (full edition) or NHAMCS facility tables | AHA Fast Facts page has no ED volume; no per-hospital source found yet |
+| T-ED-4 | ED visits per staffed bed, average metropolitan hospital | 93.4 visits a day, 192.1 staffed beds (about 178 per bed per year); all EDs 67.6 a day, 136.5 beds | 2003-04 | CDC NCHS Advance Data No. 376, table at a glance | C (order-of-magnitude cross-check of T-ED-1 / T-CAP-1; old, by bed-size categories not published there) |
 
 ## Notes
 
@@ -213,3 +213,11 @@ Run: commit `77ed070` (US locale, US billing adapter, US staffing: 439 agents in
 - **Reading:** the staffing change has no measurable effect on stays, length of stay or deaths. Differences are inside seed noise (10 runs, about 70 deaths). Expected: admission, length of stay and the death roll do not depend on headcount; staff only affect task throughput. Seeds differ between the two runs, so this is not a paired comparison.
 - **Runtime:** 3,700-9,100 s per seed (about 3x slower than with 122 agents), so a 10-seed US run costs about 3x more Kaggle time.
 - **Finding:** more staff does not change patient outcomes in the current engine. Staffing is calibrated to headcount only, not to effect, until the length-of-stay and mortality seams (step E) let staffing matter.
+
+## ED volume: per-hospital source and ED arrival seam (2026-11-10)
+
+- **T-ED-4 sourced (cross-check only):** CDC NCHS Advance Data No. 376 (NHAMCS 2003-04, 2006) gives the average metropolitan ED 93.4 visits a day and 192.1 staffed beds, about 178 visits per bed per year; all EDs 67.6 visits a day and 136.5 beds, about 181. This is two decades old, but it agrees with the 2022/2024 national ratio (171 per bed), so about 170-180 ED visits per staffed bed per year is a stable US figure. It is a mean per hospital; the report gives no split by bed-size class, so a 131-bed hospital is not separately targeted.
+- **Correction to the earlier ED comparison:** the engine admits one ED arrival every 3 ticks, 480 a day (verified: 100 ED encounters in 300 ticks). The 296 a day in the section above counted only encounters that survived pruning (`MAX_ENCOUNTERS = 500`), so it understated the volume. Real simulator rate: 480 a day for 131 beds = 3.66 per bed per day, about 1,340 per bed per year, **about 7.8 times** the US figure (not 4.8). The `edEncounters` field in `us-baseline.ts` stays a surviving-record count, not a volume.
+- **Applied: ED arrival seam.** `IEdDemand.arrivalIntervalTicks(totalBeds)`; `emergencyHandler` runs on ticks divisible by it. Indonesian default is 3 at any size (byte-identical: E1 CSV `084024be6e8b9661`, summary `068b07b2238ecd55`, finance golden hashes unchanged). US: T-ED-1 / T-CAP-1 = 171.3 visits per staffed bed per year, so 131 beds gives one arrival every 23 ticks (about 63 a day).
+- **Effects to expect in US runs:** ED encounters, ED charges and ED staff load fall by about 7.8x; inpatient admissions are drawn from the patient pool and should not move. ED length of stay (2-7 ticks) stays far below real ED visit duration (about 3 hours in NCHS 2003-04); that is a separate engine question.
+- **Not done:** re-run on Kaggle to confirm the US ED volume and the finance side effects.

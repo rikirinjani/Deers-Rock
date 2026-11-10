@@ -7,6 +7,7 @@ import { assignPayer } from "./finance.js";
 import { appendCharge } from "./charge-generator.js";
 import { edFee } from "./price-tables.js";
 import { selectPrimaryDiagnosisCode } from "./markov.js";
+import { getEdDemand } from "../locale/registry.js";
 import { computeSeveritySnapshot, tickFromMs } from "./encounter-insights.js";
 
 const COMPLAINTS = [
@@ -44,7 +45,8 @@ export function assignAcuity(complaint: string, rngDraw: number): EdTriage["acui
 }
 
 export function emergencyHandler(state: HospitalState, clock: Clock, _queue: EventQueue): HospitalState {
-  if (clock.tick % 3 !== 0) return state;
+  // Epic X M10.5c: arrival cadence comes from the ED demand seam (Indonesian default: every 3 ticks).
+  if (clock.tick % getEdDemand().arrivalIntervalTicks(state.beds.size) !== 0) return state;
 
   const eventCtx = getEventSummary(state._calendarTicks);
   const eventPool = eventCtx.emergencyPool;

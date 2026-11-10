@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule, IndonesiaStaffing } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing, IEdDemand } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule, IndonesiaStaffing, IndonesiaEdDemand } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -54,3 +54,9 @@ let staffing: IStaffing = DEFAULT_STAFFING;
 export function getStaffing(): IStaffing { return staffing; }
 export function useStaffing(s: IStaffing): void { staffing = s; }
 export function resetStaffing(): void { staffing = DEFAULT_STAFFING; }
+
+const DEFAULT_ED_DEMAND: IEdDemand = new IndonesiaEdDemand();
+let edDemand: IEdDemand = DEFAULT_ED_DEMAND;
+export function getEdDemand(): IEdDemand { return edDemand; }
+export function useEdDemand(d: IEdDemand): void { edDemand = d; }
+export function resetEdDemand(): void { edDemand = DEFAULT_ED_DEMAND; }

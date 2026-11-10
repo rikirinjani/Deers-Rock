@@ -145,3 +145,14 @@ export interface IStaffing {
   /** Staff headcount of one role for a hospital with this many beds. */
   headcount(role: AgentRole, totalBeds: number): number;
 }
+
+/**
+ * Emergency department demand (Epic X M10.5c): how often a patient arrives at the ED for a hospital of a given
+ * bed count. The ED handler runs every tick and admits one arrival when the tick is a multiple of the interval;
+ * the Indonesian default is 3 (the original fixed cadence), so the random stream is unchanged there.
+ */
+export interface IEdDemand {
+  config: ILocaleConfig;
+  /** Ticks between ED arrivals (at least 1) for a hospital with this many beds. */
+  arrivalIntervalTicks(totalBeds: number): number;
+}
