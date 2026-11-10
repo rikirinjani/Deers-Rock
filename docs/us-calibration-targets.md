@@ -221,3 +221,21 @@ Run: commit `77ed070` (US locale, US billing adapter, US staffing: 439 agents in
 - **Applied: ED arrival seam.** `IEdDemand.arrivalIntervalTicks(totalBeds)`; `emergencyHandler` runs on ticks divisible by it. Indonesian default is 3 at any size (byte-identical: E1 CSV `084024be6e8b9661`, summary `068b07b2238ecd55`, finance golden hashes unchanged). US: T-ED-1 / T-CAP-1 = 171.3 visits per staffed bed per year, so 131 beds gives one arrival every 23 ticks (about 63 a day).
 - **Effects to expect in US runs:** ED encounters, ED charges and ED staff load fall by about 7.8x; inpatient admissions are drawn from the patient pool and should not move. ED length of stay (2-7 ticks) stays far below real ED visit duration (about 3 hours in NCHS 2003-04); that is a separate engine question.
 - **Not done:** re-run on Kaggle to confirm the US ED volume and the finance side effects.
+
+## US baseline with ED arrival seam (2026-11-10)
+
+Run: commit `828c343` (US locale, billing, staffing, ED arrival every 23 ticks), seeds 40-49, 14,400 ticks, 50 initial patients, Kaggle kernels `hoe-used-k0..k2` (dataset `hoe-src-828c343`).
+
+| Metric | Seeds 30-39 (ED every 3 ticks) | Seeds 40-49 (ED every 23 ticks) |
+|---|---|---|
+| Inpatient stays per run | 122.9 | 118.2 |
+| Deaths per 1,000 stays | 56.1 (69 deaths) | 40.6 (48 deaths) |
+| Mean length of stay (days) | 4.81 | 4.78 |
+| End-of-run occupancy | 81 % | 82 % |
+| Surviving ED encounter records per run | 2,964 | 380 |
+| Wall time per seed | 3,700-9,100 s | 470-1,170 s |
+
+- **ED volume:** the surviving-record count (capped by pruning, `MAX_ENCOUNTERS = 500`) fell 7.8x, matching the ratio of cadences (23/3 = 7.7), but it is a floor and not the true volume; expected true volume is about 63 a day (about 630 per 10 days). Not independently counted.
+- **Speed:** a US run is about 7x faster, since most of the engine load was ED work.
+- **Stays and length of stay:** unchanged within noise. Admissions are drawn from the patient pool, as expected.
+- **Deaths:** 40.6 against 56.1 per mille (48 against 69 deaths). Each set is only about 50-70 deaths, so this is borderline and not established as an effect; there is no mechanism in the code linking ED volume to the death roll. Treat the US death rate as 40-60 per mille until T-LOS-1 (owner export) supplies the target.
