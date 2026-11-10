@@ -267,3 +267,21 @@ Run: commit `828c343` (US locale, billing, staffing, ED arrival every 23 ticks),
 - **Occupancy (T-OCC-1):** simulator end-of-run occupancy 77-82 % across the US runs against 75 % national (64 % before the pandemic). In range for the post-pandemic level, but the simulator number is a day-10 snapshot after a 50-patient start, and admissions are drawn at a fixed rate, so it is not a calibrated steady state. Not tuned.
 - **Calendar (T-CAL-1):** the US calendar models 6 of the 11 federal holidays (New Year, Memorial Day, Independence Day, Labor Day, Thanksgiving, Christmas), with dates that match the 2026 OPM list. Not modelled: MLK Day, Washington's Birthday, Juneteenth, Columbus Day, Veterans Day. It also models Halloween (not federal). The holiday influx multipliers (1.1-1.4) and seasonal boosts remain unsourced placeholders; no sourced holiday ED volume target was found, so none is applied.
 - **Shifts (T-SHIFT-1):** the US pattern is 12-hour day and night shifts, consistent with 65-85 % of hospital staff nurses. The simulator's rotating4 roster averages 42 hours a week against 36 for a three-shift week and about 39 for newly licensed nurses, a slight over-count of hours. Not changed.
+
+
+## US baseline with all M10.5c seams (2026-11-11)
+
+Run: commit `a1da104` (US locale, billing, case mix, staffing with 520 agents, ED arrival every 23 ticks, NADAC dose prices), seeds 50-59, 14,400 ticks, 50 initial patients, Kaggle kernels `hoe-usfull-k0..k2` (dataset `hoe-src-a1da104`).
+
+| Metric | Seeds 40-49 (439 agents) | Seeds 50-59 (520 agents) |
+|---|---|---|
+| Inpatient stays per run | 118.2 | 118.5 |
+| Deaths per 1,000 stays | 40.6 (48 deaths) | 59.1 (70 deaths) |
+| Mean length of stay (days) | 4.78 | 4.77 |
+| End-of-run occupancy | 82 % | 79 % |
+| Surviving ED encounter records per run | 380 | 391 |
+| Wall time per seed | 470-1,170 s | 630-1,000 s |
+
+- **Deaths:** the 40.6 per mille in seeds 40-49 was noise. Across the four US runs since the case-mix refit the rate has been 61.1, 56.1, 40.6 and 59.1 per mille. The simulator's rate is therefore about 40-60 per mille, and it moves with seed, not with staffing or ED volume. T-LOS-1 (owner export pending) will supply the target.
+- **Everything else:** stays, length of stay, occupancy and run time are unchanged within noise. The extra 81 agents added no measurable run time.
+- **Reading:** none of the M10.5c seams (case mix, staffing, ED volume, drug prices) moves inpatient volume, length of stay or mortality. The levers for those are the length-of-stay seam and the mortality parameters in step E.
