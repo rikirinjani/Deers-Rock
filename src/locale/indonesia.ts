@@ -3,13 +3,13 @@
  * geography (Epic X M10.5a). Name and phone hooks are left out on purpose: the
  * patient generator's built-in Indonesian lists stay authoritative.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule } from "./contracts.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing } from "./contracts.js";
 import { ICD10_DIAGNOSES, dengueAgeFactor } from "../patient/icd-pool.js";
 import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
 import type { ClinicalAction } from "../engine/clinical-knowledge.js";
 import type { RosterPattern, ShiftSlot } from "../agent/roster.js";
-import type { Shift } from "../agent/types.js";
+import type { Shift, AgentRole } from "../agent/types.js";
 import { indonesiaShiftAt, indonesiaRosteredShift } from "./indonesia-shifts.js";
 import { indonesiaEvents } from "./indonesia-calendar.js";
 import type { Gender, Identity, ReferralFacility } from "../identity/types.js";
@@ -97,5 +97,25 @@ export class IndonesiaShiftSchedule implements IShiftSchedule {
   shiftAt(tick: number): ShiftSlot { return indonesiaShiftAt(tick); }
   rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift {
     return indonesiaRosteredShift(pattern, team, rosterDay, dayOfWeek);
+  }
+}
+
+/**
+ * Indonesian staffing: headcount = max(minimum, round(beds / ratio)) per role. These are the formulas the agent
+ * generator used before the staffing seam (unsourced placeholders, frozen as the legacy reference).
+ */
+export const INDONESIA_STAFF_RULES: Readonly<Record<string, readonly [ratio: number, min: number]>> = {
+  dokter_spesialis: [15, 8], dokter_umum: [25, 5], dokter_gigi: [150, 2], perawat: [3, 20], perawat_anestesi: [60, 2],
+  bidan: [30, 4], apoteker: [40, 3], asisten_apoteker: [30, 3], radiografer: [50, 2], analis_lab: [35, 3],
+  nutrisionis: [60, 2], fisioterapis: [80, 2], okupasi_terapis: [120, 1], psikolog: [200, 1], pekerja_sosial: [80, 2],
+  rekam_medis: [40, 3], koder: [50, 2], kasir: [80, 2], staf_keuangan: [60, 2], staf_inventaris: [80, 2],
+  petugas_kebersihan: [15, 4], petugas_keamanan: [30, 3], admin: [20, 4], sopir_ambulans: [100, 2],
+};
+
+export class IndonesiaStaffing implements IStaffing {
+  config = { countryCode: "ID", displayName: "Indonesia" };
+  headcount(role: AgentRole, totalBeds: number): number {
+    const [ratio, min] = INDONESIA_STAFF_RULES[role] ?? [1000, 0];
+    return Math.max(min, Math.round(totalBeds / ratio));
   }
 }

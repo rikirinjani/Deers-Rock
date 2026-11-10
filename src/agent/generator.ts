@@ -1,5 +1,5 @@
 import type { HospitalAgent, AgentRole, DepartmentCode, Spesialisasi, AgentPool } from "./types.js";
-import { getIdentityLocale } from "../locale/registry.js";
+import { getIdentityLocale, getStaffing } from "../locale/registry.js";
 import { PROVINCES, STREET_NAMES, getRandomPostalCode } from "../identity/data.js";
 import { assignRoster } from "./roster.js";
 
@@ -137,33 +137,34 @@ function repeatRoles(role: AgentRole, count: number): AgentRole[] {
 export function generateAgentPool(totalBeds: number = 133, rng?: () => number): AgentPool {
   const agents = new Map<string, HospitalAgent>();
 
-  const minStaff = (ratio: number, min: number) => Math.max(min, Math.round(totalBeds / ratio));
+  const staffing = getStaffing();
+  const n = (role: AgentRole) => staffing.headcount(role, totalBeds);
 
   const roles: AgentRole[] = [
-    ...repeatRoles("dokter_spesialis", minStaff(15, 8)),
-    ...repeatRoles("dokter_umum", minStaff(25, 5)),
-    ...repeatRoles("dokter_gigi", minStaff(150, 2)),
-    ...repeatRoles("perawat", minStaff(3, 20)),
-    ...repeatRoles("perawat_anestesi", minStaff(60, 2)),
-    ...repeatRoles("bidan", minStaff(30, 4)),
-    ...repeatRoles("apoteker", minStaff(40, 3)),
-    ...repeatRoles("asisten_apoteker", minStaff(30, 3)),
-    ...repeatRoles("radiografer", minStaff(50, 2)),
-    ...repeatRoles("analis_lab", minStaff(35, 3)),
-    ...repeatRoles("nutrisionis", minStaff(60, 2)),
-    ...repeatRoles("fisioterapis", minStaff(80, 2)),
-    ...repeatRoles("okupasi_terapis", minStaff(120, 1)),
-    ...repeatRoles("psikolog", minStaff(200, 1)),
-    ...repeatRoles("pekerja_sosial", minStaff(80, 2)),
-    ...repeatRoles("rekam_medis", minStaff(40, 3)),
-    ...repeatRoles("koder", minStaff(50, 2)),
-    ...repeatRoles("kasir", minStaff(80, 2)),
-    ...repeatRoles("staf_keuangan", minStaff(60, 2)),
-    ...repeatRoles("staf_inventaris", minStaff(80, 2)),
-    ...repeatRoles("petugas_kebersihan", minStaff(15, 4)),
-    ...repeatRoles("petugas_keamanan", minStaff(30, 3)),
-    ...repeatRoles("admin", minStaff(20, 4)),
-    ...repeatRoles("sopir_ambulans", minStaff(100, 2)),
+    ...repeatRoles("dokter_spesialis", n("dokter_spesialis")),
+    ...repeatRoles("dokter_umum", n("dokter_umum")),
+    ...repeatRoles("dokter_gigi", n("dokter_gigi")),
+    ...repeatRoles("perawat", n("perawat")),
+    ...repeatRoles("perawat_anestesi", n("perawat_anestesi")),
+    ...repeatRoles("bidan", n("bidan")),
+    ...repeatRoles("apoteker", n("apoteker")),
+    ...repeatRoles("asisten_apoteker", n("asisten_apoteker")),
+    ...repeatRoles("radiografer", n("radiografer")),
+    ...repeatRoles("analis_lab", n("analis_lab")),
+    ...repeatRoles("nutrisionis", n("nutrisionis")),
+    ...repeatRoles("fisioterapis", n("fisioterapis")),
+    ...repeatRoles("okupasi_terapis", n("okupasi_terapis")),
+    ...repeatRoles("psikolog", n("psikolog")),
+    ...repeatRoles("pekerja_sosial", n("pekerja_sosial")),
+    ...repeatRoles("rekam_medis", n("rekam_medis")),
+    ...repeatRoles("koder", n("koder")),
+    ...repeatRoles("kasir", n("kasir")),
+    ...repeatRoles("staf_keuangan", n("staf_keuangan")),
+    ...repeatRoles("staf_inventaris", n("staf_inventaris")),
+    ...repeatRoles("petugas_kebersihan", n("petugas_kebersihan")),
+    ...repeatRoles("petugas_keamanan", n("petugas_keamanan")),
+    ...repeatRoles("admin", n("admin")),
+    ...repeatRoles("sopir_ambulans", n("sopir_ambulans")),
   ];
 
   for (const role of roles) {

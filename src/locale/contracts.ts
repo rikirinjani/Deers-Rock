@@ -13,7 +13,7 @@ import type { CalendarDate, CalendarEvent } from "../engine/calendar.js";
 import type { DrugEntry } from "../engine/drug-catalog.js";
 import type { ClinicalAction } from "../engine/clinical-knowledge.js";
 import type { RosterPattern, ShiftSlot } from "../agent/roster.js";
-import type { Shift } from "../agent/types.js";
+import type { Shift, AgentRole } from "../agent/types.js";
 
 export interface ILocaleConfig {
   countryCode: string;
@@ -133,4 +133,15 @@ export interface IShiftSchedule {
   officeOffDays: readonly number[];
   shiftAt(tick: number): ShiftSlot;
   rosteredShift(pattern: RosterPattern, team: number, rosterDay: number, dayOfWeek: number): Shift;
+}
+
+/**
+ * Hospital staffing (Epic X M10.5c): how many staff of each role a hospital of a given bed count employs.
+ * The agent roster draws one agent per head, in the generator's fixed role order, so changing a count
+ * changes the random stream; the Indonesian default reproduces the original formulas exactly.
+ */
+export interface IStaffing {
+  config: ILocaleConfig;
+  /** Staff headcount of one role for a hospital with this many beds. */
+  headcount(role: AgentRole, totalBeds: number): number;
 }

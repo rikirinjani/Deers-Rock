@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule, IndonesiaStaffing } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -48,3 +48,9 @@ let shiftSchedule: IShiftSchedule = DEFAULT_SHIFTS;
 export function getShiftSchedule(): IShiftSchedule { return shiftSchedule; }
 export function useShiftSchedule(s: IShiftSchedule): void { shiftSchedule = s; }
 export function resetShiftSchedule(): void { shiftSchedule = DEFAULT_SHIFTS; }
+
+const DEFAULT_STAFFING: IStaffing = new IndonesiaStaffing();
+let staffing: IStaffing = DEFAULT_STAFFING;
+export function getStaffing(): IStaffing { return staffing; }
+export function useStaffing(s: IStaffing): void { staffing = s; }
+export function resetStaffing(): void { staffing = DEFAULT_STAFFING; }
