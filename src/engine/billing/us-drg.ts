@@ -12,9 +12,9 @@
  * diagnoses where the engine generates a matching procedure.
  *
  * CALIBRATED (M10.5c): weights are the FY 2026 CMS-1833-F Table 5 values (10 % cap applied) and the
- * base rate is the FY 2026 CMS figure (see below); docs/us-calibration-targets.md T-DRG-1..3. Remaining
- * placeholder: family 131/132 (cleft repair, Q36/Q37), which has no FY 2026 DRG of that number and whose
- * v43 assignment was not found. Severity split structure and the no-CC-exclusion approximation are unchanged.
+ * base rate is the FY 2026 CMS figure (see below); docs/us-calibration-targets.md T-DRG-1..3. The cleft families
+ * (Q36/Q37) follow the v43.0 manual (see FAMILIES). No placeholder weights remain. Severity split structure and the
+ * no-CC-exclusion approximation are unchanged.
  *
  * Deterministic: pure functions, no RNG.
  */
@@ -141,7 +141,13 @@ const FAMILIES: Family[] = [
   med(793, "1", [4.1696], "Neonate with major problems", ["P10", "P36"]),
   med(794, "1", [1.4759], "Neonate with other significant problems", ["P58", "P59"]),
   med(306, "2m", [1.5758, 0.9132], "Congenital heart disease", ["Q21"]),
-  med(131, "2c", [2.10, 1.40], "Cranial and facial (cleft repair)", ["Q36", "Q37"]),
+  // Cleft lip / cleft palate (CMS v43.0 manual, MDC 03): no repair on the chart -> 157-159 Dental and oral diseases
+  // (principal diagnoses Q35-Q37); lip repair (0CQ0, 0CQ1) -> 137-138 Mouth procedures; palate repair (0CQ2, 0CQ3)
+  // -> 143-145 Other ENT O.R. procedures. Q37 (palate with lip) is treated as a palate repair: an assumption, the
+  // surgical hierarchy for a combined repair was not read.
+  med(157, "3", [1.7168, 0.9098, 0.7085], "Dental and oral diseases", ["Q36", "Q37"]),
+  surg(137, "2c", [1.4932, 0.8862], "Mouth procedures", ["Q36"]),
+  surg(143, "3", [3.7466, 1.7329, 1.2023], "Other ear, nose, mouth and throat O.R. procedures", ["Q37"]),
   // Symptoms
   med(313, "1", [0.7200], "Chest pain", ["R07"]),
   med(864, "1", [0.8877], "Fever and inflammatory conditions", ["R50"]),

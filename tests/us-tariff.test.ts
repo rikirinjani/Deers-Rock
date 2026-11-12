@@ -206,7 +206,7 @@ describe("CMS FY 2026 standard amounts (docs/us-calibration-targets.md T-DRG-2, 
 
 describe("DRG weights follow CMS FY 2026 Table 5 (docs/us-drg-table5-comparison.csv)", () => {
   const fields = (line: string): string[] => Array.from(line.matchAll(/("([^"]*)"|[^,]*)(,|$)/g)).slice(0, 7).map(m => m[2] ?? m[1]!);
-  it("every simulator DRG that exists in Table 5 carries the Table 5 weight, and only the cleft family is unmatched", () => {
+  it("every simulator DRG that exists in Table 5 carries the Table 5 weight, and none is unmatched", () => {
     const rows = readFileSync(new URL("../docs/us-drg-table5-comparison.csv", import.meta.url), "utf8").split(/\r?\n/).filter(l => l.length > 0).slice(1);
     const unmatched: string[] = [];
     for (const r of rows) {
@@ -214,7 +214,20 @@ describe("DRG weights follow CMS FY 2026 Table 5 (docs/us-drg-table5-comparison.
       if (!cmsW) { unmatched.push(drg!); continue; }
       expect(Number(simW), `DRG ${drg}`).toBeCloseTo(Number(cmsW), 4);
     }
-    expect(unmatched.sort()).toEqual(["131", "132"]);
+    expect(unmatched).toEqual([]);
+  });
+});
+
+describe("Cleft lip and palate DRGs follow the CMS v43.0 manual (M10.5c)", () => {
+  it("no repair -> 157-159 dental and oral; lip repair -> 137-138; palate repair -> 143-145", async () => {
+    const { assignMsDrg } = await import("../src/engine/billing/us-drg.js");
+    expect(assignMsDrg(["Q36.9"], false)?.drg).toBe("159");
+    expect(assignMsDrg(["Q37.5"], false)?.drg).toBe("159");
+    expect(assignMsDrg(["Q36.9"], true)?.drg).toBe("138");
+    expect(assignMsDrg(["Q37.5"], true)?.drg).toBe("145");
+    expect(assignMsDrg(["Q36.9"], true)?.weight).toBe(0.8862);
+    expect(assignMsDrg(["Q37.5"], true)?.weight).toBe(1.2023);
+    expect(assignMsDrg(["Q36.9"], false)?.weight).toBe(0.7085);
   });
 });
 
