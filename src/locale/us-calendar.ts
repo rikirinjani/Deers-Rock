@@ -170,6 +170,23 @@ export function usEvents(date: CalendarDate): CalendarEvent[] {
     });
   }
 
+  // M10.5c coverage: the five federal holidays (OPM list, docs/us-calibration-targets.md T-CAL-1) that were not
+  // modelled. Neutral events (multiplier 1, no modifiers): they mark the date but carry no sourced ED effect.
+  // The year-less calendar uses the dates that fall inside the run horizon: June to December 2026 observances,
+  // and the January and February 2027 observances (MLK Day Jan 18, Washington's Birthday Feb 15).
+  const NEUTRAL_HOLIDAYS: [name: string, month: number, day: number][] = [
+    ["Martin Luther King Jr. Day", 1, 18], ["Washington's Birthday", 2, 15], ["Juneteenth", 6, 19],
+    ["Columbus Day", 10, 12], ["Veterans Day", 11, 11],
+  ];
+  for (const [name, m, d] of NEUTRAL_HOLIDAYS) {
+    if (isInRange(date, m, d, m, d)) {
+      events.push({
+        name, type: "holiday", influxMultiplier: 1, influxModifiers: [], emergencyComplaints: [],
+        description: `${name}: federal holiday, no modelled ED effect (no sourced target)`,
+      });
+    }
+  }
+
   return events;
 }
 

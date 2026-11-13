@@ -50,6 +50,13 @@ describe("US calendar", () => {
     expect(names(1, 1)).toContain("New Year");
     expect(names(1, 20)).toContain("Influenza Season");
     expect(names(4, 15)).toEqual(["Regular Day"]);
+    // the five neutral federal holidays (T-CAL-1) mark the date and change nothing else
+    for (const [m, d, n] of [[1, 18, "Martin Luther King Jr. Day"], [2, 15, "Washington's Birthday"], [6, 19, "Juneteenth"], [10, 12, "Columbus Day"], [11, 11, "Veterans Day"]] as [number, number, string][]) {
+      const e = usEvents(day(m, d)).find(x => x.name === n)!;
+      expect(e.type).toBe("holiday");
+      expect(e.influxMultiplier).toBe(1);
+      expect(e.influxModifiers).toEqual([]);
+    }
   });
 
   it("the US pack swaps the calendar and time-zone label; reset restores Indonesia", () => {
