@@ -12,6 +12,8 @@ import { writeFileSync } from "node:fs";
 import { createWorld, runWorld } from "../engine/world.js";
 import { useUSLocale } from "../locale/us-locale.js";
 import { useUSAdapter } from "../engine/billing/us-adapter.js";
+import { useStayOutcomes } from "../locale/registry.js";
+import { USStayOutcomes } from "../locale/us-stay-outcomes.js";
 
 const TICKS_PER_DAY = 1440;
 
@@ -27,6 +29,22 @@ const file = arg("result", "us-baseline.json");
 
 useUSLocale();
 useUSAdapter();
+
+// --measure-tier: record the engine's risk-tier death probability per principal diagnosis (3-character ICD) at every
+// discharge, with the original stay model's death roll (tier probability unchanged), to fit the US tier scaling.
+const tierByIcd: Record<string, { n: number; sum: number; byRisk: Record<string, number> }> = {};
+if (process.argv.includes("--measure-tier")) {
+  const us = new USStayOutcomes();
+  useStayOutcomes({
+    config: us.config,
+    dischargeDelayMinutes: (icd, u) => us.dischargeDelayMinutes(icd, u),
+    deathProbability: (icd, tierProbability, risk) => {
+      const e = (tierByIcd[icd.slice(0, 3)] ??= { n: 0, sum: 0, byRisk: { low: 0, moderate: 0, high: 0 } });
+      e.n += 1; e.sum += tierProbability; e.byRisk[risk] = (e.byRisk[risk] ?? 0) + 1;
+      return tierProbability;
+    },
+  });
+}
 const started = Date.now();
 const world = runWorld(createWorld(patients, undefined, seed), ticks);
 const s = world.state;
@@ -51,6 +69,7 @@ writeFileSync(file, JSON.stringify({
   totalBeds: s.beds.size,
   bedsOccupiedEnd: Array.from(s.beds.values()).filter(b => b.patientId).length,
   byIcd,
+  tierByIcd,
   // claims are pruned (MAX_CLAIMS), so this is a sample of the latest claims, not the run total
   prunedClaimSamplePayers: payerClaims,
   wallSeconds: Math.round((Date.now() - started) / 1000),
