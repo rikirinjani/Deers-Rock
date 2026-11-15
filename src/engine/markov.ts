@@ -17,6 +17,7 @@ import { registerBody } from "./kamar-jenazah.js";
 import { driftVitals } from "./vitals-model.js";
 import { assignIllness, stepIllness, targetFor, updateWatch, sustainedFlags } from "./clinical-vitals.js";
 import { isClinicalVitalsEnabled } from "./config.js";
+import { getStayOutcomes } from "../locale/registry.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -189,7 +190,8 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
       }
     }
 
-    const dischargeDelay = 4320 + Math.floor(clock.rng() * 5760);  // 3-7 days (avg 5)
+    // Locale stay model (Indonesian default: 3-7 days uniform, avg 5; one RNG draw either way)
+    const dischargeDelay = getStayOutcomes().dischargeDelayMinutes(encounter.primaryDiagnosis, clock.rng());
     queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
   }
 
@@ -227,7 +229,11 @@ export function dischargeScheduledPatients(state: HospitalState, clock: Clock, s
     // SUSTAINED during the stay (>= 30 min), not the vitals of the discharge minute.
     const mortality = patient ? assessMortalityRisk(patient.age, patient.vitals, patient.diagnoses, isClinicalVitalsEnabled() ? sustainedFlags(toDischarge) : undefined) : { score: 0, risk: "low" as const, factors: [] as string[] };
     const scenarioEff = getScenarioEffects(state._scenario ?? { active: null, history: [], cooldownTicks: 0 });
-    const deathRoll = inpatientDeathProbability(mortality.risk, patient?.age ?? 0, patient?.diagnoses.length ?? 0);
+    const deathRoll = getStayOutcomes().deathProbability(
+      toDischarge.primaryDiagnosis ?? "UNKNOWN",
+      inpatientDeathProbability(mortality.risk, patient?.age ?? 0, patient?.diagnoses.length ?? 0),
+      mortality.risk,
+    );
     const dies = clock.rng() < (deathRoll + scenarioEff.mortalityBoost);
 
     if (dies && patient) {

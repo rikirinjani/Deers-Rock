@@ -6,7 +6,7 @@
  * useUSAdapter() (billing) for a full US world. Process-global; call before
  * createWorld, reset afterwards, never mid-run.
  */
-import { useIdentityLocale, useReferralNetwork, useCaseMix, useCalendar, resetCalendar, useFormulary, resetFormulary, useProtocolSet, resetProtocolSet, useShiftSchedule, resetShiftSchedule, useStaffing, resetStaffing, useEdDemand, resetEdDemand, resetIdentityLocale, resetReferralNetwork, resetCaseMix } from "./registry.js";
+import { useIdentityLocale, useReferralNetwork, useCaseMix, useCalendar, resetCalendar, useFormulary, resetFormulary, useProtocolSet, resetProtocolSet, useShiftSchedule, resetShiftSchedule, useStaffing, resetStaffing, useEdDemand, resetEdDemand, useStayOutcomes, resetStayOutcomes, resetIdentityLocale, resetReferralNetwork, resetCaseMix } from "./registry.js";
 import { USIdentityLocale } from "./us-identity.js";
 import { USReferralNetwork } from "./us-network.js";
 import { USCaseMix } from "./us-casemix.js";
@@ -16,6 +16,7 @@ import { USProtocolSet } from "./us-protocols.js";
 import { USShiftSchedule } from "./us-shifts.js";
 import { USStaffing } from "./us-staffing.js";
 import { USEdDemand } from "./us-ed-demand.js";
+import { USStayOutcomes } from "./us-stay-outcomes.js";
 
 export function useUSLocale(): void {
   useIdentityLocale(new USIdentityLocale());
@@ -27,6 +28,7 @@ export function useUSLocale(): void {
   useShiftSchedule(new USShiftSchedule());
   useStaffing(new USStaffing());
   useEdDemand(new USEdDemand());
+  useStayOutcomes(new USStayOutcomes());
 }
 
 export function resetLocale(): void {
@@ -39,4 +41,5 @@ export function resetLocale(): void {
   resetShiftSchedule();
   resetStaffing();
   resetEdDemand();
+  resetStayOutcomes();
 }

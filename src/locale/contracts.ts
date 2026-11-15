@@ -151,6 +151,14 @@ export interface IStaffing {
  * bed count. The ED handler runs every tick and admits one arrival when the tick is a multiple of the interval;
  * the Indonesian default is 3 (the original fixed cadence), so the random stream is unchanged there.
  */
+export interface IStayOutcomes {
+  config: ILocaleConfig;
+  /** Minutes from admission to discharge for an inpatient; `u` in [0,1) is the one RNG draw the engine takes. */
+  dischargeDelayMinutes(icd: string, u: number): number;
+  /** Probability that a discharge is a death. `tierProbability` is the engine's risk-tier value; the default returns it unchanged. */
+  deathProbability(icd: string, tierProbability: number, risk: "low" | "moderate" | "high"): number;
+}
+
 export interface IEdDemand {
   config: ILocaleConfig;
   /** Ticks between ED arrivals (at least 1) for a hospital with this many beds. */

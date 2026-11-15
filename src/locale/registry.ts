@@ -4,8 +4,8 @@
  * Process-global like the billing registries: set before createWorld and
  * reset afterwards, never mid-run.
  */
-import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing, IEdDemand } from "./contracts.js";
-import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule, IndonesiaStaffing, IndonesiaEdDemand } from "./indonesia.js";
+import type { IIdentityLocale, IReferralNetwork, ICaseMix, ICalendar, IFormulary, IProtocolSet, IShiftSchedule, IStaffing, IEdDemand, IStayOutcomes } from "./contracts.js";
+import { IndonesiaIdentityLocale, IndonesiaReferralNetwork, IndonesiaCaseMix, IndonesiaCalendar, IndonesiaFormulary, IndonesiaProtocolSet, IndonesiaShiftSchedule, IndonesiaStaffing, IndonesiaEdDemand, IndonesiaStayOutcomes } from "./indonesia.js";
 
 const DEFAULT_IDENTITY: IIdentityLocale = new IndonesiaIdentityLocale();
 let identityLocale: IIdentityLocale = DEFAULT_IDENTITY;
@@ -60,3 +60,9 @@ let edDemand: IEdDemand = DEFAULT_ED_DEMAND;
 export function getEdDemand(): IEdDemand { return edDemand; }
 export function useEdDemand(d: IEdDemand): void { edDemand = d; }
 export function resetEdDemand(): void { edDemand = DEFAULT_ED_DEMAND; }
+
+const DEFAULT_STAY_OUTCOMES: IStayOutcomes = new IndonesiaStayOutcomes();
+let stayOutcomes: IStayOutcomes = DEFAULT_STAY_OUTCOMES;
+export function getStayOutcomes(): IStayOutcomes { return stayOutcomes; }
+export function useStayOutcomes(s: IStayOutcomes): void { stayOutcomes = s; }
+export function resetStayOutcomes(): void { stayOutcomes = DEFAULT_STAY_OUTCOMES; }

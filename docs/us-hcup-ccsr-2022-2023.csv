@@ -1,0 +1,841 @@
+year,ccsr,discharges,mean_los_days,deaths,death_pct
+2022,BLD001: Nutritional anemia,66140,3.6,380,0.57
+2022,BLD002: Hemolytic anemia,8670,6.4,165,1.9
+2022,BLD003: Aplastic anemia,44200,4.8,940,2.13
+2022,BLD004: Acute posthemorrhagic anemia,54165,4.1,775,1.43
+2022,BLD005: Sickle cell trait/anemia,86560,5.5,220,0.25
+2022,BLD006: Coagulation and hemorrhagic disorders,48180,4.9,1115,2.31
+2022,BLD007: Diseases of white blood cells,29535,5.5,420,1.42
+2022,BLD008: Immunity disorders,5965,7.5,115,1.93
+2022,BLD009: Postproc complications of spleen,555,4.9,,
+2022,BLD010: Oth hematologic conditions,5925,5.3,125,2.11
+2022,CIR001: Chronic rheumatic heart disease,24855,8,930,3.74
+2022,CIR002: Acute rheumatic heart disease,305,5.8,,
+2022,CIR003: Nonrheumatic and unspecified valve disorders,149585,4.4,2545,1.7
+2022,CIR004: Endocarditis and endocardial disease,12430,13.4,560,4.51
+2022,CIR005: Myocarditis and cardiomyopathy,19785,6.1,525,2.65
+2022,CIR006: Pericarditis and pericardial disease,39180,5.1,955,2.44
+2022,CIR007: Essential hypertension,6860,2.5,,
+2022,CIR008: Hypertens w/complication/secondary hypertens,160215,3.6,515,0.32
+2022,CIR009: Acute myocardial infarction,581960,4.4,27965,4.81
+2022,CIR010: Complications of acute myocardial infarction,960,6.3,100,10.42
+2022,CIR011: Coronary atherosclerosis/oth heart disease,294230,4.9,2985,1.01
+2022,CIR012: Nonspecific chest pain,115930,2.1,115,0.1
+2022,CIR013: Acute pulmonary embolism,187385,4.6,6685,3.57
+2022,CIR014: Pulmonary heart disease,14025,8.6,920,6.56
+2022,CIR015: Other and ill-defined heart disease,13400,4.3,345,2.57
+2022,CIR016: Conduction disorders,70450,3.9,1335,1.89
+2022,CIR017: Cardiac dysrhythmias,596160,3.5,7700,1.29
+2022,CIR018: Cardiac arrest and ventricular fibrillation,28030,5.9,14165,50.54
+2022,CIR019: Heart failure,1098199,5.8,31255,2.85
+2022,CIR020: Cerebral infarction,541515,5.9,22725,4.2
+2022,CIR021: Acute hemorrhagic cerebrovascular disease,134075,9.7,23195,17.3
+2022,CIR023: Occlusion of cerebral artery w/o infarction,93720,2.2,355,0.38
+2022,CIR024: Oth and ill-defined cerebrovascular disease,30345,4,310,1.02
+2022,CIR026: Peripheral and visceral vascular disease,74420,6.2,1445,1.94
+2022,CIR027: Arterial dissections,22495,8.5,1990,8.85
+2022,CIR028: Gangrene,8310,8.7,165,1.99
+2022,CIR029: Aortic/periph/visceral artery aneurysms,63495,4.8,2330,3.67
+2022,"CIR030: Aortic/periph arterial embolism, thrombosis",16090,6.6,835,5.19
+2022,CIR031: Hypotension,90275,4,1135,1.26
+2022,CIR032: Oth circulatory disease,8930,5.7,195,2.18
+2022,CIR033: Acute phlebitis,85165,4.6,880,1.03
+2022,CIR034: Chronic phlebitis,1805,4.3,,
+2022,CIR035: Varicose veins of lower extremity,3480,6.4,,
+2022,CIR036: Postthrombotic synd/venous insufficiency,9175,5.7,115,1.25
+2022,CIR038: Postproc circulatory system complication,17180,5.3,735,4.28
+2022,CIR039: Oth specified diseases of veins & lymphatics,15740,5,485,3.08
+2022,DIG001: Intestinal infection,132295,4.5,980,0.74
+2022,DIG002: Disorders of teeth and gingiva,11050,2.9,,
+2022,DIG003: Diseases of mouth; excluding dental,22065,3.9,145,0.66
+2022,DIG004: Esophageal disorders,108775,4.3,1350,1.24
+2022,DIG005: Gastroduodenal ulcer,28180,6,530,1.88
+2022,DIG006: Gastrointestinal and biliary perforation,9235,9.3,770,8.34
+2022,DIG007: Gastritis and duodenitis,72865,4.2,655,0.9
+2022,DIG008: Oth disorders of stomach and duodenum,57150,5.6,830,1.45
+2022,DIG009: Appendicitis & other appendiceal conditions,133960,3.1,120,0.09
+2022,DIG010: Abdominal hernia,147810,4.7,1845,1.25
+2022,DIG011: Regional enteritis and ulcerative colitis,85900,5.3,285,0.33
+2022,DIG012: Intestinal obstruction and ileus,306505,5.2,5365,1.75
+2022,DIG013: Diverticulosis and diverticulitis,260100,4.7,1755,0.67
+2022,DIG014: Hemorrhoids,23110,3.9,110,0.48
+2022,DIG015: Anal and rectal conditions,23365,4.4,165,0.71
+2022,DIG016: Peritonitis and intra-abdominal abscess,49425,5.8,590,1.19
+2022,DIG017: Biliary tract disease,311915,3.9,1560,0.5
+2022,DIG018: Hepatic failure,68700,6.9,6000,8.73
+2022,DIG019: Oth liver disease,183990,6.3,10020,5.45
+2022,DIG020: Pancreatic disorders (excluding diabetes),261870,4.5,1805,0.69
+2022,DIG021: Gastrointestinal hemorrhage,262520,4.7,8155,3.11
+2022,DIG022: Noninfectious gastroenteritis,98625,3.9,760,0.77
+2022,DIG023: Noninfectious hepatitis,8135,7,310,3.81
+2022,DIG024: Postproc digestive system complication,105625,6.3,1675,1.5900000000000003
+2022,DIG025: Oth gastrointestinal disorders,115795,5.6,3605,3.11
+2022,EAR001: Otitis media,3880,2.7,,
+2022,EAR002: Diseases of middle ear and mastoid ,4785,4.3,,
+2022,EAR003: Diseases of inner ear and related conditions,19380,2.6,,
+2022,EAR004: Hearing loss,355,,,
+2022,EAR005: Postproc ear/mastoid process complication,90,2.8,,
+2022,EAR006: Oth disorders of the ear,4645,3.7,,
+2022,END001: Thyroid disorders,19540,4.8,290,1.48
+2022,END002: Diabetes mellitus without complication,985,4,,
+2022,END003: Diabetes mellitus with complication,687170,5.5,5495,0.8
+2022,END007: Nutritional deficiencies,5870,10.6,75,1.28
+2022,END008: Malnutrition,19390,9.7,425,2.19
+2022,END009: Obesity,214035,1.6000000000000003,90,0.04
+2022,END010: Disorders of lipid metabolism,1745,4.3,,
+2022,END011: Fluid and electrolyte disorders,360585,4.1,5230,1.45
+2022,END012: Cystic fibrosis,6015,9.9,,
+2022,END013: Pituitary disorders,52315,5.5,615,1.18
+2022,END014: Postproc endocrine or metabolic complication,1860,4.9,,
+2022,END015: Oth endocrine disorders,24760,4.8,285,1.15
+2022,END016: Oth nutritional and metabolic disorders,44460,5.5,1045,2.35
+2022,EYE001: Cornea and external disease,3440,5.9,,
+2022,EYE002: Cataract and other lens disorders,200,3.5,,
+2022,EYE003: Glaucoma,750,5.1,,
+2022,EYE004: Uveitis and ocular inflammation,1600,7.6,,
+2022,EYE005: Retinal and vitreous conditions,5255,4,,
+2022,EYE006: Neuro-ophthalmology,8525,3.6,,
+2022,EYE007: Strabismus,155,1.6000000000000003,,
+2022,EYE008: Oculofacial plastics and orbital conditions,6040,3.8,,
+2022,EYE009: Refractive error,,,,
+2022,EYE010: Blindness and vision defects,4965,2.6,,
+2022,EYE011: Postproc eye complication,215,3.8,,
+2022,EYE012: Other specified eye disorders,2885,4.2,,
+2022,GEN001: Nephritis; nephrosis; renal sclerosis,8940,6.5,65,0.73
+2022,GEN002: Acute and unspecified renal failure,497285,5.7,13315,2.68
+2022,GEN003: Chronic kidney disease,188065,6.5,5225,2.78
+2022,GEN004: Urinary tract infections,462470,4.5,2955,0.64
+2022,GEN005: Calculus of urinary tract,25155,2.9,,
+2022,GEN006: Oth diseases of kidney and ureters,90665,2.9,255,0.28
+2022,GEN007: Oth diseases of bladder and urethra,17685,5.4,150,0.85
+2022,GEN008: Urinary incontinence,985,2.8,,
+2022,GEN009: Hematuria,13665,4,100,0.73
+2022,GEN010: Proteinuria,95,,,
+2022,GEN011: Vesicoureteral reflux,1405,2.1,,
+2022,GEN012: Hyperplasia of prostate,23655,3.2,,
+2022,GEN013: Inflammatory conditions-male genital organs,21935,5,115,0.52
+2022,GEN014: Erectile dysfunction,440,1.4,,
+2022,GEN016: Other specified male genital disorders,5835,3,,
+2022,GEN017: Nonmalignant breast conditions,11110,3.4,,
+2022,GEN018: Inflammatory diseases-female pelvic organs,20765,3.7,,
+2022,GEN019: Endometriosis,8420,2.6,,
+2022,GEN020: Prolapse of female genital organs,8500,1.7,,
+2022,GEN021: Menstrual disorders,10055,2.2,,
+2022,GEN022: Benign ovarian cyst,10280,2.2,,
+2022,GEN023: Menopausal disorders,3195,3.4,,
+2022,GEN024: Female infertility,,,,
+2022,GEN025: Other specified female genital disorders,24915,3.2,75,0.3
+2022,GEN026: Postproc GU system complication,20335,4.1,155,0.76
+2022,INF001: Tuberculosis,3875,16.9,165,4.26
+2022,INF002: Septicemia,2421159,8,257555,10.64
+2022,INF003: Bacterial infections,5040,8,160,3.17
+2022,INF004: Fungal infections,3415,10.9,220,6.44
+2022,INF005: Foodborne intoxications,2480,3.7,,
+2022,INF006: HIV infection,12025,12.4,860,7.15
+2022,INF007: Hepatitis,28465,5.8,825,2.9
+2022,INF008: Viral infection,33675,4,180,0.53
+2022,"INF009: Parasitic, oth infections",6310,4.8,,
+2022,INF010: Sexually transmitted infections,7180,6.1,,
+2022,INF012: Coronavirus disease  2019 (COVID-19),822820,6.8,59580,7.24
+2022,"INJ001: Fracture of head and neck, init encounter",42005,4.8,810,1.93
+2022,"INJ002: Fracture of spine & back, init encounter",112215,6.2,2180,1.94
+2022,"INJ003: Fracture of torso, init encounter",111225,5.6,1495,1.34
+2022,"INJ004: Fracture of upper limb, init encounter",103575,4.4,525,0.51
+2022,"INJ005: Fracture of lower limb, init encounter",227155,6,1740,0.77
+2022,"INJ006: Fracture of neck of femur, init encounter",338235,6,5975,1.77
+2022,"INJ007: Dislocations, init encounter",9320,5,70,0.75
+2022,"INJ008: TBI; concussion, init encounter",217705,7.4,20015,9.19
+2022,"INJ009: Spinal cord injury (SCI), init encounter",14185,13,900,6.34
+2022,"INJ010: Internal organ injury, init encounter",102790,7.1,3315,3.23
+2022,"INJ011: Open wounds of head/neck, init encounter",18365,3.8,235,1.28
+2022,"INJ012: Open wounds to limbs, init encounter",27685,4.1,110,0.4
+2022,"INJ013: Open wounds of trunk, init encounter",11205,6.1,210,1.87
+2022,"INJ014: Amputation-limb, init encounter",4975,5.9,,
+2022,"INJ015: Amputation-oth body parts, init encounter",210,4.8,,
+2022,"INJ016: Injury to blood vessels, init encounter",9100,8,545,5.99
+2022,INJ017: Superficial injury; init encounter,33550,4.4,315,0.94
+2022,"INJ018: Crushing injury, init encounter",4225,7.1,,
+2022,"INJ019: Burn and corrosion, init encounter",29955,10.7,1050,3.51
+2022,"INJ020: Effect of foreign body, init encounter",20995,4.5,950,4.52
+2022,"INJ021: Effect of oth extern cause, init encounter",13650,5.7,605,4.43
+2022,"INJ022: Poisoning by drugs, init encounter",133650,4.5,6445,4.82
+2022,"INJ023: Toxic effects, init encounter",15420,4.4,370,2.4
+2022,"INJ024: Sprains and strains, init encounter",13545,3.9,,
+2022,"INJ025: Injury to nerves/muscles, init encounter",3520,4.2,,
+2022,INJ026: Other specified injury,21405,6.3,500,2.34
+2022,INJ027: Other unspecified injury,5440,3.4,80,1.47
+2022,"INJ028: Adverse effects of drugs, init encounter",145,3.2,,
+2022,INJ030: Drug induced or toxic related condition,38480,5.1,725,1.88
+2022,INJ031: Allergic reactions,19615,3.3,225,1.15
+2022,INJ032: Maltreatment/abuse,7670,9.1,335,4.37
+2022,"INJ033: Complic-cardiovasc device, init encounter",169795,6.8,5640,3.32
+2022,"INJ034: Complic-GU device, init encounter",195875,6.6,4695,2.4
+2022,"INJ035: Complic-orthopedic device, init encounter",170160,5.2,970,0.57
+2022,"INJ036: Complic-transplanted organs, init encounter",64330,7.7,1675,2.6
+2022,"INJ037: Complic-oth surg/med care, init encounter",340665,7.6,6340,1.86
+2022,MAL001: Cardiac and circulatory congenital anomalies,43460,11,720,1.66
+2022,MAL002: Digestive congenital anomalies,14280,8.9,80,0.56
+2022,MAL003: Genitourinary congenital anomalies,6020,5,,
+2022,MAL004: Nervous system congenital anomalies,8940,5.9,65,0.73
+2022,MAL005: Congenital malformation of eye/ear/face/neck,995,4.7,,
+2022,MAL006: Cleft lip or palate,2785,3.3,,
+2022,MAL007: Respiratory congenital malformations,3885,10.9,,
+2022,MAL008: Musculoskeletal congenital conditions,18810,5.8,100,0.53
+2022,MAL009: Chromosomal abnormalities,480,27.3,60,12.5
+2022,MAL010: Oth congenital anomalies,3435,11.4,,
+2022,MBD001: Schizophrenia and oth psychotic disorders,361230,11.4,120,0.03
+2022,MBD002: Depressive disorders,402255,6.6,95,0.02
+2022,MBD003: Bipolar and related disorders,218715,8.1,,
+2022,MBD004: Oth mood disorders,41065,7.4,,
+2022,MBD005: Anxiety and fear-related disorders,20315,4.5,,
+2022,MBD006: Obsessive-compulsive and related disorders,1595,8.5,,
+2022,MBD007: Trauma- and stressor-related disorders,61355,4.7,,
+2022,MBD008: Disruptive/impulse-control/conduct disorders,10105,9.8,,
+2022,MBD009: Personality disorders,10415,6.6,,
+2022,MBD010: Feeding and eating disorders,7550,12.8,,
+2022,MBD011: Somatic disorders,1735,5.8,,
+2022,MBD012: Suicidal ideation/attempt/self-harm,101015,4.7,1905,1.89
+2022,MBD013: Miscellaneous mental & behavioral disorders,4460,4.5,,
+2022,MBD014: Neurodevelopmental disorders,9500,11.2,,
+2022,MBD017: Alcohol-related disorders,326180,4.7,910,0.28
+2022,MBD018: Opioid-related disorders,42925,4.8,,
+2022,MBD019: Cannabis-related disorders,7000,5.1,,
+2022,MBD020: Sedative-related disorders,8900,4.8,,
+2022,MBD021: Stimulant-related disorders,35660,5.5,85,0.24
+2022,MBD022: Hallucinogen-related disorders,915,5.3,,
+2022,MBD023: Inhalant-related disorders,,,,
+2022,MBD024: Tobacco-related disorders,,,,
+2022,MBD025: Other specified substance-related disorders,16355,5.2,,
+2022,MBD026: Mental/substance use disorder in remission,1065,6.9,,
+2022,MUS001: Infective arthritis,28580,7.3,100,0.35
+2022,MUS002: Osteomyelitis,55970,9,305,0.54
+2022,MUS003: Rheumatoid arthritis and related disease,5710,5.9,115,2.01
+2022,MUS004: Juvenile arthritis,585,5.7,,
+2022,MUS005: Other specified chronic arthropathy,,,,
+2022,MUS006: Osteoarthritis,276542,2.2,115,0.04
+2022,MUS007: Other specified joint disorders,13730,3.6,,
+2022,MUS008: Immune-mediated/reactive arthropathies,510,4,,
+2022,MUS009: Tendon and synovial disorders,18460,3.4,,
+2022,"MUS010: Musculoskeletal pain, not low back pain",18355,3.6,80,0.44
+2022,MUS011: Spondylopathies/spondyloarthropathy ,447129,4,800,0.18
+2022,MUS012: Biomechanical lesions,415,,,
+2022,MUS013: Osteoporosis,49110,6.3,770,1.5700000000000003
+2022,"MUS014: Pathological fracture, initial encounter",29435,7.4,715,2.43
+2022,"MUS016: Stress fracture, initial encounter",20440,5.6,210,1.03
+2022,"MUS018: Atypical fracture, initial encounter",445,5.5,,
+2022,MUS021: Acquired foot deformities,2120,3.1,,
+2022,MUS022: Scoliosis/oth postural dorsopathic deformity,21205,5.3,,
+2022,MUS023: Acquired deformities (excluding foot),7220,3.4,,
+2022,MUS024: Lupus and connective tissue disorders,29450,7.1,450,1.53
+2022,MUS025: Other specified connective tissue disease,25945,6.6,275,1.06
+2022,MUS026: Muscle disorders,54010,5.5,485,0.9
+2022,MUS027: Musculoskeletal abscess,1255,5.3,,
+2022,MUS028: Oth bone disease/musculoskel deformities,10940,2.8,,
+2022,MUS029: Disorders of jaw,11420,3.3,,
+2022,MUS030: Aseptic necrosis and osteonecrosis,7455,4,,
+2022,MUS031: Traumatic arthropathy,1035,2.4,,
+2022,MUS032: Neurogenic/neuropathic arthropathy,550,4.8,,
+2022,MUS033: Gout,10705,4.6,,
+2022,MUS034: Crystal arthropathies (excluding gout),2435,4.2,,
+2022,MUS035: Osteomalacia,,,,
+2022,MUS036: Autoinflammatory syndromes,265,4.4,,
+2022,MUS037: Postproc musculoskel system complication,22620,4.3,105,0.46
+2022,MUS038: Low back pain,8930,3.9,,
+2022,NEO001: Head and neck cancers - eye,620,4.6,,
+2022,NEO002: Head and neck cancers - lip and oral cavity,14280,8,310,2.17
+2022,NEO003: Head and neck cancers - throat,2135,8.7,120,5.62
+2022,NEO004: Head and neck cancers - salivary gland,2415,3.8,,
+2022,NEO005: Head and neck cancers - nasopharyngeal,735,8,,
+2022,NEO006: Head and neck cancers - hypopharyngeal,1095,14,,
+2022,NEO007: Head and neck cancers - pharyngeal,560,7.5,,
+2022,NEO008: Head and neck cancers - laryngeal,7310,11.8,210,2.87
+2022,NEO009: Head and neck cancers - tonsils,2730,5.4,,
+2022,NEO010: Head and neck cancers - all other types,3510,7.2,130,3.7
+2022,NEO011: Cardiac cancers,1195,7.2,90,7.53
+2022,NEO012: Gastrointestinal cancers - esophagus,15180,9.1,1175,7.74
+2022,NEO013: Gastrointestinal cancers - stomach,22375,7.7,1055,4.72
+2022,NEO014: Gastrointestinal cancers - small intestine,5965,8.6,220,3.69
+2022,NEO015: Gastrointestinal cancers - colorectal,122750,6.5,2810,2.29
+2022,NEO016: Gastrointestinal cancers - anus,2925,9.2,65,2.22
+2022,NEO017: Gastrointestinal cancers - liver,14850,6.3,1190,8.01
+2022,NEO018: Gastrointestinal cancers - bile duct,8100,7.4,495,6.11
+2022,NEO019: Gastrointestinal cancers - gallbladder,2440,6.3,80,3.28
+2022,NEO020: Gastrointestinal cancers - peritoneum,1860,6.4,85,4.57
+2022,NEO021: Gastrointestinal cancers - all other types,8320,8,300,3.61
+2022,NEO022: Respiratory cancers,106360,6.1,7400,6.96
+2022,NEO023: Bone cancer,6215,8.6,125,2.01
+2022,NEO024: Sarcoma,6990,7.1,245,3.51
+2022,NEO025: Skin cancers - melanoma,1885,4.9,100,5.31
+2022,NEO026: Skin cancers - basal cell carcinoma,890,6.2,,
+2022,NEO027: Skin cancers - squamous cell carcinoma,3255,6.8,,
+2022,NEO028: Skin cancers - all other types,945,5,,
+2022,NEO029: Breast cancer - ductal carcinoma in situ,2945,2.3,,
+2022,NEO030: Breast cancer - all other types,23115,3.9,840,3.63
+2022,NEO031: Female repro system cancers - uterus,3335,5.4,145,4.35
+2022,NEO032: Female repro system cancers - cervix,7930,4.8,125,1.5800000000000003
+2022,NEO033: Female repro system cancers - ovary,19955,5.3,475,2.38
+2022,NEO034: Female repro system cancers - fallopian tube,870,6.3,,
+2022,NEO035: Female repro system cancers - endometrium,14870,4.5,290,1.95
+2022,NEO036: Female repro system cancers - vulva,2500,3.4,,
+2022,NEO037: Female repro system cancers - vagina,580,5.4,,
+2022,NEO038: Female repro system cancers - all oth types,1615,4.8,,
+2022,NEO039: Male repro system cancers - prostate,32165,2.8,415,1.29
+2022,NEO040: Male repro system cancers - testis,1425,7.6,,
+2022,NEO041: Male repro system cancers - penis,675,4.2,,
+2022,NEO042: Male repro system cancers - all oth types,95,,,
+2022,NEO043: Urinary system cancers - bladder,25220,6.9,620,2.46
+2022,NEO044: Urinary system cancers - ureter/renal pelvis,5550,4.2,70,1.26
+2022,NEO045: Urinary system cancers - kidney,40660,3.8,575,1.41
+2022,NEO046: Urinary system cancers - urethra,360,6.6,,
+2022,NEO047: Urinary system cancers - all other types,850,7.8,,
+2022,NEO048: Nervous system cancers - brain,37270,7.8,1035,2.78
+2022,NEO049: Nervous system cancers - all other types,1405,8.6,,
+2022,NEO050: Endocrine system cancers - thyroid,8070,3.4,175,2.17
+2022,NEO051: Endocrine system cancers - pancreas,38490,7,1940,5.04
+2022,NEO052: Endocrine system cancers - thymus,1730,4.2,,
+2022,NEO053: Endocrine system cancers - adrenocortical,325,6.9,,
+2022,NEO054: Endocrine system cancers - parathyroid,70,5.4,,
+2022,NEO055: Endocrine system cancers - pituitary gland,65,,,
+2022,NEO056: Endocrine system cancers - all other types,1675,11.8,,
+2022,NEO057: Hodgkin lymphoma,3885,10.8,85,2.19
+2022,NEO058: Non-Hodgkin lymphoma,38700,10.8,2390,6.18
+2022,NEO059: Leukemia - acute lymphoblastic leukemia ,10785,18.1,465,4.31
+2022,NEO060: Leukemia - acute myeloid leukemia (AML),22905,19.8,2525,11.02
+2022,NEO061: Leukemia - chronic lymphocytic leukemia ,4580,7.6,325,7.1
+2022,NEO062: Leukemia - chronic myeloid leukemia (CML),4010,10.8,260,6.48
+2022,NEO063: Leukemia - hairy cell,235,12,,
+2022,NEO064: Leukemia - all other types,3535,8.9,285,8.06
+2022,NEO065: Multiple myeloma,21870,11.8,960,4.39
+2022,NEO066: Malignant neuroendocrine tumors,15100,7.1,710,4.7
+2022,NEO067: Mesothelioma,2400,7.2,140,5.83
+2022,NEO068: Myelodysplastic syndrome (MDS),8265,9.7,420,5.08
+2022,NEO069: Cancer of other sites,1670,6.9,80,4.79
+2022,NEO070: Secondary malignancies,176740,7,11210,6.34
+2022,"NEO071: Malignant neoplasm, unspecified",2805,6.9,335,11.94
+2022,NEO072: Neoplasms of unspec nature/uncert behavior,26545,5.3,315,1.19
+2022,NEO073: Benign neoplasms,162305,3.8,605,0.37
+2022,NEO074: Conditions due to neoplasm/Tx of neoplasm,48485,5.8,1850,3.82
+2022,NVS001: Meningitis,15835,7.1,295,1.86
+2022,NVS002: Encephalitis,10755,12.3,395,3.67
+2022,NVS003: Oth specified CNS infection & poliomyelitis,850,13.1,75,8.82
+2022,NVS004: Parkinson`s disease,23155,7.1,375,1.62
+2022,NVS005: Multiple sclerosis,19510,5.6,,
+2022,NVS006: Oth hereditary/degen nerv system conditions,17550,7.1,385,2.19
+2022,NVS007: Cerebral palsy,1825,8.6,,
+2022,NVS008: Paralysis (other than cerebral palsy),13135,10.6,60,0.46
+2022,NVS009: Epilepsy; convulsions,273005,4.4,2715,0.99
+2022,NVS010: Headache; including migraine,40400,3,,
+2022,NVS011: Neurocognitive disorders,88375,13.4,1940,2.2
+2022,NVS012: Transient cerebral ischemia,80765,2.5,155,0.19
+2022,NVS013: Coma; stupor; and brain damage,4250,11.5,1730,40.71
+2022,NVS014: CNS abscess,11210,13.6,280,2.5
+2022,NVS015: Polyneuropathies,22065,9.9,220,1
+2022,NVS016: Sleep wake disorders,6265,3.6,,
+2022,NVS017: Nerve and nerve root disorders,20340,3,,
+2022,NVS018: Myopathies,22815,10.8,460,2.02
+2022,NVS019: Nervous system pain and pain syndromes,16190,4,65,0.4
+2022,NVS020: Other specified nervous system disorders,204540,6.5,4470,2.19
+2022,NVS021: Postproc nerv system complication,6905,5.9,55,0.8
+2022,PNL001: Liveborn,3488050,3.4,9285,0.27
+2022,PNL002: Short gestation; low birth weight,15405,33.5,650,4.22
+2022,PNL003: Neonatal acidemia and hypoxia,770,6,,
+2022,PNL004: Neonatal cerebral disorders,4645,13.8,295,6.35
+2022,PNL005: Respiratory distress syndrome,13745,22.4,285,2.07
+2022,PNL006: Respiratory perinatal condition,12550,14.9,305,2.43
+2022,PNL007: Hemolytic jaundice and perinatal jaundice,35570,1.7,,
+2022,PNL008: Birth trauma,700,6.6,,
+2022,PNL009: Perinatal infections,14020,8.5,195,1.39
+2022,PNL010: Newborn affected by maternal conditions,860,7.4,,
+2022,PNL011: Hemorrhagic/hematologic disorders of newborn,1485,18.7,,
+2022,PNL012: Neonatal digestive and feeding disorders,8065,13.9,190,2.36
+2022,PNL013: Oth perinatal conditions,23390,6.7,500,2.14
+2022,PNL014: Neonatal abstinence syndrome,2590,15.1,,
+2022,PNL015: Fetal alcohol syndrome,,,,
+2022,PRG001: Antenatal screening,,,,
+2022,PRG003: Spontaneous abortion and complications ,8605,1.5,,
+2022,PRG004: Induced abortion and complications ,1800,1.7,,
+2022,PRG005: Ectopic pregnancy and complications,7685,1.6000000000000003,,
+2022,PRG006: Molar pregnancy/abnorm product of conception,8635,1.4,,
+2022,PRG007: Complications after ectopic/molar pregnancy,180,,,
+2022,PRG009: Early/first/unspecified trimester hemorrhage,805,1.8,,
+2022,PRG010: Hemorrhage after first trimester,7060,2.5,,
+2022,PRG011: Early or threatened labor,208840,3.5,,
+2022,PRG012: Multiple gestation,20505,3.6,,
+2022,PRG013: Maternal care related to fetal conditions,203995,2.8,,
+2022,PRG014: Polyhydramnios; oth amniotic cavity problems,71465,2.8,,
+2022,PRG015: Obstetric history affecting pregnancy care,1140,2.3,,
+2022,PRG016: Previous C-section,421775,2.3,,
+2022,PRG017: Maternal care for pelvic organ abnormality,17455,2.6,,
+2022,PRG018: Maternal care related to placenta disorders,46840,3.7,,
+2022,PRG019: Diabetes complicating pregnancy/birth,170095,2.6,,
+2022,PRG020: Hypertension complicating pregnancy/birth,472395,3.3,,
+2022,PRG021: Maternal intrauterine infection,7800,3,,
+2022,PRG022: Prolonged pregnancy,342865,2.4,,
+2022,PRG023: Complications specified during childbirth,754265,2.3,110,0.01
+2022,PRG024: Malposition/oth labor complications,330640,2.4,,
+2022,PRG025: Anesthesia complications during pregnancy,155,2,,
+2022,PRG026: OB-related trauma to perineum and vulva,194820,1.9,,
+2022,PRG027: Complication specified during the puerperium,40645,3.2,115,0.28
+2022,PRG028: Other specified complications in pregnancy,146100,2.8,125,0.09
+2022,PRG029: Uncomplicated pregnancy/delivery/puerperium,296440,2.1,,
+2022,RSP001: Sinusitis,5350,4.4,,
+2022,RSP002: Pneumonia,547265,5.1,16495,3.01
+2022,RSP003: Influenza,103550,4,1340,1.29
+2022,RSP004: Acute and chronic tonsillitis,16360,2.1,,
+2022,RSP005: Acute bronchitis,134020,3.2,170,0.13
+2022,RSP006: Other specified upper respiratory infections,31830,3,,
+2022,RSP007: Oth upper respiratory disease,12190,6.1,95,0.78
+2022,RSP008: COPD and bronchiectasis,305310,4.4,4095,1.34
+2022,RSP009: Asthma,131285,2.6,335,0.26
+2022,RSP010: Aspiration pneumonitis,128230,6.9,9850,7.68
+2022,RSP011: Pleurisy/pleural effusion/pulmonary collapse,61325,6.8,1575,2.57
+2022,RSP012: Respiratory failure; insufficiency; arrest,432515,6.6,35615,8.23
+2022,RSP013: Lung disease due to external agents,4435,6.2,185,4.17
+2022,RSP014: Pneumothorax,31705,6.3,625,1.97
+2022,RSP015: Mediastinal disorders,2100,4,,
+2022,RSP016: Oth lower respiratory disease,53595,6.9,3180,5.93
+2022,RSP017: Postproc respiratory system complication,28725,5.9,700,2.44
+2022,SKN001: Skin and subcutaneous tissue infections,373375,4.5,1300,0.35
+2022,SKN002: Oth specified inflammatory condition of skin,17980,6,195,1.08
+2022,SKN003: Pressure ulcer of skin,25385,11,565,2.23
+2022,SKN004: Non-pressure ulcer of skin,9040,6.7,80,0.88
+2022,SKN005: Contact dermatitis,1805,4.3,,
+2022,SKN006: Postproc skin complication,12930,4.1,,
+2022,SKN007: Oth skin disorders,5250,4.7,,
+2022,SYM001: Syncope,72760,2.8,290,0.4
+2022,SYM002: Fever,20030,3.3,,
+2022,SYM003: Shock,7930,7.6,1655,20.87
+2022,SYM004: Nausea and vomiting,36240,3.2,125,0.34
+2022,SYM005: Dysphagia,9925,5.6,195,1.96
+2022,SYM006: Abdominal pain & oth digestive/abdomen signs,54505,3.2,270,0.5
+2022,SYM007: Malaise and fatigue,73900,9.3,410,0.55
+2022,SYM008: Symptoms of mental/substance use conditions,1390,8.9,,
+2022,SYM009: Abnormal findings related to substance use,,,,
+2022,SYM010: Nervous system signs and symptoms,53290,5,395,0.74
+2022,SYM011: Genitourinary signs and symptoms,4365,3.6,,
+2022,SYM012: Circulatory signs and symptoms,36885,3.2,500,1.36
+2022,SYM013: Respiratory signs and symptoms,30625,3.1,505,1.65
+2022,SYM014: Skin/Subcutaneous signs and symptoms,10735,2.5,,
+2022,SYM015: General sensation/perception signs ,17765,2.5,,
+2022,SYM016: Other general signs and symptoms,47485,6.5,1190,2.51
+2022,SYM017: Abnormal findings without diagnosis,39910,4.7,390,0.98
+2023,BLD001: Nutritional anemia,68125,3.6,345,0.51
+2023,BLD002: Hemolytic anemia,9210,6.1,180,1.95
+2023,BLD003: Aplastic anemia,43975,4.8,720,1.64
+2023,BLD004: Acute posthemorrhagic anemia,63895,4.1,705,1.1
+2023,BLD005: Sickle cell trait/anemia,91415,5.3,275,0.3
+2023,BLD006: Coagulation and hemorrhagic disorders,53955,4.9,1050,1.95
+2023,BLD007: Diseases of white blood cells,32190,5.4,410,1.27
+2023,BLD008: Immunity disorders,6710,8.2,80,1.19
+2023,BLD009: Postproc complications of spleen,595,6.3,,
+2023,BLD010: Oth hematologic conditions,7660,4.8,95,1.24
+2023,CIR001: Chronic rheumatic heart disease,26060,7.4,940,3.61
+2023,CIR002: Acute rheumatic heart disease,350,5.1,,
+2023,CIR003: Nonrheumatic and unspecified valve disorders,170210,4.2,2590,1.52
+2023,CIR004: Endocarditis and endocardial disease,12365,12.5,520,4.21
+2023,CIR005: Myocarditis and cardiomyopathy,19900,6.1,475,2.39
+2023,CIR006: Pericarditis and pericardial disease,42025,4.9,825,1.96
+2023,CIR007: Essential hypertension,6465,2.6,,
+2023,CIR008: Hypertens w/complication/secondary hypertens,180650,3.5,460,0.25
+2023,CIR009: Acute myocardial infarction,592155,4.4,26830,4.53
+2023,CIR010: Complications of acute myocardial infarction,1005,6.3,115,11.44
+2023,CIR011: Coronary atherosclerosis/oth heart disease,315750,4.9,3055,0.97
+2023,CIR012: Nonspecific chest pain,109590,2.1,155,0.14
+2023,CIR013: Acute pulmonary embolism,201320,4.4,6580,3.27
+2023,CIR014: Pulmonary heart disease,15820,8.2,940,5.94
+2023,CIR015: Other and ill-defined heart disease,15650,4.1,325,2.08
+2023,CIR016: Conduction disorders,78950,3.8,1415,1.79
+2023,CIR017: Cardiac dysrhythmias,661100,3.3,7720,1.17
+2023,CIR018: Cardiac arrest and ventricular fibrillation,29590,6.4,13470,45.52
+2023,CIR019: Heart failure,1157055,5.8,30935,2.67
+2023,CIR020: Cerebral infarction,559290,5.7,21030,3.76
+2023,CIR021: Acute hemorrhagic cerebrovascular disease,134600,9.7,22160,16.46
+2023,CIR023: Occlusion of cerebral artery w/o infarction,105755,2.2,240,0.23
+2023,CIR024: Oth and ill-defined cerebrovascular disease,34920,4.1,265,0.76
+2023,CIR026: Peripheral and visceral vascular disease,79120,6.1,1450,1.8300000000000003
+2023,CIR027: Arterial dissections,25395,7.9,2295,9.04
+2023,CIR028: Gangrene,8930,8.8,195,2.18
+2023,CIR029: Aortic/periph/visceral artery aneurysms,72940,4.8,2795,3.83
+2023,"CIR030: Aortic/periph arterial embolism, thrombosis",16635,6.3,670,4.03
+2023,CIR031: Hypotension,104470,3.9,1115,1.07
+2023,CIR032: Oth circulatory disease,10280,5.9,225,2.19
+2023,CIR033: Acute phlebitis,91825,4.4,915,1
+2023,CIR034: Chronic phlebitis,1870,4.3,,
+2023,CIR035: Varicose veins of lower extremity,4155,5.9,,
+2023,CIR036: Postthrombotic synd/venous insufficiency,10155,5.7,130,1.28
+2023,CIR038: Postproc circulatory system complication,19210,5.3,870,4.53
+2023,CIR039: Oth specified diseases of veins & lymphatics,15350,4.8,375,2.44
+2023,DIG001: Intestinal infection,148280,4.3,1015,0.68
+2023,DIG002: Disorders of teeth and gingiva,12325,3,,
+2023,DIG003: Diseases of mouth; excluding dental,24565,3.9,135,0.55
+2023,DIG004: Esophageal disorders,112785,4.3,1140,1.01
+2023,DIG005: Gastroduodenal ulcer,28865,5.8,480,1.66
+2023,DIG006: Gastrointestinal and biliary perforation,9790,9.2,655,6.69
+2023,DIG007: Gastritis and duodenitis,73245,4.1,560,0.76
+2023,DIG008: Oth disorders of stomach and duodenum,64435,5.4,775,1.2
+2023,DIG009: Appendicitis & other appendiceal conditions,131610,3.1,115,0.09
+2023,DIG010: Abdominal hernia,166735,4.4,1640,0.98
+2023,DIG011: Regional enteritis and ulcerative colitis,91630,5.2,330,0.36
+2023,DIG012: Intestinal obstruction and ileus,327520,5.1,5030,1.54
+2023,DIG013: Diverticulosis and diverticulitis,271505,4.5,1475,0.54
+2023,DIG014: Hemorrhoids,23485,3.8,,
+2023,DIG015: Anal and rectal conditions,25930,4.2,220,0.85
+2023,DIG016: Peritonitis and intra-abdominal abscess,51190,5.6,575,1.12
+2023,DIG017: Biliary tract disease,329310,3.9,1705,0.52
+2023,DIG018: Hepatic failure,22930,9,3750,16.35
+2023,DIG019: Oth liver disease,239915,6.1,11035,4.6
+2023,DIG020: Pancreatic disorders (excluding diabetes),264190,4.4,1730,0.65
+2023,DIG021: Gastrointestinal hemorrhage,261365,4.6,7510,2.87
+2023,DIG022: Noninfectious gastroenteritis,111955,3.9,850,0.76
+2023,DIG023: Noninfectious hepatitis,9235,7,345,3.74
+2023,DIG024: Postproc digestive system complication,114445,6.2,1455,1.27
+2023,DIG025: Oth gastrointestinal disorders,125305,5.5,3380,2.7
+2023,EAR001: Otitis media,4245,2.9,,
+2023,EAR002: Diseases of middle ear and mastoid ,6860,4.1,,
+2023,EAR003: Diseases of inner ear and related conditions,22290,2.6,,
+2023,EAR004: Hearing loss,470,,,
+2023,EAR005: Postproc ear/mastoid process complication,130,5.8,,
+2023,EAR006: Oth disorders of the ear,5610,3.5,,
+2023,END001: Thyroid disorders,21855,4.6,315,1.44
+2023,END002: Diabetes mellitus without complication,845,,,
+2023,END003: Diabetes mellitus with complication,712050,5.4,5085,0.71
+2023,END007: Nutritional deficiencies,6355,9.2,,
+2023,END008: Malnutrition,22410,9.8,405,1.8100000000000003
+2023,END009: Obesity,197310,1.6000000000000003,110,0.06
+2023,END010: Disorders of lipid metabolism,2055,4.7,,
+2023,END011: Fluid and electrolyte disorders,387845,4,4925,1.27
+2023,END012: Cystic fibrosis,6960,9.8,,
+2023,END013: Pituitary disorders,56770,5.4,675,1.19
+2023,END014: Postproc endocrine or metabolic complication,2210,4.5,,
+2023,END015: Oth endocrine disorders,27290,4.7,335,1.23
+2023,END016: Oth nutritional and metabolic disorders,51465,5.1,1190,2.31
+2023,EYE001: Cornea and external disease,3805,5.6,,
+2023,EYE002: Cataract and other lens disorders,210,4.5,,
+2023,EYE003: Glaucoma,715,3.7,,
+2023,EYE004: Uveitis and ocular inflammation,1730,6.5,,
+2023,EYE005: Retinal and vitreous conditions,5750,4.2,,
+2023,EYE006: Neuro-ophthalmology,9620,3.5,,
+2023,EYE007: Strabismus,155,,,
+2023,EYE008: Oculofacial plastics and orbital conditions,6675,3.8,,
+2023,EYE009: Refractive error,,,,
+2023,EYE010: Blindness and vision defects,6280,2.4,,
+2023,EYE011: Postproc eye complication,180,4,,
+2023,EYE012: Other specified eye disorders,3195,4.7,,
+2023,GEN001: Nephritis; nephrosis; renal sclerosis,9540,5.6,,
+2023,GEN002: Acute and unspecified renal failure,532405,5.4,12140,2.28
+2023,GEN003: Chronic kidney disease,187195,6.4,4860,2.6
+2023,GEN004: Urinary tract infections,516390,4.3,2700,0.52
+2023,GEN005: Calculus of urinary tract,27060,2.8,65,0.24
+2023,GEN006: Oth diseases of kidney and ureters,99305,2.8,245,0.25
+2023,GEN007: Oth diseases of bladder and urethra,18615,5.1,150,0.81
+2023,GEN008: Urinary incontinence,915,2.2,,
+2023,GEN009: Hematuria,13470,3.9,,
+2023,GEN010: Proteinuria,120,3,,
+2023,GEN011: Vesicoureteral reflux,1560,2.4,,
+2023,GEN012: Hyperplasia of prostate,23775,3.3,,0.23
+2023,GEN013: Inflammatory conditions-male genital organs,23195,4.7,95,0.41
+2023,GEN014: Erectile dysfunction,435,1.4,,
+2023,GEN016: Other specified male genital disorders,6000,3.2,,
+2023,GEN017: Nonmalignant breast conditions,11615,3.2,,
+2023,GEN018: Inflammatory diseases-female pelvic organs,21440,3.8,,
+2023,GEN019: Endometriosis,8350,2.6,,
+2023,GEN020: Prolapse of female genital organs,8220,1.7,,
+2023,GEN021: Menstrual disorders,9365,2.1,,
+2023,GEN022: Benign ovarian cyst,10290,2.2,,
+2023,GEN023: Menopausal disorders,3175,3.4,,
+2023,GEN024: Female infertility,,,,
+2023,GEN025: Other specified female genital disorders,24740,3.3,85,0.34
+2023,GEN026: Postproc GU system complication,24145,4.1,85,0.35
+2023,INF001: Tuberculosis,3995,14.6,90,2.25
+2023,INF002: Septicemia,2561926,7.5,221765,8.66
+2023,INF003: Bacterial infections,6825,8,425,6.23
+2023,INF004: Fungal infections,3420,10.8,125,3.65
+2023,INF005: Foodborne intoxications,2760,3,,
+2023,INF006: HIV infection,11585,11.6,605,5.22
+2023,INF007: Hepatitis,27195,5.7,635,2.33
+2023,INF008: Viral infection,35890,4,170,0.47
+2023,"INF009: Parasitic, oth infections",7940,4.6,,
+2023,INF010: Sexually transmitted infections,7450,6.1,,
+2023,INF012: Coronavirus disease  2019 (COVID-19),368475,5.3,12060,3.27
+2023,"INJ001: Fracture of head and neck, init encounter",42535,4.7,680,1.6000000000000003
+2023,"INJ002: Fracture of spine & back, init encounter",121150,5.9,1680,1.39
+2023,"INJ003: Fracture of torso, init encounter",123550,5.5,1670,1.35
+2023,"INJ004: Fracture of upper limb, init encounter",106405,4.4,485,0.46
+2023,"INJ005: Fracture of lower limb, init encounter",235910,5.9,1540,0.65
+2023,"INJ006: Fracture of neck of femur, init encounter",349005,5.8,5365,1.54
+2023,"INJ007: Dislocations, init encounter",9830,4.8,90,0.92
+2023,"INJ008: TBI; concussion, init encounter",227525,7.3,20575,9.04
+2023,"INJ009: Spinal cord injury (SCI), init encounter",15690,12.7,1005,6.41
+2023,"INJ010: Internal organ injury, init encounter",105695,6.9,3395,3.21
+2023,"INJ011: Open wounds of head/neck, init encounter",18635,3.6,160,0.86
+2023,"INJ012: Open wounds to limbs, init encounter",27960,4.1,70,0.25
+2023,"INJ013: Open wounds of trunk, init encounter",10385,6,185,1.78
+2023,"INJ014: Amputation-limb, init encounter",4960,6.2,,
+2023,"INJ015: Amputation-oth body parts, init encounter",185,7.6,,
+2023,"INJ016: Injury to blood vessels, init encounter",8860,7.8,625,7.05
+2023,INJ017: Superficial injury; init encounter,36380,4.4,305,0.84
+2023,"INJ018: Crushing injury, init encounter",4565,6.4,100,2.19
+2023,"INJ019: Burn and corrosion, init encounter",31770,10.1,1065,3.35
+2023,"INJ020: Effect of foreign body, init encounter",21995,4.5,980,4.46
+2023,"INJ021: Effect of oth extern cause, init encounter",15515,6.1,470,3.03
+2023,"INJ022: Poisoning by drugs, init encounter",142995,4.4,6530,4.57
+2023,"INJ023: Toxic effects, init encounter",16655,3.9,475,2.85
+2023,"INJ024: Sprains and strains, init encounter",15230,3.9,,
+2023,"INJ025: Injury to nerves/muscles, init encounter",3275,4.1,,
+2023,INJ026: Other specified injury,25270,6.1,505,2
+2023,INJ027: Other unspecified injury,4735,3.2,,
+2023,"INJ028: Adverse effects of drugs, init encounter",235,3.7,,
+2023,INJ030: Drug induced or toxic related condition,44320,5,900,2.03
+2023,INJ031: Allergic reactions,20255,3.2,135,0.67
+2023,INJ032: Maltreatment/abuse,7625,9.5,230,3.02
+2023,"INJ033: Complic-cardiovasc device, init encounter",183900,6.5,5820,3.16
+2023,"INJ034: Complic-GU device, init encounter",228285,6.3,4850,2.12
+2023,"INJ035: Complic-orthopedic device, init encounter",196080,5,1055,0.54
+2023,"INJ036: Complic-transplanted organs, init encounter",69320,7.4,1520,2.19
+2023,"INJ037: Complic-oth surg/med care, init encounter",378070,7.4,6735,1.78
+2023,MAL001: Cardiac and circulatory congenital anomalies,47225,11.3,670,1.42
+2023,MAL002: Digestive congenital anomalies,14425,9.9,55,0.38
+2023,MAL003: Genitourinary congenital anomalies,5715,5.6,,
+2023,MAL004: Nervous system congenital anomalies,9645,5.6,,0.62
+2023,MAL005: Congenital malformation of eye/ear/face/neck,900,4.1,,
+2023,MAL006: Cleft lip or palate,2595,3.9,,
+2023,MAL007: Respiratory congenital malformations,4305,8.4,,
+2023,MAL008: Musculoskeletal congenital conditions,19605,5.4,95,0.48
+2023,MAL009: Chromosomal abnormalities,405,17.1,,
+2023,MAL010: Oth congenital anomalies,3495,10.1,,
+2023,MBD001: Schizophrenia and oth psychotic disorders,344690,11.7,95,0.03
+2023,MBD002: Depressive disorders,416275,6.8,,
+2023,MBD003: Bipolar and related disorders,222555,8.4,,
+2023,MBD004: Oth mood disorders,44790,7.5,,
+2023,MBD005: Anxiety and fear-related disorders,23140,4.7,,
+2023,MBD006: Obsessive-compulsive and related disorders,1755,9,,
+2023,MBD007: Trauma- and stressor-related disorders,71175,4.8,,
+2023,MBD008: Disruptive/impulse-control/conduct disorders,11705,10.5,,
+2023,MBD009: Personality disorders,12705,6.6,,
+2023,MBD010: Feeding and eating disorders,6085,13,,
+2023,MBD011: Somatic disorders,1835,5.1,,
+2023,MBD012: Suicidal ideation/attempt/self-harm,103905,4.5,1805,1.74
+2023,MBD013: Miscellaneous mental & behavioral disorders,5040,4.7,,
+2023,MBD014: Neurodevelopmental disorders,11225,11.1,,
+2023,MBD017: Alcohol-related disorders,360265,4.6,730,0.2
+2023,MBD018: Opioid-related disorders,43840,5,,
+2023,MBD019: Cannabis-related disorders,8030,5.1,,
+2023,MBD020: Sedative-related disorders,9445,4.9,,
+2023,MBD021: Stimulant-related disorders,37365,5.7,105,0.28
+2023,MBD022: Hallucinogen-related disorders,1110,5.8,,
+2023,MBD023: Inhalant-related disorders,75,,,
+2023,MBD024: Tobacco-related disorders,,,,
+2023,MBD025: Other specified substance-related disorders,16595,5.1,,
+2023,MBD026: Mental/substance use disorder in remission,1170,8.9,,
+2023,MUS001: Infective arthritis,30655,7,95,0.31
+2023,MUS002: Osteomyelitis,61725,8.5,320,0.52
+2023,MUS003: Rheumatoid arthritis and related disease,5800,5.5,,
+2023,MUS004: Juvenile arthritis,650,4.9,,
+2023,MUS005: Other specified chronic arthropathy,,,,
+2023,MUS006: Osteoarthritis,230234,2.4,210,0.09
+2023,MUS007: Other specified joint disorders,15720,3.5,,
+2023,MUS008: Immune-mediated/reactive arthropathies,565,4.1,,
+2023,MUS009: Tendon and synovial disorders,18940,3.4,,
+2023,"MUS010: Musculoskeletal pain, not low back pain",20200,3.5,,
+2023,MUS011: Spondylopathies/spondyloarthropathy ,485265,4,905,0.19
+2023,MUS012: Biomechanical lesions,535,4,,
+2023,MUS013: Osteoporosis,66915,6.1,910,1.36
+2023,"MUS014: Pathological fracture, initial encounter",34900,7.2,815,2.34
+2023,"MUS016: Stress fracture, initial encounter",22315,5.5,180,0.81
+2023,"MUS018: Atypical fracture, initial encounter",360,4.5,,
+2023,MUS021: Acquired foot deformities,2435,3.2,,
+2023,MUS022: Scoliosis/oth postural dorsopathic deformity,19150,5.4,,
+2023,MUS023: Acquired deformities (excluding foot),7355,3.6,,
+2023,MUS024: Lupus and connective tissue disorders,28275,7,465,1.64
+2023,MUS025: Other specified connective tissue disease,26960,6.1,230,0.85
+2023,MUS026: Muscle disorders,58800,5.4,440,0.75
+2023,MUS027: Musculoskeletal abscess,1145,5.5,,
+2023,MUS028: Oth bone disease/musculoskel deformities,9905,2.7,,
+2023,MUS029: Disorders of jaw,11090,3.4,,
+2023,MUS030: Aseptic necrosis and osteonecrosis,8025,4.4,,
+2023,MUS031: Traumatic arthropathy,1080,3.1,,
+2023,MUS032: Neurogenic/neuropathic arthropathy,625,4.5,,
+2023,MUS033: Gout,12455,4.2,,
+2023,MUS034: Crystal arthropathies (excluding gout),2765,4.5,,
+2023,MUS035: Osteomalacia,,,,
+2023,MUS036: Autoinflammatory syndromes,345,4.7,,
+2023,MUS037: Postproc musculoskel system complication,25620,4.2,95,0.37
+2023,MUS038: Low back pain,9925,3.7,,
+2023,NEO001: Head and neck cancers - eye,720,4.6,,
+2023,NEO002: Head and neck cancers - lip and oral cavity,15760,8,350,2.22
+2023,NEO003: Head and neck cancers - throat,2350,9,105,4.47
+2023,NEO004: Head and neck cancers - salivary gland,2425,4.1,,
+2023,NEO005: Head and neck cancers - nasopharyngeal,730,7.5,,
+2023,NEO006: Head and neck cancers - hypopharyngeal,1120,13.5,,
+2023,NEO007: Head and neck cancers - pharyngeal,600,7.6,,
+2023,NEO008: Head and neck cancers - laryngeal,7160,12.1,215,3
+2023,NEO009: Head and neck cancers - tonsils,3340,5.8,60,1.8
+2023,NEO010: Head and neck cancers - all other types,3965,6.8,195,4.92
+2023,NEO011: Cardiac cancers,1325,8.5,65,4.91
+2023,NEO012: Gastrointestinal cancers - esophagus,15650,8.9,950,6.07
+2023,NEO013: Gastrointestinal cancers - stomach,22735,7.6,890,3.91
+2023,NEO014: Gastrointestinal cancers - small intestine,6460,8.8,225,3.48
+2023,NEO015: Gastrointestinal cancers - colorectal,128880,6.4,2765,2.15
+2023,NEO016: Gastrointestinal cancers - anus,2970,9.2,,
+2023,NEO017: Gastrointestinal cancers - liver,15075,6.3,1015,6.73
+2023,NEO018: Gastrointestinal cancers - bile duct,9175,7.2,605,6.59
+2023,NEO019: Gastrointestinal cancers - gallbladder,2495,7.3,110,4.41
+2023,NEO020: Gastrointestinal cancers - peritoneum,1995,5.9,85,4.26
+2023,NEO021: Gastrointestinal cancers - all other types,8825,8.3,310,3.51
+2023,NEO022: Respiratory cancers,114390,5.9,7045,6.16
+2023,NEO023: Bone cancer,6615,8,135,2.04
+2023,NEO024: Sarcoma,6855,7.2,160,2.33
+2023,NEO025: Skin cancers - melanoma,2010,5.3,120,5.97
+2023,NEO026: Skin cancers - basal cell carcinoma,1040,5.6,,
+2023,NEO027: Skin cancers - squamous cell carcinoma,3410,6.6,,
+2023,NEO028: Skin cancers - all other types,1195,4.9,,
+2023,NEO029: Breast cancer - ductal carcinoma in situ,2665,2.1,,
+2023,NEO030: Breast cancer - all other types,21950,4.2,785,3.58
+2023,NEO031: Female repro system cancers - uterus,3080,5.9,105,3.41
+2023,NEO032: Female repro system cancers - cervix,7890,4.7,175,2.22
+2023,NEO033: Female repro system cancers - ovary,20170,5.1,415,2.06
+2023,NEO034: Female repro system cancers - fallopian tube,1095,4.7,,
+2023,NEO035: Female repro system cancers - endometrium,14695,4.7,340,2.31
+2023,NEO036: Female repro system cancers - vulva,3010,3.1,,
+2023,NEO037: Female repro system cancers - vagina,625,6.2,,
+2023,NEO038: Female repro system cancers - all oth types,1620,5.4,,
+2023,NEO039: Male repro system cancers - prostate,28255,3,370,1.31
+2023,NEO040: Male repro system cancers - testis,1495,7.8,,
+2023,NEO041: Male repro system cancers - penis,640,4.3,,
+2023,NEO042: Male repro system cancers - all oth types,140,5.3,,
+2023,NEO043: Urinary system cancers - bladder,26530,6.8,725,2.73
+2023,NEO044: Urinary system cancers - ureter/renal pelvis,6190,3.9,,
+2023,NEO045: Urinary system cancers - kidney,43130,3.7,495,1.15
+2023,NEO046: Urinary system cancers - urethra,440,7.8,,
+2023,NEO047: Urinary system cancers - all other types,845,5.9,,
+2023,NEO048: Nervous system cancers - brain,38290,7.3,790,2.06
+2023,NEO049: Nervous system cancers - all other types,1590,10.5,55,3.46
+2023,NEO050: Endocrine system cancers - thyroid,8935,3.4,120,1.34
+2023,NEO051: Endocrine system cancers - pancreas,41550,6.8,2250,5.42
+2023,NEO052: Endocrine system cancers - thymus,2110,4,,
+2023,NEO053: Endocrine system cancers - adrenocortical,360,8,,
+2023,NEO054: Endocrine system cancers - parathyroid,,,,
+2023,NEO055: Endocrine system cancers - pituitary gland,95,8,,
+2023,NEO056: Endocrine system cancers - all other types,1615,12.5,,
+2023,NEO057: Hodgkin lymphoma,4170,10.7,105,2.52
+2023,NEO058: Non-Hodgkin lymphoma,41215,10.9,2775,6.73
+2023,NEO059: Leukemia - acute lymphoblastic leukemia ,9545,17,325,3.4
+2023,NEO060: Leukemia - acute myeloid leukemia (AML),23035,18.8,2655,11.53
+2023,NEO061: Leukemia - chronic lymphocytic leukemia ,4670,7.7,275,5.89
+2023,NEO062: Leukemia - chronic myeloid leukemia (CML),4345,10.7,275,6.33
+2023,NEO063: Leukemia - hairy cell,220,11,,
+2023,NEO064: Leukemia - all other types,3690,11,400,10.84
+2023,NEO065: Multiple myeloma,22480,11.4,855,3.8
+2023,NEO066: Malignant neuroendocrine tumors,17995,7,910,5.06
+2023,NEO067: Mesothelioma,2470,7.4,95,3.85
+2023,NEO068: Myelodysplastic syndrome (MDS),8140,10.1,320,3.93
+2023,NEO069: Cancer of other sites,1745,6.1,,
+2023,NEO070: Secondary malignancies,181140,7,10645,5.88
+2023,"NEO071: Malignant neoplasm, unspecified",2705,6.4,230,8.5
+2023,NEO072: Neoplasms of unspec nature/uncert behavior,27930,5.3,285,1.02
+2023,NEO073: Benign neoplasms,164920,3.8,490,0.3
+2023,NEO074: Conditions due to neoplasm/Tx of neoplasm,52775,5.7,1955,3.7
+2023,NVS001: Meningitis,16625,7.6,375,2.26
+2023,NVS002: Encephalitis,11695,12.5,440,3.76
+2023,NVS003: Oth specified CNS infection & poliomyelitis,870,12.1,70,8.05
+2023,NVS004: Parkinson`s disease,26785,6.9,305,1.14
+2023,NVS005: Multiple sclerosis,20950,5.2,,
+2023,NVS006: Oth hereditary/degen nerv system conditions,19810,6.7,465,2.35
+2023,NVS007: Cerebral palsy,2015,9.4,,
+2023,NVS008: Paralysis (other than cerebral palsy),13935,9.1,70,0.5
+2023,NVS009: Epilepsy; convulsions,294190,4.3,2705,0.92
+2023,NVS010: Headache; including migraine,46980,2.9,,
+2023,NVS011: Neurocognitive disorders,87970,12.9,1935,2.2
+2023,NVS012: Transient cerebral ischemia,85325,2.4,130,0.15
+2023,NVS013: Coma; stupor; and brain damage,3870,11.7,1515,39.15
+2023,NVS014: CNS abscess,11425,12.9,255,2.23
+2023,NVS015: Polyneuropathies,23985,9.2,250,1.04
+2023,NVS016: Sleep wake disorders,6375,4.1,,
+2023,NVS017: Nerve and nerve root disorders,21655,3,,
+2023,NVS018: Myopathies,23975,9.7,470,1.96
+2023,NVS019: Nervous system pain and pain syndromes,18245,4,,
+2023,NVS020: Other specified nervous system disorders,225535,6.2,4980,2.21
+2023,NVS021: Postproc nerv system complication,8525,6,105,1.23
+2023,PNL001: Liveborn,3421046,3.5,9135,0.27
+2023,PNL002: Short gestation; low birth weight,14195,34.7,535,3.77
+2023,PNL003: Neonatal acidemia and hypoxia,875,4.3,,
+2023,PNL004: Neonatal cerebral disorders,4925,14.3,375,7.61
+2023,PNL005: Respiratory distress syndrome,13690,23.3,280,2.05
+2023,PNL006: Respiratory perinatal condition,12740,17.5,320,2.51
+2023,PNL007: Hemolytic jaundice and perinatal jaundice,27735,1.8,,
+2023,PNL008: Birth trauma,700,6.5,,
+2023,PNL009: Perinatal infections,12560,8.3,305,2.43
+2023,PNL010: Newborn affected by maternal conditions,830,7.2,,
+2023,PNL011: Hemorrhagic/hematologic disorders of newborn,1475,19.5,,
+2023,PNL012: Neonatal digestive and feeding disorders,8740,12.9,190,2.17
+2023,PNL013: Oth perinatal conditions,23495,6.9,485,2.06
+2023,PNL014: Neonatal abstinence syndrome,2235,15,,
+2023,PNL015: Fetal alcohol syndrome,,,,
+2023,PRG001: Antenatal screening,,,,
+2023,PRG003: Spontaneous abortion and complications ,8770,1.6000000000000003,,
+2023,PRG004: Induced abortion and complications ,1820,2.1,,
+2023,PRG005: Ectopic pregnancy and complications,6650,1.5,,
+2023,PRG006: Molar pregnancy/abnorm product of conception,8260,1.4,,
+2023,PRG007: Complications after ectopic/molar pregnancy,130,3.4,,
+2023,PRG009: Early/first/unspecified trimester hemorrhage,820,1.9,,
+2023,PRG010: Hemorrhage after first trimester,6145,2.8,,
+2023,PRG011: Early or threatened labor,200170,3.6,,
+2023,PRG012: Multiple gestation,20230,3.8,,
+2023,PRG013: Maternal care related to fetal conditions,208225,2.8,,
+2023,PRG014: Polyhydramnios; oth amniotic cavity problems,68360,2.9,,
+2023,PRG015: Obstetric history affecting pregnancy care,1075,2.2,,
+2023,PRG016: Previous C-section,403835,2.3,,
+2023,PRG017: Maternal care for pelvic organ abnormality,15855,2.5,,
+2023,PRG018: Maternal care related to placenta disorders,47450,3.7,,
+2023,PRG019: Diabetes complicating pregnancy/birth,169730,2.5,,
+2023,PRG020: Hypertension complicating pregnancy/birth,495715,3.3,,
+2023,PRG021: Maternal intrauterine infection,7380,3,,
+2023,PRG022: Prolonged pregnancy,387160,2.3,,
+2023,PRG023: Complications specified during childbirth,705780,2.3,60,0.01
+2023,PRG024: Malposition/oth labor complications,310785,2.4,,
+2023,PRG025: Anesthesia complications during pregnancy,180,2.2,,
+2023,PRG026: OB-related trauma to perineum and vulva,169605,1.9,,
+2023,PRG027: Complication specified during the puerperium,44060,3.1,105,0.24
+2023,PRG028: Other specified complications in pregnancy,149260,2.8,100,0.07
+2023,PRG029: Uncomplicated pregnancy/delivery/puerperium,279890,2.1,,
+2023,RSP001: Sinusitis,5860,4.3,,
+2023,RSP002: Pneumonia,628800,4.9,14515,2.31
+2023,RSP003: Influenza,64485,4.4,940,1.46
+2023,RSP004: Acute and chronic tonsillitis,20400,2.1,,
+2023,RSP005: Acute bronchitis,107830,3.1,170,0.16
+2023,RSP006: Other specified upper respiratory infections,39225,2.9,,
+2023,RSP007: Oth upper respiratory disease,12510,5.9,135,1.08
+2023,RSP008: COPD and bronchiectasis,312130,4.3,3555,1.14
+2023,RSP009: Asthma,131955,2.7,270,0.2
+2023,RSP010: Aspiration pneumonitis,141300,6.5,8375,5.93
+2023,RSP011: Pleurisy/pleural effusion/pulmonary collapse,65935,6.5,1560,2.37
+2023,RSP012: Respiratory failure; insufficiency; arrest,481995,6,35390,7.34
+2023,RSP013: Lung disease due to external agents,5225,6.1,225,4.31
+2023,RSP014: Pneumothorax,31835,6,640,2.01
+2023,RSP015: Mediastinal disorders,2710,3.8,,
+2023,RSP016: Oth lower respiratory disease,55810,6.4,2715,4.86
+2023,RSP017: Postproc respiratory system complication,31710,5.5,770,2.43
+2023,SKN001: Skin and subcutaneous tissue infections,415010,4.4,1200,0.29
+2023,SKN002: Oth specified inflammatory condition of skin,19950,5.6,185,0.93
+2023,SKN003: Pressure ulcer of skin,25670,11,525,2.05
+2023,SKN004: Non-pressure ulcer of skin,9020,6.5,80,0.89
+2023,SKN005: Contact dermatitis,1835,4.6,,
+2023,SKN006: Postproc skin complication,14375,4.2,,
+2023,SKN007: Oth skin disorders,5755,4.4,,
+2023,SYM001: Syncope,73080,2.7,150,0.21
+2023,SYM002: Fever,18670,3.1,,
+2023,SYM003: Shock,9095,6.9,1750,19.24
+2023,SYM004: Nausea and vomiting,39065,3.2,150,0.38
+2023,SYM005: Dysphagia,10635,5.2,140,1.32
+2023,SYM006: Abdominal pain & oth digestive/abdomen signs,52500,3.1,225,0.43
+2023,SYM007: Malaise and fatigue,76110,9,365,0.48
+2023,SYM008: Symptoms of mental/substance use conditions,1545,8.2,,
+2023,SYM009: Abnormal findings related to substance use,,,,
+2023,SYM010: Nervous system signs and symptoms,54945,5,340,0.62
+2023,SYM011: Genitourinary signs and symptoms,4690,3.5,,
+2023,SYM012: Circulatory signs and symptoms,39350,3.2,510,1.3
+2023,SYM013: Respiratory signs and symptoms,30460,3.2,475,1.5600000000000003
+2023,SYM014: Skin/Subcutaneous signs and symptoms,11020,2.3,,
+2023,SYM015: General sensation/perception signs ,19555,2.4,,
+2023,SYM016: Other general signs and symptoms,50960,6.3,1065,2.09
+2023,SYM017: Abnormal findings without diagnosis,40615,4.5,300,0.74
