@@ -2,7 +2,8 @@ import { describe, it, expect, afterEach } from "vitest";
 import { getStayOutcomes, resetStayOutcomes } from "../src/locale/registry.js";
 import { useUSLocale, resetLocale } from "../src/locale/us-locale.js";
 import { US_DIAGNOSES } from "../src/locale/us-casemix.js";
-import { US_ICD_TO_CCSR, US_MEAN_LOS_DAYS_2023, USStayOutcomes, usMeanLosDays, usDeathRate } from "../src/locale/us-stay-outcomes.js";
+import { US_ICD_TO_CCSR, US_MEAN_LOS_DAYS_2023, USStayOutcomes, usMeanLosDays, usDeathRate, usMeanTierProbability } from "../src/locale/us-stay-outcomes.js";
+import { US_TIER_BY_ICD, US_TIER_GLOBAL } from "../src/locale/us-tier-mix.js";
 import { US_HCUP_CCSR_2023 } from "../src/locale/us-hcup-ccsr.js";
 
 afterEach(() => { resetLocale(); resetStayOutcomes(); });
@@ -45,13 +46,21 @@ describe("stay outcomes seam (step E)", () => {
     expect(us.dischargeDelayMinutes("ZZZ", 0.5)).toBe(Math.round(US_MEAN_LOS_DAYS_2023 * 1440));
   });
 
-  it("death: group rate for the low tier, the larger of rate and tier above it, tier for unmapped codes", () => {
+  it("death: HCUP rate scaled by tier over the diagnosis mean tier, so the diagnosis average is its HCUP rate", () => {
     const us = new USStayOutcomes();
     const rate = usDeathRate("I50")!;
-    expect(us.deathProbability("I50", 0.008, "low")).toBe(rate);
-    expect(us.deathProbability("I50", 0.06, "moderate")).toBe(0.06);
-    expect(us.deathProbability("I50", 0.25, "high")).toBe(0.25);
-    expect(us.deathProbability("I50", 0.001, "moderate")).toBe(rate);
-    expect(us.deathProbability("ZZZ", 0.0123, "low")).toBe(0.0123);
+    const mean = usMeanTierProbability("I50");
+    expect(us.deathProbability("I50", mean, "moderate")).toBeCloseTo(rate, 10);          // average patient = group rate
+    expect(us.deathProbability("I50", 2 * mean, "high")).toBeCloseTo(2 * rate, 10);       // sicker patient dies more
+    expect(us.deathProbability("I50", 0.5 * mean, "low")).toBeCloseTo(0.5 * rate, 10);
+    expect(us.deathProbability("I50", 10, "high")).toBe(0.95);                            // capped
+    expect(us.deathProbability("F32", 0.2, "high")).toBe(0);                              // suppressed rate = 0
+    expect(us.deathProbability("ZZZ", 0.0123, "low")).toBe(0.0123);                       // unmapped = tier model
+  });
+
+  it("measured tier mean: heart failure well above knee osteoarthritis, rare codes shrink to the global mean", () => {
+    expect(usMeanTierProbability("I50")).toBeGreaterThan(5 * usMeanTierProbability("M17"));
+    expect(usMeanTierProbability("ZZZ")).toBeCloseTo(US_TIER_GLOBAL.mean, 10);
+    expect(Object.keys(US_TIER_BY_ICD).length).toBeGreaterThan(100);
   });
 });

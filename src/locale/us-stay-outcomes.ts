@@ -10,14 +10,17 @@
  * +-40 % spread as the default 3-7 day stay around its 5 day mean. The shape is NOT calibrated (real stays are right
  * skewed); only the mean per diagnosis is sourced.
  *
- * Death: the group rate replaces the engine's risk-tier probability when the tier is low; moderate and high tiers keep
- * the tier probability when it is larger. HCUPnet suppresses death rates under 11 deaths or high relative error; those
- * groups use 0 (deaths negligible), an assumption. Unmapped codes keep the engine's tier probability.
+ * Death: the HCUP group rate scaled by the patient's engine risk-tier probability relative to the mean tier probability
+ * of that diagnosis in a US world (us-tier-mix.ts, measured, shrunk toward the global mean for rare diagnoses), so a
+ * diagnosis averages its HCUP rate while sicker patients (age, vitals, critical diagnosis) die more often, capped at 0.95.
+ * HCUPnet suppresses death rates under 11 deaths or high relative error; those groups use 0 (deaths negligible), an
+ * assumption. Unmapped codes keep the engine's tier probability.
  *
  * Deterministic constants: no RNG, no clock.
  */
 import type { IStayOutcomes } from "./contracts.js";
 import { US_HCUP_CCSR_2023 } from "./us-hcup-ccsr.js";
+import { US_TIER_BY_ICD, US_TIER_GLOBAL } from "./us-tier-mix.js";
 
 /** All-stay national mean length of stay 2023 (HCUPnet overall, docs T-LOS-1); used for unmapped codes. */
 export const US_MEAN_LOS_DAYS_2023 = 5.1;
@@ -60,6 +63,17 @@ export function usDeathRate(icd: string): number | undefined {
   return c === undefined ? undefined : (c.deathPct ?? 0) / 100;
 }
 
+/** Shrinkage weight (discharges) pulling a diagnosis's measured mean tier probability toward the all-diagnosis mean. */
+const TIER_SHRINK_N = 20;
+const MAX_DEATH_PROBABILITY = 0.95;
+
+/** Mean engine risk-tier death probability for a diagnosis in a US world (measured, shrunk toward the global mean). */
+export function usMeanTierProbability(icd: string): number {
+  const m = US_TIER_BY_ICD[icd.slice(0, 3)];
+  const n = m?.[0] ?? 0, mean = m?.[1] ?? US_TIER_GLOBAL.mean;
+  return (n * mean + TIER_SHRINK_N * US_TIER_GLOBAL.mean) / (n + TIER_SHRINK_N);
+}
+
 export class USStayOutcomes implements IStayOutcomes {
   config = { countryCode: "US", displayName: "United States" };
 
@@ -68,9 +82,9 @@ export class USStayOutcomes implements IStayOutcomes {
     return Math.max(60, Math.round(mean * 1440 * (0.6 + 0.8 * u)));
   }
 
-  deathProbability(icd: string, tierProbability: number, risk: "low" | "moderate" | "high"): number {
+  deathProbability(icd: string, tierProbability: number, _risk: "low" | "moderate" | "high"): number {
     const rate = usDeathRate(icd);
     if (rate === undefined) return tierProbability;
-    return risk === "low" ? rate : Math.max(rate, tierProbability);
+    return Math.min(MAX_DEATH_PROBABILITY, rate * tierProbability / usMeanTierProbability(icd));
   }
 }
