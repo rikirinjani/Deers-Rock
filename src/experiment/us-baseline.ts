@@ -70,6 +70,11 @@ writeFileSync(file, JSON.stringify({
   bedsOccupiedEnd: Array.from(s.beds.values()).filter(b => b.patientId).length,
   byIcd,
   tierByIcd,
+  // scenario windows (the engine adds scenario mortalityBoost to the death roll while one is active) and every discharge,
+  // so deaths inside and outside scenarios can be separated
+  scenarioWindows: [...(s._scenario?.history ?? []), ...(s._scenario?.active ? [s._scenario.active] : [])]
+    .map(x => ({ type: x.type, start: x.startTick, end: x.startTick + x.durationTicks })),
+  discharges: records.map(r => [r.dischargeTick, r.outcome === "deceased" ? 1 : 0]),
   // claims are pruned (MAX_CLAIMS), so this is a sample of the latest claims, not the run total
   prunedClaimSamplePayers: payerClaims,
   wallSeconds: Math.round((Date.now() - started) / 1000),
