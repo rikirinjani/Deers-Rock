@@ -332,3 +332,4 @@ Run: commit `a1da104` (US locale, billing, case mix, staffing with 520 agents, E
 - **Meaning:** the tier-scaled HCUP rule is on target for ordinary operation. The 1.9x overshoot is the scenario model, which is additive and is not scaled by the diagnosis rate. HCUP is a no-disaster baseline, so a fair comparison excludes scenario windows.
 - **Decision for Research OC / owner (not changed):** keep the boost as a deliberate surge effect (compare against HCUP outside scenarios only), or scale it for the US pack.
 - Tooling: `us-baseline` now writes `scenarioWindows` and per-discharge `[tick, died]` (commit 059214f).
+- **Decision (owner, 2026-11-16): keep the scenario boost as a deliberate surge effect.** No change to the engine. HCUP death comparisons are made on discharges outside scenario windows (`us-baseline` output `scenarioWindows`). Step E (stay-outcomes seam) is closed on the data side; step F (`us-v1` freeze) is next.
