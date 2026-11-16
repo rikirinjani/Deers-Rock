@@ -333,3 +333,5 @@ Run: commit `a1da104` (US locale, billing, case mix, staffing with 520 agents, E
 - **Decision for Research OC / owner (not changed):** keep the boost as a deliberate surge effect (compare against HCUP outside scenarios only), or scale it for the US pack.
 - Tooling: `us-baseline` now writes `scenarioWindows` and per-discharge `[tick, died]` (commit 059214f).
 - **Decision (owner, 2026-11-16): keep the scenario boost as a deliberate surge effect.** No change to the engine. HCUP death comparisons are made on discharges outside scenario windows (`us-baseline` output `scenarioWindows`). Step E (stay-outcomes seam) is closed on the data side; step F (`us-v1` freeze) is next.
+
+- **Step F done (2026-11-16): `us-v1` frozen**, record `docs/experiments/EXPERIMENT-FREEZE-2026-11-16-us-v1.md`, artifacts `docs/experiments/freeze-2026-11-16-us-v1/` (seeds 80-89, 28,800 ticks, commit 059214f). Case mix at stay level has drifted since the seeds 20-29 fit (septicemia 4.4 vs 8.0); noted there, not tuned.
