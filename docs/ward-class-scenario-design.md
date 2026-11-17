@@ -94,3 +94,14 @@ Facts found:
 - The arrival default (19 per day) comes from the existing clinical-v2 calibration comment (about 70% occupancy for 131 beds). It is not real-hospital data.
 
 **12.1 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-1` (dataset `hoe-src-12-1-019f113`, `git archive` of `019f113`, same slim paths). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...`, summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.1 (including the `admitPatientToBed` extraction).**
+
+## 11. Milestone 12.2 implemented (2026-11-17)
+
+Scenario path only (`src/engine/scenario-routing.ts`, used by `scenarioDemandStep`); the default admission path is untouched in 12.2. No random draws in routing.
+
+- **Policy table** (`DemandConfig.routing`, default `DEFAULT_ROUTING`): payer -> classes in order of preference; first = own class, later = spillover up. BPJS Kesehatan and Jasa Raharja and Self-pay: kelas-3, kelas-2, kelas-1. BPJS Ketenagakerjaan: kelas-2, kelas-1. Private Insurance: kelas-2, kelas-1. Unlisted payer (for example US payers): kelas-3, kelas-2, kelas-1. **This table is an assumption, not a verified rule** (open questions 1-3 are still open); it is an input so it can be corrected without code.
+- **Inside a class:** a ward that serves the patient's specialty (a "general" ward serves all), else any free bed of the class.
+- **No fallback:** no eligible class has a free bed -> the patient waits and the 12.1 wait limit diverts. Nothing outside the table is used, so VIP, VVIP, ICU, HCU, NICU and PICU stay empty unless the table lists them (tested for every payer).
+- **Counters on `state._demand`:** `admittedByClass`, `admittedByPayerClass` ("payer|class"), `spilledUp`, `spilledByPath` ("payer|own->used"), `divertedByPayer`.
+- Consequence for 12.1: placement is now class-aware, so a layout needs beds in every class a payer may use (a Kelas-3-only layout diverts Private Insurance patients). The 12.1 "ample beds" test was changed to a three-class layout for that reason.
+- Not done (12.3): money. Whether a BPJS patient spilled up pays the difference, or the hospital absorbs it, is open and drives the margin result.

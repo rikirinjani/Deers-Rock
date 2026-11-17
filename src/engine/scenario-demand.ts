@@ -14,8 +14,8 @@
  *  3. Stay length is the unchanged locale stay model (layout is the only variable).
  *  4. Arrivals are new patients from `generatePatient`, not the recurring pool.
  *
- * Placement in 12.1 reuses the default rule (specialty ward first, else any free bed).
- * Class routing, spillover and the no-fallback-into-VIP/ICU rule are 12.2.
+ * Placement (12.2): payer-to-class routing with spillover up and no fallback into classes
+ * the policy does not list (see scenario-routing.ts). A patient with no eligible free bed waits.
  * Limit: later events (deaths, ancillary orders) still draw from their own sub-streams
  * per tick, so "same demand" means same arrivals, payer, diagnosis and stay length,
  * not identical clinical course across layouts.
@@ -27,13 +27,16 @@ import type { Patient } from "../patient/schema.js";
 import { generatePatient } from "../patient/generator.js";
 import { assignPayer } from "./finance.js";
 import { getStayOutcomes } from "../locale/registry.js";
-import { admitPatientToBed, selectPrimaryDiagnosisCode, specialtyOf, specialtyWardFor } from "./markov.js";
+import { admitPatientToBed, selectPrimaryDiagnosisCode, specialtyOf } from "./markov.js";
+import { DEFAULT_ROUTING, routeBed, type RoutingPolicy } from "./scenario-routing.js";
 
 export interface DemandConfig {
   /** Mean inpatient arrivals per day (one Bernoulli per minute, as the default path). Default 19. */
   arrivalsPerDay?: number;
   /** Minutes a patient may wait for a bed before counting as diverted. Default 1440 (24 h). */
   waitLimitMinutes?: number;
+  /** Payer-to-class routing table (12.2). Default: DEFAULT_ROUTING (an assumption, see scenario-routing.ts). */
+  routing?: RoutingPolicy;
 }
 
 export interface QueuedArrival {
@@ -65,6 +68,18 @@ export interface DemandState {
   /** Every arrival, in order (shows that demand is layout independent). */
   arrivalLog: ArrivalRecord[];
   divertedLog: { tick: number; patientId: string; payer: string }[];
+  /** 12.2: routing table in force. */
+  routing: RoutingPolicy;
+  /** 12.2: admissions by class actually used. */
+  admittedByClass: Record<string, number>;
+  /** 12.2: admissions by "payer|class". */
+  admittedByPayerClass: Record<string, number>;
+  /** 12.2: admissions placed above the payer's own class. */
+  spilledUp: number;
+  /** 12.2: spill-ups by "payer|ownClass->usedClass". */
+  spilledByPath: Record<string, number>;
+  /** 12.2: diversions by payer. */
+  divertedByPayer: Record<string, number>;
 }
 
 export function initDemand(cfg: DemandConfig = {}): DemandState {
@@ -76,6 +91,8 @@ export function initDemand(cfg: DemandConfig = {}): DemandState {
     arrivalsPerDay, waitLimitMinutes, queue: [],
     arrived: 0, admitted: 0, diverted: 0, waitMinutesAdmitted: 0, maxQueueLength: 0,
     arrivalLog: [], divertedLog: [],
+    routing: cfg.routing ?? DEFAULT_ROUTING,
+    admittedByClass: {}, admittedByPayerClass: {}, spilledUp: 0, spilledByPath: {}, divertedByPayer: {},
   };
 }
 
@@ -85,7 +102,11 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
   const queued = d.queue.slice();
   const arrivalLog = d.arrivalLog.slice();
   const divertedLog = d.divertedLog.slice();
-  let { arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength } = d;
+  let { arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength, spilledUp } = d;
+  const admittedByClass = { ...d.admittedByClass };
+  const admittedByPayerClass = { ...d.admittedByPayerClass };
+  const spilledByPath = { ...d.spilledByPath };
+  const divertedByPayer = { ...d.divertedByPayer };
 
   // 1. Arrivals (one Bernoulli per tick; the stream is the handler's own).
   const p = Math.min(1, d.arrivalsPerDay / 1440);
@@ -105,12 +126,13 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
   for (const q of queued) {
     if (clock.tick - q.arrivalTick > d.waitLimitMinutes) {
       diverted++;
+      divertedByPayer[q.payer] = (divertedByPayer[q.payer] ?? 0) + 1;
       divertedLog.push({ tick: clock.tick, patientId: q.patient.id, payer: q.payer });
     } else waiting.push(q);
   }
 
-  // 3. Placement, FIFO. A patient who finds no bed stays queued; later patients may still
-  //    take a bed (specialty ward else any free bed), as the default rule does.
+  // 3. Placement, FIFO, by payer-to-class routing (no rng, no fallback outside the table).
+  //    A patient with no eligible free bed stays queued; later patients may still be placed.
   let beds = state.beds;
   let encounters = state.encounters;
   let patients = state.patients;
@@ -120,14 +142,22 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
     encounters = new Map(state.encounters);
     patients = new Map(state.patients);
     for (const q of waiting) {
-      const wardName = specialtyWardFor(q.patient);
-      let bed = wardName ? Array.from(beds.values()).find(b => b.patientId === null && b.ward === wardName) : undefined;
-      if (!bed) bed = Array.from(beds.values()).find(b => b.patientId === null);
-      if (!bed) { stillWaiting.push(q); continue; }
+      const route = routeBed(beds, q.patient, q.payer, d.routing, state._layout);
+      if (!route) { stillWaiting.push(q); continue; }
+      const bed = route.bed;
       patients.set(q.patient.id, q.patient);
       admitPatientToBed(state, beds, encounters, q.patient, bed, specialtyOf(q.patient), clock, queue,
         { payer: q.payer, dischargeDelay: q.stayMinutes });
       admitted++;
+      admittedByClass[route.roomClass] = (admittedByClass[route.roomClass] ?? 0) + 1;
+      const pc = `${q.payer}|${route.roomClass}`;
+      admittedByPayerClass[pc] = (admittedByPayerClass[pc] ?? 0) + 1;
+      if (route.rank > 0) {
+        spilledUp++;
+        const own = (d.routing.eligible[q.payer] ?? d.routing.defaultClasses)[0]!;
+        const path = `${q.payer}|${own}->${route.roomClass}`;
+        spilledByPath[path] = (spilledByPath[path] ?? 0) + 1;
+      }
       waitMinutesAdmitted += clock.tick - q.arrivalTick;
     }
   }
@@ -135,6 +165,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
 
   const next: DemandState = {
     ...d, queue: stillWaiting, arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength, arrivalLog, divertedLog,
+    admittedByClass, admittedByPayerClass, spilledUp, spilledByPath, divertedByPayer,
   };
   return { ...state, beds, encounters, patients, _demand: next };
 }

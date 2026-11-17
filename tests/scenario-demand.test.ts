@@ -13,6 +13,14 @@ function run(beds: number, ticks: number, demand: { arrivalsPerDay: number; wait
   return runWorld(createWorld(5, undefined, seed, ward(beds), demand), ticks).state;
 }
 
+// Since 12.2 payers are routed by class, "ample beds" must exist in every class a payer may use.
+function runAmple(perClass: number, ticks: number, demand: { arrivalsPerDay: number; waitLimitMinutes: number }) {
+  const layout: HospitalLayout = {
+    wards: (["kelas-1", "kelas-2", "kelas-3"] as const).map((c) => ({ ward: `Gen ${c}`, roomClass: c, specialties: "general" as const, beds: perClass })),
+  };
+  return runWorld(createWorld(5, undefined, 7, layout, demand), ticks).state;
+}
+
 describe("Epic XII 12.1 demand stream and queue", () => {
   it("same seed gives the same demand under different layouts", () => {
     const cfg = { arrivalsPerDay: 120, waitLimitMinutes: 120 };
@@ -40,7 +48,7 @@ describe("Epic XII 12.1 demand stream and queue", () => {
   it("fewer beds divert more; ample beds divert nobody", () => {
     const cfg = { arrivalsPerDay: 150, waitLimitMinutes: 90 };
     const tight = run(3, 1200, cfg)._demand!;
-    const ample = run(400, 1200, cfg)._demand!;
+    const ample = runAmple(150, 1200, cfg)._demand!;
     expect(tight.diverted).toBeGreaterThan(0);
     expect(tight.maxQueueLength).toBeGreaterThan(0);
     expect(ample.diverted).toBe(0);
