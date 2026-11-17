@@ -64,3 +64,7 @@
 2. Item 2: who reviews the mapping?
 3. Item 3: keep 0 and label, then run the pooled sensitivity?
 4. Item 6: run the regression kernel now?
+
+## Update 2026-11-17: item 6 done
+
+Kaggle kernel `hoe-regress` (dataset `hoe-src-38e776d`, commit `38e776d`, clean `git archive`; two earlier attempts failed on dataset mounting, no code involved): E1 `runner.ts 10 1000` run twice gave CSV `084024be6e8b9661...` and summary `068b07b2238ecd55...` both times (byte-identical, equal to the frozen values); finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f` unchanged. **The Indonesian default is unchanged by step E, `us-v1` and the later US-only changes.**
