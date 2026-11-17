@@ -1,6 +1,6 @@
 import { createClock, tick, cloneClockWithRng, createRng, withSubStream, type Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
-import { createState, type HospitalState } from "./state-store.js";
+import { createState, type HospitalState, type HospitalLayout } from "./state-store.js";
 import { admissionHandler, dischargeScheduledPatients, newPatientHandler, vitalsUpdateHandler } from "./markov.js";
 import { cleanupHandler } from "./cleanup.js";
 import { outcomeHandler } from "./outcome-tracker.js";
@@ -75,7 +75,7 @@ export interface World {
   journalPath: string | null;
 }
 
-export function createWorld(patientCount: number = 100, journalPath?: string, seed?: number): World {
+export function createWorld(patientCount: number = 100, journalPath?: string, seed?: number, layout?: HospitalLayout): World {
   // Phase B: reset all module-global ID counters for same-process determinism
   resetPatientCounter(); getIdentityLocale().resetCounters(); resetAgentCounter();
   resetChargeCounter(); resetCssdCounters(); resetDialysisCounters();
@@ -90,7 +90,7 @@ export function createWorld(patientCount: number = 100, journalPath?: string, se
   const patients = effectiveRng ? generatePatientPool(patientCount, effectiveRng) : generatePatientPool(patientCount);
   const jp = journalPath ?? null;
 
-  const state = createState(patients, {}, effectiveRng);
+  const state = createState(patients, {}, effectiveRng, layout);
   const totalBeds = state.beds.size;
 
   const initialAgentState = initAgentState();

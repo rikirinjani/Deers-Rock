@@ -156,6 +156,8 @@ export interface HospitalState {
   /** Phase E: macro→micro active disaster type from adapter (optional). */
   _activeMacroDisaster: string | undefined;
   _rngSeed: number;
+  /** Epic XII: scenario layout, present only when createState got a custom layout. */
+  _layout?: HospitalLayout;
 }
 
 export interface OutpatientVisit {
@@ -228,6 +230,76 @@ export const BUILDING_LAYOUT: BuildingConfig[] = [
   },
 ];
 
+/**
+ * Epic XII (12.0): scenario layout input. Additive; the default hospital never
+ * uses these types at runtime (it keeps BUILDING_LAYOUT and its bed order).
+ * One entry = one class inside one ward. A ward with several classes repeats
+ * the ward name. `specialties`, `bedsPerRoom` and `areaPerBedM2` are carried for
+ * later milestones (routing 12.2, money 12.3); 12.0 only builds beds from them.
+ */
+export interface WardSpec {
+  ward: string;
+  building?: string;
+  roomClass: RoomClass;
+  /** Specialties served, or "general" for a ward open to any specialty. */
+  specialties: string[] | "general";
+  beds: number;
+  bedsPerRoom?: number;
+  areaPerBedM2?: number;
+}
+
+export interface HospitalLayout {
+  name?: string;
+  wards: WardSpec[];
+  /**
+   * "as-listed" (default): beds are created in the order the entries are given,
+   * the way the default hospital fills class by class. "class-neutral": inside a
+   * ward that has several classes, beds are interleaved round-robin across its
+   * classes so no class is systematically filled first.
+   */
+  bedOrder?: "as-listed" | "class-neutral";
+}
+
+/** Build the bed map and per-ward capacity for a scenario layout (never used for the default). */
+function bedsFromLayout(layout: HospitalLayout): { beds: Map<string, Bed>; capacity: Record<string, number> } {
+  const beds = new Map<string, Bed>();
+  const capacity: Record<string, number> = {};
+  // Group entries by ward, keeping first-appearance order of wards.
+  const byWard = new Map<string, WardSpec[]>();
+  for (const spec of layout.wards) {
+    if (!Number.isInteger(spec.beds) || spec.beds < 0) {
+      throw new Error(`Layout ward "${spec.ward}" (${spec.roomClass}): beds must be a non-negative integer`);
+    }
+    const list = byWard.get(spec.ward) ?? [];
+    list.push(spec);
+    byWard.set(spec.ward, list);
+  }
+  let globalIndex = 1;
+  for (const [wardName, specs] of byWard) {
+    // Sequence of [spec] per bed, in creation order.
+    const seq: WardSpec[] = [];
+    if (layout.bedOrder === "class-neutral") {
+      const left = specs.map((s) => s.beds);
+      let remaining = left.reduce((a, b) => a + b, 0);
+      while (remaining > 0) {
+        for (let k = 0; k < specs.length; k++) {
+          if (left[k] > 0) { seq.push(specs[k]); left[k]--; remaining--; }
+        }
+      }
+    } else {
+      for (const s of specs) for (let i = 0; i < s.beds; i++) seq.push(s);
+    }
+    const wardKey = wardName.replace(/\s+/g, "-");
+    for (const s of seq) {
+      const bedId = `${wardKey}-${String(globalIndex).padStart(2, "0")}`;
+      beds.set(bedId, { id: bedId, ward: wardName, building: s.building ?? "", roomClass: s.roomClass, patientId: null });
+      capacity[wardName] = (capacity[wardName] ?? 0) + 1;
+      globalIndex++;
+    }
+  }
+  return { beds, capacity };
+}
+
 export interface PharmacistCaseRecord {
   encounterId: string;
   patientId: string;
@@ -239,7 +311,7 @@ export interface PharmacistCaseRecord {
   lastReviewTick: number;
 }
 
-export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}, rng?: () => number): HospitalState {
+export function createState(patients: Patient[], wardCapacity: Record<string, number> = {}, rng?: () => number, layout?: HospitalLayout): HospitalState {
   const patientMap = new Map<string, Patient>();
   for (const p of patients) patientMap.set(p.id, p);
 
@@ -247,7 +319,9 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
   let beds: Map<string, Bed>;
   let capacity: Record<string, number>;
 
-  if (Object.keys(wardCapacity).length > 0) {
+  if (layout) {
+    ({ beds, capacity } = bedsFromLayout(layout));
+  } else if (Object.keys(wardCapacity).length > 0) {
     capacity = wardCapacity;
     beds = new Map<string, Bed>();
     for (const [ward, count] of Object.entries(wardCapacity)) {
@@ -326,5 +400,6 @@ export function createState(patients: Patient[], wardCapacity: Record<string, nu
     _supplyChainPressure: 0,
     _activeMacroDisaster: undefined,
     _rngSeed: 0,
+    ...(layout ? { _layout: layout } : {}),
   };
 }

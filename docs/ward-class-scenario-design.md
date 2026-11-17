@@ -55,3 +55,12 @@ Epic: this is Epic XII in `ROADMAP.md`, scheduled ahead of Epic X 10.6 to avoid 
 ## 7. Non-goals
 
 Forecasting a real hospital, using real patient data, changing the default Indonesian layout, or claiming validated results before a backtest on one partner hospital's past aggregates.
+
+## 8. Milestone 12.0 notes (2026-11-17)
+
+Done: `createWorld(patientCount, journalPath, seed, layout?)` and `createState(patients, {}, rng, layout?)` take a `HospitalLayout` (`state-store.ts`: `WardSpec`, `HospitalLayout`). No layout means the old `BUILDING_LAYOUT` path, untouched. Answers open question 6: ward capacity is now settable from outside, for scenarios only.
+
+Corrections and facts for 12.1+:
+- Bed ids carry a **hospital-wide** running index, not a per-ward one (`Internal-Medicine-01` ... `Executive-Pavilion-01` is not how it works; for example NICU beds continue the count). A scenario layout changes every later bed id. Do not key anything on bed id across layouts; key on ward and class.
+- A layout entry is one class in one ward; a multi-class ward repeats the ward name. `bedOrder: "class-neutral"` interleaves classes inside a ward. With one class per ward (the 12.x scenario) the option has no effect, and fill order across wards is the order of the list.
+- `specialties`, `bedsPerRoom`, `areaPerBedM2` are stored on `state._layout` but nothing reads them yet (routing is 12.2, money 12.3). Admission still uses the existing "first free bed in the specialty's ward, else any free bed" (`markov.ts`), so a custom layout whose ward names do not match the specialty ward names falls back to any free bed. That is only acceptable until 12.2.
