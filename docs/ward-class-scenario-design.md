@@ -105,3 +105,5 @@ Scenario path only (`src/engine/scenario-routing.ts`, used by `scenarioDemandSte
 - **Counters on `state._demand`:** `admittedByClass`, `admittedByPayerClass` ("payer|class"), `spilledUp`, `spilledByPath` ("payer|own->used"), `divertedByPayer`.
 - Consequence for 12.1: placement is now class-aware, so a layout needs beds in every class a payer may use (a Kelas-3-only layout diverts Private Insurance patients). The 12.1 "ample beds" test was changed to a three-class layout for that reason.
 - Not done (12.3): money. Whether a BPJS patient spilled up pays the difference, or the hospital absorbs it, is open and drives the margin result.
+
+**12.2 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-2` (dataset `hoe-src-12-2-687bf80`, `git archive` of `687bf80`, same slim paths). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...`, summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.2.**
