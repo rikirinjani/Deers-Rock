@@ -22,6 +22,8 @@
 - room list price (350000 IDR x class multiplier) and INA-CBG tariffs: engine tables, not checked against current Kemenkes tariffs
 - stay length 3-7 days regardless of class: not calibrated
 - Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.
+- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. Under strict routing (no spill) layout A, with no Kelas 3, could not place BPJS or Self-pay patients at all; that run was NOT done (see Not covered).
+- Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.
 - Default money settings for the main table: cost = 0.6 x list room price per occupied bed-day, no non-room cost or revenue, spilled-up BPJS absorbed by the hospital, all BPJS claims paid.
 
 ## Results at default money settings (median, min to max across seeds)
@@ -60,47 +62,74 @@ Cell = median paired margin difference B minus A in M IDR; * = seeds disagree on
 
 | setting | rate 2 | rate 4 | rate 6 | rate 8 | rate 10 | rate 14 | break-even rate |
 |---|---|---|---|---|---|---|---|
-| cost 0.4 / non-room cost 0M / non-room rev 0M / absorb | 11.2 | 36.3 | 214.7 | 399.3 | 568.4 | 674.5 | none in range |
-| cost 0.4 / non-room cost 0M / non-room rev 0M / pay-diff | -17.6 | -16.3* | 157.0 | 341.5 | 524.7 | 641.9 | 4.2/day |
-| cost 0.4 / non-room cost 0M / non-room rev 1M / absorb | 11.2 | 36.8 | 218.6 | 407.3 | 579.4 | 680.7 | none in range |
-| cost 0.4 / non-room cost 0M / non-room rev 1M / pay-diff | -17.6 | -16.3* | 159.6 | 349.9 | 535.7 | 646.4 | 4.2/day |
-| cost 0.4 / non-room cost 1M / non-room rev 0M / absorb | 11.2 | 31.0 | 177.8 | 327.6 | 458.4 | 543.0 | none in range |
-| cost 0.4 / non-room cost 1M / non-room rev 0M / pay-diff | -17.6 | -20.3* | 120.3 | 268.1 | 411.6 | 511.0 | 4.3/day |
-| cost 0.4 / non-room cost 1M / non-room rev 1M / absorb | 11.2 | 31.0 | 180.8 | 335.0 | 469.4 | 548.5 | none in range |
-| cost 0.4 / non-room cost 1M / non-room rev 1M / pay-diff | -17.6 | -20.3* | 123.3 | 276.1 | 422.6 | 516.0 | 4.3/day |
-| cost 0.4 / non-room cost 3M / non-room rev 0M / absorb | 11.2 | 22.1* | 100.6 | 168.2 | 234.6 | 284.4 | none in range |
-| cost 0.4 / non-room cost 3M / non-room rev 0M / pay-diff | -17.6 | -29.9 | 42.7* | 107.8 | 188.3 | 250.7 | 4.8/day |
-| cost 0.4 / non-room cost 3M / non-room rev 1M / absorb | 11.2 | 22.1* | 103.6 | 175.2 | 248.6 | 289.8 | none in range |
-| cost 0.4 / non-room cost 3M / non-room rev 1M / pay-diff | -17.6 | -29.9* | 45.7* | 114.8 | 202.3 | 255.9 | 4.8/day |
-| cost 0.6 / non-room cost 0M / non-room rev 0M / absorb | 17.2 | 44.4 | 211.3 | 384.6 | 535.2 | 637.8 | none in range |
-| cost 0.6 / non-room cost 0M / non-room rev 0M / pay-diff | -11.7 | -7.5* | 155.2 | 325.4 | 491.5 | 605.2 | 4.1/day |
-| cost 0.6 / non-room cost 0M / non-room rev 1M / absorb | 17.2 | 44.5 | 214.8 | 392.6 | 546.2 | 644.0 | none in range |
-| cost 0.6 / non-room cost 0M / non-room rev 1M / pay-diff | -11.7 | -7.5* | 157.2 | 333.4 | 502.5 | 609.7 | 4.1/day |
-| cost 0.6 / non-room cost 1M / non-room rev 0M / absorb | 17.2 | 39.9 | 174.6 | 308.6 | 428.9 | 506.3 | none in range |
-| cost 0.6 / non-room cost 1M / non-room rev 0M / pay-diff | -11.7 | -11.0* | 116.6 | 252.5 | 382.1 | 474.3 | 4.2/day |
-| cost 0.6 / non-room cost 1M / non-room rev 1M / absorb | 17.2 | 39.9 | 177.6 | 315.6 | 439.9 | 511.8 | none in range |
-| cost 0.6 / non-room cost 1M / non-room rev 1M / pay-diff | -11.7 | -11.0* | 120.9 | 259.8 | 393.1 | 479.3 | 4.2/day |
-| cost 0.6 / non-room cost 3M / non-room rev 0M / absorb | 17.2 | 32.1* | 99.2 | 154.7 | 204.9 | 247.7 | none in range |
-| cost 0.6 / non-room cost 3M / non-room rev 0M / pay-diff | -11.7 | -21.7* | 40.3* | 97.6 | 158.6 | 214.2 | 4.7/day |
-| cost 0.6 / non-room cost 3M / non-room rev 1M / absorb | 17.2 | 32.1* | 105.2 | 162.7 | 218.7 | 253.1 | none in range |
-| cost 0.6 / non-room cost 3M / non-room rev 1M / pay-diff | -11.7 | -21.7* | 46.3* | 104.8 | 172.6 | 219.1 | 4.6/day |
-| cost 0.8 / non-room cost 0M / non-room rev 0M / absorb | 23.1 | 53.3 | 209.5 | 370.0 | 504.9 | 601.0 | none in range |
-| cost 0.8 / non-room cost 0M / non-room rev 0M / pay-diff | -5.9 | 0.6* | 153.4 | 311.9 | 458.4 | 568.5 | 3.8/day |
-| cost 0.8 / non-room cost 0M / non-room rev 1M / absorb | 23.1 | 53.3 | 211.5 | 378.0 | 515.9 | 607.3 | none in range |
-| cost 0.8 / non-room cost 0M / non-room rev 1M / pay-diff | -5.9 | 0.6* | 155.4 | 319.9 | 469.4 | 573.0 | 3.8/day |
-| cost 0.8 / non-room cost 1M / non-room rev 0M / absorb | 23.1 | 48.8 | 170.7 | 287.6 | 398.2 | 469.5 | none in range |
-| cost 0.8 / non-room cost 1M / non-room rev 0M / pay-diff | -5.9 | -2.9* | 110.9 | 232.7 | 352.5 | 437.5 | 4.1/day |
-| cost 0.8 / non-room cost 1M / non-room rev 1M / absorb | 23.1 | 48.8 | 174.4 | 294.6 | 410.4 | 475.0 | none in range |
-| cost 0.8 / non-room cost 1M / non-room rev 1M / pay-diff | -5.9 | -2.9* | 115.9 | 239.7 | 363.6 | 442.5 | 4.0/day |
-| cost 0.8 / non-room cost 3M / non-room rev 0M / absorb | 23.1 | 41.1* | 94.2 | 139.6 | 175.2 | 210.9 | none in range |
-| cost 0.8 / non-room cost 3M / non-room rev 0M / pay-diff | -5.9 | -11.3* | 35.3* | 82.5 | 128.9 | 177.6 | 4.5/day |
-| cost 0.8 / non-room cost 3M / non-room rev 1M / absorb | 23.1 | 41.1* | 100.2 | 147.6 | 188.2 | 216.4 | none in range |
-| cost 0.8 / non-room cost 3M / non-room rev 1M / pay-diff | -5.9 | -11.3* | 41.3* | 90.5 | 142.8 | 182.4 | 4.4/day |
+| cost 0.4 x list / non-room cost 0M / non-room rev 0M / absorb | 11.2 | 36.3 | 214.7 | 399.3 | 568.4 | 674.5 | none in range |
+| cost 0.4 x list / non-room cost 0M / non-room rev 0M / pay-diff | -17.6 | -16.3* | 157.0 | 341.5 | 524.7 | 641.9 | 4.2/day |
+| cost 0.4 x list / non-room cost 0M / non-room rev 1M / absorb | 11.2 | 36.8 | 218.6 | 407.3 | 579.4 | 680.7 | none in range |
+| cost 0.4 x list / non-room cost 0M / non-room rev 1M / pay-diff | -17.6 | -16.3* | 159.6 | 349.9 | 535.7 | 646.4 | 4.2/day |
+| cost 0.4 x list / non-room cost 1M / non-room rev 0M / absorb | 11.2 | 31.0 | 177.8 | 327.6 | 458.4 | 543.0 | none in range |
+| cost 0.4 x list / non-room cost 1M / non-room rev 0M / pay-diff | -17.6 | -20.3* | 120.3 | 268.1 | 411.6 | 511.0 | 4.3/day |
+| cost 0.4 x list / non-room cost 1M / non-room rev 1M / absorb | 11.2 | 31.0 | 180.8 | 335.0 | 469.4 | 548.5 | none in range |
+| cost 0.4 x list / non-room cost 1M / non-room rev 1M / pay-diff | -17.6 | -20.3* | 123.3 | 276.1 | 422.6 | 516.0 | 4.3/day |
+| cost 0.4 x list / non-room cost 3M / non-room rev 0M / absorb | 11.2 | 22.1* | 100.6 | 168.2 | 234.6 | 284.4 | none in range |
+| cost 0.4 x list / non-room cost 3M / non-room rev 0M / pay-diff | -17.6 | -29.9 | 42.7* | 107.8 | 188.3 | 250.7 | 4.8/day |
+| cost 0.4 x list / non-room cost 3M / non-room rev 1M / absorb | 11.2 | 22.1* | 103.6 | 175.2 | 248.6 | 289.8 | none in range |
+| cost 0.4 x list / non-room cost 3M / non-room rev 1M / pay-diff | -17.6 | -29.9* | 45.7* | 114.8 | 202.3 | 255.9 | 4.8/day |
+| cost 0.6 x list / non-room cost 0M / non-room rev 0M / absorb | 17.2 | 44.4 | 211.3 | 384.6 | 535.2 | 637.8 | none in range |
+| cost 0.6 x list / non-room cost 0M / non-room rev 0M / pay-diff | -11.7 | -7.5* | 155.2 | 325.4 | 491.5 | 605.2 | 4.1/day |
+| cost 0.6 x list / non-room cost 0M / non-room rev 1M / absorb | 17.2 | 44.5 | 214.8 | 392.6 | 546.2 | 644.0 | none in range |
+| cost 0.6 x list / non-room cost 0M / non-room rev 1M / pay-diff | -11.7 | -7.5* | 157.2 | 333.4 | 502.5 | 609.7 | 4.1/day |
+| cost 0.6 x list / non-room cost 1M / non-room rev 0M / absorb | 17.2 | 39.9 | 174.6 | 308.6 | 428.9 | 506.3 | none in range |
+| cost 0.6 x list / non-room cost 1M / non-room rev 0M / pay-diff | -11.7 | -11.0* | 116.6 | 252.5 | 382.1 | 474.3 | 4.2/day |
+| cost 0.6 x list / non-room cost 1M / non-room rev 1M / absorb | 17.2 | 39.9 | 177.6 | 315.6 | 439.9 | 511.8 | none in range |
+| cost 0.6 x list / non-room cost 1M / non-room rev 1M / pay-diff | -11.7 | -11.0* | 120.9 | 259.8 | 393.1 | 479.3 | 4.2/day |
+| cost 0.6 x list / non-room cost 3M / non-room rev 0M / absorb | 17.2 | 32.1* | 99.2 | 154.7 | 204.9 | 247.7 | none in range |
+| cost 0.6 x list / non-room cost 3M / non-room rev 0M / pay-diff | -11.7 | -21.7* | 40.3* | 97.6 | 158.6 | 214.2 | 4.7/day |
+| cost 0.6 x list / non-room cost 3M / non-room rev 1M / absorb | 17.2 | 32.1* | 105.2 | 162.7 | 218.7 | 253.1 | none in range |
+| cost 0.6 x list / non-room cost 3M / non-room rev 1M / pay-diff | -11.7 | -21.7* | 46.3* | 104.8 | 172.6 | 219.1 | 4.6/day |
+| cost 0.8 x list / non-room cost 0M / non-room rev 0M / absorb | 23.1 | 53.3 | 209.5 | 370.0 | 504.9 | 601.0 | none in range |
+| cost 0.8 x list / non-room cost 0M / non-room rev 0M / pay-diff | -5.9 | 0.6* | 153.4 | 311.9 | 458.4 | 568.5 | 3.8/day |
+| cost 0.8 x list / non-room cost 0M / non-room rev 1M / absorb | 23.1 | 53.3 | 211.5 | 378.0 | 515.9 | 607.3 | none in range |
+| cost 0.8 x list / non-room cost 0M / non-room rev 1M / pay-diff | -5.9 | 0.6* | 155.4 | 319.9 | 469.4 | 573.0 | 3.8/day |
+| cost 0.8 x list / non-room cost 1M / non-room rev 0M / absorb | 23.1 | 48.8 | 170.7 | 287.6 | 398.2 | 469.5 | none in range |
+| cost 0.8 x list / non-room cost 1M / non-room rev 0M / pay-diff | -5.9 | -2.9* | 110.9 | 232.7 | 352.5 | 437.5 | 4.1/day |
+| cost 0.8 x list / non-room cost 1M / non-room rev 1M / absorb | 23.1 | 48.8 | 174.4 | 294.6 | 410.4 | 475.0 | none in range |
+| cost 0.8 x list / non-room cost 1M / non-room rev 1M / pay-diff | -5.9 | -2.9* | 115.9 | 239.7 | 363.6 | 442.5 | 4.0/day |
+| cost 0.8 x list / non-room cost 3M / non-room rev 0M / absorb | 23.1 | 41.1* | 94.2 | 139.6 | 175.2 | 210.9 | none in range |
+| cost 0.8 x list / non-room cost 3M / non-room rev 0M / pay-diff | -5.9 | -11.3* | 35.3* | 82.5 | 128.9 | 177.6 | 4.5/day |
+| cost 0.8 x list / non-room cost 3M / non-room rev 1M / absorb | 23.1 | 41.1* | 100.2 | 147.6 | 188.2 | 216.4 | none in range |
+| cost 0.8 x list / non-room cost 3M / non-room rev 1M / pay-diff | -5.9 | -11.3* | 41.3* | 90.5 | 142.8 | 182.4 | 4.4/day |
+| cost flat 250k / non-room cost 0M / non-room rev 0M / absorb | -1.0 | 11.7* | 170.0 | 340.2 | 488.9 | 590.5 | 2.2/day |
+| cost flat 250k / non-room cost 0M / non-room rev 0M / pay-diff | -29.3 | -38.1* | 113.9 | 279.2 | 445.2 | 558.0 | 4.5/day |
+| cost flat 250k / non-room cost 0M / non-room rev 1M / absorb | -1.0 | 11.7* | 172.0 | 348.2 | 499.9 | 596.8 | 2.2/day |
+| cost flat 250k / non-room cost 0M / non-room rev 1M / pay-diff | -29.3 | -38.1* | 115.9 | 287.2 | 456.2 | 562.5 | 4.5/day |
+| cost flat 250k / non-room cost 1M / non-room rev 0M / absorb | -1.0 | 7.2* | 132.9 | 261.5 | 382.8 | 459.0 | 2.2/day |
+| cost flat 250k / non-room cost 1M / non-room rev 0M / pay-diff | -29.3 | -42.1 | 73.1* | 205.8 | 336.0 | 427.0 | 4.7/day |
+| cost flat 250k / non-room cost 1M / non-room rev 1M / absorb | -1.0 | 7.2* | 136.0 | 268.5 | 393.8 | 464.5 | 2.2/day |
+| cost flat 250k / non-room cost 1M / non-room rev 1M / pay-diff | -29.3 | -42.1 | 77.6* | 213.6 | 347.0 | 432.0 | 4.7/day |
+| cost flat 250k / non-room cost 3M / non-room rev 0M / absorb | -1.0 | -1.9* | 56.7* | 109.3 | 159.3 | 200.4 | 4.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 0M / pay-diff | -29.3 | -53.5 | -2.2* | 52.2* | 113.0 | 167.0 | 6.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 1M / absorb | -1.0 | -1.9* | 62.7* | 117.3 | 172.4 | 205.9 | 4.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 1M / pay-diff | -29.3 | -53.5 | 3.8* | 59.9* | 126.6 | 171.9 | 5.9/day |
+| cost flat 350k / non-room cost 0M / non-room rev 0M / absorb | -1.0 | 9.4* | 151.4 | 304.8 | 434.6 | 527.5 | 2.2/day |
+| cost flat 350k / non-room cost 0M / non-room rev 0M / pay-diff | -29.3 | -39.3* | 95.3 | 244.6 | 387.7 | 495.1 | 4.6/day |
+| cost flat 350k / non-room cost 0M / non-room rev 1M / absorb | -1.0 | 9.4* | 153.4 | 311.9 | 445.5 | 533.8 | 2.2/day |
+| cost flat 350k / non-room cost 0M / non-room rev 1M / pay-diff | -29.3 | -39.3* | 97.3 | 252.6 | 398.6 | 499.6 | 4.6/day |
+| cost flat 350k / non-room cost 1M / non-room rev 0M / absorb | -1.0 | 5.1* | 108.6 | 217.4 | 326.2 | 396.0 | 2.3/day |
+| cost flat 350k / non-room cost 1M / non-room rev 0M / pay-diff | -29.3 | -44.3 | 49.7* | 162.5 | 279.6 | 364.0 | 4.9/day |
+| cost flat 350k / non-room cost 1M / non-room rev 1M / absorb | -1.0 | 5.1* | 113.6 | 224.4 | 338.2 | 401.5 | 2.3/day |
+| cost flat 350k / non-room cost 1M / non-room rev 1M / pay-diff | -29.3 | -44.3 | 55.4* | 169.5 | 291.6 | 369.0 | 4.9/day |
+| cost flat 350k / non-room cost 3M / non-room rev 0M / absorb | -1.0 | -2.3* | 33.7* | 72.5* | 104.2 | 137.4 | 4.1/day |
+| cost flat 350k / non-room cost 3M / non-room rev 0M / pay-diff | -29.3 | -54.2 | -25.7* | 14.1* | 58.9* | 104.2 | 7.3/day |
+| cost flat 350k / non-room cost 3M / non-room rev 1M / absorb | -1.0 | -2.3* | 39.7* | 80.9 | 117.2 | 142.9 | 4.1/day |
+| cost flat 350k / non-room cost 3M / non-room rev 1M / pay-diff | -29.3 | -54.2 | -19.7* | 23.8* | 71.9 | 108.9 | 6.9/day |
 
-**Reading:** 18 of 36 settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: B better, A better (positive = B better).
+**Reading:** 42 of 60 settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: B better, A better (positive = B better).
 **Break-even at default settings:** no crossing in the tested range. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.
 
 ## Not covered
 - Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.
+- **Strict routing (no spillover) was not run.** Owner's premise is more BPJS inpatients; it only bites if BPJS cannot freely use Kelas 2. A recommended follow-up: rerun A, B and C with each payer limited to its own class.
+- Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.
+- Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.
 - Refit cost and downtime during the conversion (supported by the engine, set to zero here).
 - Anything outside this ward: referrals, ICU, the wider hospital's specialty mix.

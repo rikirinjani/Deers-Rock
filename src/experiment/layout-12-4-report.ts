@@ -15,16 +15,27 @@ export const DEFAULT_MONEY: MoneyConfig = { warmupTicks: WARMUP_DAYS * 1440 };
 
 export interface Setting { name: string; cfg: MoneyConfig }
 
-/** Money settings re-evaluated from the same runs: does the sign of the paired margin delta survive? */
+/**
+ * Money settings re-evaluated from the same runs: does the sign of the paired margin delta survive?
+ * Cost modes include FLAT cost per bed-day (same for every class): with a ratio of the list price
+ * a Kelas 2 bed costs more than a Kelas 3 bed, which alone moves margin between bed-matched layouts.
+ */
 export function sensitivityGrid(): Setting[] {
+  const costModes: { name: string; cfg: MoneyConfig }[] = [
+    { name: "cost 0.4 x list", cfg: { costRatioOfListRate: 0.4 } },
+    { name: "cost 0.6 x list", cfg: { costRatioOfListRate: 0.6 } },
+    { name: "cost 0.8 x list", cfg: { costRatioOfListRate: 0.8 } },
+    { name: "cost flat 250k", cfg: { costPerBedDayIdr: { "kelas-2": 250_000, "kelas-3": 250_000 } } },
+    { name: "cost flat 350k", cfg: { costPerBedDayIdr: { "kelas-2": 350_000, "kelas-3": 350_000 } } },
+  ];
   const out: Setting[] = [];
-  for (const costRatio of [0.4, 0.6, 0.8])
+  for (const cm of costModes)
     for (const nonRoomCost of [0, 1_000_000, 3_000_000])
       for (const nonRoomRev of [0, 1_000_000])
         for (const spill of ["hospital-absorbs", "patient-pays-difference"] as const)
           out.push({
-            name: `cost ${costRatio} / non-room cost ${nonRoomCost / 1e6}M / non-room rev ${nonRoomRev / 1e6}M / ${spill === "hospital-absorbs" ? "absorb" : "pay-diff"}`,
-            cfg: { ...DEFAULT_MONEY, costRatioOfListRate: costRatio, nonRoomCostPerAdmissionIdr: nonRoomCost, nonRoomRevenuePerNonPackageAdmissionIdr: nonRoomRev, spillRule: spill },
+            name: `${cm.name} / non-room cost ${nonRoomCost / 1e6}M / non-room rev ${nonRoomRev / 1e6}M / ${spill === "hospital-absorbs" ? "absorb" : "pay-diff"}`,
+            cfg: { ...DEFAULT_MONEY, ...cm.cfg, nonRoomCostPerAdmissionIdr: nonRoomCost, nonRoomRevenuePerNonPackageAdmissionIdr: nonRoomRev, spillRule: spill },
           });
   return out;
 }
@@ -89,6 +100,8 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
   add("## Assumptions and unsourced inputs (read first)");
   for (const u of UNSOURCED_INPUTS) add(`- ${u}`);
   add("- Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.");
+  add("- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. Under strict routing (no spill) layout A, with no Kelas 3, could not place BPJS or Self-pay patients at all; that run was NOT done (see Not covered).");
+  add("- Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.");
   add("- Default money settings for the main table: cost = 0.6 x list room price per occupied bed-day, no non-room cost or revenue, spilled-up BPJS absorbed by the hospital, all BPJS claims paid.");
   add();
 
@@ -152,6 +165,9 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
   add();
   add("## Not covered");
   add("- Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.");
+  add("- **Strict routing (no spillover) was not run.** Owner's premise is more BPJS inpatients; it only bites if BPJS cannot freely use Kelas 2. A recommended follow-up: rerun A, B and C with each payer limited to its own class.");
+  add("- Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.");
+  add("- Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.");
   add("- Refit cost and downtime during the conversion (supported by the engine, set to zero here).");
   add("- Anything outside this ward: referrals, ICU, the wider hospital's specialty mix.");
   return L.join("\n") + "\n";

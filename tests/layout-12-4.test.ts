@@ -69,7 +69,8 @@ describe("Epic XII 12.4 layouts and report", () => {
     expect(md).toMatch(/Sensitivity/);
     expect(md).toMatch(/10 Kelas 2 rooms x 2 beds/);
     expect(md.split("\n").filter((l) => l.startsWith("| cost ")).length).toBe(sensitivityGrid().length);
-    expect(sensitivityGrid().length).toBe(3 * 3 * 2 * 2);
+    expect(sensitivityGrid().length).toBe(5 * 3 * 2 * 2);
+    expect(sensitivityGrid().some((g) => g.name.startsWith("cost flat"))).toBe(true);
   });
 
   it("smoke: one simulated day of one run writes a usable record", { timeout: 120_000 }, () => {
