@@ -56,6 +56,25 @@ export interface ArrivalRecord {
   stayMinutes: number;
 }
 
+/**
+ * One admission, written at placement (12.4). Money is computed from this ledger, not from
+ * state.encounters, because cleanupHandler prunes old encounters on long runs. The discharge
+ * tick is fixed at admission: tick + stayMinutes.
+ */
+export interface AdmissionEntry {
+  patientId: string;
+  tick: number;
+  payer: string;
+  /** Class actually used. */
+  roomClass: string;
+  /** The payer's own class under the routing table in force. */
+  ownClass: string;
+  primaryDiagnosis: string;
+  /** Primary diagnosis first, then the patient's other diagnosis codes. */
+  diagnosisCodes: string[];
+  stayMinutes: number;
+}
+
 export interface DemandState {
   arrivalsPerDay: number;
   waitLimitMinutes: number;
@@ -72,6 +91,8 @@ export interface DemandState {
   divertedLog: { tick: number; patientId: string; payer: string }[];
   /** 12.2: routing table in force. */
   routing: RoutingPolicy;
+  /** 12.4: every admission, for money and reports on long runs. */
+  ledger: AdmissionEntry[];
   /** 12.3: refit closures in force. */
   closures: Closure[];
   /** 12.2: admissions by class actually used. */
@@ -95,7 +116,7 @@ export function initDemand(cfg: DemandConfig = {}): DemandState {
     arrivalsPerDay, waitLimitMinutes, queue: [],
     arrived: 0, admitted: 0, diverted: 0, waitMinutesAdmitted: 0, maxQueueLength: 0,
     arrivalLog: [], divertedLog: [],
-    routing: cfg.routing ?? DEFAULT_ROUTING, closures: cfg.closures ?? [],
+    routing: cfg.routing ?? DEFAULT_ROUTING, closures: cfg.closures ?? [], ledger: [],
     admittedByClass: {}, admittedByPayerClass: {}, spilledUp: 0, spilledByPath: {}, divertedByPayer: {},
   };
 }
@@ -106,6 +127,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
   const queued = d.queue.slice();
   const arrivalLog = d.arrivalLog.slice();
   const divertedLog = d.divertedLog.slice();
+  const ledger = d.ledger.slice();
   let { arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength, spilledUp } = d;
   const admittedByClass = { ...d.admittedByClass };
   const admittedByPayerClass = { ...d.admittedByPayerClass };
@@ -154,6 +176,16 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
       admitPatientToBed(state, beds, encounters, q.patient, bed, specialtyOf(q.patient), clock, queue,
         { payer: q.payer, dischargeDelay: q.stayMinutes });
       admitted++;
+      {
+        const dx = selectPrimaryDiagnosisCode(q.patient);
+        ledger.push({
+          patientId: q.patient.id, tick: clock.tick, payer: q.payer, roomClass: route.roomClass,
+          ownClass: (d.routing.eligible[q.payer] ?? d.routing.defaultClasses)[0] ?? route.roomClass,
+          primaryDiagnosis: dx,
+          diagnosisCodes: [dx, ...q.patient.diagnoses.map((x) => x.code).filter((c) => c !== dx)],
+          stayMinutes: q.stayMinutes,
+        });
+      }
       admittedByClass[route.roomClass] = (admittedByClass[route.roomClass] ?? 0) + 1;
       const pc = `${q.payer}|${route.roomClass}`;
       admittedByPayerClass[pc] = (admittedByPayerClass[pc] ?? 0) + 1;
@@ -170,7 +202,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
 
   const next: DemandState = {
     ...d, queue: stillWaiting, arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength, arrivalLog, divertedLog,
-    admittedByClass, admittedByPayerClass, spilledUp, spilledByPath, divertedByPayer,
+    admittedByClass, admittedByPayerClass, spilledUp, spilledByPath, divertedByPayer, ledger,
   };
   return { ...state, beds, encounters, patients, _demand: next };
 }

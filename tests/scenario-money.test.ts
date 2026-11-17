@@ -1,14 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { createState, type HospitalLayout, type HospitalState } from "../src/engine/state-store.js";
 import { initDemand } from "../src/engine/scenario-demand.js";
-import { scenarioReport, UNSOURCED_INPUTS } from "../src/engine/scenario-money.js";
+import { scenarioReport, reportFromRecord, runRecord, UNSOURCED_INPUTS } from "../src/engine/scenario-money.js";
 import { closedBedIds } from "../src/engine/scenario-routing.js";
 import { createWorld, runWorld } from "../src/engine/world.js";
 import { compareLayouts, range, type ScenarioSpec } from "../src/experiment/scenario-compare.js";
-import { generatePatient } from "../src/patient/generator.js";
 import { INA_CBG } from "../src/engine/ina-cbg.js";
-import { createRng } from "../src/engine/clock.js";
-import type { Encounter } from "../src/patient/schema.js";
+import { DEFAULT_ROUTING } from "../src/engine/scenario-routing.js";
 
 const MIN = 1440;
 const layout: HospitalLayout = {
@@ -18,23 +16,19 @@ const layout: HospitalLayout = {
   ],
 };
 
-/** A hand-built final state: no world run, so every figure can be checked by arithmetic. */
+/** A hand-built final state with an admission ledger: every figure can be checked by arithmetic. */
 function build(end: number, encs: { id: string; payer: string; rc: "kelas-2" | "kelas-3"; startTick: number; endTick: number | null; dx?: string }[]): HospitalState {
   const s = createState([], {}, undefined, layout);
   s._demand = initDemand({});
   s._calendarTicks = end;
-  const rng = createRng(3).next;
   for (const e of encs) {
-    const p = generatePatient(rng);
-    p.id = `P-${e.id}`;
     const dx = e.dx ?? INA_CBG[0]!.icdCode;
-    p.diagnoses = [{ code: dx, name: "x", active: true, priority: 1 } as never];
-    s.patients.set(p.id, p);
-    s.encounters.set(e.id, {
-      id: e.id, patientId: p.id, type: "inpatient", startTime: e.startTick * 60000,
-      endTime: e.endTick === null ? null : e.endTick * 60000, status: e.endTick === null ? "active" : "discharged",
-      payer: e.payer, primaryDiagnosis: dx, roomClassAtAdmission: e.rc,
-    } as unknown as Encounter);
+    s._demand.ledger.push({
+      patientId: `P-${e.id}`, tick: e.startTick, payer: e.payer, roomClass: e.rc,
+      ownClass: (DEFAULT_ROUTING.eligible[e.payer] ?? DEFAULT_ROUTING.defaultClasses)[0]!,
+      primaryDiagnosis: dx, diagnosisCodes: [dx],
+      stayMinutes: e.endTick === null ? 10 * end : e.endTick - e.startTick,
+    });
   }
   return s;
 }
@@ -108,6 +102,35 @@ describe("Epic XII 12.3 money model", () => {
     expect(r.cost.bedDaysIdr).toBe(200000);
     expect(r.cost.refitIdr).toBe(50000);
     expect(r.marginIdr).toBe(700000 - 200000 - 50000);
+  });
+
+  it("non-room inputs: cost per admission and non-room revenue for non-package payers", () => {
+    const s = build(9 * MIN, [
+      { id: "a", payer: "Self-pay", rc: "kelas-3", startTick: 0, endTick: 2 * MIN },
+      { id: "b", payer: "BPJS Kesehatan", rc: "kelas-3", startTick: 0, endTick: 2 * MIN },
+    ]);
+    const base = scenarioReport(s, { warmupTicks: 0 });
+    const r = scenarioReport(s, { warmupTicks: 0, nonRoomCostPerAdmissionIdr: 1_000_000, nonRoomRevenuePerNonPackageAdmissionIdr: 400_000 });
+    expect(r.cost.nonRoomIdr).toBe(2_000_000); // both admissions
+    expect(r.revenue.nonRoomIdr).toBe(400_000); // self-pay only
+    expect(r.marginIdr - base.marginIdr).toBe(400_000 - 2_000_000);
+  });
+
+  it("counts spill-ups and hospital-wide occupancy inside the window only", () => {
+    const s = build(4 * MIN, [
+      { id: "a", payer: "BPJS Kesehatan", rc: "kelas-2", startTick: 0, endTick: 2 * MIN },
+      { id: "b", payer: "BPJS Kesehatan", rc: "kelas-2", startTick: 2 * MIN, endTick: 4 * MIN },
+    ]);
+    const r = scenarioReport(s, { warmupTicks: MIN });
+    expect(r.spilledUp).toBe(1); // only the one admitted after the warm-up
+    expect(r.occupancy).toBeCloseTo((1 + 2) / (4 * 3));
+  });
+
+  it("a record survives JSON, so money can be recomputed without a rerun", () => {
+    const s = build(5 * MIN, [{ id: "a", payer: "Self-pay", rc: "kelas-3", startTick: 0, endTick: 2 * MIN }]);
+    const rec = JSON.parse(JSON.stringify(runRecord(s)));
+    expect(reportFromRecord(rec, { warmupTicks: 0, costRatioOfListRate: 0.3 }).cost.bedDaysIdr).toBe(Math.round(2 * 350000 * 0.3));
+    expect(rec.arrivalDigest).toBe(runRecord(s).arrivalDigest);
   });
 
   it("always lists the unsourced inputs, and refuses a default-path state", () => {
