@@ -9,7 +9,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { reportFromRecord, UNSOURCED_INPUTS, type MoneyConfig, type ScenarioReport } from "../engine/scenario-money.js";
 import { range, type Range } from "./scenario-compare.js";
-import { BEDS_PER_ROOM, WARMUP_DAYS, type RunFile } from "./layout-12-4.js";
+import { BEDS_PER_ROOM, WARMUP_DAYS, type RoutingMode, type RunFile } from "./layout-12-4.js";
 
 export const DEFAULT_MONEY: MoneyConfig = { warmupTicks: WARMUP_DAYS * 1440 };
 
@@ -44,7 +44,8 @@ interface Pair { rate: number; seed: number; a: RunFile; b: RunFile }
 
 export type Variant = "B" | "C";
 
-export function pairRuns(files: RunFile[], variant: Variant = "B"): Pair[] {
+export function pairRuns(files: RunFile[], variant: Variant = "B", routing: RoutingMode = "spill"): Pair[] {
+  files = files.filter((f) => (f.routing ?? "spill") === routing);
   const key = (f: RunFile) => `${f.arrivalsPerDay}|${f.seed}`;
   const a = new Map(files.filter((f) => f.layout === "A").map((f) => [key(f), f]));
   const pairs: Pair[] = [];
@@ -72,8 +73,8 @@ export function crossing(rates: number[], medians: number[]): number | null {
   return null;
 }
 
-export function buildReport(files: RunFile[], variant: Variant = "B"): string {
-  const pairs = pairRuns(files, variant);
+export function buildReport(files: RunFile[], variant: Variant = "B", routing: RoutingMode = "spill"): string {
+  const pairs = pairRuns(files, variant, routing);
   if (pairs.length === 0) throw new Error("no paired A/B runs found");
   const rates = [...new Set(pairs.map((p) => p.rate))].sort((x, y) => x - y);
   const seeds = [...new Set(pairs.map((p) => p.seed))].sort((x, y) => x - y);
@@ -81,7 +82,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
   const L: string[] = [];
   const add = (s = "") => L.push(s);
 
-  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)");
+  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" + (routing === "strict" ? " - STRICT ROUTING" : "") : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)" + (routing === "strict" ? " - STRICT ROUTING" : ""));
   add();
   add("> **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.");
   add();
@@ -95,12 +96,18 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
   add("- Each layout is a standalone general ward; the rest of the hospital is not simulated.");
   add(`- ${days} simulated days per run, the first ${WARMUP_DAYS} dropped as warm-up; ${seeds.length} seeds (${seeds.join(", ")}); arrival rates ${rates.join(", ")} per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).`);
   add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus A.`);
-  add(`- Routing: DEFAULT_ROUTING (BPJS and Self-pay start in Kelas 3; Private Insurance in Kelas 2; spill up allowed). With layout A (no Kelas 3), BPJS and Self-pay patients are placed in Kelas 2 as spillover.`);
+  if (routing === "strict") {
+    add("- Routing: STRICT. Each payer may use only its own class (BPJS Kesehatan, Jasa Raharja and Self-pay: Kelas 3; Private Insurance and BPJS Ketenagakerjaan: Kelas 2); no spillover. A payer whose own class has no bed in the layout is never placed and ends diverted. Layout A has no Kelas 3, so it cannot place BPJS Kesehatan, Jasa Raharja or Self-pay patients at all: this is a deliberately harsh reading of the owner's premise (more BPJS inpatients), not a tuned one.");
+  } else {
+    add("- Routing: DEFAULT_ROUTING (BPJS and Self-pay start in Kelas 3; Private Insurance in Kelas 2; spill up allowed). With layout A (no Kelas 3), BPJS and Self-pay patients are placed in Kelas 2 as spillover.");
+  }
   add();
   add("## Assumptions and unsourced inputs (read first)");
   for (const u of UNSOURCED_INPUTS) add(`- ${u}`);
   add("- Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.");
-  add("- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. Under strict routing (no spill) layout A, with no Kelas 3, could not place BPJS or Self-pay patients at all; that run was NOT done (see Not covered).");
+  add(routing === "strict"
+    ? "- **Strict routing page.** Compare with the spill-allowed pages: the truth for a real hospital lies between the two, depending on what BPJS may actually use when its own class is full (unverified)."
+    : "- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. A strict-routing page (no spill) exists as a separate file.");
   add("- Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.");
   add("- Default money settings for the main table: cost = 0.6 x list room price per occupied bed-day, no non-room cost or revenue, spilled-up BPJS absorbed by the hospital, all BPJS claims paid.");
   add();
@@ -165,7 +172,6 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
   add();
   add("## Not covered");
   add("- Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.");
-  add("- **Strict routing (no spillover) was not run.** Owner's premise is more BPJS inpatients; it only bites if BPJS cannot freely use Kelas 2. A recommended follow-up: rerun A, B and C with each payer limited to its own class.");
   add("- Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.");
   add("- Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.");
   add("- Refit cost and downtime during the conversion (supported by the engine, set to zero here).");
@@ -174,9 +180,9 @@ export function buildReport(files: RunFile[], variant: Variant = "B"): string {
 }
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4-report.ts")) {
-  const [dir, out, v] = process.argv.slice(2);
+  const [dir, out, v, r] = process.argv.slice(2);
   if (!dir || !out) { console.error("usage: layout-12-4-report.ts <runDir> <outFile.md> [B|C]"); process.exit(2); }
   const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[ABC]_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
-  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B"));
+  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B", r === "strict" ? "strict" : "spill"));
   console.error(`wrote ${out} from ${files.length} runs`);
 }

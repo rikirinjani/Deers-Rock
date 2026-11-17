@@ -108,3 +108,30 @@ describe("Epic XII 12.4 lite scenario world", () => {
     expect(occ).toBeLessThanOrEqual(3);
   });
 });
+
+import { STRICT_ROUTING, DEFAULT_ROUTING as DR, routeBed as route } from "../src/engine/scenario-routing.js";
+import { generatePatient as gp } from "../src/patient/generator.js";
+import { createRng as cr } from "../src/engine/clock.js";
+
+describe("Epic XII 12.4 strict routing", () => {
+  it("strict table lets each payer use only its own class", () => {
+    expect(STRICT_ROUTING.eligible["BPJS Kesehatan"]).toEqual(["kelas-3"]);
+    expect(STRICT_ROUTING.eligible["Private Insurance"]).toEqual(["kelas-2"]);
+    expect(STRICT_ROUTING.defaultClasses).toEqual(["kelas-3"]);
+    const m = new Map([["x", { id: "x", ward: "W", building: "", roomClass: "kelas-2" as const, patientId: null }]]);
+    const p = gp(cr(2).next);
+    expect(route(m, p, "BPJS Kesehatan", DR, undefined)).toBeDefined(); // spill-allowed: placed in K2
+    expect(route(m, p, "BPJS Kesehatan", STRICT_ROUTING, undefined)).toBeUndefined(); // strict: waits
+    expect(route(m, p, "Private Insurance", STRICT_ROUTING, undefined)).toBeDefined();
+  });
+
+  it("pairRuns keeps spill and strict runs apart", () => {
+    const sp = synth("A", 4, 1, []), spB = synth("C", 4, 1, []);
+    const stA = { ...synth("A", 4, 1, []), routing: "strict" as const }, stC = { ...synth("C", 4, 1, []), routing: "strict" as const };
+    expect(pairRuns([sp, spB, stA, stC], "C", "spill").length).toBe(1);
+    expect(pairRuns([sp, spB, stA, stC], "C", "strict").length).toBe(1);
+    expect(() => pairRuns([sp, spB], "C", "strict").length).not.toThrow();
+    expect(pairRuns([sp, spB], "C", "strict").length).toBe(0);
+    expect(buildReport([stA, stC], "C", "strict")).toMatch(/STRICT ROUTING/);
+  });
+});

@@ -41,6 +41,16 @@ export const DEFAULT_ROUTING: RoutingPolicy = {
 };
 
 /**
+ * Strict variant of DEFAULT_ROUTING (12.4 sensitivity): each payer may use ONLY its own class
+ * (the first class of its default list), no spillover up. A payer whose own class has no bed in
+ * the layout is never placed and ends diverted.
+ */
+export const STRICT_ROUTING: RoutingPolicy = {
+  eligible: Object.fromEntries(Object.entries(DEFAULT_ROUTING.eligible).map(([k, v]) => [k, [v[0]!]])),
+  defaultClasses: [DEFAULT_ROUTING.defaultClasses[0]!],
+};
+
+/**
  * Refit works (12.3): `beds` free beds of `roomClass` are out of service from `fromTick`
  * (inclusive) to `toTick` (exclusive). They are the last beds of that class in bed order.
  * A bed already occupied is not evicted; it just can not be re-let until the works end.

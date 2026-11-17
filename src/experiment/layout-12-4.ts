@@ -15,7 +15,7 @@
  * so a timeout keeps the runs that completed. Long runs are heavy: Kaggle or a VPS, never the
  * laptop (owner rule).
  *
- * CLI: npx tsx src/experiment/layout-12-4.ts <A|B|C> <arrivalsPerDay> <seed> <days> <outDir>
+ * CLI: npx tsx src/experiment/layout-12-4.ts <A|B|C> <arrivalsPerDay> <seed> <days> <outDir> [strict]
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -23,6 +23,7 @@ import { runWorld } from "../engine/world.js";
 import { createLiteScenarioWorld } from "./scenario-lite.js";
 import type { HospitalLayout } from "../engine/state-store.js";
 import { runRecord, type RunRecord } from "../engine/scenario-money.js";
+import { STRICT_ROUTING } from "../engine/scenario-routing.js";
 
 export type LayoutKey = "A" | "B" | "C";
 
@@ -49,8 +50,12 @@ export const RATES = [2, 4, 6, 8, 10, 14];
 export const WAIT_LIMIT_MINUTES = 1440;
 export const WARMUP_DAYS = 7;
 
+export type RoutingMode = "spill" | "strict";
+
 export interface RunFile {
   layout: LayoutKey;
+  /** Routing table: "spill" = DEFAULT_ROUTING (default, also when absent in older files), "strict" = own class only. */
+  routing?: RoutingMode;
   arrivalsPerDay: number;
   seed: number;
   days: number;
@@ -59,24 +64,25 @@ export interface RunFile {
   record: RunRecord;
 }
 
-export function runOne(layout: LayoutKey, arrivalsPerDay: number, seed: number, days: number, onDay?: (d: number, wallS: number) => void): RunFile {
+export function runOne(layout: LayoutKey, arrivalsPerDay: number, seed: number, days: number, onDay?: (d: number, wallS: number) => void, routing: RoutingMode = "spill"): RunFile {
   const t0 = Date.now();
-  let w = createLiteScenarioWorld(seed, layoutFor(layout), { arrivalsPerDay, waitLimitMinutes: WAIT_LIMIT_MINUTES });
+  let w = createLiteScenarioWorld(seed, layoutFor(layout), { arrivalsPerDay, waitLimitMinutes: WAIT_LIMIT_MINUTES, ...(routing === "strict" ? { routing: STRICT_ROUTING } : {}) });
   for (let d = 1; d <= days; d++) {
     w = runWorld(w, 1440);
     onDay?.(d, (Date.now() - t0) / 1000);
   }
-  return { layout, arrivalsPerDay, seed, days, waitLimitMinutes: WAIT_LIMIT_MINUTES, wallSeconds: (Date.now() - t0) / 1000, record: runRecord(w.state) };
+  return { layout, routing, arrivalsPerDay, seed, days, waitLimitMinutes: WAIT_LIMIT_MINUTES, wallSeconds: (Date.now() - t0) / 1000, record: runRecord(w.state) };
 }
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4.ts")) {
-  const [key, rate, seed, days, outDir] = process.argv.slice(2);
+  const [key, rate, seed, days, outDir, mode] = process.argv.slice(2);
+  const routing: RoutingMode = mode === "strict" ? "strict" : "spill";
   if (!key || !rate || !seed || !days || !outDir || (key !== "A" && key !== "B" && key !== "C")) {
     console.error("usage: layout-12-4.ts <A|B|C> <arrivalsPerDay> <seed> <days> <outDir>");
     process.exit(2);
   }
-  const f = runOne(key, Number(rate), Number(seed), Number(days), (d, s) => console.error(`${key} rate=${rate} seed=${seed} day ${d}/${days} wall ${s.toFixed(0)}s`));
+  const f = runOne(key, Number(rate), Number(seed), Number(days), (d, s) => console.error(`${key} rate=${rate} seed=${seed} day ${d}/${days} wall ${s.toFixed(0)}s`), routing);
   mkdirSync(outDir, { recursive: true });
-  writeFileSync(join(outDir, `${key}_r${rate}_s${seed}.json`), JSON.stringify(f));
+  writeFileSync(join(outDir, `${key}_r${rate}_s${seed}${routing === "strict" ? "_strict" : ""}.json`), JSON.stringify(f));
   console.error(`done ${key} r${rate} s${seed} in ${f.wallSeconds.toFixed(0)}s, admitted ${f.record.ledger.length}`);
 }
