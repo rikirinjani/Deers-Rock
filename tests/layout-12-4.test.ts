@@ -69,3 +69,30 @@ describe("Epic XII 12.4 layouts and report", () => {
     expect(JSON.parse(JSON.stringify(f)).record.endTick).toBe(DAY);
   });
 });
+
+import { createLiteScenarioWorld } from "../src/experiment/scenario-lite.js";
+import { createWorld, runWorld } from "../src/engine/world.js";
+import { runRecord } from "../src/engine/scenario-money.js";
+
+describe("Epic XII 12.4 lite scenario world", () => {
+  const tiny = { wards: [{ ward: "K3", roomClass: "kelas-3" as const, specialties: "general" as const, beds: 3 }] };
+  const demand = { arrivalsPerDay: 150, waitLimitMinutes: 60 };
+
+  it("gives the same admissions, diversions and demand as the full world (half a day)", { timeout: 120_000 }, () => {
+    const full = runRecord(runWorld(createWorld(5, undefined, 5, tiny, demand), 720).state);
+    const lite = runRecord(runWorld(createLiteScenarioWorld(5, tiny, demand), 720).state);
+    expect(lite.arrivalDigest).toBe(full.arrivalDigest);
+    expect(lite.ledger).toEqual(full.ledger);
+    expect(lite.divertedLog).toEqual(full.divertedLog);
+    expect(full.divertedLog.length).toBeGreaterThan(0);
+  });
+
+  it("still frees beds at discharge: more admissions than beds over 12 days", () => {
+    const w = runWorld(createLiteScenarioWorld(5, tiny, { arrivalsPerDay: 6, waitLimitMinutes: 1440 }), 12 * 1440);
+    const rec = runRecord(w.state);
+    expect(rec.ledger.length).toBeGreaterThan(3);
+    // never more than 3 patients in the 3 beds at once
+    const occ = [...w.state.beds.values()].filter((b) => b.patientId).length;
+    expect(occ).toBeLessThanOrEqual(3);
+  });
+});

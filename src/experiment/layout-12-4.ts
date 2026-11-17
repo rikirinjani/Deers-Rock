@@ -16,7 +16,8 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createWorld, runWorld } from "../engine/world.js";
+import { runWorld } from "../engine/world.js";
+import { createLiteScenarioWorld } from "./scenario-lite.js";
 import type { HospitalLayout } from "../engine/state-store.js";
 import { runRecord, type RunRecord } from "../engine/scenario-money.js";
 
@@ -51,7 +52,7 @@ export interface RunFile {
 
 export function runOne(layout: LayoutKey, arrivalsPerDay: number, seed: number, days: number, onDay?: (d: number, wallS: number) => void): RunFile {
   const t0 = Date.now();
-  let w = createWorld(5, undefined, seed, layoutFor(layout), { arrivalsPerDay, waitLimitMinutes: WAIT_LIMIT_MINUTES });
+  let w = createLiteScenarioWorld(seed, layoutFor(layout), { arrivalsPerDay, waitLimitMinutes: WAIT_LIMIT_MINUTES });
   for (let d = 1; d <= days; d++) {
     w = runWorld(w, 1440);
     onDay?.(d, (Date.now() - t0) / 1000);
