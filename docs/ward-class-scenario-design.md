@@ -92,3 +92,5 @@ Facts found:
 - "Same demand" means same arrivals, payer, diagnosis and stay length. Deaths and ancillary orders still draw from their own per-tick sub-streams, so the clinical course is not identical across layouts.
 - Occupancy starts empty. With default stays of 3-7 days a layout takes several simulated days to fill, so a scenario needs a warm-up (12.3 reports should drop it).
 - The arrival default (19 per day) comes from the existing clinical-v2 calibration comment (about 70% occupancy for 131 beds). It is not real-hospital data.
+
+**12.1 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-1` (dataset `hoe-src-12-1-019f113`, `git archive` of `019f113`, same slim paths). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...`, summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.1 (including the `admitPatientToBed` extraction).**
