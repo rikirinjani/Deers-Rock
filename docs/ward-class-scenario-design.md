@@ -107,3 +107,25 @@ Scenario path only (`src/engine/scenario-routing.ts`, used by `scenarioDemandSte
 - Not done (12.3): money. Whether a BPJS patient spilled up pays the difference, or the hospital absorbs it, is open and drives the margin result.
 
 **12.2 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-2` (dataset `hoe-src-12-2-687bf80`, `git archive` of `687bf80`, same slim paths). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...`, summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.2.**
+
+## 12. Milestone 12.3 implemented (2026-11-17)
+
+Scenario path only. No change to the default path or to engine admission beyond refit closures (a scenario-only `closures` list in `DemandConfig`, read in `scenarioDemandStep`).
+
+- `src/engine/scenario-money.ts`, `scenarioReport(state, MoneyConfig)`: a pure function of a finished scenario state (no rng). Counts only inside the window after `warmupTicks` (default 7 days): room revenue by class for non-package payers (list price x class multiplier x bed-days, pro-rated by minute); INA-CBG package revenue once at discharge for BPJS Kesehatan and Ketenagakerjaan (BPJS room days earn nothing separately; discharges with no tariff are counted in `bpjsWithoutTariff` and earn 0); cost per **occupied** bed-day by class; one-off refit cost; margin; occupancy, admitted, diverted (total and by payer) and spilled-up counts. Ancillary revenue and cost are excluded: the same patients generate them under any layout, so they cancel in a comparison.
+- **Spilled-up BPJS** is an explicit setting `spillRule`: `"hospital-absorbs"` (default, **assumption**: no extra revenue, the hospital pays the higher-class bed cost) or `"patient-pays-difference"` (the patient pays the room price difference per day). The cost of the higher-class bed is the same either way.
+- **Refit:** `refitCostIdr` (subtracted from margin) and `closures: [{ roomClass, beds, fromTick, toTick }]` (the last N beds of a class are out of service in that window; free beds only, an occupied bed is not evicted).
+- `src/experiment/scenario-compare.ts`: `runScenario`, `runAcrossSeeds` (min, median, max, mean per metric), `compareLayouts` (paired by seed, so identical demand; delta = b minus a). The file's CLI is a tiny smoke run.
+- **Not done:** the break-even occupancy between two layouts (section 3.5) and any real run: see the speed note.
+
+**Unsourced inputs** (also returned in every report as `unsourcedInputs`):
+1. Cost per occupied bed-day by class (default 0.6 x the list room price): no hospital cost data.
+2. `spillRule` default: Indonesian rules on temporary placement in a higher class are not verified.
+3. `bpjsClaimPaidShare` default 1: no denial or delay rate applied.
+4. `refitCostIdr` and closure windows: no renovation cost source.
+5. The routing table (BPJS entitlement by member tier, KRIS, upgrade rules).
+6. Arrivals per day (19) and the wait limit (1440 min): calibration comment only.
+7. Room list price (350,000 IDR x multiplier) and INA-CBG tariffs: engine tables, not checked against current Kemenkes tariffs.
+8. Stay length 3-7 days regardless of class.
+
+**Speed note (measured):** the full handler stack is slow. About 2,900 ticks (2 simulated days) took roughly 30 s per run in the unit-test environment, and run time grows with the number of patients and encounters. A real comparison (20+ days, several seeds, two layouts) is a Kaggle or VPS job, as the owner rule says; do not run it on the laptop. A lighter scenario engine (skipping unrelated handlers) would be a follow-up if comparisons become routine.

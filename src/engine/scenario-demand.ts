@@ -28,7 +28,7 @@ import { generatePatient } from "../patient/generator.js";
 import { assignPayer } from "./finance.js";
 import { getStayOutcomes } from "../locale/registry.js";
 import { admitPatientToBed, selectPrimaryDiagnosisCode, specialtyOf } from "./markov.js";
-import { DEFAULT_ROUTING, routeBed, type RoutingPolicy } from "./scenario-routing.js";
+import { DEFAULT_ROUTING, routeBed, closedBedIds, type RoutingPolicy, type Closure } from "./scenario-routing.js";
 
 export interface DemandConfig {
   /** Mean inpatient arrivals per day (one Bernoulli per minute, as the default path). Default 19. */
@@ -37,6 +37,8 @@ export interface DemandConfig {
   waitLimitMinutes?: number;
   /** Payer-to-class routing table (12.2). Default: DEFAULT_ROUTING (an assumption, see scenario-routing.ts). */
   routing?: RoutingPolicy;
+  /** Refit works that take free beds out of service for a time window (12.3). */
+  closures?: Closure[];
 }
 
 export interface QueuedArrival {
@@ -70,6 +72,8 @@ export interface DemandState {
   divertedLog: { tick: number; patientId: string; payer: string }[];
   /** 12.2: routing table in force. */
   routing: RoutingPolicy;
+  /** 12.3: refit closures in force. */
+  closures: Closure[];
   /** 12.2: admissions by class actually used. */
   admittedByClass: Record<string, number>;
   /** 12.2: admissions by "payer|class". */
@@ -91,7 +95,7 @@ export function initDemand(cfg: DemandConfig = {}): DemandState {
     arrivalsPerDay, waitLimitMinutes, queue: [],
     arrived: 0, admitted: 0, diverted: 0, waitMinutesAdmitted: 0, maxQueueLength: 0,
     arrivalLog: [], divertedLog: [],
-    routing: cfg.routing ?? DEFAULT_ROUTING,
+    routing: cfg.routing ?? DEFAULT_ROUTING, closures: cfg.closures ?? [],
     admittedByClass: {}, admittedByPayerClass: {}, spilledUp: 0, spilledByPath: {}, divertedByPayer: {},
   };
 }
@@ -141,8 +145,9 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
     beds = new Map(state.beds);
     encounters = new Map(state.encounters);
     patients = new Map(state.patients);
+    const closed = closedBedIds(beds, d.closures, clock.tick);
     for (const q of waiting) {
-      const route = routeBed(beds, q.patient, q.payer, d.routing, state._layout);
+      const route = routeBed(beds, q.patient, q.payer, d.routing, state._layout, closed);
       if (!route) { stillWaiting.push(q); continue; }
       const bed = route.bed;
       patients.set(q.patient.id, q.patient);

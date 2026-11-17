@@ -40,6 +40,25 @@ export const DEFAULT_ROUTING: RoutingPolicy = {
   defaultClasses: ["kelas-3", "kelas-2", "kelas-1"],
 };
 
+/**
+ * Refit works (12.3): `beds` free beds of `roomClass` are out of service from `fromTick`
+ * (inclusive) to `toTick` (exclusive). They are the last beds of that class in bed order.
+ * A bed already occupied is not evicted; it just can not be re-let until the works end.
+ */
+export interface Closure { roomClass: RoomClass; beds: number; fromTick: number; toTick: number }
+
+/** Bed ids closed at this tick (empty set when there are no closures). */
+export function closedBedIds(beds: Map<string, Bed>, closures: Closure[] | undefined, tick: number): Set<string> {
+  const out = new Set<string>();
+  if (!closures || closures.length === 0) return out;
+  for (const c of closures) {
+    if (tick < c.fromTick || tick >= c.toTick) continue;
+    const ofClass = [...beds.values()].filter((b) => b.roomClass === c.roomClass);
+    for (const b of ofClass.slice(Math.max(0, ofClass.length - c.beds))) out.add(b.id);
+  }
+  return out;
+}
+
 export interface RouteResult {
   bed: Bed;
   /** Class actually used. */
@@ -63,13 +82,14 @@ function wardServes(bed: Bed, patient: Patient, layout: HospitalLayout | undefin
 export function routeBed(
   beds: Map<string, Bed>, patient: Patient, payer: string,
   policy: RoutingPolicy, layout: HospitalLayout | undefined,
+  closed?: ReadonlySet<string>,
 ): RouteResult | undefined {
   const classes = policy.eligible[payer] ?? policy.defaultClasses;
   for (let rank = 0; rank < classes.length; rank++) {
     const cls = classes[rank]!;
     let first: Bed | undefined;
     for (const b of beds.values()) {
-      if (b.patientId !== null || b.roomClass !== cls) continue;
+      if (b.patientId !== null || b.roomClass !== cls || closed?.has(b.id)) continue;
       if (wardServes(b, patient, layout)) return { bed: b, roomClass: cls, rank };
       if (!first) first = b;
     }
