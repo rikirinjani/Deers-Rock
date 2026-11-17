@@ -2,7 +2,7 @@ import type { HospitalState, MorgueRecord } from "./state-store.js";
 import type { Clock } from "./clock.js";
 import { EventQueue } from "./event-queue.js";
 import { generatePatient } from "../patient/generator.js";
-import type { Patient, Encounter } from "../patient/schema.js";
+import type { Patient, Encounter, Bed } from "../patient/schema.js";
 import { getEventSummary } from "./calendar.js";
 import { getPrimaryDiagnosis } from "./diagnosis-utils.js";
 import { assessMortalityRisk, mapIcdToTerminalEvent } from "./clinical-knowledge.js";
@@ -18,6 +18,7 @@ import { driftVitals } from "./vitals-model.js";
 import { assignIllness, stepIllness, targetFor, updateWatch, sustainedFlags } from "./clinical-vitals.js";
 import { isClinicalVitalsEnabled } from "./config.js";
 import { getStayOutcomes } from "../locale/registry.js";
+import { scenarioDemandStep } from "./scenario-demand.js";
 
 /**
  * Phase D: deterministic principal-diagnosis selection for an encounter.
@@ -58,7 +59,96 @@ const SPECIALTY_TO_WARD: Record<string, string> = {
 
 export type StateHandler = (state: HospitalState, clock: Clock, queue: EventQueue) => HospitalState;
 
+/**
+ * Place one patient in one bed: bed stamp, inpatient encounter, attending and nurse
+ * assignment, scheduled discharge. Extracted unchanged from admissionHandler (Epic XII 12.1)
+ * so the scenario path can reuse it. Mutates newBeds and newEncounters (the caller's copies).
+ * Draw order is unchanged: payer, then stay length. The scenario path passes both in
+ * (`ov`), pre-drawn from the demand stream, so the layout can not shift them.
+ */
+export function admitPatientToBed(
+  state: HospitalState, newBeds: Map<string, Bed>, newEncounters: Map<string, Encounter>,
+  patient: Patient, freeBed: Bed, targetSpecialty: string | undefined,
+  clock: Clock, queue: EventQueue,
+  ov?: { payer?: ReturnType<typeof assignPayer>; dischargeDelay?: number },
+): void {
+  newBeds.set(freeBed.id, { ...freeBed, patientId: patient.id });
+
+  const encounter = {
+    id: `ENC-${clock.tick}-${patient.id}`,
+    patientId: patient.id,
+    type: "inpatient" as const,
+    startTime: clock.hospitalTimeMs,
+    endTime: null as number | null,
+    status: "active" as const,
+    payer: ov?.payer ?? assignPayer(patient, clock.rng, clock.rngSeed),
+    primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
+    // ADR-015 D2: stamp the room class ONCE at bed assignment. Per-day room
+    // billing (finance.ts) reads this stamp; absent on outpatient/ED
+    // encounters, which gates them out of room charges. No rng.
+    roomClassAtAdmission: freeBed.roomClass,
+  };
+  newEncounters.set(encounter.id, encounter);
+
+  // Epic VI M6.1: Assign attending doctor based on specialty
+  const agentState = (state as unknown as { _agentState?: { pool: { agents: Map<string, HospitalAgent>; assignments: Map<string, string> } } })._agentState;
+  if (agentState) {
+    const dept = targetSpecialty ? (targetSpecialty === "pulmonology" ? "PARU" : targetSpecialty === "pediatrics" ? "ANAK" : targetSpecialty === "obgyn" ? "OBGYN" : targetSpecialty === "neurology" ? "SARAF" : targetSpecialty === "cardiology" ? "JANTUNG" : "PENYAKIT_DALAM") : "DOKTER";
+    // The attending specialist (DPJP) is responsible on call, so is assigned
+    // by department whatever the roster says; with no fit specialist, the
+    // on-duty GP (dokter jaga) takes the admission (2026-10-27 roster).
+    const fit = (a: HospitalAgent) => a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan";
+    const byLoad = (a: HospitalAgent, b: HospitalAgent) => {
+      const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
+      const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
+      return countA - countB;
+    };
+    let candidates = Array.from(agentState.pool.agents.values())
+      .filter(a => a.department === dept && fit(a) && (a.role === "dokter_spesialis" || a.status.inShift))
+      .sort(byLoad);
+    if (candidates.length === 0) {
+      candidates = Array.from(agentState.pool.agents.values())
+        .filter(a => a.role === "dokter_umum" && a.status.inShift && fit(a))
+        .sort(byLoad);
+    }
+    if (candidates.length > 0) {
+      agentState.pool.assignments.set(encounter.id, candidates[0]!.id);
+    }
+    // Assign a nurse
+    const nurseCandidates = Array.from(agentState.pool.agents.values())
+      .filter(a => a.department === "KEPERAWATAN" && a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan")
+      .sort((a, b) => {
+        const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
+        const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
+        return countA - countB;
+      });
+    if (nurseCandidates.length > 0) {
+      const nurseId = nurseCandidates[0]!.id;
+      const nurseAssignKey = `ENC-NURSE-${encounter.id}`;
+      agentState.pool.assignments.set(nurseAssignKey, nurseId);
+    }
+  }
+
+  // Locale stay model (Indonesian default: 3-7 days uniform, avg 5; one RNG draw either way)
+  const dischargeDelay = ov?.dischargeDelay ?? getStayOutcomes().dischargeDelayMinutes(encounter.primaryDiagnosis, clock.rng());
+  queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
+}
+
+/** Specialty of a patient's primary diagnosis (scenario path helper; same mapping as the default path). */
+export function specialtyOf(patient: Patient): string | undefined {
+  const d = getPrimaryDiagnosis(patient);
+  return d ? mapIcdToSpecialty(d.code) : undefined;
+}
+
+/** Ward the default rule prefers for this patient, if any (scenario path helper). */
+export function specialtyWardFor(patient: Patient): string | undefined {
+  const sp = specialtyOf(patient);
+  return sp ? SPECIALTY_TO_WARD[sp] : undefined;
+}
+
 export function admissionHandler(state: HospitalState, clock: Clock, queue: EventQueue): HospitalState {
+  // Epic XII 12.1: scenario path only. Without state._demand this line does nothing and the default path below is unchanged.
+  if (state._demand) return scenarioDemandStep(state, clock, queue);
   const availableBeds = Array.from(state.beds.values()).filter(b => b.patientId === null);
   const occupancyRate = 1 - (availableBeds.length / state.beds.size);
 
@@ -133,66 +223,7 @@ export function admissionHandler(state: HospitalState, clock: Clock, queue: Even
     if (!freeBed) freeBed = Array.from(newBeds.values()).find(b => b.patientId === null);
     if (!freeBed) break;
 
-    newBeds.set(freeBed.id, { ...freeBed, patientId: patient.id });
-
-    const encounter = {
-      id: `ENC-${clock.tick}-${patient.id}`,
-      patientId: patient.id,
-      type: "inpatient" as const,
-      startTime: clock.hospitalTimeMs,
-      endTime: null as number | null,
-      status: "active" as const,
-      payer: assignPayer(patient, clock.rng, clock.rngSeed),
-      primaryDiagnosis: selectPrimaryDiagnosisCode(patient),
-      // ADR-015 D2: stamp the room class ONCE at bed assignment. Per-day room
-      // billing (finance.ts) reads this stamp; absent on outpatient/ED
-      // encounters, which gates them out of room charges. No rng.
-      roomClassAtAdmission: freeBed.roomClass,
-    };
-    newEncounters.set(encounter.id, encounter);
-
-    // Epic VI M6.1: Assign attending doctor based on specialty
-    const agentState = (state as unknown as { _agentState?: { pool: { agents: Map<string, HospitalAgent>; assignments: Map<string, string> } } })._agentState;
-    if (agentState) {
-      const dept = targetSpecialty ? (targetSpecialty === "pulmonology" ? "PARU" : targetSpecialty === "pediatrics" ? "ANAK" : targetSpecialty === "obgyn" ? "OBGYN" : targetSpecialty === "neurology" ? "SARAF" : targetSpecialty === "cardiology" ? "JANTUNG" : "PENYAKIT_DALAM") : "DOKTER";
-      // The attending specialist (DPJP) is responsible on call, so is assigned
-      // by department whatever the roster says; with no fit specialist, the
-      // on-duty GP (dokter jaga) takes the admission (2026-10-27 roster).
-      const fit = (a: HospitalAgent) => a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan";
-      const byLoad = (a: HospitalAgent, b: HospitalAgent) => {
-        const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
-        const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
-        return countA - countB;
-      };
-      let candidates = Array.from(agentState.pool.agents.values())
-        .filter(a => a.department === dept && fit(a) && (a.role === "dokter_spesialis" || a.status.inShift))
-        .sort(byLoad);
-      if (candidates.length === 0) {
-        candidates = Array.from(agentState.pool.agents.values())
-          .filter(a => a.role === "dokter_umum" && a.status.inShift && fit(a))
-          .sort(byLoad);
-      }
-      if (candidates.length > 0) {
-        agentState.pool.assignments.set(encounter.id, candidates[0]!.id);
-      }
-      // Assign a nurse
-      const nurseCandidates = Array.from(agentState.pool.agents.values())
-        .filter(a => a.department === "KEPERAWATAN" && a.status.inShift && a.status.kesehatan !== "sakit_berat" && a.status.kesehatan !== "sakit_ringan")
-        .sort((a, b) => {
-          const countA = Array.from(agentState.pool.assignments.values()).filter(v => v === a.id).length;
-          const countB = Array.from(agentState.pool.assignments.values()).filter(v => v === b.id).length;
-          return countA - countB;
-        });
-      if (nurseCandidates.length > 0) {
-        const nurseId = nurseCandidates[0]!.id;
-        const nurseAssignKey = `ENC-NURSE-${encounter.id}`;
-        agentState.pool.assignments.set(nurseAssignKey, nurseId);
-      }
-    }
-
-    // Locale stay model (Indonesian default: 3-7 days uniform, avg 5; one RNG draw either way)
-    const dischargeDelay = getStayOutcomes().dischargeDelayMinutes(encounter.primaryDiagnosis, clock.rng());
-    queue.schedule("discharge", clock.tick + dischargeDelay, { patientId: patient.id, encounterId: encounter.id, bedId: freeBed.id });
+    admitPatientToBed(state, newBeds, newEncounters, patient, freeBed, targetSpecialty, clock, queue);
   }
 
   return { ...state, beds: newBeds, encounters: newEncounters };

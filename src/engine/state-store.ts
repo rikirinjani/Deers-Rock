@@ -1,4 +1,5 @@
 import type { Patient, Bed, Encounter, LabOrder, MedicationOrder, NurseNote, PhysicianOrder, RadiologyOrder, SurgeryOrder, RespiratoryOrder, DietOrder, SocialWorkNote, EdTriage, MedicalChart, Charge, InsuranceClaim, Payment, InventoryItem, StockTransaction, RoomClass } from "../patient/schema.js";
+import type { DemandState } from "./scenario-demand.js";
 import type { SpecialtyOrder } from "./specialty.js";
 import type { AgentState } from "../agent/system.js";
 import type { ReferralState } from "../referral/system.js";
@@ -158,6 +159,8 @@ export interface HospitalState {
   _rngSeed: number;
   /** Epic XII: scenario layout, present only when createState got a custom layout. */
   _layout?: HospitalLayout;
+  /** Epic XII 12.1: scenario demand stream and queue; present only when a demand config is given. */
+  _demand?: DemandState;
 }
 
 export interface OutpatientVisit {

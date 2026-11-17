@@ -77,3 +77,18 @@ Scenario path only; the default path keeps today's patient pool and admission ca
 4. **New arrival generator** for the scenario path (arrival rate is an input; payer and specialty from the existing patient attributes). It does not draw from the recurring pool, because the pool ties demand back to capacity.
 
 Arrival rate and wait limit have no real data behind them: results are scenarios, not forecasts.
+
+## 10. Milestone 12.1 implemented (2026-11-17)
+
+`createWorld(patientCount, journalPath, seed, layout?, demand?)`; `demand` is `{ arrivalsPerDay (default 19), waitLimitMinutes (default 1440) }`. With it, `state._demand` exists and `admissionHandler` hands over to `scenarioDemandStep` (`src/engine/scenario-demand.ts`); without it that one line is a no-op and the default path is unchanged. The per-patient placement code was moved unchanged from `admissionHandler` into `admitPatientToBed` (`markov.ts`), the only refactor of the default path, so the gate must be re-run.
+
+- Arrivals: one Bernoulli per minute (p = arrivalsPerDay/1440) on the handler's own sub-stream; patient, payer, diagnosis and stay length are drawn at arrival and stored, so the same seed gives identical `arrivalLog` under every layout (tested, 6 beds vs 60).
+- Queue: FIFO; waiting longer than the limit counts as diverted (exactly limit + 1 minutes, tested). `arrived = admitted + diverted + queued` always.
+- Placement still uses the default rule (specialty ward, else any free bed). Class routing, spillover and the no-fallback-into-VIP/ICU rule are 12.2.
+- Stats on `state._demand`: arrived, admitted, diverted, waitMinutesAdmitted, maxQueueLength, arrivalLog, divertedLog.
+
+Facts found:
+- Demand patients join `state.patients` once admitted, so the existing outpatient handler also gives them outpatient visits (as it does for any patient). Count inpatient encounters only (`type === "inpatient"`).
+- "Same demand" means same arrivals, payer, diagnosis and stay length. Deaths and ancillary orders still draw from their own per-tick sub-streams, so the clinical course is not identical across layouts.
+- Occupancy starts empty. With default stays of 3-7 days a layout takes several simulated days to fill, so a scenario needs a warm-up (12.3 reports should drop it).
+- The arrival default (19 per day) comes from the existing clinical-v2 calibration comment (about 70% occupancy for 131 beds). It is not real-hospital data.
