@@ -362,6 +362,34 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-1
 
 ---
 
+## Epic XII — Hospital Layout & Capacity Scenarios 🔴 (not started)
+
+**Status:** Planned. Created 2026-11-17 by the owner after Epic X's review of `docs/ward-class-scenario-design.md`. Core capability, not a country concern: scheduled **ahead of Epic X 10.6 (packaging)**, because the layout seam touches `createWorld` and `markov.ts` and would collide with the 10.6 package move. Own branch when code starts; first customer market (US or Indonesia) stays open.
+
+**Goal:** a hospital manager changes the ward and room-class layout (for example 10 Kelas 2 rooms become 5 Kelas 2 plus 10 Kelas 3) and compares occupancy, diverted patients and income on the same demand. Scenario and sensitivity tool, not a forecast; no real-hospital validation yet.
+
+**Owner decision (2026-11-17):** one ward per class, with refits done as layout changes between runs. The default Indonesian layout stays untouched; the class-ward layout is a separate, selectable scenario.
+
+### Milestone 12.0: Layout input ⬜ (S)
+- [ ] `createWorld` takes a layout (default `BUILDING_LAYOUT`); today `world.ts:93` passes `{}` and the layout is hard-coded. Test: default output byte-identical (E1 runner and finance golden, on Kaggle)
+- [ ] Define a class-neutral bed order for the baseline (today each ward fills kelas-1, then kelas-2, then kelas-3 by key order, which decides class occupancy)
+
+### Milestone 12.1: Demand stream and queue ⬜ (L)
+- [ ] Demand independent of beds, with a queue for patients who cannot be placed. Today admission is capped by free beds (`markov.ts:120`), so extra beds create extra admissions and diversion cannot be measured. New engine concept
+
+### Milestone 12.2: Class-ward routing ⬜ (M)
+- [ ] Route by payer and entitlement into class wards, specialty preference inside the class, spillover rule (up to a higher class, or divert), diversion counted. No fallback into VIP, ICU, NICU or PICU in the scenario path. No extra random draws
+
+### Milestone 12.3: Money model and reports ⬜ (M)
+- [ ] Room revenue by class for non-BPJS payers, BPJS INA-CBG package revenue (open: how claims treat room charge), cost per bed-day by class, refit cost and downtime; occupancy, diversion, margin per layout, range across seeds
+
+### Milestone 12.4: First scenario and validation ⬜ (M)
+- [ ] The 10→5+10 example, plus a backtest on one partner hospital's past aggregates before any claim
+
+**Open, unsourced:** KRIS (Perpres 59/2024) status in 2026, BPJS class entitlement and upgrade rules, minimum lowest-class bed share, cost per bed-day, renovation cost, beds per room and floor area by class. The US pack has no kelas concept.
+
+---
+
 ## Summary
 
 | Epic | Status | Tests | Notes |
@@ -376,5 +404,6 @@ Order: 10.1 → 10.2 → (10.3 ∥ 10.4) → 10.5 → 10.6. Owner decided 2026-1
 | **VIII** ADRs & Governance | ✅ 3/3 MS | — | ADRs consolidated in `docs/adr/` with index; collisions resolved (→ ADR-028, ADR-029); ADR-008/029 amendments accepted 2026-10-27; open: ADR-001/002 + ADR-016 amendment Proposed, ADR-026 unwritten |
 | **IX** Financial & Referral | ✅ 4/4 MS | 47 | Wave 2 wired: transport, ambulance charge, letter↔visit link, JR incident↔claim; 2026-10-31 JR limited to traffic accidents (owner) |
 | **X** International Billing | 🟡 M10.1 ✅ M10.2 🟡 M10.3 ✅ M10.4 ✅ M10.5a ✅ 10.5b ✅ | 30 | Branch `epic-x-international`; scope = full US hospital sim (owner 2026-11-02); 10.5b done, 10.5c planned, US-first (owner 2026-11-04) |
+| **XII** Hospital Layout & Capacity Scenarios | 🔴 Planned | — | Created 2026-11-17; ward-class scenario; before Epic X 10.6; design in `docs/ward-class-scenario-design.md` |
 
 **Overall (2026-10-27, branch `epic-audit-vi-ix`):** 531 tests pass / 3 skipped / 0 failed (67 files), tsc clean. Determinism: module-global AI-coder profiles reset; per-handler RNG sub-streams (declared seed break, ADR-008 Amendment 1). Baselines re-frozen 2026-11-01 as `vitals-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01.md`; E1 regression reference plus outcome baseline, 10 seeds × 10 sim-days: mortality 3.70 %, ALOS 4.80 d, BOR 99.8 %, 94.5 % discharged improved); earlier `substream-v1`/`outcome-v1` kept as history; 2026-09-10 JAMIA freeze untouched. P-002 clinical vitals frozen 2026-11-01 as `clinical-v1` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-01-clinical-v1.md`; default config: pooled GDR 49.4 ‰, improved 85.1 %, deteriorated 9.9 %, ALOS 4.80 d, BOR 99.8 %). Model changes (patient/staff age fix, tiered death probability, dengue tier, arrival gate) frozen 2026-11-02 as `clinical-v2` (`docs/experiments/EXPERIMENT-FREEZE-2026-11-02-clinical-v2.md`; supersedes `clinical-v1` for the default config: pooled GDR 41.1 ‰ — calibrated toward an unconfirmed reference —, improved 69.9 %, deteriorated 26.0 %, ALOS 4.82 d, BOR ~90 % vs 70 % example target). Epic VI–IX audit and follow-ups: `docs/epic-audit-2026-10-26.md`.

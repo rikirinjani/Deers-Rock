@@ -20,9 +20,9 @@ Let a hospital manager ask "what if we change our room-class mix?" and see the e
 
 **3.2 One ward per class.** A class ward may serve several specialties (a general Kelas 3 ward). Specialty-specific wards remain only where needed (ICU, NICU, PICU, OBGYN).
 
-**3.3 Routing.** Replace "first free bed" for the scenario path with: (1) pick eligible classes from payer and entitlement, (2) prefer the specialty ward within the class, (3) take a free bed there, (4) if none, apply the spillover rule (up to a higher class, or divert). Every outcome is counted. The routing step may use no extra random draws, so seeds stay comparable across layouts.
+**3.3 Routing.** Replace "first free bed" for the scenario path with: (1) pick eligible classes from payer and entitlement, (2) prefer the specialty ward within the class, (3) take a free bed there, (4) if none, apply the spillover rule (up to a higher class, or divert). Every outcome is counted. The routing step may use no extra random draws, so seeds stay comparable across layouts. In the scenario path there is **no fallback into VIP, ICU, NICU or PICU** (today's fallback takes any free bed in the hospital). Today's class fill is also an artifact of key order (each ward fills kelas-1, then kelas-2, then kelas-3), so the baseline run needs a defined class-neutral bed order.
 
-**3.4 Refit.** A refit is a layout change between two runs: beds move from ward A to ward B. Inputs: conversion cost, downtime days, beds lost during works. A refit never changes patient arrivals.
+**3.4 Demand and refit.** A refit is a layout change between two runs: beds move from ward A to ward B. Inputs: conversion cost, downtime days, beds lost during works. Correction after Epic X's review: this engine is capacity-driven (a recurring patient pool, admissions capped by free beds, a fixed 3-7 day stay unrelated to class), so extra beds create extra admissions. For a fair comparison the scenario needs a **demand stream independent of beds plus a queue** for patients who cannot be placed; that is a new engine concept (milestone 12.1). Without it, diversion cannot be measured.
 
 **3.5 Money.** Per layout: room revenue by class (self-pay and private insurance), BPJS INA-CBG package revenue, cost per occupied bed-day by class (input, needs a source), refit cost. Output: margin per layout and the occupancy at which two layouts break even.
 
@@ -43,11 +43,14 @@ The current mixed-ward default and its bed order stay unchanged. The class-ward 
 
 ## 6. Steps
 
+0. Layout input: `createWorld` takes a layout (default `BUILDING_LAYOUT`; today `world.ts:93` passes `{}`), plus a test that the default stays byte-identical (milestone 12.0).
 1. Confirm KRIS status and bed-share rules from primary text or a hospital finance officer.
-2. Make layout a scenario input and add the data model (class, specialties, rooms, area).
-3. Add routing, spillover and diversion counting for the scenario path only.
-4. Add the money model and per-class reports.
-5. Regression on Kaggle: default unchanged. Then run the friend's example as a first scenario.
+2. Add the data model (class, specialties, rooms, area) and a class-neutral baseline bed order.
+3. Add the demand stream and queue (12.1), then routing, spillover and diversion counting for the scenario path only (12.2).
+4. Add the money model and per-class reports (12.3). BPJS room revenue may apply only to non-BPJS payers; claims are INA-CBG packages.
+5. Regression on Kaggle: default unchanged. Then run the friend's example as a first scenario (12.4).
+
+Epic: this is Epic XII in `ROADMAP.md`, scheduled ahead of Epic X 10.6 to avoid colliding with the package move. Status of section 2 claims: reviewed by the Epic X session on 2026-11-17 against the code; ward capacity is not settable from outside today (`createState(patients, {}, rng)`; the `wardCapacity` argument is a test-only path that makes every bed kelas-3).
 
 ## 7. Non-goals
 
