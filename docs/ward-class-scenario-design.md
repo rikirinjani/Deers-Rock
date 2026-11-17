@@ -129,3 +129,5 @@ Scenario path only. No change to the default path or to engine admission beyond 
 8. Stay length 3-7 days regardless of class.
 
 **Speed note (measured):** the full handler stack is slow. About 2,900 ticks (2 simulated days) took roughly 30 s per run in the unit-test environment, and run time grows with the number of patients and encounters. A real comparison (20+ days, several seeds, two layouts) is a Kaggle or VPS job, as the owner rule says; do not run it on the laptop. A lighter scenario engine (skipping unrelated handlers) would be a follow-up if comparisons become routine.
+
+**12.3 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-3` (dataset `hoe-src-12-3-2b390db`, `git archive` of `2b390db`, same slim paths). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...`, summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.3.**
