@@ -31,11 +31,13 @@ export function sensitivityGrid(): Setting[] {
 
 interface Pair { rate: number; seed: number; a: RunFile; b: RunFile }
 
-export function pairRuns(files: RunFile[]): Pair[] {
+export type Variant = "B" | "C";
+
+export function pairRuns(files: RunFile[], variant: Variant = "B"): Pair[] {
   const key = (f: RunFile) => `${f.arrivalsPerDay}|${f.seed}`;
   const a = new Map(files.filter((f) => f.layout === "A").map((f) => [key(f), f]));
   const pairs: Pair[] = [];
-  for (const b of files.filter((f) => f.layout === "B")) {
+  for (const b of files.filter((f) => f.layout === variant)) {
     const fa = a.get(key(b));
     if (!fa) continue;
     if (fa.record.arrivalDigest !== b.record.arrivalDigest || fa.days !== b.days)
@@ -59,8 +61,8 @@ export function crossing(rates: number[], medians: number[]): number | null {
   return null;
 }
 
-export function buildReport(files: RunFile[]): string {
-  const pairs = pairRuns(files);
+export function buildReport(files: RunFile[], variant: Variant = "B"): string {
+  const pairs = pairRuns(files, variant);
   if (pairs.length === 0) throw new Error("no paired A/B runs found");
   const rates = [...new Set(pairs.map((p) => p.rate))].sort((x, y) => x - y);
   const seeds = [...new Set(pairs.map((p) => p.seed))].sort((x, y) => x - y);
@@ -68,16 +70,20 @@ export function buildReport(files: RunFile[]): string {
   const L: string[] = [];
   const add = (s = "") => L.push(s);
 
-  add("# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison");
+  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)");
   add();
   add("> **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.");
   add();
   add("## Reading of the example");
   add(`- **A:** 10 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} beds = 20 Kelas 2 beds.`);
-  add(`- **B:** 5 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} + 10 Kelas 3 rooms x ${BEDS_PER_ROOM["kelas-3"]} = 10 Kelas 2 beds + 40 Kelas 3 beds. (B has more beds than A: the reading of "rooms" decides capacity.)`);
+  if (variant === "B") {
+    add(`- **B:** 5 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} + 10 Kelas 3 rooms x ${BEDS_PER_ROOM["kelas-3"]} = 10 Kelas 2 beds + 40 Kelas 3 beds. **B has 2.5 times A's beds**, so this comparison mixes the class mix with extra capacity; the bed-matched variant (results for C) isolates the mix.`);
+  } else {
+    add("- **C (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds = 20 beds, the same capacity as A. Only the class mix differs from A. (Not the owner's example; a sensitivity run.)");
+  }
   add("- Each layout is a standalone general ward; the rest of the hospital is not simulated.");
   add(`- ${days} simulated days per run, the first ${WARMUP_DAYS} dropped as warm-up; ${seeds.length} seeds (${seeds.join(", ")}); arrival rates ${rates.join(", ")} per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).`);
-  add("- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are B minus A.");
+  add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus A.`);
   add(`- Routing: DEFAULT_ROUTING (BPJS and Self-pay start in Kelas 3; Private Insurance in Kelas 2; spill up allowed). With layout A (no Kelas 3), BPJS and Self-pay patients are placed in Kelas 2 as spillover.`);
   add();
   add("## Assumptions and unsourced inputs (read first)");
@@ -94,13 +100,13 @@ export function buildReport(files: RunFile[]): string {
   for (const rate of rates) {
     const ps = pairs.filter((p) => p.rate === rate);
     for (const side of ["a", "b"] as const) {
-      const rs = ps.map((p) => rep(p[side], DEFAULT_MONEY));
+      const rs = ps.map((p) => rep(side === "a" ? p.a : p.b, DEFAULT_MONEY));
       const col = (f: (r: ScenarioReport) => number) => range(rs.map(f));
-      add(`| ${rate} | ${side.toUpperCase()} | ${R(col((r) => r.occupancy * 100))}% | ${R(col((r) => r.admitted), (n) => n.toFixed(0))} | ${R(col((r) => r.diverted), (n) => n.toFixed(0))} | ${R(col((r) => r.divertedByPayer["BPJS Kesehatan"] ?? 0), (n) => n.toFixed(0))} | ${R(col((r) => r.spilledUp), (n) => n.toFixed(0))} | ${R(col((r) => r.revenue.totalIdr), M)} | ${R(col((r) => r.marginIdr), M)} |`);
+      add(`| ${rate} | ${side === "a" ? "A" : variant} | ${R(col((r) => r.occupancy * 100))}% | ${R(col((r) => r.admitted), (n) => n.toFixed(0))} | ${R(col((r) => r.diverted), (n) => n.toFixed(0))} | ${R(col((r) => r.divertedByPayer["BPJS Kesehatan"] ?? 0), (n) => n.toFixed(0))} | ${R(col((r) => r.spilledUp), (n) => n.toFixed(0))} | ${R(col((r) => r.revenue.totalIdr), M)} | ${R(col((r) => r.marginIdr), M)} |`);
     }
   }
   add();
-  add("## Paired difference B minus A at default money settings");
+  add(`## Paired difference ${variant} minus A at default money settings`);
   add();
   add("| rate/day | margin (M IDR) | diverted | BPJS diverted | occupancy (points) |");
   add("|---|---|---|---|---|");
@@ -118,7 +124,7 @@ export function buildReport(files: RunFile[]): string {
 
   add("## Sensitivity: does the sign of the margin difference survive the unsourced inputs?");
   add();
-  add("Cell = median paired margin difference B minus A in M IDR; `*` = seeds disagree on the sign. Rows are money settings recomputed from the same runs.");
+  add(`Cell = median paired margin difference ${variant} minus A in M IDR; * = seeds disagree on the sign. Rows are money settings recomputed from the same runs.`);
   add();
   add(`| setting | ${rates.map((r) => `rate ${r}`).join(" | ")} | break-even rate |`);
   add(`|---|${rates.map(() => "---").join("|")}|---|`);
@@ -130,7 +136,7 @@ export function buildReport(files: RunFile[]): string {
       const ds = pairs.filter((p) => p.rate === rate).map((p) => rep(p.b, s.cfg).marginIdr - rep(p.a, s.cfg).marginIdr);
       const r = range(ds);
       meds.push(r.median);
-      signs.add(r.median > 0 ? "B better" : r.median < 0 ? "A better" : "tie");
+      signs.add(r.median > 0 ? `${variant} better` : r.median < 0 ? "A better" : "tie");
       const mixed = ds.some((x) => x > 0) && ds.some((x) => x < 0);
       return `${M(r.median)}${mixed ? "*" : ""}`;
     });
@@ -140,7 +146,7 @@ export function buildReport(files: RunFile[]): string {
     add(`| ${s.name} | ${cells.join(" | ")} | ${x === null ? "none in range" : x.toFixed(1) + "/day"} |`);
   }
   add();
-  add(`**Reading:** ${flipRows} of ${rows} settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: ${[...signs].join(", ")}.`);
+  add(`**Reading:** ${flipRows} of ${rows} settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: ${[...signs].join(", ")} (positive = ${variant} better).`);
   const x0 = crossing(rates, medMargin);
   add(`**Break-even at default settings:** ${x0 === null ? "no crossing in the tested range" : `about ${x0.toFixed(1)} arrivals/day`}. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.`);
   add();
@@ -152,9 +158,9 @@ export function buildReport(files: RunFile[]): string {
 }
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4-report.ts")) {
-  const [dir, out] = process.argv.slice(2);
-  if (!dir || !out) { console.error("usage: layout-12-4-report.ts <runDir> <outFile.md>"); process.exit(2); }
-  const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[AB]_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
-  writeFileSync(out, buildReport(files));
+  const [dir, out, v] = process.argv.slice(2);
+  if (!dir || !out) { console.error("usage: layout-12-4-report.ts <runDir> <outFile.md> [B|C]"); process.exit(2); }
+  const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[ABC]_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
+  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B"));
   console.error(`wrote ${out} from ${files.length} runs`);
 }
