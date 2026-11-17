@@ -66,3 +66,14 @@ Corrections and facts for 12.1+:
 - `specialties`, `bedsPerRoom`, `areaPerBedM2` are stored on `state._layout` but nothing reads them yet (routing is 12.2, money 12.3). Admission still uses the existing "first free bed in the specialty's ward, else any free bed" (`markov.ts`), so a custom layout whose ward names do not match the specialty ward names falls back to any free bed. That is only acceptable until 12.2.
 
 **12.0 regression (2026-11-17, owner-approved):** Kaggle kernel `hoe-regress-12-0` (dataset `hoe-src-12-0-d11e3bb`, `git archive` of commit `d11e3bb`, paths src, scripts, package.json, tsconfig.json, facts.yaml). E1 `runner.ts 10 1000` run twice: CSV `084024be6e8b9661...` and summary `068b07b2238ecd55...` both times. Finance golden `6f25fe37ac62a6a4`, `a5e2afe343457617`, `05e3e2568db1179f`. All equal to the frozen values: **the Indonesian default is byte-identical after 12.0.**
+
+## 9. Milestone 12.1 design decisions (accepted by the owner 2026-11-17)
+
+Scenario path only; the default path keeps today's patient pool and admission cap, and the E1 and finance-golden hashes must stay byte-identical.
+
+1. **Own random stream.** Demand uses a separate rng stream seeded from the world seed, generated per tick. Bed count and layout can not shift any other draw, so the same seed gives the same demand under every layout.
+2. **Queue.** Patients who cannot be placed wait. A wait limit (input, stated default, sensitivity run; no real-hospital figure exists) turns a waiting patient into a diverted one. First come first served; priority later.
+3. **Length of stay unchanged** (fixed 3-7 days) in 12.1, so layout is the only variable. Stay by class or specialty is a later calibration item that needs a data source.
+4. **New arrival generator** for the scenario path (arrival rate is an input; payer and specialty from the existing patient attributes). It does not draw from the recurring pool, because the pool ties demand back to capacity.
+
+Arrival rate and wait limit have no real data behind them: results are scenarios, not forecasts.
