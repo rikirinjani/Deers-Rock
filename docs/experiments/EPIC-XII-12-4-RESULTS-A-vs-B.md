@@ -1,0 +1,184 @@
+# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example) - SPILL-ALLOWED ROUTING (sensitivity)
+
+> **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.
+
+## Reading of the example
+- **A:** 10 Kelas 2 rooms x 2 beds = 20 Kelas 2 beds.
+- **B:** 5 Kelas 2 rooms x 2 + 10 Kelas 3 rooms x 4 = 10 Kelas 2 beds + 40 Kelas 3 beds. **B has 2.5 times A's Kelas 2/3 beds**, so this comparison mixes the class mix with extra capacity; the bed-matched variant (results for C) isolates the mix.
+- Each layout is a standalone general ward; the rest of the hospital is not simulated.
+- 28 simulated days per run, the first 7 dropped as warm-up; 20 seeds (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20); arrival rates 2, 4, 6, 8, 10, 14 per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).
+- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are B minus A.
+- Routing: DEFAULT_ROUTING (BPJS and Self-pay start in Kelas 3; Private Insurance in Kelas 2; spill up allowed). With layout A (no Kelas 3), BPJS and Self-pay patients are placed in Kelas 2 as spillover.
+
+## Assumptions and unsourced inputs (read first)
+- costPerBedDayIdr / costRatioOfListRate (default 0.6 of the list room price): no hospital cost data
+- nonRoomCostPerAdmissionIdr (default 0) and nonRoomRevenuePerNonPackageAdmissionIdr (default 0): no source; they decide whether a BPJS package admission pays
+- fixedCostPerAvailableBedDayIdr (default 0 in the model; the break-even section sweeps 0 to 200k IDR): no hospital cost data
+- spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified
+- bpjsClaimPaidShare default 1: denial and delay rates are not applied
+- refitCostIdr and closure windows: no renovation cost source
+- BPJS Kesehatan entitlement tier mix (Kelas 3 incl. PBI / Kelas 2 / Kelas 1) in the rule-aware routing: placeholder shares, no source
+- routing table (scenario-routing.ts DEFAULT_ROUTING): BPJS entitlement by member tier, KRIS reform, upgrade rules unverified
+- arrivalsPerDay default 19 and waitLimitMinutes default 1440: calibration comment only, not hospital data
+- beds per room by class (rooms to beds): no source
+- room list price (350000 IDR x class multiplier) and INA-CBG tariffs: engine tables, not checked against current Kemenkes tariffs
+- stay length 3-7 days regardless of class: not calibrated
+- Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.
+- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. A strict-routing page (no spill) exists as a separate file.
+- Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.
+- Default money settings for the main table: cost = 0.6 x list room price per occupied bed-day, no non-room cost or revenue, spilled-up BPJS absorbed by the hospital, all BPJS claims paid.
+
+## Results at default money settings (median, min to max across seeds)
+
+| rate/day | layout | occupancy | admitted | diverted | BPJS diverted | spilled up | revenue (M IDR) | margin (M IDR) |
+|---|---|---|---|---|---|---|---|---|
+| 2 | A | 47.0 (33.2 to 73.6)% | 42 (28 to 66) | 0 (0 to 0) | 0 (0 to 0) | 37 (23 to 60) | 213.0 (161.4 to 361.0) | 151.1 (106.3 to 263.5) |
+| 2 | B | 18.8 (13.3 to 29.5)% | 42 (28 to 66) | 0 (0 to 0) | 0 (0 to 0) | 0 (0 to 0) | 211.1 (160.8 to 361.0) | 166.6 (121.8 to 293.2) |
+| 4 | A | 90.1 (71.1 to 97.9)% | 75 (64 to 85) | 7 (0 to 28) | 5 (0 to 25) | 64 (56 to 76) | 433.1 (366.8 to 523.4) | 318.2 (247.6 to 400.1) |
+| 4 | B | 38.3 (28.5 to 51.1)% | 82 (64 to 109) | 0 (0 to 0) | 0 (0 to 0) | 0 (0 to 0) | 452.7 (382.0 to 580.6) | 364.4 (286.5 to 478.4) |
+| 6 | A | 99.7 (97.1 to 100.0)% | 85 (76 to 88) | 37 (14 to 76) | 30 (13 to 66) | 74 (65 to 79) | 485.9 (402.4 to 569.3) | 353.8 (270.1 to 437.1) |
+| 6 | B | 57.4 (46.7 to 72.2)% | 123 (97 to 152) | 0 (0 to 0) | 0 (0 to 0) | 0 (0 to 4) | 708.6 (623.8 to 870.0) | 566.9 (489.6 to 717.3) |
+| 8 | A | 100.0 (99.2 to 100.0)% | 84 (79 to 89) | 82 (61 to 101) | 65 (47 to 89) | 73 (62 to 77) | 490.6 (458.5 to 579.9) | 358.9 (326.2 to 447.6) |
+| 8 | B | 77.1 (67.8 to 86.7)% | 164 (146 to 184) | 1 (0 to 2) | 0 (0 to 0) | 5 (0 to 13) | 935.7 (827.4 to 1100.2) | 739.7 (653.3 to 900.4) |
+| 10 | A | 100.0 (100.0 to 100.0)% | 82 (77 to 89) | 122 (98 to 148) | 100 (81 to 124) | 71 (62 to 79) | 501.9 (428.3 to 575.4) | 369.6 (296.0 to 443.1) |
+| 10 | B | 94.6 (86.3 to 98.0)% | 196 (185 to 210) | 8 (1 to 21) | 0 (0 to 10) | 17 (7 to 26) | 1140.1 (1061.4 to 1306.6) | 916.3 (831.0 to 1072.1) |
+| 14 | A | 100.0 (100.0 to 100.0)% | 81 (78 to 87) | 204 (187 to 231) | 167 (150 to 194) | 69 (60 to 79) | 463.1 (426.5 to 553.0) | 330.8 (294.2 to 420.7) |
+| 14 | B | 100.0 (99.6 to 100.0)% | 211 (202 to 220) | 76 (50 to 107) | 45 (26 to 70) | 27 (20 to 33) | 1220.7 (1157.3 to 1315.2) | 978.2 (914.7 to 1072.7) |
+
+## Paired difference B minus A at default money settings
+
+| rate/day | margin (M IDR) | diverted | BPJS diverted | occupancy (points) |
+|---|---|---|---|---|
+| 2 | 17.2 (11.6 to 29.6) | 0 (0 to 0) | 0 (0 to 0) | -28.2 (-44.2 to -19.9) |
+| 4 | 44.4 (28.0 to 130.9) | -7 (-28 to 0) | -5 (-25 to 0) | -50.6 (-55.7 to -42.6) |
+| 6 | 211.3 (132.8 to 358.0) | -37 (-76 to -14) | -30 (-66 to -13) | -42.5 (-51.0 to -27.8) |
+| 8 | 384.6 (290.6 to 500.9) | -80 (-101 to -61) | -65 (-89 to -47) | -22.9 (-32.2 to -13.3) |
+| 10 | 535.2 (472.3 to 690.8) | -114 (-132 to -97) | -98 (-118 to -81) | -5.4 (-13.7 to -2.0) |
+| 14 | 637.8 (534.3 to 747.4) | -131 (-139 to -120) | -121 (-132 to -116) | -0.0 (-0.4 to 0.0) |
+
+With few seeds and a few dozen arrivals per run, lean on the min-to-max range, not on the median.
+
+## Sensitivity: does the sign of the margin difference survive the unsourced inputs?
+
+Cell = median paired margin difference B minus A in M IDR; * = seeds disagree on the sign. Rows are money settings recomputed from the same runs.
+
+| setting | rate 2 | rate 4 | rate 6 | rate 8 | rate 10 | rate 14 | break-even rate |
+|---|---|---|---|---|---|---|---|
+| cost 0.4 x list / non-room cost 0M / non-room rev 0M / absorb | 11.2 | 36.3 | 214.7 | 399.3 | 568.4 | 674.5 | none in range |
+| cost 0.4 x list / non-room cost 0M / non-room rev 0M / pay-diff | -17.6 | -16.3* | 157.0 | 341.5 | 524.7 | 641.9 | 4.2/day |
+| cost 0.4 x list / non-room cost 0M / non-room rev 1M / absorb | 11.2 | 36.8 | 218.6 | 407.3 | 579.4 | 680.7 | none in range |
+| cost 0.4 x list / non-room cost 0M / non-room rev 1M / pay-diff | -17.6 | -16.3* | 159.6 | 349.9 | 535.7 | 646.4 | 4.2/day |
+| cost 0.4 x list / non-room cost 1M / non-room rev 0M / absorb | 11.2 | 31.0 | 177.8 | 327.6 | 458.4 | 543.0 | none in range |
+| cost 0.4 x list / non-room cost 1M / non-room rev 0M / pay-diff | -17.6 | -20.3* | 120.3 | 268.1 | 411.6 | 511.0 | 4.3/day |
+| cost 0.4 x list / non-room cost 1M / non-room rev 1M / absorb | 11.2 | 31.0 | 180.8 | 335.0 | 469.4 | 548.5 | none in range |
+| cost 0.4 x list / non-room cost 1M / non-room rev 1M / pay-diff | -17.6 | -20.3* | 123.3 | 276.1 | 422.6 | 516.0 | 4.3/day |
+| cost 0.4 x list / non-room cost 3M / non-room rev 0M / absorb | 11.2 | 22.1* | 100.6 | 168.2 | 234.6 | 284.4 | none in range |
+| cost 0.4 x list / non-room cost 3M / non-room rev 0M / pay-diff | -17.6 | -29.9 | 42.7* | 107.8 | 188.3 | 250.7 | 4.8/day |
+| cost 0.4 x list / non-room cost 3M / non-room rev 1M / absorb | 11.2 | 22.1* | 103.6 | 175.2 | 248.6 | 289.8 | none in range |
+| cost 0.4 x list / non-room cost 3M / non-room rev 1M / pay-diff | -17.6 | -29.9* | 45.7* | 114.8 | 202.3 | 255.9 | 4.8/day |
+| cost 0.6 x list / non-room cost 0M / non-room rev 0M / absorb | 17.2 | 44.4 | 211.3 | 384.6 | 535.2 | 637.8 | none in range |
+| cost 0.6 x list / non-room cost 0M / non-room rev 0M / pay-diff | -11.7 | -7.5* | 155.2 | 325.4 | 491.5 | 605.2 | 4.1/day |
+| cost 0.6 x list / non-room cost 0M / non-room rev 1M / absorb | 17.2 | 44.5 | 214.8 | 392.6 | 546.2 | 644.0 | none in range |
+| cost 0.6 x list / non-room cost 0M / non-room rev 1M / pay-diff | -11.7 | -7.5* | 157.2 | 333.4 | 502.5 | 609.7 | 4.1/day |
+| cost 0.6 x list / non-room cost 1M / non-room rev 0M / absorb | 17.2 | 39.9 | 174.6 | 308.6 | 428.9 | 506.3 | none in range |
+| cost 0.6 x list / non-room cost 1M / non-room rev 0M / pay-diff | -11.7 | -11.0* | 116.6 | 252.5 | 382.1 | 474.3 | 4.2/day |
+| cost 0.6 x list / non-room cost 1M / non-room rev 1M / absorb | 17.2 | 39.9 | 177.6 | 315.6 | 439.9 | 511.8 | none in range |
+| cost 0.6 x list / non-room cost 1M / non-room rev 1M / pay-diff | -11.7 | -11.0* | 120.9 | 259.8 | 393.1 | 479.3 | 4.2/day |
+| cost 0.6 x list / non-room cost 3M / non-room rev 0M / absorb | 17.2 | 32.1* | 99.2 | 154.7 | 204.9 | 247.7 | none in range |
+| cost 0.6 x list / non-room cost 3M / non-room rev 0M / pay-diff | -11.7 | -21.7* | 40.3* | 97.6 | 158.6 | 214.2 | 4.7/day |
+| cost 0.6 x list / non-room cost 3M / non-room rev 1M / absorb | 17.2 | 32.1* | 105.2 | 162.7 | 218.7 | 253.1 | none in range |
+| cost 0.6 x list / non-room cost 3M / non-room rev 1M / pay-diff | -11.7 | -21.7* | 46.3* | 104.8 | 172.6 | 219.1 | 4.6/day |
+| cost 0.8 x list / non-room cost 0M / non-room rev 0M / absorb | 23.1 | 53.3 | 209.5 | 370.0 | 504.9 | 601.0 | none in range |
+| cost 0.8 x list / non-room cost 0M / non-room rev 0M / pay-diff | -5.9 | 0.6* | 153.4 | 311.9 | 458.4 | 568.5 | 3.8/day |
+| cost 0.8 x list / non-room cost 0M / non-room rev 1M / absorb | 23.1 | 53.3 | 211.5 | 378.0 | 515.9 | 607.3 | none in range |
+| cost 0.8 x list / non-room cost 0M / non-room rev 1M / pay-diff | -5.9 | 0.6* | 155.4 | 319.9 | 469.4 | 573.0 | 3.8/day |
+| cost 0.8 x list / non-room cost 1M / non-room rev 0M / absorb | 23.1 | 48.8 | 170.7 | 287.6 | 398.2 | 469.5 | none in range |
+| cost 0.8 x list / non-room cost 1M / non-room rev 0M / pay-diff | -5.9 | -2.9* | 110.9 | 232.7 | 352.5 | 437.5 | 4.1/day |
+| cost 0.8 x list / non-room cost 1M / non-room rev 1M / absorb | 23.1 | 48.8 | 174.4 | 294.6 | 410.4 | 475.0 | none in range |
+| cost 0.8 x list / non-room cost 1M / non-room rev 1M / pay-diff | -5.9 | -2.9* | 115.9 | 239.7 | 363.6 | 442.5 | 4.0/day |
+| cost 0.8 x list / non-room cost 3M / non-room rev 0M / absorb | 23.1 | 41.1* | 94.2 | 139.6 | 175.2 | 210.9 | none in range |
+| cost 0.8 x list / non-room cost 3M / non-room rev 0M / pay-diff | -5.9 | -11.3* | 35.3* | 82.5 | 128.9 | 177.6 | 4.5/day |
+| cost 0.8 x list / non-room cost 3M / non-room rev 1M / absorb | 23.1 | 41.1* | 100.2 | 147.6 | 188.2 | 216.4 | none in range |
+| cost 0.8 x list / non-room cost 3M / non-room rev 1M / pay-diff | -5.9 | -11.3* | 41.3* | 90.5 | 142.8 | 182.4 | 4.4/day |
+| cost flat 250k / non-room cost 0M / non-room rev 0M / absorb | -1.0 | 11.7* | 170.0 | 340.2 | 488.9 | 590.5 | 2.2/day |
+| cost flat 250k / non-room cost 0M / non-room rev 0M / pay-diff | -29.3 | -38.1* | 113.9 | 279.2 | 445.2 | 558.0 | 4.5/day |
+| cost flat 250k / non-room cost 0M / non-room rev 1M / absorb | -1.0 | 11.7* | 172.0 | 348.2 | 499.9 | 596.8 | 2.2/day |
+| cost flat 250k / non-room cost 0M / non-room rev 1M / pay-diff | -29.3 | -38.1* | 115.9 | 287.2 | 456.2 | 562.5 | 4.5/day |
+| cost flat 250k / non-room cost 1M / non-room rev 0M / absorb | -1.0 | 7.2* | 132.9 | 261.5 | 382.8 | 459.0 | 2.2/day |
+| cost flat 250k / non-room cost 1M / non-room rev 0M / pay-diff | -29.3 | -42.1 | 73.1* | 205.8 | 336.0 | 427.0 | 4.7/day |
+| cost flat 250k / non-room cost 1M / non-room rev 1M / absorb | -1.0 | 7.2* | 136.0 | 268.5 | 393.8 | 464.5 | 2.2/day |
+| cost flat 250k / non-room cost 1M / non-room rev 1M / pay-diff | -29.3 | -42.1 | 77.6* | 213.6 | 347.0 | 432.0 | 4.7/day |
+| cost flat 250k / non-room cost 3M / non-room rev 0M / absorb | -1.0 | -1.9* | 56.7* | 109.3 | 159.3 | 200.4 | 4.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 0M / pay-diff | -29.3 | -53.5 | -2.2* | 52.2* | 113.0 | 167.0 | 6.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 1M / absorb | -1.0 | -1.9* | 62.7* | 117.3 | 172.4 | 205.9 | 4.1/day |
+| cost flat 250k / non-room cost 3M / non-room rev 1M / pay-diff | -29.3 | -53.5 | 3.8* | 59.9* | 126.6 | 171.9 | 5.9/day |
+| cost flat 350k / non-room cost 0M / non-room rev 0M / absorb | -1.0 | 9.4* | 151.4 | 304.8 | 434.6 | 527.5 | 2.2/day |
+| cost flat 350k / non-room cost 0M / non-room rev 0M / pay-diff | -29.3 | -39.3* | 95.3 | 244.6 | 387.7 | 495.1 | 4.6/day |
+| cost flat 350k / non-room cost 0M / non-room rev 1M / absorb | -1.0 | 9.4* | 153.4 | 311.9 | 445.5 | 533.8 | 2.2/day |
+| cost flat 350k / non-room cost 0M / non-room rev 1M / pay-diff | -29.3 | -39.3* | 97.3 | 252.6 | 398.6 | 499.6 | 4.6/day |
+| cost flat 350k / non-room cost 1M / non-room rev 0M / absorb | -1.0 | 5.1* | 108.6 | 217.4 | 326.2 | 396.0 | 2.3/day |
+| cost flat 350k / non-room cost 1M / non-room rev 0M / pay-diff | -29.3 | -44.3 | 49.7* | 162.5 | 279.6 | 364.0 | 4.9/day |
+| cost flat 350k / non-room cost 1M / non-room rev 1M / absorb | -1.0 | 5.1* | 113.6 | 224.4 | 338.2 | 401.5 | 2.3/day |
+| cost flat 350k / non-room cost 1M / non-room rev 1M / pay-diff | -29.3 | -44.3 | 55.4* | 169.5 | 291.6 | 369.0 | 4.9/day |
+| cost flat 350k / non-room cost 3M / non-room rev 0M / absorb | -1.0 | -2.3* | 33.7* | 72.5* | 104.2 | 137.4 | 4.1/day |
+| cost flat 350k / non-room cost 3M / non-room rev 0M / pay-diff | -29.3 | -54.2 | -25.7* | 14.1* | 58.9* | 104.2 | 7.3/day |
+| cost flat 350k / non-room cost 3M / non-room rev 1M / absorb | -1.0 | -2.3* | 39.7* | 80.9 | 117.2 | 142.9 | 4.1/day |
+| cost flat 350k / non-room cost 3M / non-room rev 1M / pay-diff | -29.3 | -54.2 | -19.7* | 23.8* | 71.9 | 108.9 | 6.9/day |
+
+**Reading:** hospital-absorbs: 12 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates); patient-pays-difference: 30 of 30 settings cross zero, 30 materially (above +5M and below -5M IDR in different rates). Sign set seen across all cells: B better, A better (positive = B better).
+**Break-even at default settings:** no crossing in the tested range. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.
+
+## Break-even analysis (scenario and sensitivity)
+
+Money settings are the defaults of this page; the **fixed cost per available bed-day F** (staffing, utilities and upkeep of beds that exist whether occupied or not) is UNSOURCED, varied here and zero in the tables above. 20 paired seeds; margin difference = B minus A; margin(F) = margin(0) - F x open bed-days.
+
+### 1. Break-even fixed cost per available bed-day
+
+F* = margin difference at F = 0 divided by the extra open bed-days of the variant. Above F* the variant earns less than the baseline at that arrival rate; a negative F* means the variant is already behind with free beds.
+
+| rate/day | extra open bed-days | margin diff at F=0 (M IDR) | F* (k IDR per bed-day), median (min to max) |
+|---|---|---|---|
+| 2 | 630 | 17.2 (11.6 to 29.6) | 27 (18 to 47) |
+| 4 | 630 | 44.4 (28.0 to 130.9) | 70 (45 to 208) |
+| 6 | 630 | 211.3 (132.8 to 358.0) | 335 (211 to 568) |
+| 8 | 630 | 384.6 (290.6 to 500.9) | 611 (461 to 795) |
+| 10 | 630 | 535.2 (472.3 to 690.8) | 850 (750 to 1097) |
+| 14 | 630 | 637.8 (534.3 to 747.4) | 1012 (848 to 1186) |
+
+### 2. Break-even demand (arrivals per day where the two layouts earn the same margin)
+
+Linear interpolation of the median paired margin difference between the tested rates. **Reliability rule:** reported as reliable only if the median curve has exactly one zero crossing and at least 80 percent of seeds have the median's sign at both bracketing rates; otherwise "no reliable crossing". The bootstrap resamples whole seeds (all rates together) 1000 times. The crossing falls inside one bracket of the rate grid, so read the rate to the grid's resolution only.
+
+| F (k IDR per bed-day) | result | crossing (arrivals/day) | bracket | seeds agreeing at bracket | per-seed crossing min / median / max (n of seeds) | bootstrap 95% (share of resamples with one crossing) | occupancy at crossing: A / B | ahead below / above |
+|---|---|---|---|---|---|---|---|---|
+| 0 | **no reliable crossing**: no crossing in the tested range | - | - | - | - | - | - | B / B |
+| 50 | **no reliable crossing**: seeds disagree at the bracketing rates (100% and 75% agree with the median sign, need 80%): no reliable crossing | 3.05 | 2 to 4 | 100% / 75% | 2.0 / 3.1 / 4.0 (20 of 20) | 2.51 to 3.84 (100%) | 70% / 29% | A / B |
+| 100 | **no reliable crossing**: seeds disagree at the bracketing rates (60% and 100% agree with the median sign, need 80%): no reliable crossing | 4.22 | 4 to 6 | 60% / 100% | 2.7 / 4.2 / 4.6 (20 of 20) | 3.70 to 4.39 (100%) | 91% / 40% | A / B |
+| 200 | reliable | 4.98 | 4 to 6 | 95% / 100% | 3.9 / 5.0 / 5.9 (20 of 20) | 4.70 to 5.26 (100%) | 95% / 48% | A / B |
+
+### 3. Refit payback (days to recover the refit)
+
+Payback = (refit cost + downtime loss) / daily margin gain of B over A, per seed at the arrival rate shown; "never" where the gain is zero or negative. **Refit cost and downtime are UNSOURCED placeholders** (refit cost 50, 150, 300M IDR; downtime 14, 30, 60 days). The downtime loss is arithmetic (beds converted x downtime days x A's contribution per open bed-day), not a simulated closure; converted beds = 10. Central case = 150M IDR and 30 days, at the median daily gain, with the range over seeds; the last column is the range over the whole placeholder grid at the median gain.
+
+| rate/day | F (k IDR) | daily gain (M IDR), median (min to max) | payback central, median (min to max over seeds) | payback over placeholder grid (median gain) |
+|---|---|---|---|---|
+| 2 | 0 | 0.8 (0.6 to 1.4) | 314 (183 to 467) | 122 to 628 |
+| 4 | 0 | 2.1 (1.3 to 6.2) | 180 (61 to 283) | 74 to 357 |
+| 6 | 0 | 10.1 (6.3 to 17.0) | 40 (24 to 64) | 17 to 80 |
+| 8 | 0 | 18.3 (13.8 to 23.9) | 22 (17 to 29) | 9 to 44 |
+| 10 | 0 | 25.5 (22.5 to 32.9) | 16 (13 to 18) | 7 to 32 |
+| 14 | 0 | 30.4 (25.4 to 35.6) | 13 (11 to 15) | 5 to 25 |
+| 2 | 100 | -2.2 (-2.4 to -1.6) | never (never to never); never in 20 of 20 seeds | never |
+| 4 | 100 | -0.9 (-1.7 to 3.2) | never (117 to never); never in 12 of 20 seeds | never |
+| 6 | 100 | 7.1 (3.3 to 14.0) | 57 (29 to 121) | 24 to 114 |
+| 8 | 100 | 15.3 (10.8 to 20.9) | 27 (19 to 37) | 11 to 53 |
+| 10 | 100 | 22.5 (19.5 to 29.9) | 18 (14 to 21) | 8 to 37 |
+| 14 | 100 | 27.4 (22.4 to 32.6) | 14 (12 to 17) | 6 to 28 |
+
+## Not covered
+- Break-even results hold only for the stated placeholders; the fixed cost per bed-day, refit cost and downtime have no source, and the arrival grid is coarse (the crossing sits inside one bracket).
+- Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.
+- Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.
+- Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.
+- Refit cost and downtime during the conversion (supported by the engine, set to zero here).
+- Anything outside this ward: referrals, ICU, the wider hospital's specialty mix.
