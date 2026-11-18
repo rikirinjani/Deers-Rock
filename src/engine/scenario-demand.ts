@@ -28,7 +28,7 @@ import { generatePatient } from "../patient/generator.js";
 import { assignPayer } from "./finance.js";
 import { getStayOutcomes } from "../locale/registry.js";
 import { admitPatientToBed, selectPrimaryDiagnosisCode, specialtyOf } from "./markov.js";
-import { DEFAULT_ROUTING, routeBed, closedBedIds, type RoutingPolicy, type Closure } from "./scenario-routing.js";
+import { DEFAULT_ROUTING, routeBed, routingKey, closedBedIds, type RoutingPolicy, type Closure } from "./scenario-routing.js";
 
 export interface DemandConfig {
   /** Mean inpatient arrivals per day (one Bernoulli per minute, as the default path). Default 19. */
@@ -169,7 +169,8 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
     patients = new Map(state.patients);
     const closed = closedBedIds(beds, d.closures, clock.tick);
     for (const q of waiting) {
-      const route = routeBed(beds, q.patient, q.payer, d.routing, state._layout, closed);
+      const rkey = routingKey(d.routing, q.payer, q.patient.id);
+      const route = routeBed(beds, q.patient, rkey, d.routing, state._layout, closed);
       if (!route) { stillWaiting.push(q); continue; }
       const bed = route.bed;
       patients.set(q.patient.id, q.patient);
@@ -180,7 +181,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
         const dx = selectPrimaryDiagnosisCode(q.patient);
         ledger.push({
           patientId: q.patient.id, tick: clock.tick, payer: q.payer, roomClass: route.roomClass,
-          ownClass: (d.routing.eligible[q.payer] ?? d.routing.defaultClasses)[0] ?? route.roomClass,
+          ownClass: (d.routing.eligible[rkey] ?? d.routing.defaultClasses)[0] ?? route.roomClass,
           primaryDiagnosis: dx,
           diagnosisCodes: [dx, ...q.patient.diagnoses.map((x) => x.code).filter((c) => c !== dx)],
           stayMinutes: q.stayMinutes,
@@ -191,7 +192,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
       admittedByPayerClass[pc] = (admittedByPayerClass[pc] ?? 0) + 1;
       if (route.rank > 0) {
         spilledUp++;
-        const own = (d.routing.eligible[q.payer] ?? d.routing.defaultClasses)[0]!;
+        const own = (d.routing.eligible[rkey] ?? d.routing.defaultClasses)[0]!;
         const path = `${q.payer}|${own}->${route.roomClass}`;
         spilledByPath[path] = (spilledByPath[path] ?? 0) + 1;
       }

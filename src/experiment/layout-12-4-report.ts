@@ -44,6 +44,8 @@ interface Pair { rate: number; seed: number; a: RunFile; b: RunFile }
 
 export type Variant = "B" | "C";
 
+const routingLabel = (r: RoutingMode) => (r === "spill" ? "" : r === "strict" ? " - STRICT ROUTING" : ` - RULE-AWARE ROUTING (BPJS tier mix K3/K2/K1 = ${r.slice(5).replace(/-/g, "/")})`);
+
 export function pairRuns(files: RunFile[], variant: Variant = "B", routing: RoutingMode = "spill"): Pair[] {
   files = files.filter((f) => (f.routing ?? "spill") === routing);
   const key = (f: RunFile) => `${f.arrivalsPerDay}|${f.seed}`;
@@ -82,7 +84,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   const L: string[] = [];
   const add = (s = "") => L.push(s);
 
-  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" + (routing === "strict" ? " - STRICT ROUTING" : "") : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)" + (routing === "strict" ? " - STRICT ROUTING" : ""));
+  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" + routingLabel(routing) : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)" + routingLabel(routing));
   add();
   add("> **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.");
   add();
@@ -96,7 +98,10 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   add("- Each layout is a standalone general ward; the rest of the hospital is not simulated.");
   add(`- ${days} simulated days per run, the first ${WARMUP_DAYS} dropped as warm-up; ${seeds.length} seeds (${seeds.join(", ")}); arrival rates ${rates.join(", ")} per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).`);
   add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus A.`);
-  if (routing === "strict") {
+  if (routing.startsWith("rule-")) {
+    const mix = routing.slice(5).replace(/-/g, "/");
+    add(`- Routing: RULE-AWARE. BPJS Kesehatan members are split by entitlement tier, K3 (PBI included) / K2 / K1 = ${mix} percent (**UNSOURCED placeholder mix**; tier = zero-rng hash of the patient id). Each tier uses its own class first and is moved ONE class up when its class is full (K3 to K2, K2 to K1, K1 stays in K1, no VIP), the hospital absorbs the cost. Voluntary upgrade is out of scope. Other payers follow DEFAULT_ROUTING. The rules come from secondary sources (news), not primary text. In layout A (no Kelas 3 or Kelas 1) the K3 tier is placed in K2 as a forced upgrade and the K1 tier cannot be placed.`);
+  } else if (routing === "strict") {
     add("- Routing: STRICT. Each payer may use only its own class (BPJS Kesehatan, Jasa Raharja and Self-pay: Kelas 3; Private Insurance and BPJS Ketenagakerjaan: Kelas 2); no spillover. A payer whose own class has no bed in the layout is never placed and ends diverted. Layout A has no Kelas 3, so it cannot place BPJS Kesehatan, Jasa Raharja or Self-pay patients at all: this is a deliberately harsh reading of the owner's premise (more BPJS inpatients), not a tuned one.");
   } else {
     add("- Routing: DEFAULT_ROUTING (BPJS and Self-pay start in Kelas 3; Private Insurance in Kelas 2; spill up allowed). With layout A (no Kelas 3), BPJS and Self-pay patients are placed in Kelas 2 as spillover.");
@@ -105,7 +110,9 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   add("## Assumptions and unsourced inputs (read first)");
   for (const u of UNSOURCED_INPUTS) add(`- ${u}`);
   add("- Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.");
-  add(routing === "strict"
+  add(routing.startsWith("rule-")
+    ? "- **Rule-aware routing page.** Compare with the spill-allowed and strict pages; the tier mix is a placeholder, see the three mixes run."
+    : routing === "strict"
     ? "- **Strict routing page.** Compare with the spill-allowed pages: the truth for a real hospital lies between the two, depending on what BPJS may actually use when its own class is full (unverified)."
     : "- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. A strict-routing page (no spill) exists as a separate file.");
   add("- Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.");

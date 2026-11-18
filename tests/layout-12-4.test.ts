@@ -135,3 +135,52 @@ describe("Epic XII 12.4 strict routing", () => {
     expect(buildReport([stA, stC], "C", "strict")).toMatch(/STRICT ROUTING/);
   });
 });
+
+import { ruleAwareRouting, routingKey } from "../src/engine/scenario-routing.js";
+import { routingFor } from "../src/experiment/layout-12-4.js";
+
+describe("Epic XII 12.4 rule-aware routing", () => {
+  const pol = ruleAwareRouting({ "kelas-3": 70, "kelas-2": 20, "kelas-1": 10 });
+  const bed = (id: string, cls: "kelas-1" | "kelas-2" | "kelas-3" | "vip") => [id, { id, ward: "W", building: "", roomClass: cls, patientId: null as string | null }] as const;
+  const p = gp(cr(9).next);
+
+  it("splits BPJS Kesehatan by tier with a zero-rng hash and keeps other payers unchanged", () => {
+    expect(routingKey(pol, "Self-pay", "DEM-1-00001")).toBe("Self-pay");
+    expect(routingKey(pol, "BPJS Kesehatan", "DEM-1-00001")).toBe(routingKey(pol, "BPJS Kesehatan", "DEM-1-00001"));
+    const n = { "kelas-3": 0, "kelas-2": 0, "kelas-1": 0 };
+    for (let i = 0; i < 4000; i++) n[routingKey(pol, "BPJS Kesehatan", `DEM-${i}-${String(i).padStart(5, "0")}`).split("|")[1] as keyof typeof n]++;
+    expect(n["kelas-3"] / 4000).toBeGreaterThan(0.65);
+    expect(n["kelas-3"] / 4000).toBeLessThan(0.75);
+    expect(n["kelas-1"] / 4000).toBeGreaterThan(0.06);
+    expect(n["kelas-1"] / 4000).toBeLessThan(0.14);
+  });
+
+  it("each tier is moved at most one class up, and K1 never goes to VIP", () => {
+    const only = (cls: "kelas-1" | "kelas-2" | "kelas-3" | "vip") => new Map([bed("b", cls)]);
+    const k3 = "BPJS Kesehatan|kelas-3", k2 = "BPJS Kesehatan|kelas-2", k1 = "BPJS Kesehatan|kelas-1";
+    expect(route(only("kelas-2"), p, k3, pol, undefined)).toMatchObject({ roomClass: "kelas-2", rank: 1 }); // K3 -> K2
+    expect(route(only("kelas-1"), p, k3, pol, undefined)).toBeUndefined(); // not two classes up
+    expect(route(only("kelas-1"), p, k2, pol, undefined)).toMatchObject({ roomClass: "kelas-1", rank: 1 }); // K2 -> K1
+    expect(route(only("kelas-3"), p, k2, pol, undefined)).toBeUndefined(); // never down
+    expect(route(only("vip"), p, k1, pol, undefined)).toBeUndefined(); // K1 -> VIP not allowed
+  });
+
+  it("mode labels round-trip, and report pairing keeps rule modes apart", () => {
+    expect(routingFor("rule-70-20-10")!.bpjsTierMix).toEqual({ "kelas-3": 70, "kelas-2": 20, "kelas-1": 10 });
+    expect(routingFor("spill")).toBeUndefined();
+    const a = { ...synth("A", 4, 1, []), routing: "rule-70-20-10" as const }, c = { ...synth("C", 4, 1, []), routing: "rule-70-20-10" as const };
+    const md = buildReport([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "rule-70-20-10");
+    expect(md).toMatch(/RULE-AWARE ROUTING/);
+    expect(md).toMatch(/UNSOURCED placeholder mix/);
+    expect(pairRuns([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "spill").length).toBe(1);
+  });
+
+  it("end to end in the lite world: a K3-tier patient lands in K2 when K3 does not exist", { timeout: 60_000 }, () => {
+    const f = runOne("A", 6, 3, 6, undefined, "rule-70-20-10");
+    expect(f.routing).toBe("rule-70-20-10");
+    const spilled = f.record.ledger.filter((e) => e.payer === "BPJS Kesehatan" && e.ownClass === "kelas-3" && e.roomClass === "kelas-2");
+    expect(spilled.length).toBeGreaterThan(0);
+    // no BPJS tier-1 patient is ever admitted to a ward without Kelas 1
+    expect(f.record.ledger.every((e) => !(e.ownClass === "kelas-1"))).toBe(true);
+  });
+});

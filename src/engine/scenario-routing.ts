@@ -27,6 +27,25 @@ export interface RoutingPolicy {
   eligible: Record<string, RoomClass[]>;
   /** Used for a payer with no entry in `eligible`. */
   defaultClasses: RoomClass[];
+  /**
+   * Rule-aware routing (12.4 follow-up): BPJS Kesehatan patients are split by entitlement tier
+   * (PBI counted in Kelas 3) using this mix, and routed under the key "BPJS Kesehatan|<tier class>".
+   * The tier is a zero-rng hash of the patient id, so the same patient has the same tier in every
+   * layout. The mix is UNSOURCED.
+   */
+  bpjsTierMix?: { "kelas-3": number; "kelas-2": number; "kelas-1": number };
+}
+
+/** Key under which a payer is looked up in `eligible` (BPJS Kesehatan splits by tier when a mix is set). */
+export function routingKey(policy: RoutingPolicy, payer: string, patientId: string): string {
+  if (!policy.bpjsTierMix || payer !== "BPJS Kesehatan") return payer;
+  const m = policy.bpjsTierMix;
+  const total = m["kelas-3"] + m["kelas-2"] + m["kelas-1"];
+  let h = 5381;
+  for (let i = 0; i < patientId.length; i++) h = (Math.imul(h, 33) ^ patientId.charCodeAt(i)) | 0;
+  const u = ((h >>> 0) % 100000) / 100000 * total;
+  const tier: RoomClass = u < m["kelas-3"] ? "kelas-3" : u < m["kelas-3"] + m["kelas-2"] ? "kelas-2" : "kelas-1";
+  return `BPJS Kesehatan|${tier}`;
 }
 
 export const DEFAULT_ROUTING: RoutingPolicy = {
@@ -49,6 +68,23 @@ export const STRICT_ROUTING: RoutingPolicy = {
   eligible: Object.fromEntries(Object.entries(DEFAULT_ROUTING.eligible).map(([k, v]) => [k, [v[0]!]])),
   defaultClasses: [DEFAULT_ROUTING.defaultClasses[0]!],
 };
+
+/**
+ * Rule-aware routing (12.4 follow-up). BPJS Kesehatan members are routed by entitlement tier:
+ * each tier uses its own class first and is moved ONE class up when that class is full (forced
+ * upgrade, the hospital absorbs the cost; K3 -> K2, K2 -> K1, K1 stays in K1: no VIP). Voluntary
+ * upgrade is out of scope. Other payers follow DEFAULT_ROUTING.
+ * The rules come from secondary sources (news), not primary text; see the design doc KRIS note.
+ * `mix` (share of BPJS Kesehatan members in Kelas 3 incl. PBI, Kelas 2, Kelas 1) is UNSOURCED.
+ */
+export function ruleAwareRouting(mix: { "kelas-3": number; "kelas-2": number; "kelas-1": number }): RoutingPolicy {
+  const eligible: Record<string, RoomClass[]> = { ...DEFAULT_ROUTING.eligible };
+  delete eligible["BPJS Kesehatan"];
+  eligible["BPJS Kesehatan|kelas-3"] = ["kelas-3", "kelas-2"];
+  eligible["BPJS Kesehatan|kelas-2"] = ["kelas-2", "kelas-1"];
+  eligible["BPJS Kesehatan|kelas-1"] = ["kelas-1"];
+  return { eligible, defaultClasses: DEFAULT_ROUTING.defaultClasses, bpjsTierMix: mix };
+}
 
 /**
  * Refit works (12.3): `beds` free beds of `roomClass` are out of service from `fromTick`

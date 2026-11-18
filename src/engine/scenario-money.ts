@@ -61,6 +61,7 @@ export const UNSOURCED_INPUTS: readonly string[] = [
   "spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified",
   "bpjsClaimPaidShare default 1: denial and delay rates are not applied",
   "refitCostIdr and closure windows: no renovation cost source",
+  "BPJS Kesehatan entitlement tier mix (Kelas 3 incl. PBI / Kelas 2 / Kelas 1) in the rule-aware routing: placeholder shares, no source",
   "routing table (scenario-routing.ts DEFAULT_ROUTING): BPJS entitlement by member tier, KRIS reform, upgrade rules unverified",
   "arrivalsPerDay default 19 and waitLimitMinutes default 1440: calibration comment only, not hospital data",
   "beds per room by class (rooms to beds): no source",
