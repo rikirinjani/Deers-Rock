@@ -34,9 +34,9 @@ The current mixed-ward default and its bed order stay unchanged. The class-ward 
 
 ## 5. Open questions (owner or outside source)
 
-1. **KRIS.** Perpres 59/2024 moves BPJS toward a single standard inpatient room. Status and deadlines in 2026 are **not verified** here. If the classes go away, the scenario becomes "standard rooms versus premium rooms".
-2. BPJS class entitlement by member tier and the rules for upgrading to a higher class.
-3. Minimum share of beds a private hospital must give to the lowest class, if any (**not verified**).
+1. **KRIS.** Perpres 59/2024 moves BPJS toward a single standard inpatient room. Status and deadlines in 2026 are **not verified against primary text**; secondary sources conflict (see section 15). If the classes go away, the scenario becomes "standard rooms versus premium rooms".
+2. BPJS class entitlement by member tier and the rules for upgrading to a higher class. Secondary sources (section 15): voluntary upgrade one class up only, member pays the INA-CBG tariff difference; forced upgrade because the entitled room is full costs the member nothing; PBI and Kelas 3 members cannot upgrade voluntarily. **Still unverified against primary text.**
+3. Minimum share of beds a private hospital must give to the lowest class, if any. Secondary sources (section 15) give a KRIS-standard bed share (private at least 40%, government 60%), which is **not** a lowest-class minimum; no lowest-class minimum found. **Still unverified against primary text.**
 4. Source for cost per bed-day by class, and for renovation cost.
 5. Beds per room and floor area per bed by class.
 6. Whether ward capacity is already settable from outside the code.
@@ -160,3 +160,14 @@ Same grid, seeds and lite world as section 13 (Kaggle kernel `hoe-grid-12-4s`, c
 3. **Contrast with section 13.** Whether adding Kelas 3 beds matters depends almost entirely on whether BPJS patients may use Kelas 2 when their own class is not available (unverified, design doc open questions 1-3). With free spill-up the class mix at equal capacity is worth about nothing; with no spill-up it is worth about 40 to 50 occupancy points at moderate demand. A real hospital lies between the two readings. Which one applies is the single most valuable fact to find out before anyone uses these numbers.
 4. **Break-even:** none (B and C are ahead at every tested rate). Occupancy of B reaches 91-97% at 10-14 arrivals/day, where B itself starts diverting (up to 83 patients per run).
 5. **Not covered:** same as section 13 (real costs, tariffs, entitlement, refit cost and downtime, the rest of the hospital); a mixed table (BPJS may spill into Kelas 2 only for some tiers) was not run.
+
+## 15. KRIS and regulation note (2026-11-18). SECONDARY SOURCES ONLY (news and aggregator sites), NOT PRIMARY TEXT
+
+The owner's session relayed the facts below from news and aggregator pages. None was checked against the primary legal text (Perpres, Permenkes, Kemenkes circulars). Treat all of it as unconfirmed.
+
+- **(a) KRIS deadline and status.** Perpres 59/2024 required KRIS (Kelas Rawat Inap Standar) by 30 June 2025; the Health Minister proposed an extension to 31 December 2025. 2026 status is **conflicting**: January 2026 sources say the classes were not officially removed and iuran stayed class-based; August 2026 aggregator sites say the rollout is phased over two years with no new iuran as of 2 August 2026. Unconfirmed.
+- **(b) Bed standards.** Private hospitals: at least 40% of beds to KRIS standard; government hospitals 60%. Maximum 4 beds per room, 1.5 m between beds. This is a KRIS share, **not** a minimum for the lowest class. (Layout B's Kelas 3 rooms of 4 beds sit exactly at the 4-bed maximum; a denser room, such as the 6-bed option the owner did not choose, would break it.)
+- **(c) Upgrades.** Voluntary upgrade one class up only, member pays the INA-CBG tariff difference (Permenkes 51/2018 art 10(5)). Forced upgrade because the entitled room is full costs the member nothing. PBI and Kelas 3 members cannot upgrade voluntarily (Perpres 59/2024).
+- **If KRIS applies fully** the scenario becomes "standard rooms versus premium rooms" rather than Kelas 1/2/3. The 12.x engine models classes, so a KRIS reading needs a new routing table (standard versus premium), not new code.
+
+**How this is used in the model.** The rule-aware routing variant (section 16) implements (c) only as a forced one-class-up spill with the hospital absorbing the cost (voluntary upgrade out of scope). It splits BPJS Kesehatan members into entitlement tiers (PBI in Kelas 3) with an **unsourced placeholder mix**. Nothing here implements (a) or (b).
