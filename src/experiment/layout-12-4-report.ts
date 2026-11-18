@@ -9,7 +9,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { reportFromRecord, UNSOURCED_INPUTS, type MoneyConfig, type ScenarioReport } from "../engine/scenario-money.js";
 import { range, type Range } from "./scenario-compare.js";
-import { BEDS_PER_ROOM, WARMUP_DAYS, type RoutingMode, type RunFile } from "./layout-12-4.js";
+import { BEDS_PER_ROOM, WARMUP_DAYS, parseRoutingMode, type RoutingMode, type RunFile } from "./layout-12-4.js";
 
 export const DEFAULT_MONEY: MoneyConfig = { warmupTicks: WARMUP_DAYS * 1440 };
 
@@ -190,6 +190,6 @@ if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4
   const [dir, out, v, r] = process.argv.slice(2);
   if (!dir || !out) { console.error("usage: layout-12-4-report.ts <runDir> <outFile.md> [B|C]"); process.exit(2); }
   const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[ABC]_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
-  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B", r === "strict" ? "strict" : "spill"));
+  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B", parseRoutingMode(r)));
   console.error(`wrote ${out} from ${files.length} runs`);
 }

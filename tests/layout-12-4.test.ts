@@ -137,7 +137,7 @@ describe("Epic XII 12.4 strict routing", () => {
 });
 
 import { ruleAwareRouting, routingKey } from "../src/engine/scenario-routing.js";
-import { routingFor } from "../src/experiment/layout-12-4.js";
+import { routingFor, parseRoutingMode } from "../src/experiment/layout-12-4.js";
 
 describe("Epic XII 12.4 rule-aware routing", () => {
   const pol = ruleAwareRouting({ "kelas-3": 70, "kelas-2": 20, "kelas-1": 10 });
@@ -168,6 +168,10 @@ describe("Epic XII 12.4 rule-aware routing", () => {
   it("mode labels round-trip, and report pairing keeps rule modes apart", () => {
     expect(routingFor("rule-70-20-10")!.bpjsTierMix).toEqual({ "kelas-3": 70, "kelas-2": 20, "kelas-1": 10 });
     expect(routingFor("spill")).toBeUndefined();
+    expect(parseRoutingMode()).toBe("spill");
+    expect(parseRoutingMode("strict")).toBe("strict");
+    expect(parseRoutingMode("rule-85-10-5")).toBe("rule-85-10-5");
+    expect(() => parseRoutingMode("rule-x")).toThrow();
     const a = { ...synth("A", 4, 1, []), routing: "rule-70-20-10" as const }, c = { ...synth("C", 4, 1, []), routing: "rule-70-20-10" as const };
     const md = buildReport([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "rule-70-20-10");
     expect(md).toMatch(/RULE-AWARE ROUTING/);

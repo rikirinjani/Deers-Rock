@@ -53,6 +53,13 @@ export const WARMUP_DAYS = 7;
 /** "spill" = DEFAULT_ROUTING, "strict" = own class only, "rule-70-20-10" = rule-aware with BPJS tier mix K3/K2/K1 (UNSOURCED). */
 export type RoutingMode = "spill" | "strict" | `rule-${number}-${number}-${number}`;
 
+/** Parse a CLI routing label; undefined means spill. Throws on an unknown label. */
+export function parseRoutingMode(label?: string): RoutingMode {
+  if (!label || label === "spill") return "spill";
+  if (label === "strict" || /^rule-\d+-\d+-\d+$/.test(label)) return label as RoutingMode;
+  throw new Error(`unknown routing mode ${label}`);
+}
+
 export function routingFor(mode: RoutingMode): RoutingPolicy | undefined {
   if (mode === "spill") return undefined;
   if (mode === "strict") return STRICT_ROUTING;
@@ -85,8 +92,7 @@ export function runOne(layout: LayoutKey, arrivalsPerDay: number, seed: number, 
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4.ts")) {
   const [key, rate, seed, days, outDir, mode] = process.argv.slice(2);
-  const routing: RoutingMode = (mode as RoutingMode | undefined) ?? "spill";
-  if (mode) routingFor(routing); // validates the label
+  const routing: RoutingMode = parseRoutingMode(mode);
   if (!key || !rate || !seed || !days || !outDir || (key !== "A" && key !== "B" && key !== "C")) {
     console.error("usage: layout-12-4.ts <A|B|C> <arrivalsPerDay> <seed> <days> <outDir>");
     process.exit(2);
