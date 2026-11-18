@@ -9,7 +9,11 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { reportFromRecord, UNSOURCED_INPUTS, type MoneyConfig, type ScenarioReport } from "../engine/scenario-money.js";
 import { range, type Range } from "./scenario-compare.js";
-import { BEDS_PER_ROOM, WARMUP_DAYS, parseRoutingMode, type RoutingMode, type RunFile } from "./layout-12-4.js";
+import { BEDS_PER_ROOM, WARMUP_DAYS, K1_WARD_BEDS, parseRoutingMode, type RoutingMode, type RunFile } from "./layout-12-4.js";
+import {
+  buildCells, breakEvenFixedCost, crossingAnalysis, curvesAtFixedCost, interpAt, median, paybackDays,
+  type Pair,
+} from "./layout-12-4-breakeven.js";
 
 export const DEFAULT_MONEY: MoneyConfig = { warmupTicks: WARMUP_DAYS * 1440 };
 
@@ -41,16 +45,22 @@ export function sensitivityGrid(routing: RoutingMode = "spill"): Setting[] {
   return out;
 }
 
-interface Pair { rate: number; seed: number; a: RunFile; b: RunFile }
+export type Variant = "B" | "C" | "B1" | "C1";
+/** Baseline layout of a variant: A (no Kelas 1 beds) or A1 (with the small Kelas 1 ward). */
+export const baseOf = (v: Variant): "A" | "A1" => (v.endsWith("1") ? "A1" : "A");
+/** Effective routing label of a run file. Reserving Kelas 1 changes nothing in a layout with no Kelas 1 beds, so older non-reserved rule-aware runs of A, B, C count as the reserved mode. */
+export function effectiveRouting(f: RunFile): RoutingMode {
+  const r = f.routing ?? "spill";
+  if (r.startsWith("rule-") && !r.endsWith("-r") && !f.layout.endsWith("1")) return `${r}-r` as RoutingMode;
+  return r;
+}
 
-export type Variant = "B" | "C";
-
-const routingLabel = (r: RoutingMode) => (r === "spill" ? "" : r === "strict" ? " - STRICT ROUTING" : ` - RULE-AWARE ROUTING (BPJS tier mix K3/K2/K1 = ${r.slice(5).replace(/-/g, "/")})`);
+const routingLabel = (r: RoutingMode) => (r === "spill" ? " - SPILL-ALLOWED ROUTING (sensitivity)" : r === "strict" ? " - STRICT ROUTING (sensitivity)" : ` - RULE-AWARE ROUTING (BPJS tier mix K3/K2/K1 = ${r.slice(5).replace(/-r$/, "").replace(/-/g, "/")}${r.endsWith("-r") ? ", Kelas 1 reserved for the K1 tier" : ""})`);
 
 export function pairRuns(files: RunFile[], variant: Variant = "B", routing: RoutingMode = "spill"): Pair[] {
-  files = files.filter((f) => (f.routing ?? "spill") === routing);
+  files = files.filter((f) => effectiveRouting(f) === routing);
   const key = (f: RunFile) => `${f.arrivalsPerDay}|${f.seed}`;
-  const a = new Map(files.filter((f) => f.layout === "A").map((f) => [key(f), f]));
+  const a = new Map(files.filter((f) => f.layout === baseOf(variant)).map((f) => [key(f), f]));
   const pairs: Pair[] = [];
   for (const b of files.filter((f) => f.layout === variant)) {
     const fa = a.get(key(b));
@@ -85,22 +95,25 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   const L: string[] = [];
   const add = (s = "") => L.push(s);
 
-  add(variant === "B" ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" + routingLabel(routing) : "# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds)" + routingLabel(routing));
+  const base = baseOf(variant);
+  const k1 = variant.endsWith("1");
+  add((variant.startsWith("B") ? "# Epic XII 12.4: Kelas 2 vs Kelas 2 + Kelas 3 layout comparison (as in the example)" : "# Epic XII 12.4 sensitivity: bed-matched comparison (same capacity)") + (k1 ? " - WITH A SMALL KELAS 1 WARD" : "") + routingLabel(routing));
   add();
   add("> **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.");
   add();
   add("## Reading of the example");
-  add(`- **A:** 10 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} beds = 20 Kelas 2 beds.`);
-  if (variant === "B") {
+  add(`- **${base}:** 10 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} beds = 20 Kelas 2 beds${k1 ? ` + ${K1_WARD_BEDS} Kelas 1 beds` : ""}.`);
+  if (k1) add(`- **Kelas 1 ward (ASSUMPTION, owner request 2026-11-18):** every layout (A1, B1, C1) carries the same ${K1_WARD_BEDS} Kelas 1 beds (2 rooms x 2 beds) so the K1 entitlement tier of BPJS Kesehatan can be placed. Kelas 1 beds are reserved for that tier (no other payer or tier spills into them), so the ward is the same neutral addition in every layout. Without it (layouts A, B, C) the K1 tier is never placed.`);
+  if (variant.startsWith("B")) {
     add(`- **B:** 5 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} + 10 Kelas 3 rooms x ${BEDS_PER_ROOM["kelas-3"]} = 10 Kelas 2 beds + 40 Kelas 3 beds. **B has 2.5 times A's beds**, so this comparison mixes the class mix with extra capacity; the bed-matched variant (results for C) isolates the mix.`);
   } else {
     add("- **C (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds = 20 beds, the same capacity as A. Only the class mix differs from A. (Not the owner's example; a sensitivity run.)");
   }
   add("- Each layout is a standalone general ward; the rest of the hospital is not simulated.");
   add(`- ${days} simulated days per run, the first ${WARMUP_DAYS} dropped as warm-up; ${seeds.length} seeds (${seeds.join(", ")}); arrival rates ${rates.join(", ")} per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).`);
-  add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus A.`);
+  add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus ${base}.`);
   if (routing.startsWith("rule-")) {
-    const mix = routing.slice(5).replace(/-/g, "/");
+    const mix = routing.slice(5).replace(/-r$/, "").replace(/-/g, "/");
     add(`- Routing: RULE-AWARE. BPJS Kesehatan members are split by entitlement tier, K3 (PBI included) / K2 / K1 = ${mix} percent (**UNSOURCED placeholder mix**; tier = zero-rng hash of the patient id). Each tier uses its own class first and is moved ONE class up when its class is full (K3 to K2, K2 to K1, K1 stays in K1, no VIP), the hospital absorbs the cost. Voluntary upgrade is out of scope. Other payers follow DEFAULT_ROUTING. The rules come from secondary sources (news), not primary text. No layout has Kelas 1 beds, so the K1 tier (a share of BPJS Kesehatan demand) is placed nowhere and is diverted in every layout: it removes demand equally from A, B and C. In layout A (no Kelas 3) the K3 tier is placed in K2 as a forced upgrade.`);
   } else if (routing === "strict") {
     add("- Routing: STRICT. Each payer may use only its own class (BPJS Kesehatan, Jasa Raharja and Self-pay: Kelas 3; Private Insurance and BPJS Ketenagakerjaan: Kelas 2); no spillover. A payer whose own class has no bed in the layout is never placed and ends diverted. Layout A has no Kelas 3, so it cannot place BPJS Kesehatan, Jasa Raharja or Self-pay patients at all: this is a deliberately harsh reading of the owner's premise (more BPJS inpatients), not a tuned one.");
@@ -130,11 +143,11 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
     for (const side of ["a", "b"] as const) {
       const rs = ps.map((p) => rep(side === "a" ? p.a : p.b, DEFAULT_MONEY));
       const col = (f: (r: ScenarioReport) => number) => range(rs.map(f));
-      add(`| ${rate} | ${side === "a" ? "A" : variant} | ${R(col((r) => r.occupancy * 100))}% | ${R(col((r) => r.admitted), (n) => n.toFixed(0))} | ${R(col((r) => r.diverted), (n) => n.toFixed(0))} | ${R(col((r) => r.divertedByPayer["BPJS Kesehatan"] ?? 0), (n) => n.toFixed(0))} | ${R(col((r) => r.spilledUp), (n) => n.toFixed(0))} | ${R(col((r) => r.revenue.totalIdr), M)} | ${R(col((r) => r.marginIdr), M)} |`);
+      add(`| ${rate} | ${side === "a" ? base : variant} | ${R(col((r) => r.occupancy * 100))}% | ${R(col((r) => r.admitted), (n) => n.toFixed(0))} | ${R(col((r) => r.diverted), (n) => n.toFixed(0))} | ${R(col((r) => r.divertedByPayer["BPJS Kesehatan"] ?? 0), (n) => n.toFixed(0))} | ${R(col((r) => r.spilledUp), (n) => n.toFixed(0))} | ${R(col((r) => r.revenue.totalIdr), M)} | ${R(col((r) => r.marginIdr), M)} |`);
     }
   }
   add();
-  add(`## Paired difference ${variant} minus A at default money settings`);
+  add(`## Paired difference ${variant} minus ${base} at default money settings`);
   add();
   add("| rate/day | margin (M IDR) | diverted | BPJS diverted | occupancy (points) |");
   add("|---|---|---|---|---|");
@@ -152,7 +165,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
 
   add("## Sensitivity: does the sign of the margin difference survive the unsourced inputs?");
   add();
-  add(`Cell = median paired margin difference ${variant} minus A in M IDR; * = seeds disagree on the sign. Rows are money settings recomputed from the same runs.`);
+  add(`Cell = median paired margin difference ${variant} minus ${base} in M IDR; * = seeds disagree on the sign. Rows are money settings recomputed from the same runs.`);
   add();
   add(`| setting | ${rates.map((r) => `rate ${r}`).join(" | ")} | break-even rate |`);
   add(`|---|${rates.map(() => "---").join("|")}|---|`);
@@ -167,7 +180,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
       const ds = pairs.filter((p) => p.rate === rate).map((p) => rep(p.b, s.cfg).marginIdr - rep(p.a, s.cfg).marginIdr);
       const r = range(ds);
       meds.push(r.median);
-      signs.add(r.median > 0 ? `${variant} better` : r.median < 0 ? "A better" : "tie");
+      signs.add(r.median > 0 ? `${variant} better` : r.median < 0 ? `${base} better` : "tie");
       const mixed = ds.some((x) => x > 0) && ds.some((x) => x < 0);
       return `${M(r.median)}${mixed ? "*" : ""}`;
     });
@@ -184,7 +197,76 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   const x0 = crossing(rates, medMargin);
   add(`**Break-even at default settings:** ${x0 === null ? "no crossing in the tested range" : `about ${x0.toFixed(1)} arrivals/day`}. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.`);
   add();
+  // ---------------------------------------------------------------- break-even analysis
+  const cells = buildCells(pairs, DEFAULT_MONEY);
+  const nSeeds = cells[0]!.delta0.length;
+  const k = (n: number) => (n / 1000).toFixed(0);
+  const equalBeds = cells.every((c) => Math.abs(c.dAvail) < 1e-9);
+  add("## Break-even analysis (scenario and sensitivity)");
+  add();
+  add(`Money settings are the defaults of this page; the **fixed cost per available bed-day F** (staffing, utilities and upkeep of beds that exist whether occupied or not) is UNSOURCED, varied here and zero in the tables above. ${nSeeds} paired seeds; margin difference = ${variant} minus ${base}; margin(F) = margin(0) - F x open bed-days.`);
+  add();
+  add("### 1. Break-even fixed cost per available bed-day");
+  add();
+  if (equalBeds) {
+    add(`**None by construction:** ${variant} and ${base} have the same number of open bed-days, so fixed cost cancels and the margin difference does not depend on F.`);
+  } else {
+    add("F* = margin difference at F = 0 divided by the extra open bed-days of the variant. Above F* the variant earns less than the baseline at that arrival rate; a negative F* means the variant is already behind with free beds.");
+    add();
+    add("| rate/day | extra open bed-days | margin diff at F=0 (M IDR) | F* (k IDR per bed-day), median (min to max) |");
+    add("|---|---|---|---|");
+    for (const c of cells) {
+      const fs = c.delta0.map((d) => breakEvenFixedCost(d, c.dAvail)!).filter((x) => Number.isFinite(x));
+      add(`| ${c.rate} | ${c.dAvail.toFixed(0)} | ${R({ min: Math.min(...c.delta0), median: median(c.delta0), max: Math.max(...c.delta0), mean: 0 }, M)} | ${k(median(fs))} (${k(Math.min(...fs))} to ${k(Math.max(...fs))}) |`);
+    }
+  }
+  add();
+  add("### 2. Break-even demand (arrivals per day where the two layouts earn the same margin)");
+  add();
+  add("Linear interpolation of the median paired margin difference between the tested rates. **Reliability rule:** reported as reliable only if the median curve has exactly one zero crossing and at least 80 percent of seeds have the median's sign at both bracketing rates; otherwise \"no reliable crossing\". The bootstrap resamples whole seeds (all rates together) 1000 times. The crossing falls inside one bracket of the rate grid, so read the rate to the grid's resolution only.");
+  add();
+  const Fs = equalBeds ? [0] : [0, 50_000, 100_000, 200_000];
+  add("| F (k IDR per bed-day) | result | crossing (arrivals/day) | bracket | seeds agreeing at bracket | per-seed crossing min / median / max (n of seeds) | bootstrap 95% (share of resamples with one crossing) | occupancy at crossing: " + base + " / " + variant + " | ahead below / above |");
+  add("|---|---|---|---|---|---|---|---|---|");
+  for (const F of Fs) {
+    const cr = crossingAnalysis(rates, curvesAtFixedCost(cells, F));
+    const ahead = (s: string) => (s === "+" ? variant : s === "-" ? base : "tie");
+    if (cr.status !== "single") {
+      add(`| ${k(F)} | ${cr.reliable ? "reliable" : "**no reliable crossing**: " + cr.reason} | - | - | - | - | - | - | ${ahead(cr.signs.low)} / ${ahead(cr.signs.high)} |`);
+      continue;
+    }
+    const occA = interpAt(rates, cells.map((c) => median(c.occA)), cr.rate!) * 100;
+    const occB = interpAt(rates, cells.map((c) => median(c.occB)), cr.rate!) * 100;
+    add(`| ${k(F)} | ${cr.reliable ? "reliable" : "**no reliable crossing**: " + cr.reason} | ${cr.rate!.toFixed(2)} | ${cr.bracket!.join(" to ")} | ${Math.round(cr.agreement![0] * 100)}% / ${Math.round(cr.agreement![1] * 100)}% | ${cr.seedRange ? `${cr.seedRange.min.toFixed(1)} / ${cr.seedRange.median.toFixed(1)} / ${cr.seedRange.max.toFixed(1)} (${cr.seedRange.n} of ${cr.seedRange.of})` : "none"} | ${cr.bootstrap ? `${cr.bootstrap.lo.toFixed(2)} to ${cr.bootstrap.hi.toFixed(2)} (${Math.round(cr.bootstrap.shareSingle * 100)}%)` : "none"} | ${occA.toFixed(0)}% / ${occB.toFixed(0)}% | ${ahead(cr.signs.low)} / ${ahead(cr.signs.high)} |`);
+  }
+  add();
+  add("### 3. Refit payback (days to recover the refit)");
+  add();
+  add(`Payback = (refit cost + downtime loss) / daily margin gain of ${variant} over ${base}, per seed at the arrival rate shown; "never" where the gain is zero or negative. **Refit cost and downtime are UNSOURCED placeholders** (refit cost 50, 150, 300M IDR; downtime 14, 30, 60 days). The downtime loss is arithmetic (beds converted x downtime days x ${base}'s contribution per open bed-day), not a simulated closure; converted beds = ${cells[0]!.closedBeds}. Central case = 150M IDR and 30 days, at the median daily gain, with the range over seeds; the last column is the range over the whole placeholder grid at the median gain.`);
+  add();
+  add("| rate/day | F (k IDR) | daily gain (M IDR), median (min to max) | payback central, median (min to max over seeds) | payback over placeholder grid (median gain) |");
+  add("|---|---|---|---|---|");
+  const fmtD = (d: number | "never") => (d === "never" || d === Infinity ? "never" : d.toFixed(0));
+  for (const F of equalBeds ? [0] : [0, 100_000]) {
+    for (const c of cells) {
+      const gain = c.delta0.map((d) => (d - F * c.dAvail) / c.windowDays);
+      const contrib = median(c.contribA);
+      const central = gain.map((g) => paybackDays(150e6, 30, c.closedBeds, contrib, g).days);
+      // "never" counts as infinity, so the median is "never" when most seeds never recover the cost.
+      const vals = central.map((x) => (x === "never" ? Infinity : x));
+      const nNever = vals.filter((x) => x === Infinity).length;
+      const centralTxt = `${fmtD(median(vals))} (${fmtD(Math.min(...vals))} to ${fmtD(Math.max(...vals))})${nNever > 0 ? `; never in ${nNever} of ${vals.length} seeds` : ""}`;
+      const mg = median(gain);
+      const grid: (number | "never")[] = [];
+      for (const rc of [50e6, 150e6, 300e6]) for (const dt of [14, 30, 60]) grid.push(paybackDays(rc, dt, c.closedBeds, contrib, mg).days);
+      const gn = grid.filter((x): x is number => x !== "never");
+      const gridTxt = gn.length === 0 ? "never" : `${fmtD(Math.min(...gn))} to ${fmtD(Math.max(...gn))}`;
+      add(`| ${c.rate} | ${k(F)} | ${R({ min: Math.min(...gain), median: mg, max: Math.max(...gain), mean: 0 }, M)} | ${centralTxt} | ${gridTxt} |`);
+    }
+  }
+  add();
   add("## Not covered");
+  add("- Break-even results hold only for the stated placeholders; the fixed cost per bed-day, refit cost and downtime have no source, and the arrival grid is coarse (the crossing sits inside one bracket).");
   add("- Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.");
   add("- Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.");
   add("- Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.");
@@ -196,7 +278,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("layout-12-4-report.ts")) {
   const [dir, out, v, r] = process.argv.slice(2);
   if (!dir || !out) { console.error("usage: layout-12-4-report.ts <runDir> <outFile.md> [B|C]"); process.exit(2); }
-  const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[ABC]_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
-  writeFileSync(out, buildReport(files, v === "C" ? "C" : "B", parseRoutingMode(r)));
+  const files = readdirSync(dir).filter((f) => f.endsWith(".json") && /^[ABC]1?_r/.test(f)).map((f) => JSON.parse(readFileSync(join(dir, f), "utf-8")) as RunFile);
+  writeFileSync(out, buildReport(files, (["B", "C", "B1", "C1"].includes(v ?? "") ? v : "B") as Variant, parseRoutingMode(r)));
   console.error(`wrote ${out} from ${files.length} runs`);
 }

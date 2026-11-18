@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { layoutFor, runOne, type RunFile } from "../src/experiment/layout-12-4.js";
-import { buildReport, crossing, pairRuns, sensitivityGrid } from "../src/experiment/layout-12-4-report.js";
+import { buildReport, crossing, pairRuns, sensitivityGrid, effectiveRouting, baseOf } from "../src/experiment/layout-12-4-report.js";
 import { INA_CBG } from "../src/engine/ina-cbg.js";
 
 const DAY = 1440;
@@ -67,6 +67,9 @@ describe("Epic XII 12.4 layouts and report", () => {
     expect(md).toMatch(/NOT A FORECAST/);
     expect(md).toMatch(/unsourced inputs/i);
     expect(md).toMatch(/Sensitivity/);
+    expect(md).toMatch(/Break-even analysis/);
+    expect(md).toMatch(/Refit payback/);
+    expect(md).toMatch(/Reliability rule/);
     expect(md).toMatch(/10 Kelas 2 rooms x 2 beds/);
     expect(md.split("\n").filter((l) => l.startsWith("| cost ")).length).toBe(sensitivityGrid().length);
     expect(sensitivityGrid().length).toBe(5 * 3 * 2 * 2);
@@ -175,10 +178,17 @@ describe("Epic XII 12.4 rule-aware routing", () => {
     expect(parseRoutingMode("rule-85-10-5")).toBe("rule-85-10-5");
     expect(() => parseRoutingMode("rule-x")).toThrow();
     const a = { ...synth("A", 4, 1, []), routing: "rule-70-20-10" as const }, c = { ...synth("C", 4, 1, []), routing: "rule-70-20-10" as const };
-    const md = buildReport([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "rule-70-20-10");
+    const md = buildReport([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "rule-70-20-10-r");
     expect(md).toMatch(/RULE-AWARE ROUTING/);
     expect(md).toMatch(/UNSOURCED placeholder mix/);
     expect(pairRuns([a, c, synth("A", 4, 1, []), synth("C", 4, 1, [])], "C", "spill").length).toBe(1);
+    // Older non-reserved runs of the no-K1 layouts count as the reserved mode (reserving changes nothing without K1 beds)...
+    expect(effectiveRouting(a)).toBe("rule-70-20-10-r");
+    // ...but a layout with Kelas 1 beds keeps its own label.
+    expect(effectiveRouting({ ...a, layout: "A1" })).toBe("rule-70-20-10");
+    expect(effectiveRouting({ ...a, layout: "A1", routing: "rule-70-20-10-r" })).toBe("rule-70-20-10-r");
+    expect(baseOf("C1")).toBe("A1");
+    expect(baseOf("B")).toBe("A");
   });
 
   it("end to end in the lite world: a K3-tier patient lands in K2 when K3 does not exist", { timeout: 60_000 }, () => {
