@@ -105,9 +105,9 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   add(`- **${base}:** 10 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} beds = 20 Kelas 2 beds${k1 ? ` + ${K1_WARD_BEDS} Kelas 1 beds` : ""}.`);
   if (k1) add(`- **Kelas 1 ward (ASSUMPTION, owner request 2026-11-18):** every layout (A1, B1, C1) carries the same ${K1_WARD_BEDS} Kelas 1 beds (2 rooms x 2 beds) so the K1 entitlement tier of BPJS Kesehatan can be placed. Kelas 1 beds are reserved for that tier (no other payer or tier spills into them), so the ward is the same neutral addition in every layout. Without it (layouts A, B, C) the K1 tier is never placed.`);
   if (variant.startsWith("B")) {
-    add(`- **B:** 5 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} + 10 Kelas 3 rooms x ${BEDS_PER_ROOM["kelas-3"]} = 10 Kelas 2 beds + 40 Kelas 3 beds. **B has 2.5 times A's beds**, so this comparison mixes the class mix with extra capacity; the bed-matched variant (results for C) isolates the mix.`);
+    add(`- **${variant}:** 5 Kelas 2 rooms x ${BEDS_PER_ROOM["kelas-2"]} + 10 Kelas 3 rooms x ${BEDS_PER_ROOM["kelas-3"]} = 10 Kelas 2 beds + 40 Kelas 3 beds${k1 ? ` + ${K1_WARD_BEDS} Kelas 1 beds` : ""}. **${variant} has 2.5 times ${base}'s Kelas 2/3 beds**, so this comparison mixes the class mix with extra capacity; the bed-matched variant (results for C) isolates the mix.`);
   } else {
-    add("- **C (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds = 20 beds, the same capacity as A. Only the class mix differs from A. (Not the owner's example; a sensitivity run.)");
+    add(`- **${variant} (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds${k1 ? ` + ${K1_WARD_BEDS} Kelas 1 beds` : ""}, the same capacity as ${base}. Only the class mix differs from ${base}. (Not the owner's example; a sensitivity run.)`);
   }
   add("- Each layout is a standalone general ward; the rest of the hospital is not simulated.");
   add(`- ${days} simulated days per run, the first ${WARMUP_DAYS} dropped as warm-up; ${seeds.length} seeds (${seeds.join(", ")}); arrival rates ${rates.join(", ")} per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).`);
