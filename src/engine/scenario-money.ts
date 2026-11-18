@@ -28,6 +28,7 @@
 import type { HospitalState } from "./state-store.js";
 import type { RoomClass } from "../patient/schema.js";
 import type { AdmissionEntry } from "./scenario-demand.js";
+import type { Closure } from "./scenario-routing.js";
 import { getChargePolicy } from "./billing/registry.js";
 import { inferSeverity, lookupCbgTariff } from "./ina-cbg.js";
 
@@ -50,6 +51,12 @@ export interface MoneyConfig {
   refitCostIdr?: number;
   /** Non-room cost (drugs, lab, procedures, staff) per admission started in the window. Default 0. UNSOURCED. */
   nonRoomCostPerAdmissionIdr?: number;
+  /**
+   * Fixed cost per AVAILABLE bed per day (staffing, utilities, upkeep of beds that exist whether
+   * occupied or not), IDR. Applied to every open bed-day in the window; beds closed by refit
+   * works are excluded. Default 0. UNSOURCED. Without it more beds never lower margin.
+   */
+  fixedCostPerAvailableBedDayIdr?: number;
   /** Non-room revenue per admission for payers NOT on a package (billed on top of the room). Default 0. UNSOURCED. */
   nonRoomRevenuePerNonPackageAdmissionIdr?: number;
 }
@@ -58,6 +65,7 @@ export interface MoneyConfig {
 export const UNSOURCED_INPUTS: readonly string[] = [
   "costPerBedDayIdr / costRatioOfListRate (default 0.6 of the list room price): no hospital cost data",
   "nonRoomCostPerAdmissionIdr (default 0) and nonRoomRevenuePerNonPackageAdmissionIdr (default 0): no source; they decide whether a BPJS package admission pays",
+  "fixedCostPerAvailableBedDayIdr (default 0 in the model; the break-even section sweeps 0 to 200k IDR): no hospital cost data",
   "spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified",
   "bpjsClaimPaidShare default 1: denial and delay rates are not applied",
   "refitCostIdr and closure windows: no renovation cost source",
@@ -76,9 +84,13 @@ export interface RunRecord {
   ledger: AdmissionEntry[];
   /** Routing table's own class per payer is already in each ledger entry; kept for the report header. */
   arrivalTicks: number[];
+  /** Routing key per arrival, parallel to arrivalTicks (absent in older run files). */
+  arrivalKeys?: string[];
+  /** Refit closures in force (absent in older run files = none). */
+  closures?: Closure[];
   /** Digest of the arrival log (tick, payer, diagnosis, stay), to assert paired layouts saw the same demand. */
   arrivalDigest: string;
-  divertedLog: { tick: number; payer: string }[];
+  divertedLog: { tick: number; payer: string; routeKey?: string }[];
   stillQueued: number;
 }
 
@@ -98,8 +110,10 @@ export function runRecord(state: HospitalState): RunRecord {
     bedsByClass,
     ledger: d.ledger,
     arrivalTicks: d.arrivalLog.map((a) => a.tick),
+    arrivalKeys: d.arrivalLog.map((a) => a.routeKey),
+    closures: d.closures,
     arrivalDigest: digest(d.arrivalLog.map((a) => `${a.tick}|${a.payer}|${a.primaryDiagnosis}|${a.stayMinutes}`)),
-    divertedLog: d.divertedLog.map((x) => ({ tick: x.tick, payer: x.payer })),
+    divertedLog: d.divertedLog.map((x) => ({ tick: x.tick, payer: x.payer, routeKey: x.routeKey })),
     stillQueued: d.queue.length,
   };
 }
@@ -129,7 +143,9 @@ export interface ScenarioReport {
   /** Admissions started in the window placed above the payer's own class. */
   spilledUp: number;
   revenue: { roomIdr: number; bpjsPackageIdr: number; spillDifferenceIdr: number; nonRoomIdr: number; totalIdr: number };
-  cost: { bedDaysIdr: number; nonRoomIdr: number; refitIdr: number; totalIdr: number };
+  cost: { bedDaysIdr: number; nonRoomIdr: number; fixedIdr: number; refitIdr: number; totalIdr: number };
+  /** Open bed-days in the window (all beds x window days, minus closed bed-days). */
+  availableBedDays: number;
   marginIdr: number;
   /** CBG-payer discharges in the window with no tariff for the diagnosis (earn 0). */
   bpjsWithoutTariff: number;
@@ -203,9 +219,17 @@ export function reportFromRecord(rec: RunRecord, cfg: MoneyConfig = {}): Scenari
   const arrived = rec.arrivalTicks.filter((t) => t >= warmup).length;
 
   const bedDaysCost = Object.values(byClass).reduce((s, c) => s + c.costIdr, 0);
+  // Open bed-days in the window; closures reduce them (closed beds carry no fixed cost).
+  let closedBedDays = 0;
+  for (const c of rec.closures ?? []) {
+    const lo = Math.max(c.fromTick, warmup), hi = Math.min(c.toTick, endTick);
+    if (hi > lo) closedBedDays += (Math.min(c.beds, rec.bedsByClass[c.roomClass] ?? 0) * (hi - lo)) / MIN_PER_DAY;
+  }
+  const availableBedDays = Math.max(0, allBeds * windowDays - closedBedDays);
+  const fixedCost = (cfg.fixedCostPerAvailableBedDayIdr ?? 0) * availableBedDays;
   const refit = cfg.refitCostIdr ?? 0;
   const revenueTotal = roomIdr + bpjsPackageIdr + spillDifferenceIdr + nonRoomRev;
-  const costTotal = bedDaysCost + nonRoomCost + refit;
+  const costTotal = bedDaysCost + nonRoomCost + fixedCost + refit;
   const round = (n: number) => Math.round(n);
   for (const c of Object.values(byClass)) { c.roomRevenueIdr = round(c.roomRevenueIdr); c.costIdr = round(c.costIdr); }
 
@@ -216,7 +240,8 @@ export function reportFromRecord(rec: RunRecord, cfg: MoneyConfig = {}): Scenari
     arrived, admitted: admittedInWindow, diverted: diverted.length, divertedByPayer,
     stillQueued: rec.stillQueued, spilledUp,
     revenue: { roomIdr: round(roomIdr), bpjsPackageIdr: round(bpjsPackageIdr), spillDifferenceIdr: round(spillDifferenceIdr), nonRoomIdr: round(nonRoomRev), totalIdr: round(revenueTotal) },
-    cost: { bedDaysIdr: round(bedDaysCost), nonRoomIdr: round(nonRoomCost), refitIdr: refit, totalIdr: round(costTotal) },
+    cost: { bedDaysIdr: round(bedDaysCost), nonRoomIdr: round(nonRoomCost), fixedIdr: round(fixedCost), refitIdr: refit, totalIdr: round(costTotal) },
+    availableBedDays,
     marginIdr: round(revenueTotal - costTotal),
     bpjsWithoutTariff, spillRule, unsourcedInputs: UNSOURCED_INPUTS,
   };

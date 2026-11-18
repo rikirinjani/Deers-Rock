@@ -133,6 +133,26 @@ describe("Epic XII 12.3 money model", () => {
     expect(rec.arrivalDigest).toBe(runRecord(s).arrivalDigest);
   });
 
+  it("fixed cost per available bed-day: all open beds, occupied or not; closed beds excluded", () => {
+    // 4 beds (2 K2 + 2 K3), window = days 1..5 (warm-up 1 day, end day 5) = 4 days.
+    const s = build(5 * MIN, []);
+    const r = scenarioReport(s, { warmupTicks: MIN, fixedCostPerAvailableBedDayIdr: 10_000 });
+    expect(r.availableBedDays).toBeCloseTo(4 * 4);
+    expect(r.cost.fixedIdr).toBe(10_000 * 16);
+    expect(r.marginIdr).toBe(-160_000); // no admissions: margin is only the fixed cost
+    // One K3 bed closed for days 2 to 4 inside the window removes 2 bed-days of fixed cost.
+    const rec = { ...runRecord(s), closures: [{ roomClass: "kelas-3" as const, beds: 1, fromTick: 2 * MIN, toTick: 4 * MIN }] };
+    const r2 = reportFromRecord(rec, { warmupTicks: MIN, fixedCostPerAvailableBedDayIdr: 10_000 });
+    expect(r2.availableBedDays).toBeCloseTo(14);
+    expect(r2.cost.fixedIdr).toBe(140_000);
+    // Default is zero, so older pages are unchanged.
+    expect(scenarioReport(s, { warmupTicks: MIN }).cost.fixedIdr).toBe(0);
+    // More beds with no extra admissions lower margin once the term is on.
+    const bigger = build(5 * MIN, []);
+    bigger.beds.set("extra", { id: "extra", ward: "K3", building: "", roomClass: "kelas-3", patientId: null });
+    expect(scenarioReport(bigger, { warmupTicks: MIN, fixedCostPerAvailableBedDayIdr: 10_000 }).marginIdr).toBe(-200_000);
+  });
+
   it("always lists the unsourced inputs, and refuses a default-path state", () => {
     const s = build(MIN, []);
     expect(scenarioReport(s, { warmupTicks: 0 }).unsourcedInputs).toBe(UNSOURCED_INPUTS);

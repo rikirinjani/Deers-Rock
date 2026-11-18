@@ -54,6 +54,8 @@ export interface ArrivalRecord {
   payer: string;
   primaryDiagnosis: string;
   stayMinutes: number;
+  /** Routing key at arrival (payer, or "BPJS Kesehatan|<tier class>" under rule-aware routing). */
+  routeKey: string;
 }
 
 /**
@@ -73,6 +75,8 @@ export interface AdmissionEntry {
   /** Primary diagnosis first, then the patient's other diagnosis codes. */
   diagnosisCodes: string[];
   stayMinutes: number;
+  /** Routing key (see ArrivalRecord). */
+  routeKey: string;
 }
 
 export interface DemandState {
@@ -88,7 +92,7 @@ export interface DemandState {
   maxQueueLength: number;
   /** Every arrival, in order (shows that demand is layout independent). */
   arrivalLog: ArrivalRecord[];
-  divertedLog: { tick: number; patientId: string; payer: string }[];
+  divertedLog: { tick: number; patientId: string; payer: string; routeKey: string }[];
   /** 12.2: routing table in force. */
   routing: RoutingPolicy;
   /** 12.4: every admission, for money and reports on long runs. */
@@ -143,7 +147,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
     const dx = selectPrimaryDiagnosisCode(patient);
     const stayMinutes = getStayOutcomes().dischargeDelayMinutes(dx, clock.rng());
     queued.push({ patient, arrivalTick: clock.tick, payer, stayMinutes });
-    arrivalLog.push({ tick: clock.tick, patientId: patient.id, payer, primaryDiagnosis: dx, stayMinutes });
+    arrivalLog.push({ tick: clock.tick, patientId: patient.id, payer, primaryDiagnosis: dx, stayMinutes, routeKey: routingKey(d.routing, payer, patient.id) });
     arrived++;
   }
 
@@ -153,7 +157,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
     if (clock.tick - q.arrivalTick > d.waitLimitMinutes) {
       diverted++;
       divertedByPayer[q.payer] = (divertedByPayer[q.payer] ?? 0) + 1;
-      divertedLog.push({ tick: clock.tick, patientId: q.patient.id, payer: q.payer });
+      divertedLog.push({ tick: clock.tick, patientId: q.patient.id, payer: q.payer, routeKey: routingKey(d.routing, q.payer, q.patient.id) });
     } else waiting.push(q);
   }
 
@@ -184,7 +188,7 @@ export function scenarioDemandStep(state: HospitalState, clock: Clock, queue: Ev
           ownClass: (d.routing.eligible[rkey] ?? d.routing.defaultClasses)[0] ?? route.roomClass,
           primaryDiagnosis: dx,
           diagnosisCodes: [dx, ...q.patient.diagnoses.map((x) => x.code).filter((c) => c !== dx)],
-          stayMinutes: q.stayMinutes,
+          stayMinutes: q.stayMinutes, routeKey: rkey,
         });
       }
       admittedByClass[route.roomClass] = (admittedByClass[route.roomClass] ?? 0) + 1;
