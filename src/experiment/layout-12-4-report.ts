@@ -20,7 +20,7 @@ export interface Setting { name: string; cfg: MoneyConfig }
  * Cost modes include FLAT cost per bed-day (same for every class): with a ratio of the list price
  * a Kelas 2 bed costs more than a Kelas 3 bed, which alone moves margin between bed-matched layouts.
  */
-export function sensitivityGrid(): Setting[] {
+export function sensitivityGrid(routing: RoutingMode = "spill"): Setting[] {
   const costModes: { name: string; cfg: MoneyConfig }[] = [
     { name: "cost 0.4 x list", cfg: { costRatioOfListRate: 0.4 } },
     { name: "cost 0.6 x list", cfg: { costRatioOfListRate: 0.6 } },
@@ -32,7 +32,8 @@ export function sensitivityGrid(): Setting[] {
   for (const cm of costModes)
     for (const nonRoomCost of [0, 1_000_000, 3_000_000])
       for (const nonRoomRev of [0, 1_000_000])
-        for (const spill of ["hospital-absorbs", "patient-pays-difference"] as const)
+        // Rule-aware routing: a forced upgrade costs the member nothing, so the pay-difference rule does not apply.
+        for (const spill of (routing.startsWith("rule-") ? ["hospital-absorbs"] : ["hospital-absorbs", "patient-pays-difference"]) as ("hospital-absorbs" | "patient-pays-difference")[])
           out.push({
             name: `${cm.name} / non-room cost ${nonRoomCost / 1e6}M / non-room rev ${nonRoomRev / 1e6}M / ${spill === "hospital-absorbs" ? "absorb" : "pay-diff"}`,
             cfg: { ...DEFAULT_MONEY, ...cm.cfg, nonRoomCostPerAdmissionIdr: nonRoomCost, nonRoomRevenuePerNonPackageAdmissionIdr: nonRoomRev, spillRule: spill },
@@ -100,7 +101,7 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   add(`- Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are ${variant} minus A.`);
   if (routing.startsWith("rule-")) {
     const mix = routing.slice(5).replace(/-/g, "/");
-    add(`- Routing: RULE-AWARE. BPJS Kesehatan members are split by entitlement tier, K3 (PBI included) / K2 / K1 = ${mix} percent (**UNSOURCED placeholder mix**; tier = zero-rng hash of the patient id). Each tier uses its own class first and is moved ONE class up when its class is full (K3 to K2, K2 to K1, K1 stays in K1, no VIP), the hospital absorbs the cost. Voluntary upgrade is out of scope. Other payers follow DEFAULT_ROUTING. The rules come from secondary sources (news), not primary text. In layout A (no Kelas 3 or Kelas 1) the K3 tier is placed in K2 as a forced upgrade and the K1 tier cannot be placed.`);
+    add(`- Routing: RULE-AWARE. BPJS Kesehatan members are split by entitlement tier, K3 (PBI included) / K2 / K1 = ${mix} percent (**UNSOURCED placeholder mix**; tier = zero-rng hash of the patient id). Each tier uses its own class first and is moved ONE class up when its class is full (K3 to K2, K2 to K1, K1 stays in K1, no VIP), the hospital absorbs the cost. Voluntary upgrade is out of scope. Other payers follow DEFAULT_ROUTING. The rules come from secondary sources (news), not primary text. No layout has Kelas 1 beds, so the K1 tier (a share of BPJS Kesehatan demand) is placed nowhere and is diverted in every layout: it removes demand equally from A, B and C. In layout A (no Kelas 3) the K3 tier is placed in K2 as a forced upgrade.`);
   } else if (routing === "strict") {
     add("- Routing: STRICT. Each payer may use only its own class (BPJS Kesehatan, Jasa Raharja and Self-pay: Kelas 3; Private Insurance and BPJS Ketenagakerjaan: Kelas 2); no spillover. A payer whose own class has no bed in the layout is never placed and ends diverted. Layout A has no Kelas 3, so it cannot place BPJS Kesehatan, Jasa Raharja or Self-pay patients at all: this is a deliberately harsh reading of the owner's premise (more BPJS inpatients), not a tuned one.");
   } else {
@@ -155,9 +156,12 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
   add();
   add(`| setting | ${rates.map((r) => `rate ${r}`).join(" | ")} | break-even rate |`);
   add(`|---|${rates.map(() => "---").join("|")}|---|`);
-  let flipRows = 0, rows = 0;
+  // Flip counts are split by spill rule. "any" = the median crosses zero at all; "material" = it is
+  // above +5M IDR in some cell and below -5M IDR in another (small crossings of a million or two do not count).
+  const MATERIAL = 5_000_000;
+  const tally: Record<string, { rows: number; any: number; material: number }> = {};
   const signs = new Set<string>();
-  for (const s of sensitivityGrid()) {
+  for (const s of sensitivityGrid(routing)) {
     const meds: number[] = [];
     const cells = rates.map((rate) => {
       const ds = pairs.filter((p) => p.rate === rate).map((p) => rep(p.b, s.cfg).marginIdr - rep(p.a, s.cfg).marginIdr);
@@ -168,12 +172,15 @@ export function buildReport(files: RunFile[], variant: Variant = "B", routing: R
       return `${M(r.median)}${mixed ? "*" : ""}`;
     });
     const x = crossing(rates, meds);
-    rows++;
-    if (x !== null) flipRows++;
+    const t = (tally[s.cfg.spillRule ?? "hospital-absorbs"] ??= { rows: 0, any: 0, material: 0 });
+    t.rows++;
+    if (x !== null) t.any++;
+    if (meds.some((m) => m > MATERIAL) && meds.some((m) => m < -MATERIAL)) t.material++;
     add(`| ${s.name} | ${cells.join(" | ")} | ${x === null ? "none in range" : x.toFixed(1) + "/day"} |`);
   }
   add();
-  add(`**Reading:** ${flipRows} of ${rows} settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: ${[...signs].join(", ")} (positive = ${variant} better).`);
+  const tallyText = Object.entries(tally).map(([k, t]) => `${k}: ${t.any} of ${t.rows} settings cross zero, ${t.material} materially (above +5M and below -5M IDR in different rates)`).join("; ");
+  add(`**Reading:** ${tallyText}. Sign set seen across all cells: ${[...signs].join(", ")} (positive = ${variant} better).${routing.startsWith("rule-") ? " Pay-difference rows are not run for rule-aware routing (a forced upgrade costs the member nothing)." : ""}`);
   const x0 = crossing(rates, medMargin);
   add(`**Break-even at default settings:** ${x0 === null ? "no crossing in the tested range" : `about ${x0.toFixed(1)} arrivals/day`}. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.`);
   add();

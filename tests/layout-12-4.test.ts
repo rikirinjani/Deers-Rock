@@ -70,6 +70,7 @@ describe("Epic XII 12.4 layouts and report", () => {
     expect(md).toMatch(/10 Kelas 2 rooms x 2 beds/);
     expect(md.split("\n").filter((l) => l.startsWith("| cost ")).length).toBe(sensitivityGrid().length);
     expect(sensitivityGrid().length).toBe(5 * 3 * 2 * 2);
+    expect(sensitivityGrid("rule-70-20-10").length).toBe(5 * 3 * 2);
     expect(sensitivityGrid().some((g) => g.name.startsWith("cost flat"))).toBe(true);
   });
 

@@ -16,6 +16,7 @@
 - spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified
 - bpjsClaimPaidShare default 1: denial and delay rates are not applied
 - refitCostIdr and closure windows: no renovation cost source
+- BPJS Kesehatan entitlement tier mix (Kelas 3 incl. PBI / Kelas 2 / Kelas 1) in the rule-aware routing: placeholder shares, no source
 - routing table (scenario-routing.ts DEFAULT_ROUTING): BPJS entitlement by member tier, KRIS reform, upgrade rules unverified
 - arrivalsPerDay default 19 and waitLimitMinutes default 1440: calibration comment only, not hospital data
 - beds per room by class (rooms to beds): no source
@@ -123,7 +124,7 @@ Cell = median paired margin difference B minus A in M IDR; * = seeds disagree on
 | cost flat 350k / non-room cost 3M / non-room rev 1M / absorb | 32.1* | 83.7* | 123.2 | 169.5 | 195.5 | 216.9 | none in range |
 | cost flat 350k / non-room cost 3M / non-room rev 1M / pay-diff | 32.1* | 83.7* | 123.2 | 169.5 | 195.5 | 216.9 | none in range |
 
-**Reading:** 0 of 60 settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: B better (positive = B better).
+**Reading:** hospital-absorbs: 0 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates); patient-pays-difference: 0 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates). Sign set seen across all cells: B better (positive = B better).
 **Break-even at default settings:** no crossing in the tested range. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.
 
 ## Not covered

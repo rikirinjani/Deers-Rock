@@ -16,13 +16,14 @@
 - spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified
 - bpjsClaimPaidShare default 1: denial and delay rates are not applied
 - refitCostIdr and closure windows: no renovation cost source
+- BPJS Kesehatan entitlement tier mix (Kelas 3 incl. PBI / Kelas 2 / Kelas 1) in the rule-aware routing: placeholder shares, no source
 - routing table (scenario-routing.ts DEFAULT_ROUTING): BPJS entitlement by member tier, KRIS reform, upgrade rules unverified
 - arrivalsPerDay default 19 and waitLimitMinutes default 1440: calibration comment only, not hospital data
 - beds per room by class (rooms to beds): no source
 - room list price (350000 IDR x class multiplier) and INA-CBG tariffs: engine tables, not checked against current Kemenkes tariffs
 - stay length 3-7 days regardless of class: not calibrated
 - Ancillary revenue and cost do NOT cancel between layouts (they admit different patients). A package payer earns the whole INA-CBG tariff against only a bed-day cost unless a non-room cost per admission is set; that tilts margin toward the layout admitting more package patients. The sensitivity section varies it.
-- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. Under strict routing (no spill) layout A, with no Kelas 3, could not place BPJS or Self-pay patients at all; that run was NOT done (see Not covered).
+- **Routing is held fixed** at DEFAULT_ROUTING, which lets BPJS and Self-pay patients spill up into Kelas 2. Findings about the class mix are conditional on that. A strict-routing page (no spill) exists as a separate file.
 - Money settings that change margin most: cost per bed-day by class (ratio of the list price or flat) and the spilled-up BPJS rule. Non-room cost and revenue per admission are second order here.
 - Default money settings for the main table: cost = 0.6 x list room price per occupied bed-day, no non-room cost or revenue, spilled-up BPJS absorbed by the hospital, all BPJS claims paid.
 
@@ -123,12 +124,11 @@ Cell = median paired margin difference C minus A in M IDR; * = seeds disagree on
 | cost flat 350k / non-room cost 3M / non-room rev 1M / absorb | -0.9 | -1.1* | 5.6* | 0.6* | -0.8* | 5.3* | 4.3/day |
 | cost flat 350k / non-room cost 3M / non-room rev 1M / pay-diff | -26.9 | -33.8 | -26.9* | -32.6* | -32.0 | -25.4* | none in range |
 
-**Reading:** 21 of 60 settings show a sign change of the median margin difference inside the tested rate range; sign set seen across all cells: C better, A better (positive = C better).
+**Reading:** hospital-absorbs: 12 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates); patient-pays-difference: 9 of 30 settings cross zero, 5 materially (above +5M and below -5M IDR in different rates). Sign set seen across all cells: C better, A better (positive = C better).
 **Break-even at default settings:** no crossing in the tested range. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.
 
 ## Not covered
 - Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.
-- **Strict routing (no spillover) was not run.** Owner's premise is more BPJS inpatients; it only bites if BPJS cannot freely use Kelas 2. A recommended follow-up: rerun A, B and C with each payer limited to its own class.
 - Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.
 - Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.
 - Refit cost and downtime during the conversion (supported by the engine, set to zero here).
