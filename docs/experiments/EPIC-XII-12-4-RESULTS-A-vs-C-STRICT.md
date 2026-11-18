@@ -1,10 +1,10 @@
-# Epic XII 12.4 sensitivity: bed-matched comparison (same 20 beds) - STRICT ROUTING
+# Epic XII 12.4 sensitivity: bed-matched comparison (same capacity) - STRICT ROUTING (sensitivity)
 
 > **SCENARIO AND SENSITIVITY OUTPUT, NOT A FORECAST.** The model is not validated against any real hospital. Read the assumptions below before any number.
 
 ## Reading of the example
 - **A:** 10 Kelas 2 rooms x 2 beds = 20 Kelas 2 beds.
-- **C (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds = 20 beds, the same capacity as A. Only the class mix differs from A. (Not the owner's example; a sensitivity run.)
+- **C (bed-matched):** 10 Kelas 2 beds + 10 Kelas 3 beds, the same capacity as A. Only the class mix differs from A. (Not the owner's example; a sensitivity run.)
 - Each layout is a standalone general ward; the rest of the hospital is not simulated.
 - 28 simulated days per run, the first 7 dropped as warm-up; 20 seeds (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20); arrival rates 2, 4, 6, 8, 10, 14 per day. With about 5-day stays, beds demanded is about 5 x the rate (A has 20 beds, B has 50).
 - Same demand in both layouts, paired by seed and rate (checked: arrival digests are identical). Deltas are C minus A.
@@ -13,6 +13,7 @@
 ## Assumptions and unsourced inputs (read first)
 - costPerBedDayIdr / costRatioOfListRate (default 0.6 of the list room price): no hospital cost data
 - nonRoomCostPerAdmissionIdr (default 0) and nonRoomRevenuePerNonPackageAdmissionIdr (default 0): no source; they decide whether a BPJS package admission pays
+- fixedCostPerAvailableBedDayIdr (default 0 in the model; the break-even section sweeps 0 to 200k IDR): no hospital cost data
 - spillRule default hospital-absorbs: Indonesian rules on temporary placement in a higher class are not verified
 - bpjsClaimPaidShare default 1: denial and delay rates are not applied
 - refitCostIdr and closure windows: no renovation cost source
@@ -127,7 +128,37 @@ Cell = median paired margin difference C minus A in M IDR; * = seeds disagree on
 **Reading:** hospital-absorbs: 0 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates); patient-pays-difference: 0 of 30 settings cross zero, 0 materially (above +5M and below -5M IDR in different rates). Sign set seen across all cells: C better (positive = C better).
 **Break-even at default settings:** no crossing in the tested range. Where a crossing exists, compare it with the occupancy columns above: A's occupancy near the crossing is the occupancy at which the two layouts earn the same.
 
+## Break-even analysis (scenario and sensitivity)
+
+Money settings are the defaults of this page; the **fixed cost per available bed-day F** (staffing, utilities and upkeep of beds that exist whether occupied or not) is UNSOURCED, varied here and zero in the tables above. 20 paired seeds; margin difference = C minus A; margin(F) = margin(0) - F x open bed-days.
+
+### 1. Break-even fixed cost per available bed-day
+
+**None by construction:** C and A have the same number of open bed-days, so fixed cost cancels and the margin difference does not depend on F.
+
+### 2. Break-even demand (arrivals per day where the two layouts earn the same margin)
+
+Linear interpolation of the median paired margin difference between the tested rates. **Reliability rule:** reported as reliable only if the median curve has exactly one zero crossing and at least 80 percent of seeds have the median's sign at both bracketing rates; otherwise "no reliable crossing". The bootstrap resamples whole seeds (all rates together) 1000 times. The crossing falls inside one bracket of the rate grid, so read the rate to the grid's resolution only.
+
+| F (k IDR per bed-day) | result | crossing (arrivals/day) | bracket | seeds agreeing at bracket | per-seed crossing min / median / max (n of seeds) | bootstrap 95% (share of resamples with one crossing) | occupancy at crossing: A / C | ahead below / above |
+|---|---|---|---|---|---|---|---|---|
+| 0 | **no reliable crossing**: no crossing in the tested range | - | - | - | - | - | - | C / C |
+
+### 3. Refit payback (days to recover the refit)
+
+Payback = (refit cost + downtime loss) / daily margin gain of C over A, per seed at the arrival rate shown; "never" where the gain is zero or negative. **Refit cost and downtime are UNSOURCED placeholders** (refit cost 50, 150, 300M IDR; downtime 14, 30, 60 days). The downtime loss is arithmetic (beds converted x downtime days x A's contribution per open bed-day), not a simulated closure; converted beds = 10. Central case = 150M IDR and 30 days, at the median daily gain, with the range over seeds; the last column is the range over the whole placeholder grid at the median gain.
+
+| rate/day | F (k IDR) | daily gain (M IDR), median (min to max) | payback central, median (min to max over seeds) | payback over placeholder grid (median gain) |
+|---|---|---|---|---|
+| 2 | 0 | 6.8 (4.5 to 10.1) | 24 (16 to 37) | 8 to 48 |
+| 4 | 0 | 9.9 (6.9 to 12.4) | 18 (14 to 25) | 6 to 35 |
+| 6 | 0 | 10.3 (8.1 to 12.5) | 18 (15 to 23) | 7 to 36 |
+| 8 | 0 | 9.6 (7.5 to 13.6) | 20 (15 to 26) | 7 to 41 |
+| 10 | 0 | 9.5 (7.0 to 11.6) | 22 (18 to 30) | 8 to 44 |
+| 14 | 0 | 8.5 (6.1 to 10.8) | 27 (21 to 38) | 10 to 54 |
+
 ## Not covered
+- Break-even results hold only for the stated placeholders; the fixed cost per bed-day, refit cost and downtime have no source, and the arrival grid is coarse (the crossing sits inside one bracket).
 - Real tariffs, real costs, real BPJS entitlement; only the engine's tables and placeholder inputs above.
 - Under the pay-difference rule, A's lead comes from every spilled-up BPJS patient paying the difference in a ward that has no Kelas 3.
 - Break-even rates printed above come from a median crossing; where seeds disagree on the sign around the crossing (marked *), treat it as no reliable crossing.
