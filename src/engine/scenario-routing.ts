@@ -77,13 +77,21 @@ export const STRICT_ROUTING: RoutingPolicy = {
  * The rules come from secondary sources (news), not primary text; see the design doc KRIS note.
  * `mix` (share of BPJS Kesehatan members in Kelas 3 incl. PBI, Kelas 2, Kelas 1) is UNSOURCED.
  */
-export function ruleAwareRouting(mix: { "kelas-3": number; "kelas-2": number; "kelas-1": number }): RoutingPolicy {
+export function ruleAwareRouting(mix: { "kelas-3": number; "kelas-2": number; "kelas-1": number }, opts: { reserveK1?: boolean } = {}): RoutingPolicy {
   const eligible: Record<string, RoomClass[]> = { ...DEFAULT_ROUTING.eligible };
   delete eligible["BPJS Kesehatan"];
   eligible["BPJS Kesehatan|kelas-3"] = ["kelas-3", "kelas-2"];
   eligible["BPJS Kesehatan|kelas-2"] = ["kelas-2", "kelas-1"];
   eligible["BPJS Kesehatan|kelas-1"] = ["kelas-1"];
-  return { eligible, defaultClasses: DEFAULT_ROUTING.defaultClasses, bpjsTierMix: mix };
+  let defaultClasses = DEFAULT_ROUTING.defaultClasses;
+  if (opts.reserveK1) {
+    // Owner choice 2026-11-18: Kelas 1 beds are reserved for the K1 tier, so a small K1 ward stays
+    // neutral across layouts (no other payer or tier spills into it). With no K1 beds in the layout
+    // this changes nothing.
+    for (const k of Object.keys(eligible)) eligible[k] = eligible[k]!.filter((c) => c !== "kelas-1" || k === "BPJS Kesehatan|kelas-1");
+    defaultClasses = defaultClasses.filter((c) => c !== "kelas-1");
+  }
+  return { eligible, defaultClasses, bpjsTierMix: mix };
 }
 
 /**

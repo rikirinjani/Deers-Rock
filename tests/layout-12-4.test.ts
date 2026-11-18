@@ -169,7 +169,8 @@ describe("Epic XII 12.4 rule-aware routing", () => {
   it("mode labels round-trip, and report pairing keeps rule modes apart", () => {
     expect(routingFor("rule-70-20-10")!.bpjsTierMix).toEqual({ "kelas-3": 70, "kelas-2": 20, "kelas-1": 10 });
     expect(routingFor("spill")).toBeUndefined();
-    expect(parseRoutingMode()).toBe("spill");
+    expect(parseRoutingMode()).toBe("rule-70-20-10-r");
+    expect(parseRoutingMode("spill")).toBe("spill");
     expect(parseRoutingMode("strict")).toBe("strict");
     expect(parseRoutingMode("rule-85-10-5")).toBe("rule-85-10-5");
     expect(() => parseRoutingMode("rule-x")).toThrow();
@@ -187,5 +188,50 @@ describe("Epic XII 12.4 rule-aware routing", () => {
     expect(spilled.length).toBeGreaterThan(0);
     // no BPJS tier-1 patient is ever admitted to a ward without Kelas 1
     expect(f.record.ledger.every((e) => !(e.ownClass === "kelas-1"))).toBe(true);
+  });
+});
+
+import { LAYOUT_KEYS, TIER_MIXES, STANDARD_MODE } from "../src/experiment/layout-12-4.js";
+
+describe("Epic XII 12.4 K1 ward and reserved Kelas 1", () => {
+  it("builds A1, B1, C1 as A, B, C plus an identical 4-bed Kelas 1 ward", () => {
+    expect(LAYOUT_KEYS).toEqual(["A", "B", "C", "A1", "B1", "C1"]);
+    for (const k of ["A", "B", "C"] as const) {
+      const base = layoutFor(k).wards, withK1 = layoutFor(`${k}1` as "A1" | "B1" | "C1").wards;
+      expect(withK1.slice(0, base.length)).toEqual(base);
+      expect(withK1[withK1.length - 1]).toMatchObject({ roomClass: "kelas-1", beds: 4, bedsPerRoom: 2 });
+    }
+  });
+
+  it("standard mode is rule-aware with Kelas 1 reserved, across three mixes", () => {
+    expect(STANDARD_MODE).toBe("rule-70-20-10-r");
+    expect(TIER_MIXES.length).toBe(3);
+    const pol = routingFor("rule-70-20-10-r")!;
+    const k1 = new Map([["k1", { id: "k1", ward: "W", building: "", roomClass: "kelas-1" as const, patientId: null as string | null }]]);
+    const p = gp(cr(4).next);
+    expect(route(k1, p, "BPJS Kesehatan|kelas-1", pol, undefined)).toMatchObject({ roomClass: "kelas-1" });
+    for (const key of ["BPJS Kesehatan|kelas-2", "BPJS Kesehatan|kelas-3", "Private Insurance", "BPJS Ketenagakerjaan", "Self-pay", "Jasa Raharja", "Medicare"])
+      expect(route(k1, p, key, pol, undefined)).toBeUndefined();
+    // not reserved: K2-tier BPJS and Private may still spill into K1
+    const open = routingFor("rule-70-20-10")!;
+    expect(route(k1, p, "BPJS Kesehatan|kelas-2", open, undefined)).toBeDefined();
+    expect(route(k1, p, "Private Insurance", open, undefined)).toBeDefined();
+  });
+
+  it("with no Kelas 1 beds in the layout, reserving K1 changes nothing", { timeout: 120_000 }, () => {
+    const a = runOne("A", 8, 2, 6, undefined, "rule-70-20-10").record;
+    const b = runOne("A", 8, 2, 6, undefined, "rule-70-20-10-r").record;
+    expect(b.ledger).toEqual(a.ledger);
+    expect(b.divertedLog).toEqual(a.divertedLog);
+  });
+
+  it("records the routing key per arrival and diversion, and closures", { timeout: 60_000 }, () => {
+    const r = runOne("A1", 14, 1, 8, undefined, "rule-70-20-10-r").record;
+    expect(r.arrivalKeys!.length).toBe(r.arrivalTicks.length);
+    expect(r.arrivalKeys!.some((k) => k.startsWith("BPJS Kesehatan|"))).toBe(true);
+    expect(r.divertedLog.every((x) => typeof x.routeKey === "string")).toBe(true);
+    expect(r.closures).toEqual([]);
+    // reserved ward: only the K1 tier is ever placed in Kelas 1
+    expect(r.ledger.filter((e) => e.roomClass === "kelas-1").every((e) => e.routeKey === "BPJS Kesehatan|kelas-1")).toBe(true);
   });
 });
